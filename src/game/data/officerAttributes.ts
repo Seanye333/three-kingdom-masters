@@ -227,7 +227,20 @@ export type TacticId =
   | 'cut-supply'  // 釜底抽薪
   | 'cicada'      // 金蟬脫殼
   | 'far-near'    // 遠交近攻
-  | 'borrow-arrow';// 草船借箭
+  | 'borrow-arrow' // 草船借箭
+  // ── Phase 56: more 36-stratagems + 三國奇計 ──
+  | 'deceive-sky' // 瞞天過海
+  | 'loot-fire'   // 趁火打劫
+  | 'from-nothing'// 無中生有
+  | 'watch-fire'  // 隔岸觀火
+  | 'hide-knife'  // 笑裡藏刀
+  | 'brick-jade'  // 拋磚引玉
+  | 'muddy-fish'  // 渾水摸魚
+  | 'door-thief'  // 關門捉賊
+  | 'tree-flower' // 樹上開花
+  | 'guest-host'  // 反客為主
+  | 'feign-mad'   // 假癡不癲
+  | 'pull-ladder';// 上屋抽梯
 
 export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   charge:        { zh: '突擊', en: 'Charge' },
@@ -266,6 +279,18 @@ export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   cicada:        { zh: '金蟬脫殼', en: "Cicada's Empty Shell" },
   'far-near':    { zh: '遠交近攻', en: 'Befriend Distant, Attack Near' },
   'borrow-arrow':{ zh: '草船借箭', en: 'Borrow Arrows with Straw Boats' },
+  'deceive-sky': { zh: '瞞天過海', en: 'Deceive Heaven to Cross the Sea' },
+  'loot-fire':   { zh: '趁火打劫', en: 'Loot a Burning House' },
+  'from-nothing':{ zh: '無中生有', en: 'Create Something from Nothing' },
+  'watch-fire':  { zh: '隔岸觀火', en: 'Watch Fires Burn from Across the River' },
+  'hide-knife':  { zh: '笑裡藏刀', en: 'A Knife Behind a Smile' },
+  'brick-jade':  { zh: '拋磚引玉', en: 'Toss a Brick to Attract Jade' },
+  'muddy-fish':  { zh: '渾水摸魚', en: 'Fish in Troubled Waters' },
+  'door-thief':  { zh: '關門捉賊', en: 'Shut the Door to Catch the Thief' },
+  'tree-flower': { zh: '樹上開花', en: 'Deck the Tree with False Blossoms' },
+  'guest-host':  { zh: '反客為主', en: 'Turn the Guest into the Host' },
+  'feign-mad':   { zh: '假癡不癲', en: 'Feign Madness but Keep Your Wits' },
+  'pull-ladder': { zh: '上屋抽梯', en: 'Lure to the Roof, Pull the Ladder' },
 };
 
 export const OFFICER_TACTICS: Record<string, TacticId[]> = {

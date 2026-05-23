@@ -39,6 +39,18 @@ const TACTIC_CATEGORY: Record<string, string> = {
   cicada:         'strategy',
   'far-near':     'strategy',
   'borrow-arrow': 'ranged',
+  'deceive-sky':  'strategy',
+  'loot-fire':    'strategy',
+  'from-nothing': 'strategy',
+  'watch-fire':   'strategy',
+  'hide-knife':   'disrupt',
+  'brick-jade':   'strategy',
+  'muddy-fish':   'strategy',
+  'door-thief':   'strategy',
+  'tree-flower':  'disrupt',
+  'guest-host':   'strategy',
+  'feign-mad':    'disrupt',
+  'pull-ladder':  'strategy',
 };
 
 const TACTIC_DESC: Record<string, string> = {
@@ -80,6 +92,18 @@ const TACTIC_DESC: Record<string, string> = {
   cicada:         '金蟬脫殼 — 偽裝替身脫身。我方留下虛位，主力悄然轉移。',
   'far-near':     '遠交近攻 — 範睢戰國之計。+30% 與遠方勢力建交成功率，鄰國敵意 +10。',
   'borrow-arrow': '草船借箭 — 諸葛之妙。霧天用草船誘敵射箭，反獲敵箭萬支，下回合弓兵 +50%。',
+  'deceive-sky':  '瞞天過海 — 大智若愚之術。明擺於眾目，反而被忽略。本回合行動敵方視而不見。',
+  'loot-fire':    '趁火打劫 — 乘敵內亂之機。敵勢力陷入叛亂 / 瘟疫時，攻擊傷害 +40%。',
+  'from-nothing': '無中生有 — 虛實相生。製造假象兵力，使敵將判斷錯誤，分兵應對。',
+  'watch-fire':   '隔岸觀火 — 坐山觀虎鬥。當敵國互相內戰時，本方資源每回合 +15%。',
+  'hide-knife':   '笑裡藏刀 — 假意修好暗中圖之。對盟友突襲時，敵方無防備傷害 +50%。',
+  'brick-jade':   '拋磚引玉 — 以小換大。捨棄一座低價值城池，換取敵主力深入後的反包圍。',
+  'muddy-fish':   '渾水摸魚 — 亂中取勝。戰場混亂回合中，所有計策成功率 +25%。',
+  'door-thief':   '關門捉賊 — 圍而不攻。包圍小股敵軍後，每回合敵 −10% 兵，逼降。',
+  'tree-flower':  '樹上開花 — 借勢嚇敵。借盟軍旗號威懾，敵方士氣 −20%。',
+  'guest-host':   '反客為主 — 漸進蠶食。在敵境內駐留 3 回合後，反過來掌控當地。',
+  'feign-mad':    '假癡不癲 — 大智若愚。假裝平庸無能，使敵放鬆警惕，反擊時 War +20。',
+  'pull-ladder':  '上屋抽梯 — 斷其退路。誘敵深入後切斷退路，敵全軍每回合 −15% 士氣。',
 };
 
 const CATEGORIES: CatalogCategory[] = [
