@@ -356,10 +356,13 @@ export function StrategicMap() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    const s = touchStateRef.current;
+    // Capture state BEFORE clearing the ref (s and ref share the same object).
+    const wasMode = touchStateRef.current.mode;
+    const didMove = touchStateRef.current.moved;
     touchStateRef.current.mode = null;
+    touchStateRef.current.moved = false;
     // Tap-to-select: only when single-touch and didn't drag.
-    if (s.mode === 'pan' && !s.moved) {
+    if (wasMode === 'pan' && !didMove) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
@@ -368,8 +371,8 @@ export function StrategicMap() {
       if (!t) return;
       const cssX = t.clientX - rect.left;
       const cssY = t.clientY - rect.top;
-      // Convert from CSS pixels to canvas (world) coords via current viewport
-      // The canvas display size may differ from internal size; adjust by ratio.
+      // Canvas may be CSS-resized on mobile (width: 100%). Scale touch
+      // coords back into the logical 1000×720 canvas space, then toWorld.
       const scaleX = MAP_WIDTH / rect.width;
       const scaleY = MAP_HEIGHT / rect.height;
       const cx = cssX * scaleX;
