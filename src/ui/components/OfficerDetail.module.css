@@ -1,0 +1,304 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 110;
+}
+
+.modal {
+  background: #2a1f15;
+  border: 1px solid #d4a84a;
+  width: 520px;
+  max-width: 95vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid #4a3520;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.portrait {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  animation: portraitBob 5s ease-in-out infinite;
+}
+
+@keyframes portraitBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-2px) rotate(-0.5deg); }
+}
+
+.titleBlock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.titleZh {
+  font-size: 2rem;
+  letter-spacing: 0.4rem;
+  color: #d4a84a;
+}
+
+.titleEn {
+  font-size: 0.85rem;
+  color: #c0a878;
+  letter-spacing: 0.05rem;
+}
+
+.courtesy {
+  color: #8a7050;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: #8a7050;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #d4a84a;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.85rem;
+  background: #1a1410;
+  border-left: 3px solid #4a3520;
+}
+
+.identityRow {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+
+.idLabel {
+  color: #8a7050;
+  font-size: 0.7rem;
+  letter-spacing: 0.15rem;
+  text-transform: uppercase;
+  min-width: 110px;
+}
+
+.idValue {
+  color: #d4a84a;
+}
+
+.idValueEn {
+  color: #8a7050;
+  margin-left: 0.4rem;
+  font-size: 0.78rem;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.youTag {
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  background: #d4a84a;
+  color: #1a1410;
+  padding: 0.1rem 0.4rem;
+  letter-spacing: 0.1rem;
+  margin-left: 0.4rem;
+}
+
+.captiveTag {
+  color: #e09b6c;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.freeTag {
+  color: #88b7e8;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.muted {
+  color: #8a7050;
+  font-size: 0.78rem;
+}
+
+.statsSection {
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #8a7050;
+  margin: 0 0 0.5rem 0;
+  font-weight: normal;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #c0a878;
+}
+
+.statBarTrack {
+  position: relative;
+  height: 14px;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+}
+
+.statBarFill {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 1px;
+}
+
+.statBarValue {
+  position: absolute;
+  right: 4px;
+  top: 0;
+  bottom: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: #e8d9b0;
+  line-height: 14px;
+  text-shadow: 0 0 3px #000;
+}
+
+.footnote {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #8a7050;
+  font-style: italic;
+  border-top: 1px dotted #3a2d20;
+  padding-top: 0.5rem;
+}
+
+.skillsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.skillCard {
+  background: #1a1410;
+  border: 1px solid #4a3520;
+  padding: 0.55rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.skillHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.skillName {
+  color: #d4a84a;
+  font-size: 1rem;
+}
+
+.skillNameEn {
+  color: #8a7050;
+  font-size: 0.72rem;
+  font-style: italic;
+  margin-left: 0.4rem;
+}
+
+.skillCategory {
+  font-family: ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  background: #2a1f15;
+  border: 1px solid #4a3520;
+  color: #c0a878;
+}
+
+.skillCategoryCombat   { color: #b8442e; border-color: #5a3025; }
+.skillCategoryCommand  { color: #c19a3b; border-color: #5a4530; }
+.skillCategoryWisdom   { color: #88b7e8; border-color: #2c4a6a; }
+.skillCategoryCivil    { color: #6abf6a; border-color: #2a4a2a; }
+.skillCategorySpecial  { color: #d4a84a; border-color: #5a4530; }
+
+.skillDesc {
+  font-size: 0.75rem;
+  color: #c0a878;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.rankBadge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  background: #1a1410;
+  border: 1px solid #d4a84a;
+  padding: 0.2rem 0.6rem;
+}
+
+.rankZh {
+  color: #d4a84a;
+  font-size: 0.9rem;
+}
+
+.rankEn {
+  color: #8a7050;
+  font-size: 0.7rem;
+  font-style: italic;
+}
+
+.titleBadge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  background: #1a1410;
+  border: 1px solid #c19a3b;
+  padding: 0.2rem 0.6rem;
+  margin-right: 0.4rem;
+}
+
+.titleBadgeZh {
+  color: #c19a3b;
+  font-size: 0.85rem;
+}

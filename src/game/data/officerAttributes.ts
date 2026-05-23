@@ -1,0 +1,387 @@
+import type { OfficerStats } from '../types';
+
+// ──────────────────────────────────────────────────────────────────────
+// 主義 (Doctrine / Ideology)
+// ──────────────────────────────────────────────────────────────────────
+
+export type Doctrine =
+  | 'royal'      // 王道 — benevolent rule, win hearts
+  | 'hegemonic'  // 覇道 — rule by force
+  | 'ritual'     // 礼教 — Confucian rite-based order
+  | 'fame'       // 名利 — opportunist, fame & profit
+  | 'separatist' // 割據 — independent warlord
+  | 'reclusion'; // 在野 — recluse / sage
+
+export const DOCTRINE_DEFS: Record<Doctrine, { zh: string; en: string; color: string }> = {
+  royal:      { zh: '王道',  en: 'Royal Way',   color: '#d4a84a' },
+  hegemonic:  { zh: '覇道',  en: 'Hegemony',    color: '#b8442e' },
+  ritual:     { zh: '礼教',  en: 'Confucian',   color: '#88b7e8' },
+  fame:       { zh: '名利',  en: 'Fame',        color: '#c19a3b' },
+  separatist: { zh: '割據',  en: 'Separatist',  color: '#7a5a3a' },
+  reclusion:  { zh: '在野',  en: 'Reclusion',   color: '#7a9a5a' },
+};
+
+/** Explicit doctrine for famous officers. Unlisted → derived from stats. */
+export const OFFICER_DOCTRINES: Record<string, Doctrine> = {
+  'cao-cao':       'hegemonic',
+  'liu-bei':       'royal',
+  'sun-quan':      'separatist',
+  'sun-ce':        'hegemonic',
+  'sun-jian':      'hegemonic',
+  'dong-zhuo':     'hegemonic',
+  'lu-bu':         'hegemonic',
+  'yuan-shao':     'separatist',
+  'yuan-shu':      'fame',
+  'liu-biao':      'separatist',
+  'liu-zhang':     'separatist',
+  'liu-yu':        'royal',
+  'gongsun-zan':   'separatist',
+  'ma-teng':       'separatist',
+  'han-sui':       'separatist',
+  'meng-huo':      'separatist',
+  'zhang-jiao':    'fame',
+  'guan-yu':       'ritual',
+  'zhang-fei':     'hegemonic',
+  'zhao-yun':      'royal',
+  'huang-zhong':   'ritual',
+  'ma-chao':       'hegemonic',
+  'zhuge-liang':   'royal',
+  'pang-tong':     'fame',
+  'fa-zheng':      'fame',
+  'jiang-wei':     'royal',
+  'wei-yan':       'hegemonic',
+  'xun-yu':        'ritual',
+  'xun-you':       'ritual',
+  'jia-xu':        'fame',
+  'guo-jia':       'fame',
+  'sima-yi':       'fame',
+  'sima-shi':      'fame',
+  'sima-zhao':     'hegemonic',
+  'sima-yan':      'hegemonic',
+  'chen-gong':     'ritual',
+  'xu-shu':        'reclusion',
+  'sima-hui':      'reclusion',
+  'pang-degong':   'reclusion',
+  'huang-chengyan':'reclusion',
+  'cui-zhouping':  'reclusion',
+  'guan-lu':       'reclusion',
+  'zuo-ci':        'reclusion',
+  'yu-ji':         'reclusion',
+  'hua-tuo':       'reclusion',
+  'zheng-xuan':    'ritual',
+  'cai-yong':      'ritual',
+  'kong-rong':     'ritual',
+  'chen-shou':     'ritual',
+  'lu-su':         'royal',
+  'zhou-yu':       'fame',
+  'lu-meng':       'hegemonic',
+  'lu-xun':        'fame',
+  'zhang-zhao':    'ritual',
+  'zhuge-jin':     'ritual',
+  'gan-ning':      'hegemonic',
+  'tai-shi-ci':    'hegemonic',
+  'huang-gai':     'ritual',
+  'cao-pi':        'fame',
+  'cao-rui':       'fame',
+  'cao-fang':      'fame',
+  'liu-shan':      'fame',
+  'liu-xie':       'royal',
+  'xu-shao':       'reclusion',
+  'sun-shao':      'reclusion',
+};
+
+export function deriveDoctrine(stats: OfficerStats, id?: string): Doctrine {
+  if (id && OFFICER_DOCTRINES[id]) return OFFICER_DOCTRINES[id];
+  const { leadership, war, intelligence, politics, charisma } = stats;
+  // High politics + high charisma + balanced morality → royal
+  if (charisma >= 85 && politics >= 75) return 'royal';
+  // High intelligence + politics + low war → ritual (Confucian)
+  if (intelligence >= 80 && politics >= 75 && war < 65) return 'ritual';
+  // Very high intelligence + low politics → reclusion (sage outside court)
+  if (intelligence >= 85 && politics < 60) return 'reclusion';
+  // High war + leadership → hegemonic
+  if (war >= 80 && leadership >= 75) return 'hegemonic';
+  // High leadership only → separatist
+  if (leadership >= 80) return 'separatist';
+  // Default for opportunists & journeymen
+  return 'fame';
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// 陣形 (Battle Formations)
+// ──────────────────────────────────────────────────────────────────────
+
+export type OfficerFormationId =
+  | 'crane-wing'   // 鶴翼 — flanking encirclement
+  | 'fish-scale'   // 魚鱗 — dense infantry
+  | 'arrow-tip'    // 鋒矢 — wedge charge
+  | 'square'       // 方圓 — defensive square
+  | 'wild-geese'   // 雁行 — ranged echelon
+  | 'yoke'         // 衡軛 — anti-cavalry pikes
+  | 'crescent'     // 偃月 — siege crescent
+  | 'long-snake';  // 長蛇 — line march
+
+export const FORMATION_DEFS: Record<OfficerFormationId, { zh: string; en: string }> = {
+  'crane-wing': { zh: '鶴翼', en: 'Crane-Wing' },
+  'fish-scale': { zh: '魚鱗', en: 'Fish-Scale' },
+  'arrow-tip':  { zh: '鋒矢', en: 'Arrow-Tip' },
+  'square':     { zh: '方圓', en: 'Square' },
+  'wild-geese': { zh: '雁行', en: 'Wild-Geese' },
+  'yoke':       { zh: '衡軛', en: 'Yoke' },
+  'crescent':   { zh: '偃月', en: 'Crescent' },
+  'long-snake': { zh: '長蛇', en: 'Long-Snake' },
+};
+
+/** Explicit formation pools for famous officers. */
+export const OFFICER_FORMATIONS: Record<string, OfficerFormationId[]> = {
+  'cao-cao':      ['arrow-tip', 'fish-scale', 'crane-wing', 'wild-geese'],
+  'zhuge-liang':  ['crane-wing', 'square', 'wild-geese', 'long-snake'],
+  'sima-yi':      ['fish-scale', 'square', 'yoke', 'crane-wing'],
+  'lu-bu':        ['arrow-tip', 'long-snake'],
+  'guan-yu':      ['arrow-tip', 'crescent', 'long-snake'],
+  'zhang-fei':    ['arrow-tip', 'long-snake'],
+  'zhao-yun':     ['arrow-tip', 'crane-wing', 'long-snake'],
+  'ma-chao':      ['arrow-tip', 'long-snake'],
+  'huang-zhong':  ['wild-geese', 'crescent'],
+  'wei-yan':      ['arrow-tip', 'fish-scale'],
+  'zhang-liao':   ['arrow-tip', 'fish-scale', 'long-snake'],
+  'xu-chu':       ['arrow-tip', 'fish-scale'],
+  'xiahou-dun':   ['arrow-tip', 'fish-scale', 'long-snake'],
+  'xiahou-yuan':  ['arrow-tip', 'crescent', 'long-snake'],
+  'zhou-yu':      ['crane-wing', 'fish-scale', 'wild-geese'],
+  'lu-meng':      ['fish-scale', 'crane-wing', 'square'],
+  'lu-xun':       ['crane-wing', 'fish-scale', 'square', 'wild-geese'],
+  'gan-ning':     ['arrow-tip', 'long-snake'],
+  'tai-shi-ci':   ['arrow-tip', 'wild-geese'],
+  'sun-ce':       ['arrow-tip', 'long-snake'],
+  'sun-jian':     ['arrow-tip', 'long-snake'],
+  'jiang-wei':    ['crane-wing', 'fish-scale', 'long-snake', 'square'],
+  'deng-ai':      ['fish-scale', 'crane-wing', 'long-snake'],
+  'zhong-hui':    ['fish-scale', 'long-snake', 'crane-wing'],
+  'jiang-wan':    ['square', 'long-snake'],
+  'fei-yi':       ['square', 'crane-wing'],
+  'pang-tong':    ['arrow-tip', 'crane-wing'],
+  'fa-zheng':     ['crane-wing', 'square'],
+  'guo-jia':      ['arrow-tip', 'fish-scale'],
+  'jia-xu':       ['fish-scale', 'square'],
+  'cao-ren':      ['square', 'fish-scale', 'long-snake'],
+  'hao-zhao':     ['square', 'fish-scale'],
+  'tian-yu':      ['wild-geese', 'long-snake'],
+};
+
+export function deriveFormations(stats: OfficerStats, id?: string): OfficerFormationId[] {
+  if (id && OFFICER_FORMATIONS[id]) return OFFICER_FORMATIONS[id];
+  const { leadership, war, intelligence } = stats;
+  const list: OfficerFormationId[] = [];
+  // Everyone gets long-snake (the basic line march)
+  list.push('long-snake');
+  if (war >= 75) list.push('arrow-tip');
+  if (leadership >= 75) list.push('fish-scale');
+  if (intelligence >= 75) list.push('crane-wing');
+  if (leadership >= 80 && intelligence >= 70) list.push('square');
+  if (intelligence >= 80) list.push('wild-geese');
+  if (leadership >= 85 && war >= 75) list.push('crescent');
+  if (leadership >= 70 && war < 65) list.push('yoke');
+  return Array.from(new Set(list)).slice(0, 4);
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// 戰法 (Battle Tactics)
+// ──────────────────────────────────────────────────────────────────────
+
+export type TacticId =
+  | 'charge'      // 突擊
+  | 'volley'      // 斉射
+  | 'fire-attack' // 火計
+  | 'water-attack'// 水計
+  | 'rouse'       // 鼓舞
+  | 'ruse'        // 偽計
+  | 'crossbow'    // 連弩
+  | 'catapult'    // 投石
+  | 'disorder'    // 撹乱
+  | 'pitfall'     // 落穴
+  | 'ambush'      // 急襲
+  | 'curse';      // 罵声
+
+export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
+  charge:        { zh: '突擊', en: 'Charge' },
+  volley:        { zh: '斉射', en: 'Volley' },
+  'fire-attack': { zh: '火計', en: 'Fire' },
+  'water-attack':{ zh: '水計', en: 'Water' },
+  rouse:         { zh: '鼓舞', en: 'Rouse' },
+  ruse:          { zh: '偽計', en: 'Ruse' },
+  crossbow:      { zh: '連弩', en: 'Crossbow' },
+  catapult:      { zh: '投石', en: 'Catapult' },
+  disorder:      { zh: '撹乱', en: 'Disorder' },
+  pitfall:       { zh: '落穴', en: 'Pitfall' },
+  ambush:        { zh: '急襲', en: 'Ambush' },
+  curse:         { zh: '罵声', en: 'Curse' },
+};
+
+export const OFFICER_TACTICS: Record<string, TacticId[]> = {
+  'cao-cao':     ['fire-attack', 'rouse', 'ambush'],
+  'zhuge-liang': ['fire-attack', 'water-attack', 'ruse', 'pitfall'],
+  'sima-yi':     ['ruse', 'pitfall', 'rouse'],
+  'guo-jia':     ['fire-attack', 'ambush', 'ruse'],
+  'jia-xu':      ['ruse', 'ambush', 'fire-attack'],
+  'zhou-yu':     ['fire-attack', 'water-attack', 'rouse'],
+  'lu-xun':      ['fire-attack', 'ruse', 'pitfall'],
+  'lu-meng':     ['ruse', 'rouse'],
+  'pang-tong':   ['fire-attack', 'ruse'],
+  'fa-zheng':    ['ruse', 'pitfall'],
+  'jiang-wei':   ['ruse', 'pitfall', 'fire-attack'],
+  'deng-ai':     ['ruse', 'ambush'],
+  'lu-bu':       ['charge', 'rouse'],
+  'guan-yu':     ['charge', 'volley'],
+  'zhang-fei':   ['charge', 'curse', 'rouse'],
+  'zhao-yun':    ['charge', 'rouse'],
+  'ma-chao':     ['charge', 'rouse'],
+  'huang-zhong': ['volley', 'charge'],
+  'zhang-liao':  ['charge', 'ambush', 'rouse'],
+  'xu-chu':      ['charge', 'curse'],
+  'dian-wei':    ['charge', 'curse'],
+  'gan-ning':    ['charge', 'ambush'],
+  'tai-shi-ci':  ['charge', 'volley'],
+  'wei-yan':     ['charge', 'ambush'],
+  'wen-chou':    ['charge'],
+  'yan-liang':   ['charge'],
+  'pang-de':     ['charge', 'volley'],
+  'xu-huang':    ['charge', 'ambush'],
+  'zhang-he':    ['charge', 'ambush'],
+  'sun-ce':      ['charge', 'rouse'],
+  'sun-jian':    ['charge', 'rouse'],
+  'cao-ren':     ['rouse', 'volley'],
+  'hao-zhao':    ['volley', 'catapult'],
+  'huang-gai':   ['fire-attack', 'charge'],
+  'cheng-pu':    ['charge', 'rouse'],
+  'tian-feng':   ['ruse', 'pitfall'],
+  'ju-shou':     ['ruse', 'rouse'],
+  'shen-pei':    ['volley', 'catapult'],
+  'guan-lu':     ['ruse'],
+  'yu-ji':       ['curse', 'ruse'],
+  'zuo-ci':      ['ruse', 'disorder'],
+};
+
+export function deriveTactics(stats: OfficerStats, id?: string): TacticId[] {
+  if (id && OFFICER_TACTICS[id]) return OFFICER_TACTICS[id];
+  const { war, intelligence } = stats;
+  const list: TacticId[] = [];
+  if (war >= 80) list.push('charge');
+  if (war >= 70 && war < 80) list.push('volley');
+  if (intelligence >= 85) list.push('fire-attack');
+  if (intelligence >= 80) list.push('ruse');
+  if (intelligence >= 75 && intelligence < 80) list.push('pitfall');
+  if (intelligence >= 70 && intelligence < 75) list.push('disorder');
+  if (war >= 70 && war < 80 && intelligence < 70) list.push('rouse');
+  if (war < 60 && intelligence < 60) list.push('curse');
+  return Array.from(new Set(list)).slice(0, 3);
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// 政策 (Civil Policies)
+// ──────────────────────────────────────────────────────────────────────
+
+export type PolicyId =
+  | 'tuntian'    // 屯田 — military farms
+  | 'hydraulics' // 治水 — water works
+  | 'engineering'// 工兵 — siege engineering
+  | 'commerce'   // 商業 — trade
+  | 'scholarship'// 学問 — learning
+  | 'legalism'   // 法治 — rule by law
+  | 'rites'      // 礼楽 — rituals & music
+  | 'recruitment'// 養兵 — troop training
+  | 'smithing'   // 鍛冶 — weapon forging
+  | 'horse-stewardship' // 馬政 — cavalry breeding
+  | 'medicine'   // 医術 — medicine
+  | 'military-theory'; // 軍学 — military academy
+
+export const POLICY_DEFS: Record<PolicyId, { zh: string; en: string }> = {
+  tuntian:             { zh: '屯田', en: 'Tuntian' },
+  hydraulics:          { zh: '治水', en: 'Hydraulics' },
+  engineering:         { zh: '工兵', en: 'Engineering' },
+  commerce:            { zh: '商業', en: 'Commerce' },
+  scholarship:         { zh: '学問', en: 'Scholarship' },
+  legalism:            { zh: '法治', en: 'Legalism' },
+  rites:               { zh: '礼楽', en: 'Rites' },
+  recruitment:         { zh: '養兵', en: 'Recruitment' },
+  smithing:            { zh: '鍛冶', en: 'Smithing' },
+  'horse-stewardship': { zh: '馬政', en: 'Horse Stewardship' },
+  medicine:            { zh: '医術', en: 'Medicine' },
+  'military-theory':   { zh: '軍学', en: 'Military Theory' },
+};
+
+export const OFFICER_POLICIES: Record<string, PolicyId[]> = {
+  'cao-cao':      ['tuntian', 'legalism', 'recruitment', 'military-theory'],
+  'zhuge-liang':  ['legalism', 'tuntian', 'engineering', 'military-theory'],
+  'sima-yi':      ['legalism', 'recruitment', 'military-theory'],
+  'liu-bei':      ['rites', 'recruitment'],
+  'sun-quan':     ['commerce', 'recruitment', 'legalism'],
+  'xun-yu':       ['legalism', 'scholarship', 'rites'],
+  'xun-you':      ['legalism', 'scholarship'],
+  'cheng-yu':     ['legalism', 'military-theory'],
+  'guo-jia':      ['military-theory', 'legalism'],
+  'jia-xu':       ['military-theory', 'legalism'],
+  'zao-zhi':      ['tuntian', 'hydraulics'],  // founded Cao Wei's tuntian system
+  'ren-jun':      ['tuntian', 'hydraulics'],
+  'liu-fu':       ['tuntian', 'hydraulics', 'commerce'],
+  'cui-yan':      ['rites', 'scholarship'],
+  'chen-qun':     ['legalism', 'scholarship', 'rites'],
+  'zhong-yao':    ['scholarship', 'rites', 'hydraulics'],
+  'wang-lang':    ['scholarship', 'rites'],
+  'hua-xin':      ['rites', 'scholarship'],
+  'jiang-wan':    ['legalism', 'scholarship', 'tuntian'],
+  'fei-yi':       ['legalism', 'rites', 'scholarship'],
+  'dong-yun':     ['legalism', 'rites'],
+  'fa-zheng':     ['legalism', 'military-theory'],
+  'mi-zhu':       ['commerce', 'rites'],
+  'jian-yong':    ['rites', 'commerce'],
+  'sun-qian':     ['rites', 'commerce'],
+  'zhang-zhao':   ['rites', 'scholarship', 'legalism'],
+  'gu-yong':      ['legalism', 'rites', 'scholarship'],
+  'zhuge-jin':    ['rites', 'scholarship', 'legalism'],
+  'lu-su':        ['commerce', 'rites', 'recruitment'],
+  'lu-xun':       ['military-theory', 'tuntian'],
+  'pang-tong':    ['military-theory', 'legalism'],
+  'hua-tuo':      ['medicine', 'scholarship'],
+  'zhang-zhongjing': ['medicine', 'scholarship'],
+  'cai-yong':     ['scholarship', 'rites'],
+  'zheng-xuan':   ['scholarship', 'rites'],
+  'kong-rong':    ['rites', 'scholarship'],
+  'wang-can':     ['scholarship', 'rites'],
+  'ma-jun':       ['engineering', 'smithing'],
+  'pu-yuan':      ['smithing', 'engineering'],
+  'ma-teng':      ['horse-stewardship', 'recruitment'],
+  'ma-chao':      ['horse-stewardship', 'recruitment'],
+  'gongsun-zan':  ['horse-stewardship', 'recruitment'],
+  'huo-zhi':      ['hydraulics', 'tuntian'],
+  'liu-yan':      ['legalism', 'rites'],
+  'zhuge-ke':     ['military-theory', 'legalism'],
+};
+
+export function derivePolicies(stats: OfficerStats, id?: string): PolicyId[] {
+  if (id && OFFICER_POLICIES[id]) return OFFICER_POLICIES[id];
+  const { war, intelligence, politics, charisma } = stats;
+  const list: PolicyId[] = [];
+  if (politics >= 85) list.push('legalism');
+  if (politics >= 80 && intelligence >= 70) list.push('scholarship');
+  if (politics >= 75 && charisma >= 75) list.push('rites');
+  if (politics >= 70 && intelligence >= 70) list.push('tuntian');
+  if (politics >= 70 && war >= 70) list.push('recruitment');
+  if (intelligence >= 75 && war < 60) list.push('hydraulics');
+  if (charisma >= 80 && politics >= 60) list.push('commerce');
+  if (war >= 75 && intelligence >= 70) list.push('military-theory');
+  return Array.from(new Set(list)).slice(0, 3);
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Lv. (Officer Level)
+// Computed from total stats — average stat rounded.
+// ──────────────────────────────────────────────────────────────────────
+
+export function deriveLevel(stats: OfficerStats): number {
+  const sum =
+    stats.leadership + stats.war + stats.intelligence +
+    stats.politics + stats.charisma;
+  // Average stat rounded to nearest integer = level (1-100 range).
+  return Math.max(1, Math.min(100, Math.round(sum / 5)));
+}

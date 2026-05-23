@@ -1,0 +1,80 @@
+import type { BuildingDef } from '../types';
+
+export const BUILDING_DEFS: BuildingDef[] = [
+  {
+    id: 'barracks',
+    name: { en: 'Barracks', zh: '兵営' },
+    description: 'Trains soldiers. +10% troop training per level; +5% troop cap per level.',
+    goldPerLevel: 400,
+    seasonsPerLevel: 2,
+    maxLevel: 5,
+    effect: '+10% recruit / +5% troop cap per level',
+  },
+  {
+    id: 'market',
+    name: { en: 'Market', zh: '市場' },
+    description: 'Stimulates commerce. +12% commerce gold per season per level.',
+    goldPerLevel: 350,
+    seasonsPerLevel: 2,
+    maxLevel: 5,
+    effect: '+12% commerce per level',
+  },
+  {
+    id: 'foundry',
+    name: { en: 'Foundry', zh: '鉄工坊' },
+    description: 'Forges arms and tools. +8% troop training and +3% commerce per level.',
+    goldPerLevel: 500,
+    seasonsPerLevel: 3,
+    maxLevel: 4,
+    effect: '+8% troop / +3% commerce per level',
+  },
+  {
+    id: 'academy',
+    name: { en: 'Academy', zh: '書院' },
+    description: 'A school of letters. +15% officer XP, +5% recruit-officer chance per level.',
+    goldPerLevel: 600,
+    seasonsPerLevel: 3,
+    maxLevel: 4,
+    effect: '+15% officer XP / +5% recruit per level',
+  },
+  {
+    id: 'temple',
+    name: { en: 'Temple', zh: '寺院' },
+    description: 'A shrine for the people. +2 loyalty per season; instigate ops 30% less effective.',
+    goldPerLevel: 300,
+    seasonsPerLevel: 2,
+    maxLevel: 3,
+    effect: '+2 loyalty / season; instigate resistance per level',
+  },
+  {
+    id: 'farm',
+    name: { en: 'Farm Colony', zh: '屯田' },
+    description: 'Military farmland. +15% agriculture food yield per level.',
+    goldPerLevel: 250,
+    seasonsPerLevel: 2,
+    maxLevel: 5,
+    effect: '+15% food per level',
+  },
+  {
+    id: 'wall',
+    name: { en: 'City Wall', zh: '城壁' },
+    description: 'Reinforces the perimeter. +10 city defense per level.',
+    goldPerLevel: 700,
+    seasonsPerLevel: 4,
+    maxLevel: 4,
+    effect: '+10 city defense per level',
+  },
+  {
+    id: 'shipyard',
+    name: { en: 'Shipyard', zh: '船渠' },
+    description: 'Enables ship construction. Each level halves ship build time.',
+    goldPerLevel: 800,
+    seasonsPerLevel: 3,
+    maxLevel: 3,
+    effect: 'Required to build ships; faster builds per level',
+  },
+];
+
+export const BUILDING_DEFS_BY_ID: Record<string, BuildingDef> = Object.fromEntries(
+  BUILDING_DEFS.map((b) => [b.id, b]),
+);

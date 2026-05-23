@@ -1,0 +1,186 @@
+.root {
+  width: 320px;
+  min-width: 320px;
+  background: #2a1f15;
+  border: 1px solid #4a3520;
+  padding: 1.25rem;
+  overflow-y: auto;
+  max-height: 100%;
+  font-size: 0.875rem;
+}
+
+.empty {
+  color: #8a7050;
+  text-align: center;
+  padding: 2rem 1rem;
+  font-style: italic;
+}
+
+.header {
+  border-bottom: 1px solid #4a3520;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.nameZh {
+  font-size: 1.75rem;
+  color: #d4a84a;
+  letter-spacing: 0.2rem;
+}
+
+.nameEn {
+  font-size: 0.8rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.owner {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #e8d9b0;
+  font-size: 0.875rem;
+}
+
+.ownerEn {
+  color: #8a7050;
+  font-size: 0.75rem;
+}
+
+.colorDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.neutral {
+  color: #8a7050;
+  font-style: italic;
+}
+
+.playerTag {
+  margin-left: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  color: #1a1410;
+  background: #d4a84a;
+  padding: 0.1rem 0.4rem;
+  letter-spacing: 0.1rem;
+}
+
+.officerTask {
+  color: #d4a84a;
+}
+
+.section {
+  margin-bottom: 1.25rem;
+}
+
+.sectionTitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #8a7050;
+  margin: 0 0 0.5rem 0;
+  font-weight: normal;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.25rem 0;
+  border-bottom: 1px dotted #3a2d20;
+}
+
+.statRow:last-child {
+  border-bottom: none;
+}
+
+.statLabel {
+  color: #c0a878;
+}
+
+.statZh {
+  color: #8a7050;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+.statValue {
+  color: #e8d9b0;
+  font-family: ui-monospace, monospace;
+}
+
+.barRow {
+  margin-bottom: 0.5rem;
+}
+
+.barHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+.barValue {
+  font-family: ui-monospace, monospace;
+  color: #e8d9b0;
+  font-size: 0.8rem;
+}
+
+.barTrack {
+  height: 6px;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, #8a6530, #d4a84a);
+}
+
+.officerList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.officerRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.35rem 0.5rem;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+}
+
+.officerNameZh {
+  color: #d4a84a;
+  font-size: 0.95rem;
+}
+
+.officerNameEn {
+  color: #8a7050;
+  font-size: 0.7rem;
+}
+
+.officerStats {
+  color: #c0a878;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+}
+
+.muted {
+  color: #8a7050;
+  font-size: 0.85rem;
+  font-style: italic;
+}

@@ -1,0 +1,308 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #2a1f15;
+  border: 1px solid #d4a84a;
+  width: 620px;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #4a3520;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.titleZh {
+  font-size: 1.5rem;
+  color: #d4a84a;
+  letter-spacing: 0.2rem;
+}
+
+.titleEn {
+  font-size: 0.8rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: #8a7050;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #d4a84a;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.rowLabel {
+  font-size: 0.7rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #8a7050;
+  min-width: 60px;
+}
+
+.rowValue {
+  color: #e8d9b0;
+}
+
+.muted {
+  color: #8a7050;
+  font-size: 0.8rem;
+}
+
+.section {
+  margin: 0.75rem 0;
+}
+
+.sectionTitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #8a7050;
+  margin: 0 0 0.4rem 0;
+  font-weight: normal;
+}
+
+.empty {
+  color: #8a7050;
+  font-style: italic;
+  padding: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.targetList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.targetButton {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  color: #e8d9b0;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.targetButton:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.targetSelected {
+  border-color: #d4a84a;
+  background: #3a2d20;
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.targetText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.targetNameZh {
+  color: #d4a84a;
+  font-size: 0.95rem;
+}
+
+.targetNameEn {
+  color: #8a7050;
+  font-size: 0.75rem;
+}
+
+.targetMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.hostile {
+  background: #b8442e;
+  color: #1a1410;
+  padding: 0.05rem 0.4rem;
+  font-weight: bold;
+  letter-spacing: 0.1rem;
+}
+
+.friendly {
+  background: #2f8e6f;
+  color: #1a1410;
+  padding: 0.05rem 0.4rem;
+  font-weight: bold;
+  letter-spacing: 0.1rem;
+}
+
+.officerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.4rem;
+}
+
+.officerButton {
+  display: flex;
+  flex-direction: column;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  color: #e8d9b0;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.officerButton:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.officerSelected {
+  border-color: #d4a84a;
+  background: #3a2d20;
+}
+
+.officerNameZh {
+  color: #d4a84a;
+  font-size: 0.95rem;
+}
+
+.officerNameEn {
+  color: #8a7050;
+  font-size: 0.7rem;
+}
+
+.officerWar {
+  color: #c0a878;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  margin-top: 0.15rem;
+}
+
+.officerWar strong {
+  color: #d4a84a;
+  font-weight: normal;
+  font-size: 0.9rem;
+}
+
+.troopRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.troopRow button {
+  background: #1a1410;
+  border: 1px solid #4a3520;
+  color: #e8d9b0;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+}
+
+.troopRow button:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.allButton {
+  color: #d4a84a !important;
+  letter-spacing: 0.1rem;
+}
+
+.slider {
+  flex: 1;
+  accent-color: #d4a84a;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #4a3520;
+}
+
+.footerMeta {
+  font-size: 0.85rem;
+  color: #c0a878;
+}
+
+.footerMeta strong {
+  color: #d4a84a;
+  font-weight: normal;
+}
+
+.confirmButton {
+  background: #4a3520;
+  color: #e8d9b0;
+  border: 1px solid #d4a84a;
+  padding: 0.5rem 1.5rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  letter-spacing: 0.1rem;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: #5a4530;
+}
+
+.confirmButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

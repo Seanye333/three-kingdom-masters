@@ -1,0 +1,131 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #2a1f15;
+  border: 1px solid #d4a84a;
+  width: 600px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.header {
+  border-bottom: 1px solid #4a3520;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.titleZh {
+  font-size: 1.75rem;
+  color: #d4a84a;
+  letter-spacing: 0.4rem;
+}
+
+.titleEn {
+  font-size: 0.85rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.empty {
+  color: #8a7050;
+  font-style: italic;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.entries {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.4rem 0.6rem;
+  background: #1a1410;
+  border-left: 3px solid #4a3520;
+  font-size: 0.875rem;
+}
+
+.kindTag {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+}
+
+.text {
+  color: #c0a878;
+}
+
+.kind_income      { border-left-color: #d4a84a; }
+.kind_command_success { border-left-color: #3a7dd9; }
+.kind_command_failure { border-left-color: #b8442e; }
+.kind_desertion   { border-left-color: #b8442e; }
+.kind_upkeep      { border-left-color: #5a4530; }
+.kind_march       { border-left-color: #e09b6c; }
+.kind_battle      { border-left-color: #c19a3b; }
+.kind_conquest    { border-left-color: #d4a84a; background: #2a1f15; }
+.kind_defeat      { border-left-color: #b8442e; }
+.kind_death       { border-left-color: #6b3a3a; }
+.kind_succession  { border-left-color: #d4a84a; }
+.kind_dissolution { border-left-color: #6b3a3a; background: #2a1f15; }
+.kind_rebellion   { border-left-color: #b8442e; }
+.kind_harvest     { border-left-color: #5a9b3a; }
+.kind_famine      { border-left-color: #b8442e; }
+.kind_plague      { border-left-color: #6b4a8a; }
+.kind_talent      { border-left-color: #3a7dd9; background: #2a1f15; }
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #4a3520;
+}
+
+.closeButton {
+  background: #4a3520;
+  color: #e8d9b0;
+  border: 1px solid #d4a84a;
+  padding: 0.5rem 1.5rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: #5a4530;
+}
+
+.closeButton:active {
+  background: #d4a84a;
+  color: #1a1410;
+}

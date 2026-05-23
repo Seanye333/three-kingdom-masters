@@ -1,0 +1,192 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #2a1f15;
+  border: 1px solid #d4a84a;
+  width: 760px;
+  max-width: 95vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #4a3520;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.titleZh {
+  font-size: 1.75rem;
+  color: #d4a84a;
+  letter-spacing: 0.4rem;
+}
+
+.titleEn {
+  font-size: 0.8rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: #8a7050;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #d4a84a;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list li {
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  padding: 0.75rem 1rem;
+}
+
+.eliminated {
+  opacity: 0.45;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.nameBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 140px;
+}
+
+.nameZh {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  color: #d4a84a;
+}
+
+.nameEn {
+  font-size: 0.75rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.playerTag {
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  background: #d4a84a;
+  color: #1a1410;
+  padding: 0.1rem 0.4rem;
+  letter-spacing: 0.1rem;
+}
+
+.eliminatedTag {
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  background: #b8442e;
+  color: #1a1410;
+  padding: 0.1rem 0.4rem;
+  letter-spacing: 0.1rem;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.statBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  font-family: ui-monospace, monospace;
+  min-width: 70px;
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  color: #8a7050;
+  letter-spacing: 0.15rem;
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-size: 0.95rem;
+  color: #e8d9b0;
+}
+
+.topOfficers {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dotted #3a2d20;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.topOfficer {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  background: #2a1f15;
+  border: 1px solid #3a2d20;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+.officerNameZh {
+  color: #d4a84a;
+}
+
+.officerNameEn {
+  color: #8a7050;
+  font-size: 0.7rem;
+}
+
+.officerStats {
+  color: #c0a878;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+}

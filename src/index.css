@@ -1,0 +1,268 @@
+/* ─── Phase 51: Design tokens — single source of truth ──────────── */
+:root {
+  /* Backgrounds */
+  --tkm-bg:           #1a1410;
+  --tkm-bg-raised:    #251c14;
+  --tkm-bg-sunken:    #110d09;
+  --tkm-bg-modal:     #1f1610;
+
+  /* Borders */
+  --tkm-border:       #4a3520;
+  --tkm-border-soft:  #3a2818;
+  --tkm-border-gold:  #6a4f2a;
+
+  /* Text hierarchy — 3 tiers */
+  --tkm-text-h1:      #f0e0b0;
+  --tkm-text-h2:      #d4a84a;
+  --tkm-text-body:    #c9b89a;
+  --tkm-text-muted:   #8c7a5a;
+
+  /* State colors — consistent across all UI */
+  --tkm-success:      #b8c87a;
+  --tkm-warn:         #d4a84a;
+  --tkm-danger:       #b8442e;
+  --tkm-info:         #88b7e8;
+  --tkm-magic:        #c178c7;
+
+  /* Faction palette — pop colors */
+  --tkm-wei:          #8a2832;
+  --tkm-shu:          #d4842a;
+  --tkm-wu:           #2a8a5c;
+  --tkm-warlord:      #6a4a8a;
+
+  /* Stat tones for the 5 attributes */
+  --tkm-stat-lead:    #d4a84a;
+  --tkm-stat-war:     #b8442e;
+  --tkm-stat-int:     #88b7e8;
+  --tkm-stat-pol:     #b8c87a;
+  --tkm-stat-cha:     #c178c7;
+
+  /* Spacing scale */
+  --tkm-gap-xs: 0.25rem;
+  --tkm-gap-sm: 0.5rem;
+  --tkm-gap-md: 0.75rem;
+  --tkm-gap-lg: 1rem;
+  --tkm-gap-xl: 1.5rem;
+
+  /* Type scale */
+  --tkm-font-zh: 'Ma Shan Zheng', 'Songti SC', 'Noto Serif SC', serif;
+  --tkm-font-body: 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  --tkm-font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--tkm-bg);
+  color: var(--tkm-text-body);
+  font-family: var(--tkm-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Phase 32: shared visual polish ───────────────────────────────── */
+
+/* Any element whose class name ends with "backdrop" (modal overlays
+ * use that convention across our components) fades in. The matching
+ * "modal" element gets a subtle scale-up. */
+[class*="backdrop"] {
+  animation: tkmFadeIn 0.18s ease-out;
+}
+[class*="modal"]:not([class*="backdrop"]) {
+  animation: tkmModalIn 0.22s ease-out;
+}
+
+@keyframes tkmFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes tkmModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Decorative corner motif applied to elements with [data-corners].
+ * Four faint gold cloud-curl ornaments at each corner of the box. */
+[data-corners] {
+  position: relative;
+}
+[data-corners]::before,
+[data-corners]::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #d4a84a;
+  opacity: 0.6;
+  pointer-events: none;
+}
+[data-corners]::before {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+[data-corners]::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Button hover polish — gentle gold glow on amber action buttons. */
+button:not(:disabled):hover {
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+/* Title-screen brush stroke calligraphy intro. */
+@keyframes tkmBrushStroke {
+  0%   { stroke-dashoffset: 200; opacity: 0; }
+  10%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+.tkm-brush-stroke path {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: tkmBrushStroke 2s ease-out forwards;
+}
+.tkm-brush-stroke path:nth-child(2) { animation-delay: 0.3s; }
+.tkm-brush-stroke path:nth-child(3) { animation-delay: 0.6s; }
+
+/* Seasonal map tint overlay — applied to .seasonal-overlay div. */
+.seasonal-spring { background: rgba(120, 200, 100, 0.06); }
+.seasonal-summer { background: rgba(255, 220, 100, 0.05); }
+.seasonal-autumn { background: rgba(220, 130, 60, 0.10); }
+.seasonal-winter {
+  background: rgba(220, 230, 255, 0.10);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* ─── Phase 34: responsive — tablet/mobile fallbacks ──────────── */
+
+@media (max-width: 900px) {
+  [class*="modal"]:not([class*="backdrop"]) {
+    width: 96vw !important;
+    max-width: 96vw !important;
+  }
+  [class*="topBar"] {
+    flex-wrap: wrap;
+    gap: 4px !important;
+  }
+  [class*="forcesButton"] {
+    font-size: 0.72rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+}
+
+@media (pointer: coarse) {
+  button {
+    min-height: 36px;
+  }
+}
+
+/* ─── Phase 51: Battle drama — animations & motion ───────────────── */
+
+/* Damage / morale numbers flying off the field */
+@keyframes tkmDamageFly {
+  0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+  20%  { opacity: 1; transform: translateY(-10px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.9); }
+}
+.tkm-damage-num {
+  display: inline-block;
+  font-family: var(--tkm-font-mono);
+  font-weight: bold;
+  color: var(--tkm-danger);
+  animation: tkmDamageFly 1.6s ease-out forwards;
+}
+
+/* Morale-bar fill smooth transition */
+.tkm-morale-bar {
+  position: relative;
+  height: 10px;
+  background: var(--tkm-bg-sunken);
+  border: 1px solid var(--tkm-border-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.tkm-morale-bar > .fill {
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.4s ease;
+}
+
+/* Sword-clash flash at main engagement */
+@keyframes tkmClash {
+  0%   { opacity: 0; transform: scale(0.6) rotate(-10deg); }
+  35%  { opacity: 1; transform: scale(1.4) rotate(0deg); }
+  100% { opacity: 0; transform: scale(1.6) rotate(15deg); }
+}
+.tkm-clash {
+  display: inline-block;
+  animation: tkmClash 0.9s ease-out forwards;
+  font-size: 2.5rem;
+  filter: drop-shadow(0 0 12px var(--tkm-warn));
+}
+
+/* Fire wave for successful 火攻 */
+@keyframes tkmFireWave {
+  0%   { opacity: 0; background-position: 0 100%; }
+  20%  { opacity: 0.7; }
+  100% { opacity: 0; background-position: 0 -50%; }
+}
+.tkm-fire-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(232, 96, 42, 0.7) 0%,
+    rgba(255, 208, 96, 0.4) 50%,
+    transparent 100%
+  );
+  animation: tkmFireWave 1.2s ease-out forwards;
+}
+
+/* Officer portrait base */
+.tkm-portrait {
+  display: inline-block;
+  background: var(--tkm-bg-sunken);
+  border: 1px solid var(--tkm-border-gold);
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tkm-portrait svg { display: block; width: 100%; height: 100%; }
+.tkm-portrait[data-faction-wei]    { border-color: var(--tkm-wei); }
+.tkm-portrait[data-faction-shu]    { border-color: var(--tkm-shu); }
+.tkm-portrait[data-faction-wu]     { border-color: var(--tkm-wu); }
+.tkm-portrait[data-faction-warlord] { border-color: var(--tkm-warlord); }
+
+/* Officer quote — appears below portrait when voice line fires */
+.tkm-voiceline {
+  font-family: var(--tkm-font-zh);
+  font-style: italic;
+  color: var(--tkm-text-h1);
+  border-left: 2px solid var(--tkm-text-h2);
+  padding-left: 0.5rem;
+  margin: 0.4rem 0;
+  animation: tkmFadeIn 0.5s ease-out;
+}

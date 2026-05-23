@@ -1,0 +1,177 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #1a1410;
+  color: #e8d9b0;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: linear-gradient(180deg, #2a1f15 0%, #241a12 100%);
+  border-bottom: 1px solid var(--tkm-border-gold, #6a4f2a);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.topBar::-webkit-scrollbar { height: 4px; }
+.topBar::-webkit-scrollbar-thumb { background: var(--tkm-border, #4a3520); }
+
+.backButton,
+.advanceButton {
+  background: var(--tkm-bg-raised, #251c14);
+  color: var(--tkm-text-h1, #f0e0b0);
+  border: 1px solid var(--tkm-text-h2, #d4a84a);
+  padding: 0.4rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  letter-spacing: 0.1rem;
+  transition: background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+
+.backButton {
+  border-color: var(--tkm-border, #4a3520);
+  color: var(--tkm-text-body, #c9b89a);
+}
+
+.backButton:hover {
+  background: var(--tkm-bg-raised, #251c14);
+  color: var(--tkm-text-h1, #f0e0b0);
+}
+
+.forcesButton {
+  background: transparent;
+  color: var(--tkm-text-body, #c9b89a);
+  border: 1px solid var(--tkm-border, #4a3520);
+  padding: 0.35rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  letter-spacing: 0.1rem;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.forcesButton:hover {
+  background: var(--tkm-bg-raised, #251c14);
+  border-color: var(--tkm-text-h2, #d4a84a);
+  color: var(--tkm-text-h1, #f0e0b0);
+}
+
+.advanceButton {
+  margin-left: auto;
+  background: linear-gradient(180deg, #4a3520 0%, #2a1f15 100%);
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(212, 168, 74, 0.15);
+}
+
+.advanceButton:hover {
+  background: linear-gradient(180deg, #5a4530 0%, #3a2818 100%);
+  box-shadow: 0 0 16px rgba(212, 168, 74, 0.35);
+}
+
+.advanceButton:active {
+  background: var(--tkm-text-h2, #d4a84a);
+  color: var(--tkm-bg, #1a1410);
+}
+
+.dateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.15rem 0.9rem;
+  border-left: 1px solid var(--tkm-border-soft, #3a2818);
+  border-right: 1px solid var(--tkm-border-soft, #3a2818);
+  line-height: 1.3;
+  min-width: 130px;
+}
+
+.year {
+  font-size: 1.05rem;
+  color: var(--tkm-text-h2, #d4a84a);
+  font-weight: bold;
+  font-family: var(--tkm-font-mono, ui-monospace, monospace);
+  letter-spacing: 0.05rem;
+}
+
+.season {
+  font-size: 0.72rem;
+  color: var(--tkm-text-muted, #8c7a5a);
+  letter-spacing: 0.08rem;
+}
+
+.seasonZh {
+  color: var(--tkm-text-body, #c9b89a);
+  margin-left: 0.2rem;
+}
+
+.playerBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.15rem 0.6rem;
+  border-right: 1px solid var(--tkm-border-soft, #3a2818);
+}
+
+.colorDot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 6px currentColor;
+  flex-shrink: 0;
+}
+
+.playerName {
+  font-size: 0.95rem;
+  color: var(--tkm-text-h2, #d4a84a);
+  letter-spacing: 0.1rem;
+}
+
+.playerNameEn {
+  font-size: 0.7rem;
+  color: var(--tkm-text-muted, #8c7a5a);
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.orderBlock {
+  color: var(--tkm-text-muted, #8c7a5a);
+  font-size: 0.78rem;
+  letter-spacing: 0.05rem;
+  padding: 0 0.6rem;
+  white-space: nowrap;
+}
+
+.orderBlock strong {
+  color: var(--tkm-text-h2, #d4a84a);
+  font-weight: normal;
+  font-family: var(--tkm-font-mono, ui-monospace, monospace);
+  font-size: 0.95rem;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.mapWrap {
+  flex: 1;
+  background: #0f0a07;
+  border: 1px solid #4a3520;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 0.5rem;
+}

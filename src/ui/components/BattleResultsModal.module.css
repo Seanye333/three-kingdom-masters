@@ -1,0 +1,159 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 970;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
+  border: 2px solid #d4a84a;
+  width: min(680px, 100%);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  color: #e8d9b0;
+  font-family: 'Songti SC', 'Noto Serif SC', serif;
+  box-shadow: 0 0 40px rgba(212, 168, 74, 0.3);
+}
+
+.headerBanner {
+  padding: 2rem 1.5rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #4a3520;
+}
+
+.bannerZh {
+  font-size: 2.5rem;
+  letter-spacing: 0.6rem;
+  text-shadow: 0 0 16px rgba(212, 168, 74, 0.4);
+}
+
+.bannerZhVictory { color: #d4a84a; }
+.bannerZhDefeat { color: #b8442e; }
+
+.bannerEn {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #c0a878;
+  font-style: italic;
+  letter-spacing: 0.3rem;
+}
+
+.body {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.section {
+  margin-bottom: 1rem;
+}
+
+.sectionLabel {
+  font-size: 0.7rem;
+  letter-spacing: 0.2rem;
+  color: #8a7050;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px;
+  align-items: center;
+  padding: 0.4rem 0.55rem;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.statSide {
+  color: #c0a878;
+}
+
+.statValue {
+  font-family: ui-monospace, monospace;
+  text-align: right;
+}
+
+.statValueAttack { color: #b8442e; }
+.statValueDefend { color: #3a7dd9; }
+
+.officerCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.4rem 0.55rem;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.officerName {
+  color: #d4a84a;
+}
+
+.officerNameEn {
+  color: #8a7050;
+  font-size: 0.72rem;
+  font-style: italic;
+  margin-left: 0.3rem;
+}
+
+.officerStat {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: #c0a878;
+}
+
+.captureCard {
+  border-color: #c19a3b;
+}
+
+.deadCard {
+  border-color: #b8442e;
+}
+
+.lootRow {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.5rem 0.6rem;
+  background: #1a1410;
+  border: 1px solid #c19a3b;
+  font-family: ui-monospace, monospace;
+}
+
+.lootValue {
+  color: #c19a3b;
+}
+
+.footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #4a3520;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn {
+  background: #3a2d20;
+  border: 1px solid #d4a84a;
+  color: #d4a84a;
+  padding: 0.5rem 1.2rem;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.15rem;
+}
+
+.btnPrimary {
+  background: linear-gradient(180deg, #5a4530, #3a2d20);
+}
+
+.btn:hover {
+  background: #5a4530;
+}

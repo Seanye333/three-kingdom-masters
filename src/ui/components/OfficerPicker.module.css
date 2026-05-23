@@ -1,0 +1,146 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #2a1f15;
+  border: 1px solid #d4a84a;
+  width: 480px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #4a3520;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.titleZh {
+  font-size: 1.5rem;
+  color: #d4a84a;
+  letter-spacing: 0.2rem;
+}
+
+.titleEn {
+  font-size: 0.8rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: #8a7050;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #d4a84a;
+}
+
+.meta {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  color: #c0a878;
+  margin-bottom: 0.5rem;
+}
+
+.meta strong {
+  color: #d4a84a;
+  font-weight: normal;
+}
+
+.desc {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: #c0a878;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.sectionTitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #8a7050;
+  margin: 0 0 0.5rem 0;
+  font-weight: normal;
+}
+
+.empty {
+  color: #8a7050;
+  font-style: italic;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.officerList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow-y: auto;
+}
+
+.officerButton {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: baseline;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  color: #e8d9b0;
+  padding: 0.6rem 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.officerButton:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.officerNameZh {
+  font-size: 1rem;
+  color: #d4a84a;
+}
+
+.officerNameEn {
+  font-size: 0.75rem;
+  color: #8a7050;
+}
+
+.officerStat {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: #c0a878;
+}
+
+.officerStat strong {
+  color: #d4a84a;
+  font-weight: normal;
+  font-size: 1rem;
+}

@@ -1,0 +1,2258 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type {
+  BuildingId,
+  CivicTitleId,
+  EdictKind,
+  EntityId,
+  EspionageKind,
+  HistoricalEvent,
+  ImperialRank,
+  InternalAffairsType,
+  MilitaryRankId,
+  ProvinceId,
+  Scenario,
+  ShipClass,
+  TacticalBattle,
+} from '../types';
+import { isHostilePermitted } from '../types';
+import type { Difficulty } from './gameState';
+import { CIVIC_TITLES_BY_ID, MILITARY_RANKS_BY_ID } from '../data/titles';
+import { FORGE_RECIPES_BY_ID } from '../data/forging';
+import { EDICTS_BY_KIND, IMPERIAL_RANKS_BY_ID } from '../data/imperial';
+import { ESPIONAGE_DEFS_BY_KIND } from '../data/espionage';
+import { ITEMS_BY_ID } from '../data/items';
+import {
+  applyEventEffects,
+  findFiringEvent,
+} from '../systems/historicalEvents';
+import { resolveEspionage } from '../systems/espionage';
+import { resolveTribeRaids } from '../systems/tribes';
+import { planAITurn } from '../systems/ai';
+import { COMMAND_DEFS } from '../systems/commands';
+import {
+  ALLIANCE_PROPOSAL_COST,
+  NAP_PROPOSAL_COST,
+  breakAlliance,
+  computeTotalTroops,
+  payTribute,
+  proposeAlliance,
+  proposeNonAggression,
+} from '../systems/diplomacy';
+import {
+  FREE_AGENT_COST,
+  RECRUIT_COST,
+  applyExecute,
+  applyRelease,
+  attemptFreeAgentRecruit,
+  attemptRecruit,
+} from '../systems/officerFate';
+import { resolveSeason } from '../systems/resolution';
+import { BUILDING_DEFS_BY_ID } from '../data/buildings';
+import { awardBattleXp } from '../systems/growth';
+import { tickBuildings } from '../systems/buildings';
+import { evaluateCoalition } from '../systems/coalition';
+import { rollDialogue } from '../systems/dialogueRoll';
+import { DIALOGUE_EVENTS_BY_ID } from '../data/dialogues';
+import { applyAutoBuild } from '../systems/autoBuild';
+import { planAIBuildOrders } from '../systems/aiBuild';
+import { SCENARIO_OBJECTIVES } from '../data/objectives';
+import { evaluateGoal, findObjectiveFor } from '../systems/objectives';
+import { applySuccession } from '../systems/succession';
+import {
+  bumpCounters,
+  checkCumulativeThresholds,
+  loadAchievementProgress,
+  processTrigger,
+  saveAchievementProgress,
+} from '../systems/achievements';
+import { tickFamily, addSpouse } from '../systems/family';
+import { rollWishes, applyWishGrant, applyWishReject } from '../systems/wishes';
+import { checkEndings } from '../systems/endings';
+import { generateRandomScenario } from '../systems/randomScenario';
+import { rollWeather, describeWeather } from '../systems/weather';
+import { rollPlagueOutbreak, rollIntrigue } from '../systems/intrigue';
+import { rollOmen } from '../systems/mandate';
+import { rollReligiousRebellion } from '../systems/religion';
+
+const SEASON_INDEX: Record<string, number> = {
+  spring: 0,
+  summer: 1,
+  autumn: 2,
+  winter: 3,
+};
+const SEASONS_ORDER: Array<'spring' | 'summer' | 'autumn' | 'winter'> = [
+  'spring', 'summer', 'autumn', 'winter',
+];
+
+function nextSeasonAfter(
+  date: { year: number; season: 'spring' | 'summer' | 'autumn' | 'winter' },
+  delta: number,
+): { year: number; season: 'spring' | 'summer' | 'autumn' | 'winter' } {
+  const abs = date.year * 4 + SEASON_INDEX[date.season] + delta;
+  return { year: Math.floor(abs / 4), season: SEASONS_ORDER[abs % 4] };
+}
+import {
+  EMPTY_STATE,
+  loadScenario,
+  type GameState,
+  type VictoryStatus,
+} from './gameState';
+import { loadFromSlot, saveToSlot, deleteSlot, listSlots } from './saveSlots';
+
+interface GameStore extends GameState {
+  loadScenario: (
+    scenario: Scenario,
+    playerForceId: EntityId,
+    difficulty: Difficulty,
+    customOfficer?: {
+      id: string;
+      name: { zh: string; en: string };
+      courtesyName?: { zh: string; en: string };
+      stats: import('../types').OfficerStats;
+      skills: string[];
+      affiliationForceId: EntityId | null;
+    },
+  ) => void;
+  selectCity: (cityId: EntityId | null) => void;
+  issueCommand: (
+    cityId: EntityId,
+    type: InternalAffairsType,
+    officerId: EntityId,
+  ) => { ok: boolean; reason?: string };
+  issueMarch: (
+    sourceId: EntityId,
+    targetId: EntityId,
+    officerId: EntityId,
+    troops: number,
+    additionalOfficerIds?: EntityId[],
+  ) => { ok: boolean; reason?: string };
+  cancelCommand: (cityId: EntityId) => void;
+  endSeason: () => void;
+  dismissReport: () => void;
+  recruitOfficer: (
+    officerId: EntityId,
+    cityId: EntityId,
+  ) => { ok: boolean; message: string };
+  recruitFreeAgent: (
+    officerId: EntityId,
+    cityId: EntityId,
+  ) => { ok: boolean; message: string };
+  executeOfficer: (officerId: EntityId) => void;
+  releaseOfficer: (officerId: EntityId) => void;
+  acknowledgeVictory: () => void;
+  proposeAlliance: (
+    targetForceId: EntityId,
+  ) => { ok: boolean; message: string; accepted?: boolean };
+  proposeNonAggression: (
+    targetForceId: EntityId,
+  ) => { ok: boolean; message: string; accepted?: boolean };
+  payTribute: (
+    targetForceId: EntityId,
+    amount: number,
+  ) => { ok: boolean; message: string };
+  breakAlliance: (targetForceId: EntityId) => void;
+  proposeMarriage: (
+    targetForceId: EntityId,
+    yourOfficerId: EntityId,
+    theirOfficerId: EntityId,
+  ) => { ok: boolean; message: string };
+  transferOfficer: (
+    officerId: EntityId,
+    destinationCityId: EntityId,
+  ) => { ok: boolean; reason?: string };
+  assignItem: (
+    itemId: EntityId,
+    toOfficerId: EntityId,
+  ) => { ok: boolean; reason?: string };
+  unequipSlot: (
+    officerId: EntityId,
+    slot: 'weapon' | 'horse' | 'treasure' | 'book',
+  ) => { ok: boolean; reason?: string };
+  appointTitle: (
+    officerId: EntityId,
+    titleId: CivicTitleId,
+    cityId?: EntityId,
+  ) => { ok: boolean; reason?: string };
+  revokeTitle: (officerId: EntityId) => { ok: boolean; reason?: string };
+  promoteOfficer: (
+    officerId: EntityId,
+    rankId: MilitaryRankId,
+  ) => { ok: boolean; reason?: string };
+  dismissEvent: () => void;
+  startTacticalBattle: (battle: TacticalBattle) => void;
+  endTacticalBattle: (
+    winner: 'attacker' | 'defender',
+    attackerLosses: number,
+    defenderLosses: number,
+  ) => void;
+  cancelTacticalBattle: () => void;
+  applyTacticalResolution: (
+    captured: EntityId[],
+    dead: EntityId[],
+    lootGold: number,
+    winner: 'attacker' | 'defender' | null,
+  ) => void;
+  queueEspionage: (
+    kind: EspionageKind,
+    agentOfficerId: EntityId,
+    targetForceId: EntityId,
+    targetCityId?: EntityId,
+    targetOfficerId?: EntityId,
+  ) => { ok: boolean; reason?: string };
+  cancelEspionage: (opId: EntityId) => void;
+  issueEdict: (
+    kind: EdictKind,
+    targetForceId?: EntityId,
+  ) => { ok: boolean; reason?: string; message?: string };
+  promoteImperialRank: (
+    forceId: EntityId,
+    rank: ImperialRank,
+  ) => { ok: boolean; reason?: string };
+  setSoundEnabled: (enabled: boolean) => void;
+  setMusicTrack: (track: string | null) => void;
+  setFogOfWar: (on: boolean) => void;
+  saveCommandTemplate: (label: string) => void;
+  applyCommandTemplate: (id: EntityId) => void;
+  deleteCommandTemplate: (id: EntityId) => void;
+  setAutoBuildQueue: (cityId: EntityId, queue: import('../types').BuildingId[]) => void;
+  acceptDialogue: (choiceIdx: number) => void;
+  dismissDialogue: () => void;
+  setBattleSpeed: (speed: number) => void;
+  enterCareerMode: (officerId: EntityId) => void;
+  exitCareerMode: () => void;
+  addCareerMilestone: (title: { zh: string; en: string }) => void;
+  setRomanceMode: (on: boolean) => void;
+  setRoguelikeMode: (on: boolean) => void;
+  forgeItem: (
+    cityId: EntityId,
+    recipeId: EntityId,
+  ) => { ok: boolean; reason?: string };
+  acknowledgeAchievements: () => void;
+  saveSlot: (slotId: string, label: string) => void;
+  loadSlot: (slotId: string) => boolean;
+  deleteSlot: (slotId: string) => void;
+  listSlots: () => ReturnType<typeof listSlots>;
+  startBuilding: (
+    cityId: EntityId,
+    buildingId: BuildingId,
+  ) => { ok: boolean; reason?: string };
+  appointGovernor: (
+    provinceId: ProvinceId,
+    officerId: EntityId,
+  ) => { ok: boolean; reason?: string };
+  proposeMarriagePair: (
+    aId: EntityId,
+    bId: EntityId,
+  ) => { ok: boolean; reason?: string };
+  grantWish: (wishId: EntityId) => void;
+  rejectWish: (wishId: EntityId) => void;
+  setTutorialStep: (step: number | null) => void;
+  setHotSeatPlayers: (players: Array<{ forceId: EntityId; label: string }>) => void;
+  cycleHotSeat: () => void;
+  buildShip: (
+    cityId: EntityId,
+    shipClass: ShipClass,
+  ) => { ok: boolean; reason?: string };
+  loadRandomScenario: (forceCount: number, year: number, seed?: number) => void;
+  reset: () => void;
+}
+
+export const useGameStore = create<GameStore>()(
+  persist(
+    (set, get) => ({
+      ...EMPTY_STATE,
+
+      loadScenario: (scenario, playerForceId, difficulty, customOfficer) =>
+        set((s) => loadScenario(s, scenario, playerForceId, difficulty, customOfficer)),
+
+      selectCity: (cityId) => set(() => ({ selectedCityId: cityId })),
+
+      issueCommand: (cityId, type, officerId) => {
+        const state = get();
+        const city = state.cities[cityId];
+        const officer = state.officers[officerId];
+        const def = COMMAND_DEFS[type];
+        if (!city || !officer || !def) return { ok: false, reason: 'invalid' };
+        if (city.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'not your city' };
+        if (officer.locationCityId !== cityId)
+          return { ok: false, reason: 'officer not in this city' };
+        if (officer.task)
+          return { ok: false, reason: 'officer already assigned' };
+        if (state.pendingCommands[cityId])
+          return { ok: false, reason: 'city already has a command' };
+        if (city.gold < def.goldCost)
+          return { ok: false, reason: 'not enough gold' };
+
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - def.goldCost },
+          },
+          officers: {
+            ...state.officers,
+            [officerId]: { ...officer, task: type },
+          },
+          pendingCommands: {
+            ...state.pendingCommands,
+            [cityId]: { type, cityId, officerId },
+          },
+        });
+        return { ok: true };
+      },
+
+      issueMarch: (sourceId, targetId, officerId, troops, additionalOfficerIds) => {
+        const state = get();
+        const source = state.cities[sourceId];
+        const target = state.cities[targetId];
+        const officer = state.officers[officerId];
+        const def = COMMAND_DEFS['march'];
+        if (!source || !target || !officer)
+          return { ok: false, reason: 'invalid' };
+        if (source.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'not your city' };
+        if (!source.adjacentCityIds.includes(targetId))
+          return { ok: false, reason: 'not adjacent' };
+        if (officer.locationCityId !== sourceId)
+          return { ok: false, reason: 'officer not in this city' };
+        if (officer.task)
+          return { ok: false, reason: 'officer already assigned' };
+        if (state.pendingCommands[sourceId])
+          return { ok: false, reason: 'city already has a command' };
+        if (troops <= 0 || troops > source.troops)
+          return { ok: false, reason: 'invalid troop count' };
+        if (source.gold < def.goldCost)
+          return { ok: false, reason: 'not enough gold' };
+        if (
+          target.ownerForceId &&
+          target.ownerForceId !== source.ownerForceId &&
+          !isHostilePermitted(
+            state.diplomacy,
+            source.ownerForceId!,
+            target.ownerForceId,
+          )
+        )
+          return {
+            ok: false,
+            reason: 'diplomatic agreement forbids attack',
+          };
+
+        // Validate accompanying officers (max 2, all in same city, all idle).
+        const extras = (additionalOfficerIds ?? []).slice(0, 2);
+        for (const extraId of extras) {
+          const extra = state.officers[extraId];
+          if (!extra) return { ok: false, reason: 'invalid accompany' };
+          if (extra.locationCityId !== sourceId)
+            return { ok: false, reason: 'accompany not in this city' };
+          if (extra.task)
+            return { ok: false, reason: 'accompany already assigned' };
+          if (extra.id === officerId)
+            return { ok: false, reason: 'duplicate officer' };
+        }
+
+        // Mark all officers busy.
+        const officersUpdate = {
+          ...state.officers,
+          [officerId]: { ...officer, task: 'march' as const },
+        };
+        for (const extraId of extras) {
+          officersUpdate[extraId] = {
+            ...state.officers[extraId],
+            task: 'march' as const,
+          };
+        }
+
+        set({
+          cities: {
+            ...state.cities,
+            [sourceId]: { ...source, gold: source.gold - def.goldCost },
+          },
+          officers: officersUpdate,
+          pendingCommands: {
+            ...state.pendingCommands,
+            [sourceId]: {
+              type: 'march',
+              cityId: sourceId,
+              officerId,
+              targetCityId: targetId,
+              troops,
+              additionalOfficerIds: extras.length > 0 ? extras : undefined,
+            },
+          },
+        });
+        return { ok: true };
+      },
+
+      cancelCommand: (cityId) => {
+        const state = get();
+        const cmd = state.pendingCommands[cityId];
+        if (!cmd) return;
+        const city = state.cities[cityId];
+        const officer = state.officers[cmd.officerId];
+        const def = COMMAND_DEFS[cmd.type];
+        const next = { ...state.pendingCommands };
+        delete next[cityId];
+
+        // Free up all officers (including march accompaniers).
+        const officersUpdate = { ...state.officers };
+        if (officer)
+          officersUpdate[cmd.officerId] = { ...officer, task: null };
+        if (cmd.type === 'march' && cmd.additionalOfficerIds) {
+          for (const xId of cmd.additionalOfficerIds) {
+            const x = state.officers[xId];
+            if (x) officersUpdate[xId] = { ...x, task: null };
+          }
+        }
+
+        set({
+          cities: city
+            ? { ...state.cities, [cityId]: { ...city, gold: city.gold + def.goldCost } }
+            : state.cities,
+          officers: officersUpdate,
+          pendingCommands: next,
+        });
+      },
+
+      endSeason: () => {
+        const state = get();
+        if (state.victoryStatus !== 'playing' && state.victoryStatus !== 'observing')
+          return;
+        // AI rulers issue their commands for the season.
+        const planned = planAITurn({
+          cities: state.cities,
+          officers: state.officers,
+          forces: state.forces,
+          playerForceId: state.playerForceId,
+          pendingCommands: state.pendingCommands,
+          difficulty: state.difficulty,
+          diplomacy: state.diplomacy,
+          runtimeBonds: state.runtimeBonds,
+          date: state.date,
+        });
+        // Compute whether this period transition crosses a season boundary.
+        // Boundary = the period BEFORE advance is the last (lower) phase of
+        // the last month of a season (months 3/6/9/12).
+        const isLastMonthOfSeason =
+          state.date.month === 3 || state.date.month === 6 ||
+          state.date.month === 9 || state.date.month === 12;
+        const seasonBoundary =
+          (state.date.phase ?? 'lower') === 'lower' && isLastMonthOfSeason;
+
+        const result = resolveSeason({
+          date: state.date,
+          cities: planned.cities,
+          officers: planned.officers,
+          forces: state.forces,
+          pendingCommands: planned.pendingCommands,
+          diplomacy: planned.diplomacy,
+          runtimeBonds: planned.runtimeBonds,
+          lostItems: state.lostItems,
+          weather: state.weather,
+          seasonBoundary,
+        });
+        // Prepend AI diplomatic announcements to the report.
+        if (planned.entries.length > 0) {
+          result.report.entries.unshift(...planned.entries);
+        }
+
+        // Re-select capital if previously selected city changed hands.
+        const playerForceId = state.playerForceId;
+        const stillOwned =
+          state.selectedCityId &&
+          result.cities[state.selectedCityId]?.ownerForceId === playerForceId;
+        const fallback = playerForceId
+          ? Object.values(result.cities).find(
+              (c) => c.ownerForceId === playerForceId,
+            )?.id ?? null
+          : null;
+
+        // Victory/defeat check
+        const totalCities = Object.values(result.cities).length;
+        const playerCities = playerForceId
+          ? Object.values(result.cities).filter(
+              (c) => c.ownerForceId === playerForceId,
+            ).length
+          : 0;
+        let victoryStatus: VictoryStatus = state.victoryStatus;
+        if (playerCities === 0) {
+          victoryStatus = 'defeat';
+        } else if (playerCities === totalCities) {
+          victoryStatus = 'victory';
+        }
+
+        // Capture battle details from this season into persistent history.
+        const newBattles = result.report.entries
+          .filter((e) => !!e.battle)
+          .map((e, idx) => ({
+            ...e.battle!,
+            id: `${state.date.year}-${state.date.season}-${idx}`,
+            date: { year: state.date.year, season: state.date.season },
+          }));
+
+        // Resolve espionage ops.
+        const espResult = resolveEspionage({
+          ops: state.pendingEspionage,
+          cities: result.cities,
+          officers: result.officers,
+          playerForceId: state.playerForceId,
+          rng: Math.random,
+        });
+        // Free agents.
+        for (const o of Object.values(espResult.officers)) {
+          if (state.pendingEspionage.some((op) => op.agentOfficerId === o.id)) {
+            espResult.officers[o.id] = { ...o, task: null };
+          }
+        }
+        if (espResult.entries.length > 0) {
+          result.report.entries.push(...espResult.entries);
+        }
+
+        // Resolve tribe raids.
+        const tribeResult = resolveTribeRaids({
+          state: state.tribeState,
+          cities: espResult.cities,
+          date: result.date,
+          rng: Math.random,
+        });
+        if (tribeResult.entries.length > 0) {
+          result.report.entries.push(...tribeResult.entries);
+        }
+
+        // Historical event check. Fires at most one event per season.
+        let firingEvent: HistoricalEvent | null = null;
+        let postCities = tribeResult.cities;
+        let postOfficers = espResult.officers;
+        let postForces = result.forces;
+        let postFlags = state.eventFlags;
+        let postFiredIds = state.firedEventIds;
+        const eventCheck = findFiringEvent({
+          date: result.date,
+          cities: postCities,
+          officers: postOfficers,
+          forces: postForces,
+          eventFlags: state.eventFlags,
+          firedEventIds: state.firedEventIds,
+          romanceMode: state.romanceMode,
+        });
+        if (eventCheck) {
+          // Achievement trigger.
+          let ach = loadAchievementProgress();
+          const r = processTrigger(ach, { kind: 'fire-event', targetId: eventCheck.id });
+          ach = r.progress;
+          saveAchievementProgress(ach);
+          if (r.newlyUnlocked.length > 0) {
+            // Will merge into final set below.
+          }
+          const after = applyEventEffects(eventCheck, {
+            date: result.date,
+            cities: postCities,
+            officers: postOfficers,
+            forces: postForces,
+            eventFlags: state.eventFlags,
+            firedEventIds: state.firedEventIds,
+          });
+          postCities = after.cities;
+          postOfficers = after.officers;
+          postForces = after.forces;
+          postFlags = after.eventFlags;
+          postFiredIds = [...state.firedEventIds, eventCheck.id];
+          firingEvent = eventCheck;
+        }
+
+        // Player's auto-build queues — start any new projects.
+        const auto = applyAutoBuild({
+          cities: postCities,
+          buildings: state.buildings,
+          queues: state.autoBuildQueues,
+          playerForceId: state.playerForceId,
+        });
+        postCities = auto.cities;
+        if (auto.entries.length > 0) result.report.entries.push(...auto.entries);
+
+        // AI build orders (personality-driven).
+        const aiBuild = planAIBuildOrders({
+          cities: postCities,
+          buildings: auto.buildings,
+          forces: postForces,
+          playerForceId: state.playerForceId,
+        });
+        postCities = aiBuild.cities;
+        if (aiBuild.entries.length > 0) result.report.entries.push(...aiBuild.entries);
+
+        // Buildings tick (player + AI projects both progress).
+        const bld = tickBuildings({ buildings: aiBuild.buildings, cities: postCities });
+        if (bld.entries.length > 0) result.report.entries.push(...bld.entries);
+
+        // Family tick (births + activations) — only on year boundary roughly.
+        const fam = tickFamily({
+          date: result.date,
+          officers: postOfficers,
+          family: state.family,
+          pendingHeirs: state.pendingHeirs,
+          rng: Math.random,
+        });
+        postOfficers = fam.officers;
+        if (fam.entries.length > 0) result.report.entries.push(...fam.entries);
+
+        // Roll new wishes.
+        const newWishes = rollWishes({
+          officers: postOfficers,
+          cities: postCities,
+          playerForceId: state.playerForceId,
+          existing: state.officerWishes,
+          date: result.date,
+          rng: Math.random,
+        });
+
+        // Ship build orders tick.
+        const newOrders = state.shipOrders.map((o) => ({
+          ...o,
+          seasonsLeft: o.seasonsLeft - 1,
+        }));
+        const completed = newOrders.filter((o) => o.seasonsLeft <= 0);
+        const remainingOrders = newOrders.filter((o) => o.seasonsLeft > 0);
+        let updatedFleets = state.fleets;
+        for (const o of completed) {
+          const city = postCities[o.cityId];
+          if (!city || !city.ownerForceId) continue;
+          const existing = updatedFleets.find(
+            (f) => f.cityId === o.cityId && f.forceId === city.ownerForceId,
+          );
+          if (existing) {
+            updatedFleets = updatedFleets.map((f) =>
+              f.id === existing.id
+                ? {
+                    ...f,
+                    ships: {
+                      ...f.ships,
+                      [o.shipClass]: (f.ships[o.shipClass] ?? 0) + 1,
+                    },
+                  }
+                : f,
+            );
+          } else {
+            updatedFleets = [
+              ...updatedFleets,
+              {
+                id: `fleet-${o.cityId}-${city.ownerForceId}`,
+                cityId: o.cityId,
+                forceId: city.ownerForceId,
+                ships: { [o.shipClass]: 1 },
+              },
+            ];
+          }
+          result.report.entries.push({
+            cityId: o.cityId,
+            kind: 'command-success',
+            text: `A ${o.shipClass} has been completed at ${city.name.en}.`,
+          });
+        }
+
+        // Succession — replace dead rulers with heirs / top officers.
+        const succession = applySuccession({
+          forces: postForces,
+          officers: postOfficers,
+          family: fam.family,
+        });
+        postForces = succession.forces;
+        if (succession.entries.length > 0) {
+          result.report.entries.push(...succession.entries);
+        }
+
+        // Coalition AI — opposing forces sign NAPs against the hegemon.
+        const coalitionResult = evaluateCoalition({
+          cities: postCities,
+          forces: postForces,
+          diplomacy: result.diplomacy,
+          date: result.date,
+        });
+        if (coalitionResult.entries.length > 0) {
+          result.report.entries.push(...coalitionResult.entries);
+        }
+
+        // Dialogue roll. Branching follow-ups fire deterministically before
+        // any random roll — they were queued by an earlier choice.
+        let nextFollowups = state.dialogueFollowups;
+        let dlg: ReturnType<typeof rollDialogue> = null;
+        if (!state.pendingDialogue) {
+          if (state.dialogueFollowups.length > 0) {
+            const [headId, ...rest] = state.dialogueFollowups;
+            const followup = DIALOGUE_EVENTS_BY_ID[headId];
+            if (followup) {
+              dlg = followup;
+              nextFollowups = rest;
+            } else {
+              nextFollowups = rest;
+            }
+          } else {
+            dlg = rollDialogue({
+              year: result.date.year,
+              officers: postOfficers,
+              eventFlags: postFlags,
+              rng: Math.random,
+            });
+          }
+        }
+
+        // ── Season-bound rolls (every 9 periods only) ──
+        let nextWeather = state.weather;
+        let nextMandate = state.mandate;
+        if (seasonBoundary) {
+          const plagueOut = rollPlagueOutbreak({
+            cities: postCities,
+            officers: postOfficers,
+            currentYear: result.date.year,
+            rng: Math.random,
+          });
+          postCities = plagueOut.cities;
+          postOfficers = plagueOut.officers;
+          if (plagueOut.entries.length > 0) result.report.entries.push(...plagueOut.entries);
+
+          const intrigueOut = rollIntrigue({
+            officers: postOfficers,
+            forces: postForces,
+            date: result.date,
+            rng: Math.random,
+          });
+          postOfficers = intrigueOut.officers;
+          if (intrigueOut.entries.length > 0) result.report.entries.push(...intrigueOut.entries);
+
+          // Re-roll weather for the new season. 借東風 flag overrides.
+          nextWeather = rollWeather(result.date.season, Math.random);
+          if (postFlags['east-wind-borrowed']) {
+            nextWeather = { kind: 'wind', wind: 'east', windPower: 3 };
+            postFlags = { ...postFlags, 'east-wind-borrowed': false };
+            result.report.entries.unshift({
+              cityId: null,
+              kind: 'note',
+              text: '七星壇借得東風 — 東南風起，火攻可成！',
+            });
+          }
+          result.report.entries.unshift(describeWeather(nextWeather));
+
+          const omenOut = rollOmen({
+            forces: postForces,
+            mandate: state.mandate,
+            date: result.date,
+            rng: Math.random,
+          });
+          nextMandate = omenOut.mandate;
+          if (omenOut.entry) result.report.entries.push(omenOut.entry);
+        }
+
+        // ── Wounded recovery tick: decrement woundedSeasons, restore to idle at 0 ──
+        const tickedOfficers: Record<string, typeof postOfficers[string]> = {};
+        for (const o of Object.values(postOfficers)) {
+          if (o.status === 'wounded' && o.woundedSeasons !== undefined) {
+            const left = o.woundedSeasons - 1;
+            if (left <= 0) {
+              tickedOfficers[o.id] = { ...o, status: 'idle', woundedSeasons: undefined };
+              result.report.entries.push({
+                cityId: o.locationCityId,
+                kind: 'note',
+                text: `傷癒復出 — ${o.name.zh} has recovered and returns to service.`,
+              });
+            } else {
+              tickedOfficers[o.id] = { ...o, woundedSeasons: left };
+            }
+          } else {
+            tickedOfficers[o.id] = o;
+          }
+        }
+        postOfficers = tickedOfficers;
+
+        // ── Delayed effects (截糧 troop drain) tick ──
+        const remainingDelayed: typeof state.pendingDelayedEffects = [];
+        // Add fresh effects from this season's battles.
+        const freshDelayed = (result.delayedEffects ?? []);
+        const allDelayed = [...state.pendingDelayedEffects, ...freshDelayed];
+        for (const d of allDelayed) {
+          if (d.targetCityId && postCities[d.targetCityId]) {
+            const c = postCities[d.targetCityId];
+            postCities = {
+              ...postCities,
+              [d.targetCityId]: {
+                ...c,
+                troops: Math.max(0, c.troops - d.perSeason),
+              },
+            };
+            result.report.entries.push({
+              cityId: d.targetCityId,
+              kind: 'note',
+              text: `截糧之計 — ${c.name.zh} loses ${d.perSeason.toLocaleString()} troops to starvation. ${d.seasons - 1} season(s) remaining.`,
+            });
+          }
+          if (d.seasons - 1 > 0) {
+            remainingDelayed.push({ ...d, seasons: d.seasons - 1 });
+          }
+        }
+
+        // ── Religious rebellion roll (season boundary only) ──
+        if (seasonBoundary) {
+          const religion = rollReligiousRebellion({
+            cities: postCities,
+            forces: postForces,
+            officers: postOfficers,
+            date: result.date,
+            rng: Math.random,
+          });
+          postCities = religion.cities;
+          postForces = religion.forces;
+          postOfficers = religion.officers;
+          if (religion.entries.length > 0) result.report.entries.push(...religion.entries);
+        }
+
+        // ── Burning-city decay (animation lifetime) ──
+        // Newly fallen cities ignite for 2 seasons; existing ones tick down.
+        const conqueredThisTurn = result.report.entries
+          .filter((e) => e.kind === 'conquest' && e.cityId)
+          .map((e) => e.cityId as EntityId);
+        const decayed = state.burningCities
+          .map((b) => ({ ...b, seasonsLeft: b.seasonsLeft - 1 }))
+          .filter((b) => b.seasonsLeft > 0);
+        const newIgnitions = conqueredThisTurn
+          .filter((id) => !decayed.some((b) => b.cityId === id))
+          .map((id) => ({ cityId: id, seasonsLeft: 2 }));
+        const nextBurning = [...decayed, ...newIgnitions];
+
+        // Endings check (only if not in tactical/event states).
+        const ending = checkEndings({
+          cities: postCities,
+          officers: postOfficers,
+          forces: postForces,
+          playerForceId: state.playerForceId,
+          date: result.date,
+        });
+        let endVS = victoryStatus;
+        let endingsAchieved = state.endingsAchieved;
+        if (ending && ending.kind !== 'defeat' && !state.endingsAchieved.includes(ending.kind)) {
+          endVS = 'victory';
+          endingsAchieved = [...state.endingsAchieved, ending.kind];
+        }
+
+        // Scenario objective check.
+        const objective = findObjectiveFor(
+          state.scenarioId,
+          state.playerForceId,
+          SCENARIO_OBJECTIVES,
+        );
+        let newAchieved = state.achievedObjectives;
+        if (objective) {
+          const liveForceIds = new Set<string>();
+          for (const c of Object.values(postCities)) {
+            if (c.ownerForceId) liveForceIds.add(c.ownerForceId);
+          }
+          const playerForce = state.playerForceId ? postForces[state.playerForceId] : null;
+          const isEmperor = playerForce?.imperialRank === 'emperor';
+          const ctx = {
+            scenarioId: state.scenarioId,
+            playerForceId: state.playerForceId,
+            cities: postCities,
+            officers: postOfficers,
+            year: result.date.year,
+            liveForceIds,
+            isEmperor,
+          };
+          const allGoals = [objective.primary, ...(objective.secondary ?? [])];
+          for (let i = 0; i < allGoals.length; i++) {
+            const goalId = `${objective.id}-${i}`;
+            if (newAchieved.includes(goalId)) continue;
+            const r = evaluateGoal(allGoals[i].goal, ctx);
+            if (r.status === 'success') {
+              newAchieved = [...newAchieved, goalId];
+              result.report.entries.push({
+                cityId: null,
+                kind: 'note',
+                text: `Objective achieved: ${allGoals[i].title.en}!`,
+              });
+            }
+          }
+        }
+
+        set({
+          date: result.date,
+          cities: postCities,
+          officers: postOfficers,
+          forces: postForces,
+          runtimeBonds: planned.runtimeBonds,
+          pendingCommands: {},
+          lastReport: result.report,
+          selectedCityId: stillOwned ? state.selectedCityId : fallback,
+          victoryStatus: endVS,
+          battleHistory: [...state.battleHistory, ...newBattles],
+          eventFlags: postFlags,
+          firedEventIds: postFiredIds,
+          pendingEspionage: [],
+          tribeState: tribeResult.state,
+          buildings: bld.buildings,
+          family: fam.family,
+          pendingHeirs: fam.pendingHeirs,
+          officerWishes: newWishes,
+          shipOrders: remainingOrders,
+          fleets: updatedFleets,
+          endingsAchieved,
+          campaignStats: {
+            ...state.campaignStats,
+            seasonsPlayed: (state.campaignStats.seasonsPlayed ?? 0) + 1,
+          },
+          lostItems: result.lostItems,
+          diplomacy: coalitionResult.diplomacy,
+          autoBuildQueues: auto.queues,
+          pendingDialogue: dlg ?? state.pendingDialogue,
+          dialogueFollowups: nextFollowups,
+          achievedObjectives: newAchieved,
+          pendingEvent: firingEvent
+            ? {
+                event: firingEvent,
+                year: result.date.year,
+                season: result.date.season,
+              }
+            : state.pendingEvent,
+          weather: nextWeather,
+          burningCities: nextBurning,
+          mandate: nextMandate,
+          pendingDelayedEffects: remainingDelayed,
+        });
+      },
+
+      dismissReport: () => set(() => ({ lastReport: null })),
+
+      recruitOfficer: (officerId, cityId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        const city = state.cities[cityId];
+        const force = state.playerForceId
+          ? state.forces[state.playerForceId]
+          : null;
+        const ruler = force ? state.officers[force.rulerOfficerId] : null;
+        if (!officer || !city || !force || !ruler)
+          return { ok: false, message: 'Invalid state.' };
+
+        const result = attemptRecruit({
+          officer,
+          city,
+          recruiterForce: force,
+          recruiterRuler: ruler,
+        });
+
+        const updates: Partial<GameState> = {
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - RECRUIT_COST },
+          },
+        };
+        if (result.ok && result.recruitedOfficer) {
+          updates.officers = {
+            ...state.officers,
+            [officerId]: result.recruitedOfficer,
+          };
+          // Achievement trigger.
+          let ach = loadAchievementProgress();
+          const r = processTrigger(ach, { kind: 'recruit-officer', targetId: officerId });
+          ach = r.progress;
+          ach = bumpCounters(ach, { recruits: 1 });
+          const cum = checkCumulativeThresholds(ach);
+          saveAchievementProgress(cum.progress);
+          if (r.newlyUnlocked.length + cum.newlyUnlocked.length > 0) {
+            updates.recentAchievementUnlocks = [
+              ...state.recentAchievementUnlocks,
+              ...r.newlyUnlocked,
+              ...cum.newlyUnlocked,
+            ];
+          }
+        }
+        set(updates);
+        return { ok: result.ok, message: result.message };
+      },
+
+      recruitFreeAgent: (officerId, cityId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        const city = state.cities[cityId];
+        const force = state.playerForceId
+          ? state.forces[state.playerForceId]
+          : null;
+        const ruler = force ? state.officers[force.rulerOfficerId] : null;
+        if (!officer || !city || !force || !ruler)
+          return { ok: false, message: 'Invalid state.' };
+        if (city.ownerForceId !== state.playerForceId)
+          return { ok: false, message: 'Not your city.' };
+
+        const result = attemptFreeAgentRecruit({
+          officer,
+          city,
+          recruiterForce: force,
+          recruiterRuler: ruler,
+        });
+
+        const updates: Partial<GameState> = {
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - FREE_AGENT_COST },
+          },
+        };
+        if (result.ok && result.recruitedOfficer) {
+          updates.officers = {
+            ...state.officers,
+            [officerId]: result.recruitedOfficer,
+          };
+        }
+        set(updates);
+        return { ok: result.ok, message: result.message };
+      },
+
+      executeOfficer: (officerId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        if (!officer || officer.status !== 'imprisoned') return;
+        set({
+          officers: {
+            ...state.officers,
+            [officerId]: applyExecute(officer),
+          },
+        });
+      },
+
+      releaseOfficer: (officerId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        if (!officer || officer.status !== 'imprisoned') return;
+        set({
+          officers: {
+            ...state.officers,
+            [officerId]: applyRelease(officer),
+          },
+        });
+      },
+
+      acknowledgeVictory: () =>
+        set(() => ({ victoryStatus: 'observing' })),
+
+      proposeAlliance: (targetForceId) => {
+        const state = get();
+        if (!state.playerForceId)
+          return { ok: false, message: 'No player force.' };
+        const player = state.forces[state.playerForceId];
+        const target = state.forces[targetForceId];
+        const ruler = state.officers[player?.rulerOfficerId ?? ''];
+        if (!player || !target || !ruler)
+          return { ok: false, message: 'Invalid forces.' };
+        const capital = state.cities[player.capitalCityId];
+        if (!capital || capital.gold < ALLIANCE_PROPOSAL_COST)
+          return {
+            ok: false,
+            message: `Need ${ALLIANCE_PROPOSAL_COST} gold in the capital.`,
+          };
+
+        const outcome = proposeAlliance({
+          player,
+          playerRulerCharisma: ruler.stats.charisma,
+          target,
+          targetTotalTroops: computeTotalTroops(target.id, state.cities),
+          playerTotalTroops: computeTotalTroops(player.id, state.cities),
+          diplomacy: state.diplomacy,
+          date: state.date,
+        });
+
+        if (outcome.ok) {
+          set({
+            cities: {
+              ...state.cities,
+              [capital.id]: {
+                ...capital,
+                gold: capital.gold - ALLIANCE_PROPOSAL_COST,
+              },
+            },
+            diplomacy: outcome.diplomacy,
+          });
+        }
+        return {
+          ok: outcome.ok,
+          accepted: outcome.accepted,
+          message: outcome.message,
+        };
+      },
+
+      proposeNonAggression: (targetForceId) => {
+        const state = get();
+        if (!state.playerForceId)
+          return { ok: false, message: 'No player force.' };
+        const player = state.forces[state.playerForceId];
+        const target = state.forces[targetForceId];
+        const ruler = state.officers[player?.rulerOfficerId ?? ''];
+        if (!player || !target || !ruler)
+          return { ok: false, message: 'Invalid forces.' };
+        const capital = state.cities[player.capitalCityId];
+        if (!capital || capital.gold < NAP_PROPOSAL_COST)
+          return {
+            ok: false,
+            message: `Need ${NAP_PROPOSAL_COST} gold in the capital.`,
+          };
+
+        const outcome = proposeNonAggression({
+          player,
+          playerRulerCharisma: ruler.stats.charisma,
+          target,
+          targetTotalTroops: computeTotalTroops(target.id, state.cities),
+          playerTotalTroops: computeTotalTroops(player.id, state.cities),
+          diplomacy: state.diplomacy,
+          date: state.date,
+        });
+
+        if (outcome.ok) {
+          set({
+            cities: {
+              ...state.cities,
+              [capital.id]: {
+                ...capital,
+                gold: capital.gold - NAP_PROPOSAL_COST,
+              },
+            },
+            diplomacy: outcome.diplomacy,
+          });
+        }
+        return {
+          ok: outcome.ok,
+          accepted: outcome.accepted,
+          message: outcome.message,
+        };
+      },
+
+      payTribute: (targetForceId, amount) => {
+        const state = get();
+        if (!state.playerForceId)
+          return { ok: false, message: 'No player force.' };
+        const player = state.forces[state.playerForceId];
+        const target = state.forces[targetForceId];
+        const ruler = state.officers[player?.rulerOfficerId ?? ''];
+        if (!player || !target || !ruler)
+          return { ok: false, message: 'Invalid forces.' };
+        const capital = state.cities[player.capitalCityId];
+        if (!capital || capital.gold < amount)
+          return { ok: false, message: 'Not enough gold in the capital.' };
+
+        const outcome = payTribute(
+          {
+            player,
+            playerRulerCharisma: ruler.stats.charisma,
+            target,
+            targetTotalTroops: computeTotalTroops(target.id, state.cities),
+            playerTotalTroops: computeTotalTroops(player.id, state.cities),
+            diplomacy: state.diplomacy,
+            date: state.date,
+          },
+          amount,
+        );
+
+        set({
+          cities: {
+            ...state.cities,
+            [capital.id]: { ...capital, gold: capital.gold - amount },
+          },
+          diplomacy: outcome.diplomacy,
+        });
+        return { ok: true, message: outcome.message };
+      },
+
+      breakAlliance: (targetForceId) => {
+        const state = get();
+        if (!state.playerForceId) return;
+        set({
+          diplomacy: breakAlliance(
+            state.diplomacy,
+            state.playerForceId,
+            targetForceId,
+          ),
+        });
+      },
+
+      proposeMarriage: (targetForceId, yourOfficerId, theirOfficerId) => {
+        const MARRIAGE_COST = 1000;
+        const state = get();
+        if (!state.playerForceId)
+          return { ok: false, message: 'No player force.' };
+        const player = state.forces[state.playerForceId];
+        const target = state.forces[targetForceId];
+        const yours = state.officers[yourOfficerId];
+        const theirs = state.officers[theirOfficerId];
+        if (!player || !target || !yours || !theirs)
+          return { ok: false, message: 'Invalid forces or officers.' };
+        if (yours.forceId !== state.playerForceId)
+          return { ok: false, message: 'Officer must be yours.' };
+        if (theirs.forceId !== targetForceId)
+          return { ok: false, message: 'Officer must belong to the target force.' };
+        const capital = state.cities[player.capitalCityId];
+        if (!capital || capital.gold < MARRIAGE_COST)
+          return {
+            ok: false,
+            message: `Need ${MARRIAGE_COST} gold in the capital.`,
+          };
+        // Already married?
+        if (
+          state.runtimeBonds.some(
+            (b) =>
+              (b.officerA === yourOfficerId && b.officerB === theirOfficerId) ||
+              (b.officerB === yourOfficerId && b.officerA === theirOfficerId),
+          )
+        ) {
+          return { ok: false, message: 'These officers are already bonded.' };
+        }
+
+        const newBond = {
+          officerA: yourOfficerId,
+          officerB: theirOfficerId,
+          floor: 80,
+          kind: 'oath' as const,
+          label: `${yours.name.en} ⚭ ${theirs.name.en} Marriage`,
+        };
+
+        const relKey =
+          state.playerForceId < targetForceId
+            ? `${state.playerForceId}__${targetForceId}`
+            : `${targetForceId}__${state.playerForceId}`;
+        const currentRel = state.diplomacy.relations[relKey] ?? {
+          forceA: state.playerForceId < targetForceId ? state.playerForceId : targetForceId,
+          forceB: state.playerForceId < targetForceId ? targetForceId : state.playerForceId,
+          score: 0,
+          status: 'neutral' as const,
+        };
+        const nextDiplomacy = {
+          relations: {
+            ...state.diplomacy.relations,
+            [relKey]: {
+              ...currentRel,
+              score: Math.min(100, currentRel.score + 50),
+            },
+          },
+        };
+
+        set({
+          cities: {
+            ...state.cities,
+            [capital.id]: { ...capital, gold: capital.gold - MARRIAGE_COST },
+          },
+          runtimeBonds: [...state.runtimeBonds, newBond],
+          diplomacy: nextDiplomacy,
+        });
+
+        return {
+          ok: true,
+          message: `${yours.name.en} and ${theirs.name.en} are now bonded by marriage. Relations with ${target.name.en} improved.`,
+        };
+      },
+
+      transferOfficer: (officerId, destinationCityId) => {
+        const TRANSFER_COST = 50;
+        const state = get();
+        const officer = state.officers[officerId];
+        const dest = state.cities[destinationCityId];
+        if (!officer || !dest) return { ok: false, reason: 'invalid' };
+        if (officer.forceId !== state.playerForceId)
+          return { ok: false, reason: 'not your officer' };
+        if (officer.status !== 'idle' || officer.task)
+          return { ok: false, reason: 'officer busy or not idle' };
+        if (dest.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'destination not yours' };
+        if (officer.locationCityId === destinationCityId)
+          return { ok: false, reason: 'already there' };
+        const source = officer.locationCityId
+          ? state.cities[officer.locationCityId]
+          : null;
+        if (!source || !source.adjacentCityIds.includes(destinationCityId))
+          return { ok: false, reason: 'must be adjacent' };
+        if (source.gold < TRANSFER_COST)
+          return { ok: false, reason: `need ${TRANSFER_COST} gold` };
+
+        set({
+          cities: {
+            ...state.cities,
+            [source.id]: { ...source, gold: source.gold - TRANSFER_COST },
+          },
+          officers: {
+            ...state.officers,
+            [officerId]: { ...officer, locationCityId: destinationCityId },
+          },
+        });
+        return { ok: true };
+      },
+
+      assignItem: (itemId, toOfficerId) => {
+        const state = get();
+        const target = state.officers[toOfficerId];
+        if (!target) return { ok: false, reason: 'invalid officer' };
+        if (target.forceId !== state.playerForceId)
+          return { ok: false, reason: 'not your officer' };
+        const item = ITEMS_BY_ID[itemId];
+        if (!item) return { ok: false, reason: 'invalid item' };
+
+        // Already on this officer? No-op.
+        if (target.equipment.includes(itemId)) return { ok: true };
+
+        // Find current holder (any officer that already has this item).
+        const currentHolder = Object.values(state.officers).find(
+          (o) => o.equipment.includes(itemId) && o.id !== toOfficerId,
+        );
+        if (currentHolder && currentHolder.forceId !== state.playerForceId) {
+          return { ok: false, reason: 'item held by another force' };
+        }
+
+        const updates: Record<EntityId, typeof target> = {};
+        if (currentHolder) {
+          updates[currentHolder.id] = {
+            ...currentHolder,
+            equipment: currentHolder.equipment.filter((id) => id !== itemId),
+          };
+        }
+        updates[toOfficerId] = {
+          ...target,
+          equipment: [...target.equipment, itemId],
+        };
+
+        set({ officers: { ...state.officers, ...updates } });
+        return { ok: true };
+      },
+
+      unequipSlot: (officerId, slot) => {
+        // The `slot` argument now identifies *which item kind to unequip*.
+        // Kept the name for back-compat; functionally it removes the first
+        // item of the given kind. To remove a specific item, callers should
+        // use the new `unequipItem` action instead.
+        const state = get();
+        const officer = state.officers[officerId];
+        if (!officer) return { ok: false, reason: 'invalid officer' };
+        if (officer.forceId !== state.playerForceId)
+          return { ok: false, reason: 'not your officer' };
+        const itemId = officer.equipment.find(
+          (id) => ITEMS_BY_ID[id]?.kind === slot,
+        );
+        if (!itemId)
+          return { ok: false, reason: 'no item of that kind' };
+        set({
+          officers: {
+            ...state.officers,
+            [officerId]: {
+              ...officer,
+              equipment: officer.equipment.filter((id) => id !== itemId),
+            },
+          },
+        });
+        return { ok: true };
+      },
+
+      appointTitle: (officerId, titleId, cityId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        const def = CIVIC_TITLES_BY_ID[titleId];
+        if (!officer || !def) return { ok: false, reason: 'invalid' };
+        if (officer.forceId !== state.playerForceId)
+          return { ok: false, reason: 'not your officer' };
+        if (officer.status !== 'idle' && officer.status !== 'active')
+          return { ok: false, reason: 'officer unavailable' };
+        if (titleId === 'prefect') {
+          if (!cityId) return { ok: false, reason: 'prefect needs a city' };
+          const city = state.cities[cityId];
+          if (!city || city.ownerForceId !== state.playerForceId)
+            return { ok: false, reason: 'not your city' };
+        }
+        const filtered = state.appointments.filter((a) => {
+          // Same officer can only hold one post — drop prior post for them.
+          if (a.officerId === officerId) return false;
+          // Unique-per-force posts can only be held by one officer at a time.
+          if (def.uniquePerForce && a.titleId === titleId && a.forceId === state.playerForceId)
+            return false;
+          // Prefect: only one per city.
+          if (titleId === 'prefect' && a.titleId === 'prefect' && a.cityId === cityId)
+            return false;
+          return true;
+        });
+        const appt = {
+          officerId,
+          forceId: state.playerForceId!,
+          titleId,
+          cityId,
+          appointedYear: state.date.year,
+        };
+        set({ appointments: [...filtered, appt] });
+        return { ok: true };
+      },
+
+      revokeTitle: (officerId) => {
+        const state = get();
+        const before = state.appointments.length;
+        const after = state.appointments.filter(
+          (a) => a.officerId !== officerId,
+        );
+        if (after.length === before)
+          return { ok: false, reason: 'no title held' };
+        set({ appointments: after });
+        return { ok: true };
+      },
+
+      promoteOfficer: (officerId, rankId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        const rankDef = MILITARY_RANKS_BY_ID[rankId];
+        if (!officer || !rankDef) return { ok: false, reason: 'invalid' };
+        if (officer.forceId !== state.playerForceId)
+          return { ok: false, reason: 'not your officer' };
+        // Stat check: top of war or leadership must clear minStat.
+        const best = Math.max(officer.stats.war, officer.stats.leadership);
+        if (best < rankDef.minStat)
+          return { ok: false, reason: `requires ${rankDef.minStat} war/lead` };
+        set({
+          officers: {
+            ...state.officers,
+            [officerId]: {
+              ...officer,
+              rank: rankId,
+              loyalty: Math.min(100, officer.loyalty + rankDef.loyaltyBonus),
+            },
+          },
+        });
+        return { ok: true };
+      },
+
+      dismissEvent: () => {
+        const state = get();
+        if (!state.pendingEvent) return;
+        set({ pendingEvent: null });
+      },
+
+      startTacticalBattle: (battle) => set({ tacticalBattle: battle }),
+      endTacticalBattle: (winner, attackerLosses, defenderLosses) => {
+        const state = get();
+        const tb = state.tacticalBattle;
+        if (!tb) return;
+        set({
+          tacticalBattle: {
+            ...tb,
+            winner,
+            attackerLosses,
+            defenderLosses,
+          },
+        });
+      },
+      cancelTacticalBattle: () => set({ tacticalBattle: null }),
+
+      applyTacticalResolution: (captured, dead, lootGold, winner) => {
+        const state = get();
+        const tb = state.tacticalBattle;
+        if (!tb) return;
+        let officers = { ...state.officers };
+        const cities = { ...state.cities };
+        const careerMilestones: Array<{ title: { zh: string; en: string }; year: number; season: typeof state.date.season }> = [];
+
+        // Award XP to all participants.
+        const participantIds = tb.units.map((u) => u.officerId);
+        const victorIds = winner
+          ? tb.units.filter((u) => u.side === winner).map((u) => u.officerId)
+          : [];
+        const xpResult = awardBattleXp(officers, participantIds, victorIds);
+        officers = xpResult.officers;
+
+        // Heroic deeds tracking.
+        const deeds = { ...state.deeds };
+        const bumpDeeds = (id: string, patch: Partial<import('../types').HeroicDeeds>) => {
+          const cur = deeds[id] ?? {
+            officerId: id, killsTroops: 0, duelsWon: 0, captured: 0, citiesTaken: 0,
+            espionageSuccess: 0, civicWorks: 0, battlesWon: 0, battlesLost: 0,
+          };
+          deeds[id] = { ...cur, ...Object.fromEntries(
+            Object.entries(patch).map(([k, v]) => [k, (cur[k as keyof typeof cur] as number) + (v as number)]),
+          ) } as import('../types').HeroicDeeds;
+        };
+        const enemyLosses = winner === 'attacker' ? tb.defenderLosses : winner === 'defender' ? tb.attackerLosses : 0;
+        for (const id of victorIds) {
+          bumpDeeds(id, { battlesWon: 1, killsTroops: Math.floor(enemyLosses / victorIds.length) });
+        }
+        const loserIds = tb.units.filter((u) => u.side !== winner).map((u) => u.officerId);
+        for (const id of loserIds) {
+          bumpDeeds(id, { battlesLost: 1 });
+        }
+        if (captured.length > 0) {
+          // The winning commander gets credit for the captures.
+          const cmd = tb.units.find((u) => u.side === winner && u.isCommander);
+          if (cmd) bumpDeeds(cmd.officerId, { captured: captured.length });
+        }
+
+        // Save replay (snapshot of final battle state only — turn-by-turn would
+        // require more plumbing, so we record the end state.).
+        const force = winner === 'attacker' ? tb.attackerForceId : tb.defenderForceId;
+        const replays = [...state.battleReplays, {
+          id: `replay-${tb.id}`,
+          cityId: tb.cityId,
+          cityName: state.cities[tb.cityId]?.name ?? { zh: '?', en: '?' },
+          year: state.date.year,
+          season: state.date.season,
+          attackerForceName: tb.attackerForceId ? state.forces[tb.attackerForceId]?.name : undefined,
+          defenderForceName: tb.defenderForceId ? state.forces[tb.defenderForceId]?.name : undefined,
+          finalBattle: tb,
+          snapshots: [tb],
+        }];
+        void force;
+
+        // Apply officer fates.
+        for (const id of dead) {
+          const o = officers[id];
+          if (o) {
+            officers[id] = { ...o, status: 'dead', forceId: null, task: null };
+          }
+        }
+        for (const id of captured) {
+          const o = officers[id];
+          if (o) {
+            officers[id] = { ...o, status: 'imprisoned', forceId: null, task: null };
+          }
+        }
+
+        // Apply troop losses to the source/target cities.
+        const target = cities[tb.cityId];
+        if (target) {
+          // Defender losses are taken from target city.
+          cities[tb.cityId] = {
+            ...target,
+            troops: Math.max(0, target.troops - tb.defenderLosses),
+          };
+        }
+
+        // Winner gets loot deposited in their force's capital.
+        if (winner && lootGold > 0) {
+          const winnerForceId =
+            winner === 'attacker' ? tb.attackerForceId : tb.defenderForceId;
+          const winnerForce = winnerForceId ? state.forces[winnerForceId] : null;
+          if (winnerForce) {
+            const cap = cities[winnerForce.capitalCityId];
+            if (cap) {
+              cities[winnerForce.capitalCityId] = { ...cap, gold: cap.gold + lootGold };
+            }
+          }
+        }
+
+        // If attacker won, city falls (taken with attacker's surviving troops).
+        if (winner === 'attacker' && target) {
+          const attackerCmd = tb.units.find((u) => u.side === 'attacker' && u.isCommander);
+          if (attackerCmd) {
+            const survivingTroops = tb.units
+              .filter((u) => u.side === 'attacker')
+              .reduce((s, u) => s + u.troops, 0);
+            cities[tb.cityId] = {
+              ...cities[tb.cityId],
+              ownerForceId: tb.attackerForceId,
+              troops: survivingTroops,
+              loyalty: Math.max(20, Math.floor(target.loyalty * 0.5)),
+            };
+            bumpDeeds(attackerCmd.officerId, { citiesTaken: 1 });
+            // Career milestone: career officer took a city.
+            if (state.careerMode?.officerId === attackerCmd.officerId) {
+              const cityName = state.cities[tb.cityId]?.name ?? { zh: '?', en: '?' };
+              careerMilestones.push({
+                title: { zh: `${cityName.zh}陥落`, en: `Took ${cityName.en}` },
+                year: state.date.year,
+                season: state.date.season,
+              });
+            }
+            // Move all attacker officers to the conquered city.
+            for (const u of tb.units.filter((u) => u.side === 'attacker')) {
+              const o = officers[u.officerId];
+              if (o && o.status !== 'dead' && o.status !== 'imprisoned') {
+                officers[u.officerId] = {
+                  ...o,
+                  locationCityId: tb.cityId,
+                  task: null,
+                };
+              }
+            }
+          }
+        }
+
+        // If a battle happened and the career officer participated, record it.
+        if (state.careerMode && tb.units.some((u) => u.officerId === state.careerMode!.officerId)) {
+          const cityName = state.cities[tb.cityId]?.name ?? { zh: '?', en: '?' };
+          if (winner) {
+            const playerSide =
+              tb.attackerForceId === state.playerForceId ? 'attacker' : 'defender';
+            const won = winner === playerSide;
+            careerMilestones.push({
+              title: won
+                ? { zh: `${cityName.zh}の戦勝`, en: `Victory at ${cityName.en}` }
+                : { zh: `${cityName.zh}の敗北`, en: `Defeat at ${cityName.en}` },
+              year: state.date.year,
+              season: state.date.season,
+            });
+          }
+        }
+        let careerMode = state.careerMode && careerMilestones.length > 0
+          ? { ...state.careerMode, milestones: [...state.careerMode.milestones, ...careerMilestones] }
+          : state.careerMode;
+
+        // Roguelike — career officer death.
+        if (state.roguelikeMode && state.careerMode) {
+          const careerOff = officers[state.careerMode.officerId];
+          if (careerOff?.status === 'dead') {
+            // Bump cross-run counter, then exit career mode.
+            let ach = loadAchievementProgress();
+            ach = bumpCounters(ach, { careerRuns: 1 });
+            saveAchievementProgress(ach);
+            alert(`Your career officer ${careerOff.name.en} has fallen in battle. The campaign ends here. (Roguelike run #${ach.counters.careerRuns})`);
+            careerMode = null;
+          }
+        }
+
+        // Campaign stats updates.
+        const newStats = { ...state.campaignStats };
+        newStats.totalBattles = (newStats.totalBattles ?? 0) + 1;
+        const battleTotalTroops =
+          tb.units.reduce((s, u) => s + u.maxTroops, 0);
+        if (
+          !newStats.biggestBattle ||
+          tb.attackerLosses + tb.defenderLosses > 0 &&
+            (newStats.biggestBattle.attackerTroops + newStats.biggestBattle.defenderTroops) <
+              battleTotalTroops
+        ) {
+          newStats.biggestBattle = {
+            cityId: tb.cityId,
+            year: state.date.year,
+            season: state.date.season,
+            attackerTroops: tb.units.filter((u) => u.side === 'attacker').reduce((s, u) => s + u.maxTroops, 0),
+            defenderTroops: tb.units.filter((u) => u.side === 'defender').reduce((s, u) => s + u.maxTroops, 0),
+          };
+        }
+        if (!newStats.longestSiege || newStats.longestSiege.turns < tb.turn) {
+          newStats.longestSiege = { cityId: tb.cityId, turns: tb.turn };
+        }
+        const totalCasualties = tb.attackerLosses + tb.defenderLosses;
+        if (!newStats.worstCasualties || newStats.worstCasualties.troopsLost < totalCasualties) {
+          newStats.worstCasualties = { cityId: tb.cityId, troopsLost: totalCasualties };
+        }
+        // Top conqueror by total cities taken.
+        const sortedByCity = Object.values(deeds).sort((a, b) => b.citiesTaken - a.citiesTaken);
+        if (sortedByCity[0] && (!newStats.topOfficerByCities || newStats.topOfficerByCities.count < sortedByCity[0].citiesTaken)) {
+          newStats.topOfficerByCities = { officerId: sortedByCity[0].officerId, count: sortedByCity[0].citiesTaken };
+        }
+
+        // Achievement triggers for this battle.
+        let ach = loadAchievementProgress();
+        const newlyAch: string[] = [];
+        const recordTrigger = (kind: 'defeat-officer' | 'capture-city' | 'duel-won-vs', targetId: string) => {
+          const r = processTrigger(ach, { kind, targetId });
+          ach = r.progress;
+          newlyAch.push(...r.newlyUnlocked);
+        };
+        for (const id of dead) recordTrigger('defeat-officer', id);
+        if (winner === 'attacker') {
+          recordTrigger('capture-city', tb.cityId);
+        }
+        // Cumulative kills (loser's troop loss).
+        const enemyLossesForCounters = winner === 'attacker' ? tb.defenderLosses : winner === 'defender' ? tb.attackerLosses : 0;
+        if (enemyLossesForCounters > 0) {
+          ach = bumpCounters(ach, { kills: enemyLossesForCounters });
+        }
+        if (winner) ach = bumpCounters(ach, { battlesWon: 1 });
+        const cum = checkCumulativeThresholds(ach);
+        ach = cum.progress;
+        newlyAch.push(...cum.newlyUnlocked);
+        saveAchievementProgress(ach);
+
+        set({
+          officers,
+          cities,
+          tacticalBattle: null,
+          deeds,
+          battleReplays: replays,
+          careerMode,
+          campaignStats: newStats,
+          recentAchievementUnlocks: [...state.recentAchievementUnlocks, ...newlyAch],
+        });
+      },
+
+      queueEspionage: (kind, agentOfficerId, targetForceId, targetCityId, targetOfficerId) => {
+        const state = get();
+        const def = ESPIONAGE_DEFS_BY_KIND[kind];
+        const agent = state.officers[agentOfficerId];
+        if (!def || !agent) return { ok: false, reason: 'invalid' };
+        if (agent.forceId !== state.playerForceId)
+          return { ok: false, reason: 'not your officer' };
+        if (agent.task) return { ok: false, reason: 'officer is busy' };
+        if (agent.stats.intelligence < def.minIntelligence)
+          return { ok: false, reason: `requires INT ${def.minIntelligence}` };
+        if (def.targetsOfficer && !targetOfficerId)
+          return { ok: false, reason: 'needs a target officer' };
+        if (!def.targetsOfficer && !targetCityId)
+          return { ok: false, reason: 'needs a target city' };
+
+        // Pay gold from agent's city.
+        const city = agent.locationCityId ? state.cities[agent.locationCityId] : null;
+        if (!city || city.gold < def.goldCost)
+          return { ok: false, reason: `need ${def.goldCost}g at ${city?.name.en ?? 'agent city'}` };
+
+        // Lock the officer for the season.
+        const op = {
+          id: `esp-${Date.now()}-${Math.floor(Math.random() * 9999)}`,
+          kind,
+          agentOfficerId,
+          targetForceId,
+          targetCityId,
+          targetOfficerId,
+          issuedYear: state.date.year,
+          issuedSeason: state.date.season,
+        };
+        set({
+          pendingEspionage: [...state.pendingEspionage, op],
+          cities: {
+            ...state.cities,
+            [city.id]: { ...city, gold: city.gold - def.goldCost },
+          },
+          officers: {
+            ...state.officers,
+            [agentOfficerId]: { ...agent, task: 'search' },
+          },
+        });
+        return { ok: true };
+      },
+
+      cancelEspionage: (opId) => {
+        const state = get();
+        const op = state.pendingEspionage.find((o) => o.id === opId);
+        if (!op) return;
+        const agent = state.officers[op.agentOfficerId];
+        set({
+          pendingEspionage: state.pendingEspionage.filter((o) => o.id !== opId),
+          officers: agent
+            ? {
+                ...state.officers,
+                [op.agentOfficerId]: { ...agent, task: null },
+              }
+            : state.officers,
+        });
+      },
+
+      issueEdict: (kind, targetForceId) => {
+        const state = get();
+        const def = EDICTS_BY_KIND[kind];
+        if (!def) return { ok: false, reason: 'invalid edict' };
+        if (!state.playerForceId) return { ok: false, reason: 'no player force' };
+
+        const force = state.forces[state.playerForceId];
+        if (!force) return { ok: false, reason: 'no force' };
+        const rank = force.imperialRank ?? 'commoner';
+        const minRankDef = IMPERIAL_RANKS_BY_ID[def.minRank];
+        const curRankDef = IMPERIAL_RANKS_BY_ID[rank];
+        if (!minRankDef || !curRankDef || curRankDef.tier < minRankDef.tier)
+          return { ok: false, reason: `requires ${minRankDef?.name.en ?? def.minRank}` };
+
+        const cd = state.edictCooldowns[kind];
+        if (cd) {
+          const seasonOrder: Record<string, number> = { spring: 0, summer: 1, autumn: 2, winter: 3 };
+          const cdAbs = cd.year * 4 + seasonOrder[cd.season];
+          const nowAbs = state.date.year * 4 + seasonOrder[state.date.season];
+          if (cdAbs > nowAbs)
+            return { ok: false, reason: 'still on cooldown' };
+        }
+
+        const capital = state.cities[force.capitalCityId];
+        if (!capital || capital.gold < def.goldCost)
+          return { ok: false, reason: `need ${def.goldCost}g at capital` };
+
+        const updates: Partial<typeof state> = {};
+        let message: string | undefined;
+
+        if (kind === 'tax-amnesty') {
+          const cities = { ...state.cities };
+          for (const c of Object.values(cities)) {
+            if (c.ownerForceId === state.playerForceId) {
+              cities[c.id] = { ...c, loyalty: Math.min(100, c.loyalty + 10) };
+            }
+          }
+          cities[capital.id] = { ...cities[capital.id], gold: cities[capital.id].gold - def.goldCost };
+          updates.cities = cities;
+          message = 'Grand amnesty proclaimed. Loyalty +10 across the realm.';
+        } else if (kind === 'denounce' && targetForceId) {
+          const cities = { ...state.cities };
+          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          const officers = { ...state.officers };
+          for (const o of Object.values(officers)) {
+            if (o.forceId === targetForceId) {
+              officers[o.id] = { ...o, loyalty: Math.max(0, o.loyalty - 5) };
+            }
+          }
+          updates.cities = cities;
+          updates.officers = officers;
+          const target = state.forces[targetForceId];
+          message = `${target?.name.en ?? 'Target'} denounced. Their officers lose 5 loyalty.`;
+        } else if (kind === 'declare-vassal' && targetForceId) {
+          const forces = { ...state.forces };
+          const target = forces[targetForceId];
+          if (target) {
+            forces[targetForceId] = { ...target, vassalOfForceId: state.playerForceId };
+            updates.forces = forces;
+            message = `${target.name.en} bestowed vassalage.`;
+          }
+        } else if (kind === 'levy-tribute' && targetForceId) {
+          const targetForce = state.forces[targetForceId];
+          if (targetForce?.vassalOfForceId === state.playerForceId) {
+            const cities = { ...state.cities };
+            const vCap = cities[targetForce.capitalCityId];
+            const tribute = Math.min(vCap.gold, 800);
+            if (vCap && tribute > 0) {
+              cities[targetForce.capitalCityId] = { ...vCap, gold: vCap.gold - tribute };
+              cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost + tribute };
+              updates.cities = cities;
+              message = `Levied ${tribute}g tribute from ${targetForce.name.en}.`;
+            } else {
+              message = `${targetForce.name.en} has no gold to pay.`;
+            }
+          } else {
+            return { ok: false, reason: 'target is not your vassal' };
+          }
+        } else if (kind === 'enthronement') {
+          const forces = { ...state.forces };
+          forces[state.playerForceId] = { ...force, imperialRank: 'emperor' as ImperialRank };
+          const officers = { ...state.officers };
+          const playerId = state.playerForceId;
+          // All non-vassal force officers lose loyalty (toward you).
+          for (const o of Object.values(officers)) {
+            if (o.forceId && o.forceId !== playerId) {
+              const otherForce = forces[o.forceId];
+              if (!otherForce || otherForce.vassalOfForceId !== playerId) {
+                officers[o.id] = { ...o, loyalty: Math.max(0, o.loyalty - 10) };
+              }
+            }
+          }
+          const cities = { ...state.cities };
+          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          updates.forces = forces;
+          updates.officers = officers;
+          updates.cities = cities;
+          message = 'You have proclaimed yourself Emperor. All non-vassal rivals lose 10 loyalty.';
+        }
+
+        const issued = {
+          id: `edict-${Date.now()}-${Math.floor(Math.random() * 9999)}`,
+          kind,
+          issuingForceId: state.playerForceId,
+          targetForceId,
+          issuedYear: state.date.year,
+          issuedSeason: state.date.season,
+        };
+        const nextSeason = nextSeasonAfter(state.date, def.cooldownSeasons);
+        set({
+          ...updates,
+          edictHistory: [...state.edictHistory, issued],
+          edictCooldowns: {
+            ...state.edictCooldowns,
+            [kind]: nextSeason,
+          },
+        });
+        return { ok: true, message };
+      },
+
+      promoteImperialRank: (forceId, rank) => {
+        const state = get();
+        const force = state.forces[forceId];
+        if (!force) return { ok: false, reason: 'invalid force' };
+        set({
+          forces: {
+            ...state.forces,
+            [forceId]: { ...force, imperialRank: rank },
+          },
+        });
+        return { ok: true };
+      },
+
+      setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
+      setMusicTrack: (track) => set({ musicTrack: track }),
+      setFogOfWar: (on) => set({ fogOfWar: on }),
+
+      saveCommandTemplate: (label) => {
+        const state = get();
+        // Snapshot current pending commands as a template.
+        const commands = Object.values(state.pendingCommands)
+          .filter((c) => c.type !== 'march')
+          .map((c) => ({ cityId: c.cityId, type: c.type as import('../types').InternalAffairsType }));
+        if (commands.length === 0) return;
+        set({
+          commandTemplates: [
+            ...state.commandTemplates,
+            { id: `tmpl-${Date.now()}`, label, commands },
+          ],
+        });
+      },
+      applyCommandTemplate: (id) => {
+        const state = get();
+        const tmpl = state.commandTemplates.find((t) => t.id === id);
+        if (!tmpl || !state.playerForceId) return;
+        // Apply each command via issueCommand (which validates).
+        for (const c of tmpl.commands) {
+          const city = state.cities[c.cityId];
+          if (!city || city.ownerForceId !== state.playerForceId) continue;
+          // Find an idle officer in the city to assign the command to.
+          const officer = Object.values(state.officers).find(
+            (o) =>
+              o.locationCityId === c.cityId &&
+              o.forceId === state.playerForceId &&
+              o.status === 'idle' &&
+              !o.task,
+          );
+          if (officer) {
+            get().issueCommand(c.cityId, c.type, officer.id);
+          }
+        }
+      },
+      deleteCommandTemplate: (id) =>
+        set({ commandTemplates: get().commandTemplates.filter((t) => t.id !== id) }),
+
+      setAutoBuildQueue: (cityId, queue) => {
+        const state = get();
+        const next = { ...state.autoBuildQueues };
+        if (queue.length === 0) delete next[cityId];
+        else next[cityId] = queue;
+        set({ autoBuildQueues: next });
+      },
+
+      acceptDialogue: (choiceIdx) => {
+        const state = get();
+        const dlg = state.pendingDialogue;
+        if (!dlg) return;
+        const choice = dlg.choices[choiceIdx];
+        if (!choice) return;
+        // Apply effects.
+        let officers = { ...state.officers };
+        let cities = { ...state.cities };
+        let eventFlags = state.eventFlags;
+        const playerCapital = state.playerForceId
+          ? state.forces[state.playerForceId]?.capitalCityId
+          : null;
+        for (const eff of choice.effects) {
+          if (eff.kind === 'gold' && playerCapital) {
+            const c = cities[playerCapital];
+            if (c) cities[playerCapital] = { ...c, gold: Math.max(0, c.gold + eff.delta) };
+          } else if (eff.kind === 'loyalty' && officers[eff.officerId]) {
+            const o = officers[eff.officerId];
+            officers[eff.officerId] = {
+              ...o,
+              loyalty: Math.max(0, Math.min(100, o.loyalty + eff.delta)),
+            };
+          } else if (eff.kind === 'city-loyalty' && cities[eff.cityId]) {
+            const c = cities[eff.cityId];
+            cities[eff.cityId] = {
+              ...c,
+              loyalty: Math.max(0, Math.min(100, c.loyalty + eff.delta)),
+            };
+          } else if (eff.kind === 'food' && eff.cityId && cities[eff.cityId]) {
+            const c = cities[eff.cityId];
+            cities[eff.cityId] = { ...c, food: Math.max(0, c.food + eff.delta) };
+          } else if (eff.kind === 'troops' && eff.cityId && cities[eff.cityId]) {
+            const c = cities[eff.cityId];
+            cities[eff.cityId] = { ...c, troops: Math.max(0, c.troops + eff.delta) };
+          } else if (eff.kind === 'set-flag') {
+            if (eventFlags === state.eventFlags) eventFlags = { ...eventFlags };
+            eventFlags[eff.flag] = true;
+          }
+          // Other effects: noop here, just flavor.
+        }
+        // Queue a branching follow-up if the choice has one.
+        const dialogueFollowups = choice.followupEventId
+          ? [...state.dialogueFollowups, choice.followupEventId]
+          : state.dialogueFollowups;
+        set({ pendingDialogue: null, officers, cities, eventFlags, dialogueFollowups });
+      },
+      dismissDialogue: () => set({ pendingDialogue: null }),
+
+      setBattleSpeed: (speed) => set({ battleSpeed: speed }),
+
+      enterCareerMode: (officerId) => {
+        const state = get();
+        const o = state.officers[officerId];
+        if (!o) return;
+        set({
+          careerMode: {
+            officerId,
+            milestones: [
+              {
+                title: { zh: '出仕', en: 'Began Service' },
+                year: state.date.year,
+                season: state.date.season,
+              },
+            ],
+          },
+        });
+      },
+      exitCareerMode: () => set({ careerMode: null }),
+
+      addCareerMilestone: (title: { zh: string; en: string }) => {
+        const state = get();
+        if (!state.careerMode) return;
+        set({
+          careerMode: {
+            ...state.careerMode,
+            milestones: [
+              ...state.careerMode.milestones,
+              { title, year: state.date.year, season: state.date.season },
+            ],
+          },
+        });
+      },
+
+      setRomanceMode: (on) => set({ romanceMode: on }),
+      setRoguelikeMode: (on) => set({ roguelikeMode: on }),
+
+      forgeItem: (cityId, recipeId) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city) return { ok: false, reason: 'invalid city' };
+        if (city.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'not your city' };
+        // Need a foundry in the city.
+        const foundry = state.buildings.find(
+          (b) => b.cityId === cityId && b.id === 'foundry',
+        );
+        const recipe = FORGE_RECIPES_BY_ID[recipeId];
+        if (!recipe) return { ok: false, reason: 'invalid recipe' };
+        if (!foundry || foundry.level < recipe.minFoundryLevel)
+          return { ok: false, reason: `need foundry lv${recipe.minFoundryLevel}` };
+        if (city.gold < recipe.goldCost)
+          return { ok: false, reason: 'not enough gold' };
+        // Verify all ingredients are present as lost items in this city.
+        const ingredientsInCity = state.lostItems.filter(
+          (li) => li.cityId === cityId && recipe.ingredients.includes(li.itemId),
+        );
+        const have = new Set(ingredientsInCity.map((li) => li.itemId));
+        if (!recipe.ingredients.every((id) => have.has(id)))
+          return { ok: false, reason: 'missing ingredients' };
+
+        // Consume gold, consume ingredients, place result in the lost-items pool of this city.
+        const newLostItems = state.lostItems.filter((li) => {
+          if (li.cityId !== cityId) return true;
+          if (!recipe.ingredients.includes(li.itemId)) return true;
+          // Remove only one instance (since items are unique global anyway).
+          return false;
+        });
+        newLostItems.push({ itemId: recipe.resultItemId, cityId });
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - recipe.goldCost },
+          },
+          lostItems: newLostItems,
+        });
+        return { ok: true };
+      },
+
+      acknowledgeAchievements: () => set({ recentAchievementUnlocks: [] }),
+
+      startBuilding: (cityId, buildingId) => {
+        const state = get();
+        const city = state.cities[cityId];
+        const def = BUILDING_DEFS_BY_ID[buildingId];
+        if (!city || !def) return { ok: false, reason: 'invalid' };
+        if (city.ownerForceId !== state.playerForceId) return { ok: false, reason: 'not your city' };
+        if (city.gold < def.goldPerLevel) return { ok: false, reason: 'not enough gold' };
+        const existing = state.buildings.find((b) => b.cityId === cityId && b.id === buildingId);
+        if (existing && existing.level >= def.maxLevel)
+          return { ok: false, reason: 'max level' };
+        if (existing && existing.progress > 0)
+          return { ok: false, reason: 'already in progress' };
+        // Shipyard needs river/coastal — check if the city has a 'river' route hint.
+        // (We use specialTiles in named maps; for now allow all.)
+        const newBuilding = existing
+          ? state.buildings.map((b) =>
+              b.id === buildingId && b.cityId === cityId ? { ...b, progress: 1 } : b,
+            )
+          : [...state.buildings, { id: buildingId, cityId, level: 0, progress: 1 }];
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - def.goldPerLevel },
+          },
+          buildings: newBuilding,
+        });
+        return { ok: true };
+      },
+
+      appointGovernor: (provinceId, officerId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        if (!officer) return { ok: false, reason: 'invalid officer' };
+        if (officer.forceId !== state.playerForceId) return { ok: false, reason: 'not your officer' };
+        set({
+          provinceGovernors: {
+            ...state.provinceGovernors,
+            [provinceId]: officerId,
+          },
+        });
+        return { ok: true };
+      },
+
+      proposeMarriagePair: (aId, bId) => {
+        const state = get();
+        const a = state.officers[aId];
+        const b = state.officers[bId];
+        if (!a || !b) return { ok: false, reason: 'invalid officer' };
+        if (a.forceId !== state.playerForceId && b.forceId !== state.playerForceId)
+          return { ok: false, reason: 'must be your officers' };
+        const family = addSpouse(state.family, aId, bId);
+        set({ family });
+        return { ok: true };
+      },
+
+      grantWish: (wishId) => {
+        const state = get();
+        const wish = state.officerWishes.find((w) => w.id === wishId);
+        if (!wish) return;
+        const r = applyWishGrant(wish, { officers: state.officers, cities: state.cities });
+        set({
+          officers: r.officers,
+          officerWishes: state.officerWishes.filter((w) => w.id !== wishId),
+        });
+      },
+
+      rejectWish: (wishId) => {
+        const state = get();
+        const wish = state.officerWishes.find((w) => w.id === wishId);
+        if (!wish) return;
+        const r = applyWishReject(wish, { officers: state.officers, cities: state.cities });
+        set({
+          officers: r.officers,
+          officerWishes: state.officerWishes.filter((w) => w.id !== wishId),
+        });
+      },
+
+      setTutorialStep: (step) => set({ tutorialStep: step }),
+
+      setHotSeatPlayers: (players) =>
+        set({ hotSeatPlayers: players, hotSeatActiveIndex: 0 }),
+
+      cycleHotSeat: () => {
+        const state = get();
+        if (state.hotSeatPlayers.length === 0) return;
+        const next = (state.hotSeatActiveIndex + 1) % state.hotSeatPlayers.length;
+        const player = state.hotSeatPlayers[next];
+        set({
+          hotSeatActiveIndex: next,
+          playerForceId: player.forceId,
+        });
+      },
+
+      buildShip: (cityId, shipClass) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city) return { ok: false, reason: 'invalid city' };
+        if (city.ownerForceId !== state.playerForceId) return { ok: false, reason: 'not your city' };
+        const shipyard = state.buildings.find((b) => b.cityId === cityId && b.id === 'shipyard');
+        if (!shipyard || shipyard.level === 0)
+          return { ok: false, reason: 'need a shipyard' };
+        const cost = shipClass === 'flagship' ? 1200 : shipClass === 'warship' ? 600 : 300;
+        if (city.gold < cost) return { ok: false, reason: 'not enough gold' };
+        const seasons = Math.max(1, 4 - shipyard.level);
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - cost },
+          },
+          shipOrders: [
+            ...state.shipOrders,
+            {
+              id: `ship-${Date.now()}`,
+              cityId,
+              shipClass,
+              seasonsLeft: seasons,
+            },
+          ],
+        });
+        return { ok: true };
+      },
+
+      loadRandomScenario: (forceCount, year, seed) => {
+        const scenario = generateRandomScenario({ forceCount, year, seed });
+        // Pick the first force as default player.
+        const playerForceId = scenario.forces[0]?.id;
+        if (!playerForceId) return;
+        set((s) => loadScenario(s, scenario, playerForceId, s.difficulty));
+      },
+
+      saveSlot: (slotId, label) => {
+        const state = get();
+        const force = state.playerForceId ? state.forces[state.playerForceId] : null;
+        const playerForceName = force?.name.en ?? 'Unknown';
+        saveToSlot(slotId, label, state, playerForceName);
+      },
+
+      loadSlot: (slotId) => {
+        const loaded = loadFromSlot(slotId);
+        if (!loaded) return false;
+        // Refresh tribe state if missing (legacy save).
+        const fresh = {
+          ...loaded,
+          tribeState: loaded.tribeState ?? EMPTY_STATE.tribeState,
+          pendingEspionage: loaded.pendingEspionage ?? [],
+          edictHistory: loaded.edictHistory ?? [],
+          edictCooldowns: loaded.edictCooldowns ?? {},
+          appointments: loaded.appointments ?? [],
+          eventFlags: loaded.eventFlags ?? {},
+          firedEventIds: loaded.firedEventIds ?? [],
+        };
+        set(fresh);
+        return true;
+      },
+
+      deleteSlot: (slotId) => deleteSlot(slotId),
+      listSlots: () => listSlots(),
+
+      reset: () => set(() => ({ ...EMPTY_STATE })),
+    }),
+    {
+      name: 'tkm-save-v26',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        date: state.date,
+        scenarioId: state.scenarioId,
+        playerForceId: state.playerForceId,
+        selectedCityId: state.selectedCityId,
+        cities: state.cities,
+        forces: state.forces,
+        officers: state.officers,
+        pendingCommands: state.pendingCommands,
+        lastReport: state.lastReport,
+        victoryStatus: state.victoryStatus,
+        difficulty: state.difficulty,
+        diplomacy: state.diplomacy,
+        runtimeBonds: state.runtimeBonds,
+        battleHistory: state.battleHistory,
+        appointments: state.appointments,
+        eventFlags: state.eventFlags,
+        firedEventIds: state.firedEventIds,
+        pendingEspionage: state.pendingEspionage,
+        edictHistory: state.edictHistory,
+        edictCooldowns: state.edictCooldowns,
+        tribeState: state.tribeState,
+        soundEnabled: state.soundEnabled,
+        buildings: state.buildings,
+        tradeRoutes: state.tradeRoutes,
+        provinceGovernors: state.provinceGovernors,
+        fleets: state.fleets,
+        shipOrders: state.shipOrders,
+        family: state.family,
+        pendingHeirs: state.pendingHeirs,
+        officerWishes: state.officerWishes,
+        endingsAchieved: state.endingsAchieved,
+        hotSeatPlayers: state.hotSeatPlayers,
+        hotSeatActiveIndex: state.hotSeatActiveIndex,
+        musicTrack: state.musicTrack,
+        lostItems: state.lostItems,
+        battleReplays: state.battleReplays,
+        deeds: state.deeds,
+        fogOfWar: state.fogOfWar,
+        commandTemplates: state.commandTemplates,
+        autoBuildQueues: state.autoBuildQueues,
+        dialogueFollowups: state.dialogueFollowups,
+        achievedObjectives: state.achievedObjectives,
+        careerMode: state.careerMode,
+        battleSpeed: state.battleSpeed,
+        romanceMode: state.romanceMode,
+        roguelikeMode: state.roguelikeMode,
+        campaignStats: state.campaignStats,
+      }),
+    },
+  ),
+);

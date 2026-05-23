@@ -1,0 +1,170 @@
+import { useGameStore } from '../../game/state/store';
+import { SEASON_LABEL } from '../../game/types';
+
+interface Props {
+  onClose: () => void;
+}
+
+/**
+ * Career mode screen — chronicle of the player's chosen officer:
+ *   - Portrait, biography, stats
+ *   - Battle wins/losses + cities taken + deeds
+ *   - Milestone timeline (auto-recorded major events)
+ */
+export function CareerModal({ onClose }: Props) {
+  const career = useGameStore((s) => s.careerMode);
+  const officers = useGameStore((s) => s.officers);
+  const deeds = useGameStore((s) => s.deeds);
+  const forces = useGameStore((s) => s.forces);
+
+  if (!career) {
+    return (
+      <div
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+          display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem',
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={{
+            background: '#2a1f15', border: '1px solid #5a4530', padding: '2rem',
+            color: '#c0a878', fontFamily: '"Songti SC", serif', textAlign: 'center',
+          }}
+        >
+          Career mode is not active. Start a new game with a career officer.
+        </div>
+      </div>
+    );
+  }
+
+  const officer = officers[career.officerId];
+  const d = deeds[career.officerId];
+  const force = officer?.forceId ? forces[officer.forceId] : null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+        display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
+          border: '1px solid #5a4530',
+          width: 'min(720px,100%)',
+          maxHeight: '90vh',
+          display: 'flex',
+          flexDirection: 'column',
+          color: '#e8d9b0',
+          fontFamily: '"Songti SC","Noto Serif SC",serif',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header
+          style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+            padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>列伝</div>
+            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>
+              Career: {officer?.name.en ?? '?'}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+        </header>
+
+        <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
+          {/* Header card */}
+          <div
+            style={{
+              background: '#1a1410',
+              borderLeft: `3px solid ${force?.color ?? '#5a4530'}`,
+              padding: '1rem',
+              marginBottom: '1rem',
+            }}
+          >
+            <div style={{ fontSize: '1.8rem', color: '#d4a84a', letterSpacing: '0.3rem' }}>
+              {officer?.name.zh}{' '}
+              <span style={{ fontSize: '0.95rem', color: '#8a7050', fontStyle: 'italic' }}>
+                {officer?.name.en}
+              </span>
+            </div>
+            {officer?.courtesyName && (
+              <div style={{ fontSize: '0.85rem', color: '#c0a878' }}>
+                字 {officer.courtesyName.zh} · {officer.courtesyName.en}
+              </div>
+            )}
+            <div style={{ fontSize: '0.78rem', color: '#8a7050', marginTop: '0.5rem' }}>
+              {force ? <>Serving <strong style={{ color: force.color }}>{force.name.zh} {force.name.en}</strong></> : 'Free agent'}
+              {officer && (
+                <>
+                  {' · '}Rank: <strong style={{ color: '#d4a84a' }}>{officer.rank}</strong>
+                  {' · '}War {officer.stats.war} · Lead {officer.stats.leadership} · Int {officer.stats.intelligence}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Deeds summary */}
+          {d && (
+            <div style={{ background: '#1a1410', border: '1px solid #4a3520', padding: '0.85rem', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                武功 Deeds
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', fontFamily: 'ui-monospace, monospace', fontSize: '0.8rem' }}>
+                <span><span style={{ color: '#8a7050' }}>殲敵</span> {d.killsTroops.toLocaleString()}</span>
+                <span><span style={{ color: '#8a7050' }}>一騎</span> {d.duelsWon}</span>
+                <span><span style={{ color: '#8a7050' }}>生擒</span> {d.captured}</span>
+                <span><span style={{ color: '#8a7050' }}>攻陷</span> {d.citiesTaken}</span>
+                <span><span style={{ color: '#8a7050' }}>謀略</span> {d.espionageSuccess}</span>
+                <span><span style={{ color: '#8a7050' }}>内政</span> {d.civicWorks}</span>
+                <span><span style={{ color: '#8a7050' }}>勝戰</span> {d.battlesWon}</span>
+                <span><span style={{ color: '#8a7050' }}>敗戰</span> {d.battlesLost}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Milestone timeline */}
+          <div style={{ background: '#1a1410', border: '1px solid #4a3520', padding: '0.85rem' }}>
+            <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              年譜 Chronicle ({career.milestones.length})
+            </div>
+            {career.milestones.length === 0 ? (
+              <div style={{ color: '#6a5238', fontStyle: 'italic' }}>No milestones recorded yet.</div>
+            ) : (
+              <div style={{ position: 'relative', paddingLeft: '1.5rem', borderLeft: '2px solid #4a3520' }}>
+                {[...career.milestones].reverse().map((m, i) => {
+                  const season = SEASON_LABEL[m.season];
+                  return (
+                    <div key={i} style={{ marginBottom: '0.7rem', position: 'relative' }}>
+                      <span style={{
+                        position: 'absolute', left: -22, top: 6,
+                        width: 8, height: 8, borderRadius: 4,
+                        background: '#d4a84a',
+                        boxShadow: '0 0 6px #d4a84a',
+                      }} />
+                      <div style={{ fontSize: '0.7rem', color: '#8a7050', fontFamily: 'ui-monospace, monospace' }}>
+                        {m.year} {season.zh}
+                      </div>
+                      <div style={{ fontSize: '0.95rem', color: '#d4a84a' }}>
+                        {m.title.zh}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#c0a878', fontStyle: 'italic' }}>
+                        {m.title.en}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

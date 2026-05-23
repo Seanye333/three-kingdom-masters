@@ -1,0 +1,280 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #2a1f15;
+  border: 1px solid #d4a84a;
+  width: 1080px;
+  max-width: 96vw;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #4a3520;
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.titleZh {
+  font-size: 1.75rem;
+  color: #d4a84a;
+  letter-spacing: 0.4rem;
+}
+
+.titleEn {
+  font-size: 0.8rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: #8a7050;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #d4a84a;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.controlLabel {
+  font-size: 0.7rem;
+  letter-spacing: 0.15rem;
+  text-transform: uppercase;
+  color: #8a7050;
+  min-width: 50px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #1a1410;
+  color: #c0a878;
+  border: 1px solid #3a2d20;
+  padding: 0.3rem 0.65rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.chipActive {
+  border-color: #d4a84a;
+  background: #3a2d20;
+  color: #d4a84a;
+}
+
+.chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.header2 {
+  display: grid;
+  grid-template-columns: 2.3fr 2fr repeat(5, 0.55fr) 1.1fr;
+  gap: 0.35rem;
+  align-items: stretch;
+  padding: 0.4rem 0.35rem;
+  border-bottom: 1px solid #4a3520;
+  font-size: 0.65rem;
+  letter-spacing: 0.15rem;
+  text-transform: uppercase;
+  color: #8a7050;
+}
+
+.h2name { padding: 0 0.3rem; }
+.h2force { padding: 0 0.3rem; }
+.h2meta { text-align: center; padding: 0 0.3rem; }
+
+.sortHeader {
+  background: transparent;
+  color: inherit;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.sortHeader:hover {
+  background: #1a1410;
+  color: #c0a878;
+  border-color: #3a2d20;
+}
+
+.sortHeaderActive {
+  background: #3a2d20;
+  color: #d4a84a;
+  border-color: #d4a84a;
+}
+
+.sortArrow {
+  font-size: 0.7rem;
+  display: inline-block;
+  width: 8px;
+  text-align: center;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2.3fr 2fr repeat(5, 0.55fr) 1.1fr;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px dotted #3a2d20;
+  font-size: 0.85rem;
+}
+
+.row:hover {
+  background: #1a1410;
+}
+
+.rowMine {
+  background: rgba(212, 168, 74, 0.05);
+}
+
+.rowName {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.rowNameZh {
+  color: #d4a84a;
+  font-size: 0.95rem;
+}
+
+.rowNameEn {
+  color: #c0a878;
+  font-size: 0.78rem;
+}
+
+.rowCourtesy {
+  color: #8a7050;
+  font-size: 0.7rem;
+}
+
+.rowForce {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rowForceDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.rowForceText {
+  font-size: 0.78rem;
+  color: #c0a878;
+}
+
+.rowLocation {
+  color: #8a7050;
+  margin-left: 0.25rem;
+}
+
+.rowTask {
+  color: #d4a84a;
+}
+
+.rowCaptive {
+  color: #b8442e;
+}
+
+.statCell {
+  text-align: center;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  padding: 0.15rem;
+}
+
+.statEpic { color: #d4a84a; font-weight: bold; }
+.statHigh { color: #c0a878; }
+.statMid  { color: #8a7050; }
+.statLow  { color: #5a4530; }
+
+.rowMeta {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  align-items: center;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+}
+
+.rowAge {
+  color: #c0a878;
+}
+
+.rowLoyalty {
+  color: #8a7050;
+}
+
+.empty {
+  list-style: none;
+  text-align: center;
+  padding: 2rem;
+  color: #8a7050;
+  font-style: italic;
+}

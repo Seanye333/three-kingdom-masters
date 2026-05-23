@@ -1,0 +1,104 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
+  border: 2px solid #d4a84a;
+  border-radius: 4px;
+  max-width: 580px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: 0 0 40px rgba(212, 168, 74, 0.3);
+  color: #e8d9b0;
+  font-family: 'Songti SC', 'Noto Serif SC', serif;
+  position: relative;
+}
+
+.scrollDecoration {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(212, 168, 74, 0.18), transparent);
+  pointer-events: none;
+}
+
+.eyebrow {
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.3rem;
+  color: #c19a3b;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.titleZh {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 0.4rem;
+  color: #d4a84a;
+  text-shadow: 0 0 12px rgba(212, 168, 74, 0.4);
+}
+
+.titleEn {
+  font-size: 0.95rem;
+  text-align: center;
+  color: #a98a55;
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d4a84a, transparent);
+  margin: 1rem 0 1.5rem;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #c0a878;
+  margin-bottom: 1.5rem;
+  text-align: justify;
+}
+
+.dateLine {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  text-align: right;
+  color: #8a7050;
+  margin-bottom: 1rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.ackButton {
+  background: linear-gradient(180deg, #5a4530, #3a2d20);
+  color: #e8d9b0;
+  border: 1px solid #d4a84a;
+  padding: 0.6rem 2rem;
+  font-family: 'Songti SC', 'Noto Serif SC', serif;
+  font-size: 1rem;
+  letter-spacing: 0.2rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ackButton:hover {
+  background: linear-gradient(180deg, #6a5538, #4a3528);
+  box-shadow: 0 0 10px rgba(212, 168, 74, 0.4);
+}

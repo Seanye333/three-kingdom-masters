@@ -1,0 +1,273 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #1a1410;
+  color: #e8d9b0;
+}
+
+.header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #4a3520;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.titleZh {
+  font-size: 2.75rem;
+  letter-spacing: 0.5rem;
+  color: #d4a84a;
+}
+
+.titleEn {
+  font-size: 0.9rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #8a7050;
+}
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.scenarioCard {
+  background: #2a1f15;
+  border: 1px solid #4a3520;
+  padding: 1.5rem;
+}
+
+.scenarioLabel,
+.forceLabel,
+.difficultyLabel {
+  font-size: 0.7rem;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #8a7050;
+  margin-bottom: 0.5rem;
+}
+
+.scenarioList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.scenarioButton {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  color: #e8d9b0;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.scenarioButton:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.scenarioSelected {
+  border-color: #d4a84a;
+  background: #3a2d20;
+}
+
+.scenarioYear {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: #c0a878;
+}
+
+.scenarioName {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.scenarioNameZh {
+  font-size: 1rem;
+  color: #d4a84a;
+}
+
+.scenarioNameEn {
+  font-size: 0.75rem;
+  color: #8a7050;
+}
+
+.scenarioDesc {
+  margin: 0 0 1rem 0;
+  font-size: 0.85rem;
+  color: #c0a878;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.difficultyLabel {
+  margin-top: 0.75rem;
+}
+
+.difficultyRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.diffButton {
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  color: #c0a878;
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.diffButton:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.diffSelected {
+  border-color: #d4a84a;
+  background: #3a2d20;
+  color: #d4a84a;
+}
+
+.diffZh {
+  font-size: 0.9rem;
+  letter-spacing: 0.1rem;
+}
+
+.diffEn {
+  font-size: 0.7rem;
+  color: #8a7050;
+}
+
+.diffSelected .diffEn {
+  color: #c0a878;
+}
+
+.difficultyNote {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #8a7050;
+  font-style: italic;
+  min-height: 1rem;
+}
+
+.officersButton {
+  margin-top: 1rem;
+  width: 100%;
+  background: #1a1410;
+  color: #d4a84a;
+  border: 1px solid #4a3520;
+  padding: 0.6rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+}
+
+.officersButton:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.forceList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.forceButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #2a1f15;
+  border: 1px solid #4a3520;
+  color: #e8d9b0;
+  padding: 0.6rem 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.forceButton:hover {
+  background: #3a2d20;
+  border-color: #d4a84a;
+}
+
+.forceColor {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.forceText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.forceNameZh {
+  font-size: 1rem;
+  color: #d4a84a;
+}
+
+.forceNameEn {
+  font-size: 0.8rem;
+  color: #8a7050;
+}
+
+.forceStats {
+  font-size: 0.75rem;
+  color: #8a7050;
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.05rem;
+}
+
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+}

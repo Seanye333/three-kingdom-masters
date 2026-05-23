@@ -1,0 +1,282 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
+  border: 1px solid #5a4530;
+  width: min(960px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  color: #e8d9b0;
+  font-family: 'Songti SC', 'Noto Serif SC', serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #4a3520;
+}
+
+.titleZh {
+  font-size: 1.5rem;
+  color: #d4a84a;
+  letter-spacing: 0.2rem;
+}
+
+.titleEn {
+  font-size: 0.85rem;
+  color: #8a7050;
+  font-style: italic;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #d4a84a;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #4a3520;
+}
+
+.tab {
+  background: none;
+  border: 1px solid #4a3520;
+  color: #8a7050;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.tabActive {
+  border-color: #d4a84a;
+  color: #d4a84a;
+  background: rgba(212, 168, 74, 0.1);
+}
+
+.body {
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+  flex: 1;
+}
+
+.titleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.titleCard {
+  background: #1a1410;
+  border: 1px solid #4a3520;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.titleNameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.titleName {
+  font-size: 1.1rem;
+  color: #d4a84a;
+}
+
+.titleNameEn {
+  font-size: 0.75rem;
+  color: #8a7050;
+  font-style: italic;
+}
+
+.titleDesc {
+  font-size: 0.78rem;
+  color: #c0a878;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.holderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid #3a2d20;
+  margin-top: 0.4rem;
+}
+
+.holder {
+  font-size: 0.85rem;
+}
+
+.holderNone {
+  color: #6a5238;
+}
+
+.appointBtn {
+  background: #3a2d20;
+  border: 1px solid #d4a84a;
+  color: #d4a84a;
+  padding: 0.25rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.appointBtn:hover {
+  background: #5a4530;
+}
+
+.revokeBtn {
+  background: none;
+  border: 1px solid #b8442e;
+  color: #b8442e;
+  padding: 0.25rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.picker {
+  background: #0a0805;
+  border: 1px solid #4a3520;
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.pickerLabel {
+  font-size: 0.7rem;
+  color: #8a7050;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.officerOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  cursor: pointer;
+  font-family: inherit;
+  color: #e8d9b0;
+}
+
+.officerOption:hover {
+  border-color: #d4a84a;
+  background: #2a1f15;
+}
+
+.officerStats {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: #8a7050;
+}
+
+.cityPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+}
+
+.cityChip {
+  background: #1a1410;
+  border: 1px solid #3a2d20;
+  color: #c0a878;
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+}
+
+.cityChip:hover {
+  border-color: #d4a84a;
+}
+
+.cityChipActive {
+  border-color: #d4a84a;
+  color: #d4a84a;
+}
+
+.rankRow {
+  display: grid;
+  grid-template-columns: 130px 1fr 100px 80px auto;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid #3a2d20;
+  font-size: 0.85rem;
+}
+
+.rankName {
+  color: #d4a84a;
+}
+
+.rankNameEn {
+  color: #8a7050;
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-left: 0.4rem;
+}
+
+.rankReq {
+  color: #8a7050;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.rankStipend {
+  color: #c19a3b;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.rankCap {
+  color: #88b7e8;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.rankAction {
+  text-align: right;
+}
+
+.muted {
+  color: #6a5238;
+  font-style: italic;
+}
+
+.empty {
+  text-align: center;
+  color: #6a5238;
+  padding: 2rem;
+  font-style: italic;
+}

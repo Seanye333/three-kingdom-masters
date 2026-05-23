@@ -1,0 +1,354 @@
+import { lazy, Suspense, useState } from 'react';
+import { playSfx } from '../../game/systems/sound';
+import { useGameStore } from '../../game/state/store';
+import { SEASON_LABEL, MONTH_PHASE_LABEL, firstMonthOfSeason } from '../../game/types';
+import { WEATHER_LABEL, WIND_LABEL } from '../../game/systems/weather';
+import { MANDATE_LABEL } from '../../game/systems/mandate';
+import { CityPanel } from '../components/CityPanel';
+import { BondsModal } from '../components/BondsModal';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { SettingsModal } from '../components/SettingsModal';
+import { CareerModal } from '../components/CareerModal';
+import { DialogueModal } from '../components/DialogueModal';
+import { ObjectivePanel } from '../components/ObjectivePanel';
+import { CourtModal } from '../components/CourtModal';
+import { DiplomacyModal } from '../components/DiplomacyModal';
+import { EndingsModal } from '../components/EndingsModal';
+import { EventModal } from '../components/EventModal';
+import { ForcesOverview } from '../components/ForcesOverview';
+import { OfficersTab } from '../components/OfficersTab';
+import { SaveSlotsModal } from '../components/SaveSlotsModal';
+import { SeasonReportModal } from '../components/SeasonReportModal';
+import { StrategicMap } from '../components/StrategicMap';
+import { TutorialOverlay } from '../components/TutorialOverlay';
+import { VictoryModal } from '../components/VictoryModal';
+import { WishesModal } from '../components/WishesModal';
+import { TacticalBattleScreen } from './TacticalBattleScreen';
+import { HudMenu } from '../components/HudMenu';
+import styles from './MapScreen.module.css';
+
+// Code-split heavy / rarely-opened modals. They are loaded on demand the
+// first time the user opens them, keeping the initial bundle smaller.
+const ArmouryModal = lazy(() => import('../components/ArmouryModal').then(m => ({ default: m.ArmouryModal })));
+const BattleHistoryModal = lazy(() => import('../components/BattleHistoryModal').then(m => ({ default: m.BattleHistoryModal })));
+const BattleReplayModal = lazy(() => import('../components/BattleReplayModal').then(m => ({ default: m.BattleReplayModal })));
+const AchievementsModal = lazy(() => import('../components/AchievementsModal').then(m => ({ default: m.AchievementsModal })));
+const CampaignStatsModal = lazy(() => import('../components/CampaignStatsModal').then(m => ({ default: m.CampaignStatsModal })));
+const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
+const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
+const DiplomacyGraphModal = lazy(() => import('../components/DiplomacyGraphModal').then(m => ({ default: m.DiplomacyGraphModal })));
+const EncyclopediaModal = lazy(() => import('../components/EncyclopediaModal').then(m => ({ default: m.EncyclopediaModal })));
+const EspionageModal = lazy(() => import('../components/EspionageModal').then(m => ({ default: m.EspionageModal })));
+const TitlesModal = lazy(() => import('../components/TitlesModal').then(m => ({ default: m.TitlesModal })));
+const GovernorsModal = lazy(() => import('../components/GovernorsModal').then(m => ({ default: m.GovernorsModal })));
+
+export function MapScreen() {
+  const [showForces, setShowForces] = useState(false);
+  const [showDiplomacy, setShowDiplomacy] = useState(false);
+  const [showOfficers, setShowOfficers] = useState(false);
+  const [showBonds, setShowBonds] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showArmoury, setShowArmoury] = useState(false);
+  const [showTitles, setShowTitles] = useState(false);
+  const [showEspionage, setShowEspionage] = useState(false);
+  const [showCourt, setShowCourt] = useState(false);
+  const [showSave, setShowSave] = useState<'save' | 'load' | null>(null);
+  const [showWishes, setShowWishes] = useState(false);
+  const [showEnding, setShowEnding] = useState(false);
+  const [showReplays, setShowReplays] = useState(false);
+  const [showDeeds, setShowDeeds] = useState(false);
+  const [showEncyclopedia, setShowEncyclopedia] = useState(false);
+  const [showDipGraph, setShowDipGraph] = useState(false);
+  const [showCareer, setShowCareer] = useState(false);
+  const [showForge, setShowForge] = useState(false);
+  const [showAch, setShowAch] = useState(false);
+  const [showGovernors, setShowGovernors] = useState(false);
+  const [showCampaignStats, setShowCampaignStats] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const careerMode = useGameStore((s) => s.careerMode);
+  const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
+  const acknowledgeAchievements = useGameStore((s) => s.acknowledgeAchievements);
+  const currentSeasonKey = useGameStore((s) => s.date.season);
+  const fogOfWar = useGameStore((s) => s.fogOfWar);
+  const setFogOfWar = useGameStore((s) => s.setFogOfWar);
+  const tacticalBattle = useGameStore((s) => s.tacticalBattle);
+  const soundEnabled = useGameStore((s) => s.soundEnabled);
+  const setSoundEnabled = useGameStore((s) => s.setSoundEnabled);
+  const wishes = useGameStore((s) => s.officerWishes);
+  const victoryStatus = useGameStore((s) => s.victoryStatus);
+  const setTutorialStep = useGameStore((s) => s.setTutorialStep);
+  const hotSeatPlayers = useGameStore((s) => s.hotSeatPlayers);
+  const hotSeatActiveIndex = useGameStore((s) => s.hotSeatActiveIndex);
+  const cycleHotSeat = useGameStore((s) => s.cycleHotSeat);
+  const date = useGameStore((s) => s.date);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const playerForce = useGameStore((s) =>
+    playerForceId ? s.forces[playerForceId] : null,
+  );
+  const playerCityCount = useGameStore(
+    (s) =>
+      Object.values(s.cities).filter((c) => c.ownerForceId === playerForceId)
+        .length,
+  );
+  const pendingCount = useGameStore(
+    (s) => Object.keys(s.pendingCommands).length,
+  );
+  const endSeason = useGameStore((s) => s.endSeason);
+  const reset = useGameStore((s) => s.reset);
+  const weather = useGameStore((s) => s.weather);
+  const mandate = useGameStore((s) =>
+    s.playerForceId ? s.mandate.byForce[s.playerForceId] ?? 50 : 50,
+  );
+  const season = SEASON_LABEL[date.season];
+  const monthNum = date.month ?? firstMonthOfSeason(date.season);
+  const phaseInfo = MONTH_PHASE_LABEL[date.phase ?? 'upper'];
+  const weatherZh = WEATHER_LABEL[weather.kind].zh;
+  const windZh = WIND_LABEL[weather.wind].zh;
+  const mandateInfo = MANDATE_LABEL(mandate);
+  const mandateColor =
+    mandateInfo.tone === 'high' ? '#d4a84a' :
+    mandateInfo.tone === 'mid'  ? '#b0a070' : '#b8442e';
+
+  return (
+    <div className={styles.root}>
+      <header className={styles.topBar}>
+        <button className={styles.backButton} onClick={reset}>
+          ← Title
+        </button>
+        <div className={styles.dateBlock}>
+          <span className={styles.year}>{date.year} AD</span>
+          <span className={styles.season} title={`${season.en} (${season.zh})`}>
+            {monthNum}月{phaseInfo.zh} <span className={styles.seasonZh}>{season.zh}</span>
+          </span>
+          <span
+            className={styles.season}
+            title={`Weather affects fire attacks and march speed. Wind power: ${weather.windPower}.`}
+            style={{ color: '#b0a070' }}
+          >
+            {weatherZh}·{windZh}
+          </span>
+          <span
+            className={styles.season}
+            title={`Heaven's Mandate (天命): ${mandate}/100. Affects recruitment and rebellion risk.`}
+            style={{ color: mandateColor }}
+          >
+            天命 {mandateInfo.zh}
+          </span>
+        </div>
+        <div className={styles.playerBlock}>
+          {playerForce && (
+            <>
+              <span
+                className={styles.colorDot}
+                style={{ background: playerForce.color }}
+              />
+              <span className={styles.playerName}>{playerForce.name.zh}</span>
+              <span className={styles.playerNameEn}>{playerForce.name.en}</span>
+            </>
+          )}
+        </div>
+        <div className={styles.orderBlock}>
+          Orders: <strong>{pendingCount}/{playerCityCount}</strong>
+        </div>
+        {/* Top-tier (always visible — most clicked) */}
+        <button
+          className={styles.forcesButton}
+          onClick={() => setShowOfficers(true)}
+        >
+          武将 Officers
+        </button>
+        <button
+          className={styles.forcesButton}
+          onClick={() => setShowDiplomacy(true)}
+        >
+          外交 Diplomacy
+        </button>
+        <button
+          className={styles.forcesButton}
+          onClick={() => setShowForces(true)}
+        >
+          群雄 Forces
+        </button>
+
+        {/* ── Grouped dropdowns ── */}
+        <HudMenu
+          label="人才"
+          title="Personnel — bonds, deeds, biographies"
+          items={[
+            { label: '絆 Bonds',     onClick: () => setShowBonds(true) },
+            { label: '武功 Deeds',   onClick: () => setShowDeeds(true) },
+            { label: '列伝 Wiki',    onClick: () => setShowEncyclopedia(true) },
+            { label: '関係図 Graph', onClick: () => setShowDipGraph(true) },
+            ...(careerMode
+              ? [{ label: '列伝 Career', onClick: () => setShowCareer(true) }]
+              : []),
+          ]}
+        />
+        <HudMenu
+          label="朝堂"
+          title="Court — appointments, governors, edicts"
+          items={[
+            { label: '任官 Titles',    onClick: () => setShowTitles(true) },
+            { label: '州牧 Governors', onClick: () => setShowGovernors(true) },
+            { label: '朝廷 Court',     onClick: () => setShowCourt(true) },
+            { label: '書状 Letters',   onClick: () => setShowWishes(true), badge: wishes.length },
+          ]}
+        />
+        <HudMenu
+          label="军务"
+          title="Military — battles, espionage"
+          items={[
+            { label: '戦史 Battles',   onClick: () => setShowHistory(true) },
+            { label: '戰史 Replays',   onClick: () => setShowReplays(true) },
+            { label: '密偵 Espionage', onClick: () => setShowEspionage(true) },
+          ]}
+        />
+        <HudMenu
+          label="匠工"
+          title="Crafting — armoury and forge"
+          items={[
+            { label: '宝物 Armoury', onClick: () => setShowArmoury(true) },
+            { label: '鍛冶 Forge',   onClick: () => setShowForge(true) },
+          ]}
+        />
+        <HudMenu
+          label="记录"
+          title="Records — achievements & stats"
+          items={[
+            { label: '勲功 Achievements', onClick: () => setShowAch(true) },
+            { label: '戦記 Stats',        onClick: () => setShowCampaignStats(true) },
+          ]}
+        />
+        <HudMenu
+          label="設定"
+          title="System — settings, save/load, sound"
+          items={[
+            { label: '⚙ Settings',                   onClick: () => setShowSettings(true) },
+            { label: fogOfWar ? '🌫 Fog: On' : '☀ Fog: Off', onClick: () => setFogOfWar(!fogOfWar) },
+            { label: '📖 Tutorial',                  onClick: () => setTutorialStep(0) },
+            { label: '保存 Save',                    onClick: () => setShowSave('save') },
+            { label: '読込 Load',                    onClick: () => setShowSave('load') },
+            { label: soundEnabled ? '🔊 Sound: On' : '🔇 Sound: Off', onClick: () => setSoundEnabled(!soundEnabled) },
+          ]}
+        />
+        <button
+          className={styles.advanceButton}
+          onClick={() => {
+            playSfx('horn');
+            if (hotSeatPlayers.length > 1) {
+              // Cycle to next player; advance season only when we wrap.
+              const lastIdx = hotSeatPlayers.length - 1;
+              if (hotSeatActiveIndex === lastIdx) {
+                endSeason();
+              }
+              cycleHotSeat();
+            } else {
+              endSeason();
+            }
+          }}
+        >
+          {hotSeatPlayers.length > 1
+            ? `End ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? 'Turn'} →`
+            : `下旬 ${monthNum}月${phaseInfo.zh} →`}
+        </button>
+      </header>
+
+      <main className={styles.main}>
+        <div className={styles.mapWrap} style={{ position: 'relative' }}>
+          <StrategicMap />
+          {/* Seasonal palette overlay */}
+          <div
+            className={`seasonal-${currentSeasonKey}`}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              mixBlendMode: 'overlay',
+            }}
+          />
+          {/* Objective tracker in the top-left corner of the map */}
+          <div style={{ position: 'absolute', top: 8, left: 8, pointerEvents: 'none' }}>
+            <ObjectivePanel />
+          </div>
+        </div>
+        <CityPanel />
+      </main>
+
+      <ErrorBoundary fallbackLabel="Season report panel crashed">
+        <SeasonReportModal />
+      </ErrorBoundary>
+      {showForces && <ForcesOverview onClose={() => setShowForces(false)} />}
+      {showDiplomacy && (
+        <DiplomacyModal onClose={() => setShowDiplomacy(false)} />
+      )}
+      {showOfficers && (
+        <OfficersTab onClose={() => setShowOfficers(false)} />
+      )}
+      {showBonds && <BondsModal onClose={() => setShowBonds(false)} />}
+      {showCourt && <CourtModal onClose={() => setShowCourt(false)} />}
+      {showWishes && <WishesModal onClose={() => setShowWishes(false)} />}
+      {showCareer && <CareerModal onClose={() => setShowCareer(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      <Suspense fallback={null}>
+        {showHistory && (
+          <BattleHistoryModal onClose={() => setShowHistory(false)} />
+        )}
+        {showArmoury && <ArmouryModal onClose={() => setShowArmoury(false)} />}
+        {showTitles && <TitlesModal onClose={() => setShowTitles(false)} />}
+        {showGovernors && <GovernorsModal onClose={() => setShowGovernors(false)} />}
+        {showEspionage && <EspionageModal onClose={() => setShowEspionage(false)} />}
+        {showDeeds && <DeedsModal onClose={() => setShowDeeds(false)} />}
+        {showReplays && <BattleReplayModal onClose={() => setShowReplays(false)} />}
+        {showEncyclopedia && <EncyclopediaModal onClose={() => setShowEncyclopedia(false)} />}
+        {showDipGraph && <DiplomacyGraphModal onClose={() => setShowDipGraph(false)} />}
+        {showForge && <ForgingModal onClose={() => setShowForge(false)} />}
+        {showAch && <AchievementsModal onClose={() => setShowAch(false)} />}
+        {showCampaignStats && <CampaignStatsModal onClose={() => setShowCampaignStats(false)} />}
+      </Suspense>
+      {/* Achievement toast — bottom-right when something just unlocked */}
+      {recentAchievementUnlocks.length > 0 && (
+        <div
+          onClick={acknowledgeAchievements}
+          style={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            background: 'linear-gradient(160deg, #2a1f15, #1a1410)',
+            border: '2px solid #d4a84a',
+            padding: '0.7rem 1rem',
+            color: '#d4a84a',
+            fontFamily: '"Songti SC", serif',
+            cursor: 'pointer',
+            zIndex: 980,
+            boxShadow: '0 0 14px rgba(212, 168, 74, 0.5)',
+            animation: 'tkmFadeIn 0.4s ease-out',
+          }}
+        >
+          <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#c19a3b' }}>
+            勲功 UNLOCKED
+          </div>
+          <div style={{ fontSize: '0.95rem', marginTop: '0.2rem' }}>
+            {recentAchievementUnlocks.length} new achievement{recentAchievementUnlocks.length > 1 ? 's' : ''}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>
+            click to dismiss
+          </div>
+        </div>
+      )}
+      <DialogueModal />
+      {showSave && (
+        <SaveSlotsModal
+          mode={showSave}
+          onClose={() => setShowSave(null)}
+        />
+      )}
+      <EventModal />
+      <VictoryModal />
+      {(victoryStatus === 'victory' || showEnding) && (
+        <EndingsModal onClose={() => setShowEnding(false)} />
+      )}
+      <TutorialOverlay />
+      {tacticalBattle && <TacticalBattleScreen />}
+    </div>
+  );
+}

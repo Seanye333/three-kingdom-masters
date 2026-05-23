@@ -1,0 +1,92 @@
+import type { GameState } from './gameState';
+
+/**
+ * Multi-slot save support. The persist middleware uses a single key
+ * (tkm-save-vN); this module exposes additional named slots that the
+ * player can write to and read from explicitly.
+ *
+ * Slot keys: `tkm-slot-<id>` where id is one of `slot-1` ... `slot-5`,
+ * or a custom string. Slot metadata (name, date, scenario id) is stored
+ * alongside the full state blob.
+ */
+
+const SLOT_PREFIX = 'tkm-slot-';
+
+export interface SaveSlot {
+  id: string;
+  label: string;
+  savedAt: number;     // epoch ms
+  scenarioId: string | null;
+  year: number;
+  season: string;
+  playerForceName: string;
+  state: GameState;
+}
+
+const SLOT_INDEX_KEY = 'tkm-slot-index';
+
+interface SlotMeta {
+  id: string;
+  label: string;
+  savedAt: number;
+  scenarioId: string | null;
+  year: number;
+  season: string;
+  playerForceName: string;
+}
+
+function readIndex(): SlotMeta[] {
+  try {
+    const raw = localStorage.getItem(SLOT_INDEX_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
+function writeIndex(idx: SlotMeta[]): void {
+  localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(idx));
+}
+
+export function listSlots(): SlotMeta[] {
+  return readIndex().sort((a, b) => b.savedAt - a.savedAt);
+}
+
+export function saveToSlot(
+  slotId: string,
+  label: string,
+  state: GameState,
+  playerForceName: string,
+): void {
+  const meta: SlotMeta = {
+    id: slotId,
+    label,
+    savedAt: Date.now(),
+    scenarioId: state.scenarioId,
+    year: state.date.year,
+    season: state.date.season,
+    playerForceName,
+  };
+  localStorage.setItem(SLOT_PREFIX + slotId, JSON.stringify(state));
+  const idx = readIndex().filter((s) => s.id !== slotId);
+  idx.push(meta);
+  writeIndex(idx);
+}
+
+export function loadFromSlot(slotId: string): GameState | null {
+  try {
+    const raw = localStorage.getItem(SLOT_PREFIX + slotId);
+    if (!raw) return null;
+    return JSON.parse(raw) as GameState;
+  } catch {
+    return null;
+  }
+}
+
+export function deleteSlot(slotId: string): void {
+  localStorage.removeItem(SLOT_PREFIX + slotId);
+  writeIndex(readIndex().filter((s) => s.id !== slotId));
+}

@@ -1,0 +1,128 @@
+import { useState, type ReactNode } from 'react';
+import { TRAIT_DEFS_BY_ID, SKILLS_BY_ID, ITEMS_BY_ID } from '../../game/data';
+import type { Officer } from '../../game/types';
+import { OfficerPortrait } from './OfficerPortrait';
+import { useGameStore } from '../../game/state/store';
+
+interface Props {
+  officer: Officer;
+  children: ReactNode;
+}
+
+/**
+ * Hover-wrapper. Wrap an officer name/avatar with this and a stat card
+ * pops out next to the cursor with full details — no need to open the
+ * full OfficerDetail modal just to glance.
+ */
+export function OfficerHoverCard({ officer, children }: Props) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const currentYear = useGameStore((s) => s.date.year);
+  const forceColor = useGameStore((s) =>
+    officer.forceId ? s.forces[officer.forceId]?.color : undefined,
+  );
+  const t = officer.traits ?? [];
+  const skills = officer.skills.map((id) => SKILLS_BY_ID[id]).filter(Boolean);
+  const items = officer.equipment.map((id) => ITEMS_BY_ID[id]).filter(Boolean);
+
+  return (
+    <span
+      style={{ display: 'inline-block' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
+    >
+      {children}
+      {open && (
+        <div
+          style={{
+            position: 'fixed',
+            left: Math.min(window.innerWidth - 340, pos.x + 14),
+            top: Math.min(window.innerHeight - 240, pos.y + 14),
+            background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
+            border: '1px solid #d4a84a',
+            padding: '0.6rem 0.8rem',
+            color: '#e8d9b0',
+            fontFamily: '"Songti SC", serif',
+            width: 320,
+            pointerEvents: 'none',
+            zIndex: 1000,
+            boxShadow: '0 0 16px rgba(212, 168, 74, 0.4)',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
+            <OfficerPortrait
+              officer={officer}
+              size={56}
+              forceColor={forceColor}
+              year={currentYear}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '1rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
+                {officer.name.zh}{' '}
+                <span style={{ fontSize: '0.75rem', color: '#8a7050', fontStyle: 'italic' }}>
+                  {officer.name.en}
+                </span>
+              </div>
+              {officer.courtesyName && (
+                <div style={{ fontSize: '0.72rem', color: '#8a7050' }}>
+                  字 {officer.courtesyName.zh}
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.78rem', color: '#c0a878', marginTop: '0.3rem' }}>
+            統 {officer.stats.leadership} · 武 {officer.stats.war} · 知 {officer.stats.intelligence} ·
+            政 {officer.stats.politics} · 魅 {officer.stats.charisma}
+          </div>
+          {t.length > 0 && (
+            <div style={{ marginTop: '0.3rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
+                性格 TRAITS
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                {t.map((tid) => {
+                  const def = TRAIT_DEFS_BY_ID[tid];
+                  if (!def) return null;
+                  return (
+                    <span
+                      key={tid}
+                      style={{
+                        fontSize: '0.7rem',
+                        color: def.color,
+                        border: `1px solid ${def.color}`,
+                        padding: '0.05rem 0.3rem',
+                      }}
+                    >
+                      {def.name.zh}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {skills.length > 0 && (
+            <div style={{ marginTop: '0.3rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
+                特技 SKILLS
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#c19a3b' }}>
+                {skills.map((s) => s!.name.zh).join(' · ')}
+              </div>
+            </div>
+          )}
+          {items.length > 0 && (
+            <div style={{ marginTop: '0.3rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
+                持物 ITEMS ({items.length})
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#88b7e8' }}>
+                {items.map((i) => i!.name.zh).join(' · ')}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </span>
+  );
+}
