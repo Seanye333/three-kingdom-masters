@@ -267,8 +267,78 @@ export function StrategicMap() {
 
   const handleDoubleClick = () => setViewport(DEFAULT_VIEWPORT);
 
+  // ── Touch / pinch zoom ──
+  const touchStateRef = useRef<{
+    mode: 'pan' | 'pinch' | null;
+    lastX: number;
+    lastY: number;
+    dist: number;
+    startScale: number;
+  }>({ mode: null, lastX: 0, lastY: 0, dist: 0, startScale: 1 });
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1) {
+      touchStateRef.current = {
+        mode: 'pan',
+        lastX: e.touches[0].clientX,
+        lastY: e.touches[0].clientY,
+        dist: 0,
+        startScale: viewport.scale,
+      };
+    } else if (e.touches.length === 2) {
+      const [a, b] = [e.touches[0], e.touches[1]];
+      const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      touchStateRef.current = {
+        mode: 'pinch',
+        lastX: (a.clientX + b.clientX) / 2,
+        lastY: (a.clientY + b.clientY) / 2,
+        dist: d,
+        startScale: viewport.scale,
+      };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    const s = touchStateRef.current;
+    if (!s.mode) return;
+    e.preventDefault();
+    if (s.mode === 'pan' && e.touches.length === 1) {
+      const t = e.touches[0];
+      const dx = t.clientX - s.lastX;
+      const dy = t.clientY - s.lastY;
+      s.lastX = t.clientX;
+      s.lastY = t.clientY;
+      setViewport((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
+    } else if (s.mode === 'pinch' && e.touches.length === 2) {
+      const [a, b] = [e.touches[0], e.touches[1]];
+      const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      const cx = (a.clientX + b.clientX) / 2;
+      const cy = (a.clientY + b.clientY) / 2;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const lx = cx - rect.left;
+      const ly = cy - rect.top;
+      const factor = d / s.dist;
+      setViewport((v) => {
+        const nextScale = clamp(MIN_SCALE, MAX_SCALE, s.startScale * factor);
+        const worldX = (lx - v.x) / v.scale;
+        const worldY = (ly - v.y) / v.scale;
+        return {
+          scale: nextScale,
+          x: lx - worldX * nextScale,
+          y: ly - worldY * nextScale,
+        };
+      });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStateRef.current.mode = null;
+  };
+
   return (
-    <div style={{ position: 'relative', width: MAP_WIDTH, height: MAP_HEIGHT }}>
+    <div style={{ position: 'relative', width: MAP_WIDTH, height: MAP_HEIGHT, maxWidth: '100%' }}>
       <canvas
         ref={canvasRef}
         onWheel={handleWheel}
@@ -277,8 +347,15 @@ export function StrategicMap() {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
         onDoubleClick={handleDoubleClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         style={{
           display: 'block',
+          touchAction: 'none',
+          maxWidth: '100%',
+          height: 'auto',
           cursor: hoverCityId ? 'pointer' : (dragStateRef.current?.moved ? 'grabbing' : 'grab'),
         }}
       />

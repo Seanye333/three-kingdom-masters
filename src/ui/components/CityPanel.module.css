@@ -184,3 +184,14 @@
   font-size: 0.85rem;
   font-style: italic;
 }
+
+/* ─── Mobile (≤640px) ─── */
+@media (max-width: 640px) {
+  .root {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0.7rem !important;
+    max-height: none !important;
+  }
+}

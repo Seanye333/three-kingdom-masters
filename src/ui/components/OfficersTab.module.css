@@ -278,3 +278,77 @@
   color: #8a7050;
   font-style: italic;
 }
+
+/* ─── Mobile (≤640px): officer rows become cards ─── */
+@media (max-width: 640px) {
+  /* Hide the desktop column header — cards don't need it. */
+  .header2 { display: none !important; }
+
+  /* Each row becomes a card with flex-wrap. */
+  .row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    grid-template-columns: none !important;
+    gap: 0.4rem 0.3rem !important;
+    padding: 0.65rem 0.7rem !important;
+    background: var(--tkm-bg-raised, #251c14);
+    border: 1px solid var(--tkm-border-soft, #3a2818);
+    margin-bottom: 0.45rem;
+    align-items: center !important;
+  }
+
+  .rowName {
+    flex: 1 1 60% !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.1rem !important;
+  }
+  .rowNameZh { font-size: 1.05rem !important; }
+  .rowNameEn { font-size: 0.72rem !important; }
+
+  .rowForce {
+    flex: 1 1 35% !important;
+    font-size: 0.72rem !important;
+    text-align: right;
+    justify-content: flex-end !important;
+  }
+
+  /* Each stat cell — flexible row of 5 + meta. */
+  .row > [class*="statCell"] {
+    flex: 1 1 18% !important;
+    text-align: center;
+    padding: 0.3rem 0 !important;
+    background: var(--tkm-bg-sunken, #110d09);
+    border-radius: 3px;
+    font-family: var(--tkm-font-mono, ui-monospace, monospace);
+    font-size: 0.85rem !important;
+  }
+  .rowMeta {
+    flex: 1 1 100% !important;
+    text-align: right;
+    font-size: 0.72rem;
+    color: var(--tkm-text-muted, #8c7a5a);
+  }
+
+  /* Filter / sort chip rows */
+  .controlRow {
+    gap: 0.25rem !important;
+    flex-wrap: wrap !important;
+  }
+  .chip {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+  .controlLabel {
+    width: 100%;
+    font-size: 0.62rem !important;
+  }
+
+  /* Title bar */
+  .titleZh { font-size: 1.45rem !important; }
+  .titleEn { font-size: 0.7rem !important; }
+
+  /* Controls panel padding tighter */
+  .controls { padding: 0.4rem 0.5rem !important; }
+  .header { padding: 0.5rem 0.7rem !important; }
+}

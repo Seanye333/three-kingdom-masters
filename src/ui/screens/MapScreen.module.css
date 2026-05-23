@@ -175,3 +175,16 @@
   overflow: auto;
   padding: 0.5rem;
 }
+
+@media (max-width: 640px) {
+  .mapWrap {
+    padding: 0.2rem;
+    min-height: 45vh;
+    max-height: 55vh;
+    position: relative;
+  }
+  .mapWrap canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+}
