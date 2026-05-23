@@ -178,6 +178,7 @@ export function StrategicMap() {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (e.button !== 0) return;
+    if (Date.now() < suppressMouseUntilRef.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -250,6 +251,7 @@ export function StrategicMap() {
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (Date.now() < suppressMouseUntilRef.current) return;
     // Finish edit-mode drag (no other action)
     if (editMode && editDragRef.current) {
       const { cityId } = editDragRef.current;
@@ -287,6 +289,11 @@ export function StrategicMap() {
     startScale: number;
     moved: boolean;
   }>({ mode: null, startX: 0, startY: 0, lastX: 0, lastY: 0, dist: 0, startScale: 1, moved: false });
+
+  // Suppress synthesized mouse events that iOS fires after a touch.
+  // (touchend → synthesized mousedown/mouseup ~10ms later would otherwise
+  // clobber the selection just set by handleTouchEnd.)
+  const suppressMouseUntilRef = useRef<number>(0);
 
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     if (e.touches.length === 1) {
@@ -361,6 +368,8 @@ export function StrategicMap() {
     const didMove = touchStateRef.current.moved;
     touchStateRef.current.mode = null;
     touchStateRef.current.moved = false;
+    // Block any synthesized mouse events for the next 500ms.
+    suppressMouseUntilRef.current = Date.now() + 500;
     // Tap-to-select: only when single-touch and didn't drag.
     if (wasMode === 'pan' && !didMove) {
       const canvas = canvasRef.current;
