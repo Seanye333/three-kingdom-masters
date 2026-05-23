@@ -3,7 +3,7 @@ import type { BuildingDef } from '../types';
 export const BUILDING_DEFS: BuildingDef[] = [
   {
     id: 'barracks',
-    name: { en: 'Barracks', zh: '兵営' },
+    name: { en: 'Barracks', zh: '兵營' },
     description: 'Trains soldiers. +10% troop training per level; +5% troop cap per level.',
     goldPerLevel: 400,
     seasonsPerLevel: 2,

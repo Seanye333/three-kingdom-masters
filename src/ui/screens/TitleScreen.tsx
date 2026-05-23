@@ -69,7 +69,7 @@ export function TitleScreen() {
 
       <main className={styles.main}>
         <section className={styles.scenarioCard}>
-          <div className={styles.scenarioLabel}>Scenario 戦役</div>
+          <div className={styles.scenarioLabel}>Scenario 戰役</div>
           <ul className={styles.scenarioList}>
             {SCENARIOS.map((s) => (
               <li key={s.id}>
@@ -127,14 +127,14 @@ export function TitleScreen() {
             onClick={() => setShowCustomOfficer(true)}
             style={{ marginTop: '0.5rem' }}
           >
-            自分の武将 · Create Your Own Officer
+            自定義武將 · Create Your Own Officer
           </button>
           <button
             className={styles.officersButton}
             onClick={() => setShowLoad(true)}
             style={{ marginTop: '0.5rem' }}
           >
-            読込 · Load Saved Game
+            載入 · Load Saved Game
           </button>
           <button
             className={styles.officersButton}
@@ -164,7 +164,7 @@ export function TitleScreen() {
               onChange={(e) => setHotSeatMode(e.target.checked)}
               style={{ marginRight: '0.4rem' }}
             />
-            ホットシート Hot-seat (players share keyboard)
+             Hot-seat (players share keyboard)
           </label>
           <label
             style={{
@@ -181,7 +181,7 @@ export function TitleScreen() {
               onChange={(e) => setCareerMode(e.target.checked)}
               style={{ marginRight: '0.4rem' }}
             />
-            列伝モード Career mode (pick one officer as your avatar)
+            列傳 Career mode (pick one officer as your avatar)
           </label>
           <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#8a7050', cursor: 'pointer' }}>
             <input
@@ -190,7 +190,7 @@ export function TitleScreen() {
               onChange={(e) => { setRomance(e.target.checked); setRomanceMode(e.target.checked); }}
               style={{ marginRight: '0.4rem' }}
             />
-            演義モード Romance mode (historical events fire on schedule)
+            演義 Romance mode (historical events fire on schedule)
           </label>
           <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#8a7050', cursor: 'pointer' }}>
             <input
@@ -200,14 +200,14 @@ export function TitleScreen() {
               style={{ marginRight: '0.4rem' }}
               disabled={!careerMode}
             />
-            ローグライク Roguelike (career officer death = game over; requires Career mode)
+             Roguelike (career officer death = game over; requires Career mode)
           </label>
           <button
             onClick={() => setShowAchievements(true)}
             className={styles.officersButton}
             style={{ marginTop: '0.5rem' }}
           >
-            勲功 · Achievements
+            勳功 · Achievements
           </button>
         </section>
 

@@ -270,7 +270,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
                 style={{ background: '#3a2d20', borderColor: '#88b7e8', color: '#88b7e8' }}
                 title="Resolve as turn-based tactical battle"
               >
-                戦術 Tactical
+                戰術 Tactical
               </button>
             )}
             <button

@@ -5,7 +5,7 @@ import type { BilingualName, EntityId } from './common';
  * Buildings give multiplicative bonuses to local production / capacity.
  */
 export type BuildingId =
-  | 'barracks'   // 兵営 — boosts troop training (recruit) and troop cap
+  | 'barracks'   // 兵營 — boosts troop training (recruit) and troop cap
   | 'market'     // 市場 — boosts commerce gold per season
   | 'foundry'    // 鉄工坊 — boosts equipment quality, slight commerce
   | 'academy'    // 書院 — boosts officer XP and recruit chance

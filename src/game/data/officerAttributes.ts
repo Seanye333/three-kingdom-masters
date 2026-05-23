@@ -290,7 +290,7 @@ export type PolicyId =
   | 'legalism'   // 法治 — rule by law
   | 'rites'      // 礼楽 — rituals & music
   | 'recruitment'// 養兵 — troop training
-  | 'smithing'   // 鍛冶 — weapon forging
+  | 'smithing'   // 鍛造 — weapon forging
   | 'horse-stewardship' // 馬政 — cavalry breeding
   | 'medicine'   // 医術 — medicine
   | 'military-theory'; // 軍学 — military academy
@@ -304,7 +304,7 @@ export const POLICY_DEFS: Record<PolicyId, { zh: string; en: string }> = {
   legalism:            { zh: '法治', en: 'Legalism' },
   rites:               { zh: '礼楽', en: 'Rites' },
   recruitment:         { zh: '養兵', en: 'Recruitment' },
-  smithing:            { zh: '鍛冶', en: 'Smithing' },
+  smithing:            { zh: '鍛造', en: 'Smithing' },
   'horse-stewardship': { zh: '馬政', en: 'Horse Stewardship' },
   medicine:            { zh: '医術', en: 'Medicine' },
   'military-theory':   { zh: '軍学', en: 'Military Theory' },

@@ -11,7 +11,7 @@ import type { HistoricalEvent } from '../types';
 export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   {
     id: 'evt-yellow-turban-defeated',
-    name: { en: 'The Yellow Turbans Crushed', zh: '黄巾の乱、平定' },
+    name: { en: 'The Yellow Turbans Crushed', zh: '黃巾之亂平定' },
     yearMin: 190,
     yearMax: 191,
     description:
@@ -20,7 +20,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-dong-zhuo-burns-luoyang',
-    name: { en: 'Dong Zhuo Burns Luoyang', zh: '董卓、洛陽を焚く' },
+    name: { en: 'Dong Zhuo Burns Luoyang', zh: '董卓焚洛陽' },
     yearMin: 190,
     yearMax: 191,
     season: 'summer',
@@ -34,7 +34,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-dong-zhuo-assassinated',
-    name: { en: 'Dong Zhuo Assassinated', zh: '董卓、暗殺さる' },
+    name: { en: 'Dong Zhuo Assassinated', zh: '董卓被弒' },
     yearMin: 192,
     yearMax: 193,
     requires: [
@@ -50,7 +50,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-coalition-dissolves',
-    name: { en: 'The Coalition Dissolves', zh: '反董卓連合、解散' },
+    name: { en: 'The Coalition Dissolves', zh: '反董卓聯軍解散' },
     yearMin: 191,
     yearMax: 193,
     description:
@@ -59,7 +59,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-yuan-shao-takes-jizhou',
-    name: { en: 'Yuan Shao Takes Jizhou', zh: '袁紹、冀州を取る' },
+    name: { en: 'Yuan Shao Takes Jizhou', zh: '袁紹取冀州' },
     yearMin: 191,
     yearMax: 193,
     requires: [{ kind: 'force-alive', forceId: 'force-yuan-shao' }],
@@ -71,7 +71,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-cao-cao-shelters-emperor',
-    name: { en: 'Cao Cao Shelters the Emperor', zh: '曹操、天子を奉ず' },
+    name: { en: 'Cao Cao Shelters the Emperor', zh: '曹操奉天子' },
     yearMin: 196,
     yearMax: 197,
     requires: [
@@ -87,7 +87,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-sun-ce-conquers-jiangdong',
-    name: { en: 'Sun Ce Conquers Jiangdong', zh: '孫策、江東を征す' },
+    name: { en: 'Sun Ce Conquers Jiangdong', zh: '孫策征江東' },
     yearMin: 195,
     yearMax: 199,
     requires: [
@@ -102,7 +102,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-battle-of-guandu',
-    name: { en: 'The Battle of Guandu', zh: '官渡の戦い' },
+    name: { en: 'The Battle of Guandu', zh: '官渡之戰' },
     yearMin: 200,
     yearMax: 201,
     requires: [
@@ -118,7 +118,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-sun-ce-assassinated',
-    name: { en: 'Sun Ce Assassinated', zh: '孫策、刺客に倒る' },
+    name: { en: 'Sun Ce Assassinated', zh: '孫策死於刺客' },
     yearMin: 200,
     yearMax: 201,
     requires: [{ kind: 'officer-active', officerId: 'sun-ce' }],
@@ -131,7 +131,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-three-visits-to-thatched-cottage',
-    name: { en: 'Three Visits to the Thatched Cottage', zh: '三顧の礼' },
+    name: { en: 'Three Visits to the Thatched Cottage', zh: '三顧茅廬' },
     yearMin: 207,
     yearMax: 208,
     requires: [
@@ -148,7 +148,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-battle-of-red-cliffs',
-    name: { en: 'The Battle of Red Cliffs', zh: '赤壁の戦い' },
+    name: { en: 'The Battle of Red Cliffs', zh: '赤壁之戰' },
     yearMin: 208,
     yearMax: 209,
     season: 'winter',
@@ -167,7 +167,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-liu-bei-takes-shu',
-    name: { en: 'Liu Bei Takes Shu', zh: '劉備、蜀を取る' },
+    name: { en: 'Liu Bei Takes Shu', zh: '劉備取蜀' },
     yearMin: 213,
     yearMax: 215,
     requires: [
@@ -183,7 +183,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-fan-castle-guan-yu',
-    name: { en: 'The Fall of Guan Yu', zh: '関羽、麦城に死す' },
+    name: { en: 'The Fall of Guan Yu', zh: '關羽，麦城死' },
     yearMin: 219,
     yearMax: 220,
     requires: [{ kind: 'officer-active', officerId: 'guan-yu' }],
@@ -197,7 +197,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-cao-cao-dies',
-    name: { en: 'Cao Cao Dies', zh: '曹操、世を去る' },
+    name: { en: 'Cao Cao Dies', zh: '曹操，世，去' },
     yearMin: 220,
     yearMax: 220,
     requires: [{ kind: 'officer-active', officerId: 'cao-cao' }],
@@ -210,7 +210,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-battle-of-yiling',
-    name: { en: 'The Battle of Yiling', zh: '夷陵の戦い' },
+    name: { en: 'The Battle of Yiling', zh: '夷陵之戰' },
     yearMin: 222,
     yearMax: 223,
     requires: [
@@ -225,7 +225,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-liu-bei-dies',
-    name: { en: 'Liu Bei Dies at Baidicheng', zh: '劉備、白帝城に没す' },
+    name: { en: 'Liu Bei Dies at Baidicheng', zh: '劉備，白帝城没' },
     yearMin: 223,
     yearMax: 223,
     requires: [{ kind: 'officer-active', officerId: 'liu-bei' }],
@@ -238,7 +238,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-northern-campaigns',
-    name: { en: 'The Northern Campaigns Begin', zh: '出師の表' },
+    name: { en: 'The Northern Campaigns Begin', zh: '出師之表' },
     yearMin: 227,
     yearMax: 228,
     season: 'spring',
@@ -252,7 +252,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-zhuge-liang-dies',
-    name: { en: 'A Star Falls at Wuzhang Plains', zh: '五丈原に星墜つ' },
+    name: { en: 'A Star Falls at Wuzhang Plains', zh: '五丈原星墜' },
     yearMin: 234,
     yearMax: 234,
     season: 'autumn',
@@ -267,7 +267,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   // ─────────── Special officer events ───────────────────────────────
   {
     id: 'evt-diaochan-intrigue',
-    name: { en: "Diaochan's Snare", zh: '貂蝉の連環の計' },
+    name: { en: "Diaochan's Snare", zh: '貂蟬連環計之計' },
     yearMin: 191,
     yearMax: 192,
     requires: [
@@ -284,7 +284,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-lu-bu-betrayal',
-    name: { en: "Lü Bu's Betrayal", zh: '呂布の裏切り' },
+    name: { en: "Lü Bu's Betrayal", zh: '呂布之裏切' },
     yearMin: 191,
     yearMax: 193,
     requires: [
@@ -317,7 +317,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-liu-bei-mourns-guan-yu',
-    name: { en: 'Liu Bei Mourns Guan Yu', zh: '劉備、関羽を哭す' },
+    name: { en: 'Liu Bei Mourns Guan Yu', zh: '劉備，關羽，哭' },
     yearMin: 220,
     yearMax: 221,
     requires: [
@@ -333,7 +333,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-zhang-fei-murdered',
-    name: { en: 'Zhang Fei Murdered in His Tent', zh: '張飛、帳中に死す' },
+    name: { en: 'Zhang Fei Murdered in His Tent', zh: '張飛，帳中死' },
     yearMin: 221,
     yearMax: 221,
     requires: [
@@ -348,7 +348,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-yi-zhi-promotion',
-    name: { en: 'Sima Yi Rises in Wei', zh: '司馬懿、台閣に登る' },
+    name: { en: 'Sima Yi Rises in Wei', zh: '司馬懿，台閣登' },
     yearMin: 226,
     yearMax: 228,
     requires: [
@@ -380,7 +380,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-empty-fort-stratagem',
-    name: { en: 'The Empty Fort Stratagem', zh: '空城の計' },
+    name: { en: 'The Empty Fort Stratagem', zh: '空城之計' },
     yearMin: 228,
     yearMax: 230,
     requires: [
@@ -411,7 +411,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-zhao-yun-changban',
-    name: { en: 'Zhao Yun at Changban', zh: '長坂の趙雲' },
+    name: { en: 'Zhao Yun at Changban', zh: '長坂之趙雲' },
     yearMin: 208,
     yearMax: 208,
     requires: [
@@ -444,7 +444,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-guan-yu-five-passes',
-    name: { en: "Past Five Passes, Six Generals", zh: '過五関斬六将' },
+    name: { en: "Past Five Passes, Six Generals", zh: '過五關斬六将' },
     yearMin: 200,
     yearMax: 201,
     requires: [
@@ -461,7 +461,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-zhang-fei-drunk',
-    name: { en: 'Zhang Fei Loses Xuzhou', zh: '張飛、徐州を失う' },
+    name: { en: 'Zhang Fei Loses Xuzhou', zh: '張飛，徐州，失' },
     yearMin: 196,
     yearMax: 197,
     season: 'autumn',
@@ -478,7 +478,7 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
   },
   {
     id: 'evt-cao-cao-wancheng',
-    name: { en: 'Disaster at Wancheng', zh: '宛城の変' },
+    name: { en: 'Disaster at Wancheng', zh: '宛城之変' },
     yearMin: 197,
     yearMax: 197,
     requires: [

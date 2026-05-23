@@ -70,7 +70,7 @@ export function CareerModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>列伝</div>
+            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>列傳</div>
             <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>
               Career: {officer?.name.en ?? '?'}
             </div>

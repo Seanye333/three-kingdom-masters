@@ -63,7 +63,7 @@ export function DiplomacyGraphModal({ onClose }: Props) {
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520', alignItems: 'baseline' }}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>関係図</div>
+            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>關係図</div>
             <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>Diplomacy Web</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -107,7 +107,7 @@ export function DiplomacyGraphModal({ onClose }: Props) {
         </svg>
         <div style={{ display: 'flex', gap: '1rem', padding: '0.75rem 1.5rem', fontSize: '0.78rem', borderTop: '1px solid #4a3520' }}>
           <span><span style={{ background: '#d4a84a', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Allied 同盟</span>
-          <span><span style={{ background: '#88b7e8', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Non-Aggression 不戦</span>
+          <span><span style={{ background: '#88b7e8', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Non-Aggression 不戰</span>
           <span><span style={{ background: '#b8442e', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Hostile 敵対</span>
         </div>
       </div>

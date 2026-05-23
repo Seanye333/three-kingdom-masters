@@ -69,7 +69,7 @@ export function SettingsModal({ onClose }: Props) {
                 <option value="auto">自動 Auto (by scene)</option>
                 <option value="peace">平時 Peace</option>
                 <option value="tension">緊張 Tension</option>
-                <option value="battle">戦闘 Battle</option>
+                <option value="battle">戰闘 Battle</option>
                 <option value="victory">勝利 Victory</option>
                 <option value="defeat">敗北 Defeat</option>
               </select>
@@ -77,18 +77,18 @@ export function SettingsModal({ onClose }: Props) {
           </Section>
 
           <Section title="画面 Display">
-            <Toggle label="戦霧 Fog of war" hint="Hide unscouted cities" checked={fogOfWar} onChange={setFogOfWar} />
+            <Toggle label="戰霧 Fog of war" hint="Hide unscouted cities" checked={fogOfWar} onChange={setFogOfWar} />
           </Section>
 
-          <Section title="ゲームプレイ Gameplay">
+          <Section title=" Gameplay">
             <Toggle
-              label="演義モード Romance mode"
+              label="演義 Romance mode"
               hint="Historical events fire 100% on schedule"
               checked={romanceMode}
               onChange={setRomanceMode}
             />
             <Toggle
-              label="ローグライク Roguelike"
+              label=" Roguelike"
               hint={careerMode ? 'Career officer death ends the campaign' : 'Requires Career mode'}
               checked={roguelikeMode}
               onChange={setRoguelikeMode}
@@ -96,8 +96,8 @@ export function SettingsModal({ onClose }: Props) {
             />
           </Section>
 
-          <Section title="戦闘 Combat">
-            <Row label="戦闘速度 Battle speed">
+          <Section title="戰闘 Combat">
+            <Row label="戰闘速度 Battle speed">
               <div style={{ display: 'flex', gap: 4 }}>
                 {[1, 2, 4].map((s) => (
                   <button

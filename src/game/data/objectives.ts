@@ -14,7 +14,7 @@ export const SCENARIO_OBJECTIVES: Record<string, ScenarioObjective[]> = {
       id: 'obj-184-han',
       forceId: 'han',
       primary: {
-        title: { zh: '黄巾の鎮圧', en: 'Suppress the Yellow Turbans' },
+        title: { zh: '黃巾之鎮圧', en: 'Suppress the Yellow Turbans' },
         description: 'Defeat the Yellow Turban force entirely by 187 AD.',
         goal: { kind: 'defeat-force', forceId: 'yellow-turban', byYear: 187 },
       },
@@ -90,7 +90,7 @@ export const SCENARIO_OBJECTIVES: Record<string, ScenarioObjective[]> = {
       id: 'obj-200-cao',
       forceId: 'cao',
       primary: {
-        title: { zh: '官渡の戦い', en: 'Defeat Yuan Shao at Guandu' },
+        title: { zh: '官渡之戰', en: 'Defeat Yuan Shao at Guandu' },
         description: 'Eliminate the Yuan Shao force.',
         goal: { kind: 'defeat-force', forceId: 'yuan-shao', byYear: 207 },
       },
@@ -121,7 +121,7 @@ export const SCENARIO_OBJECTIVES: Record<string, ScenarioObjective[]> = {
       id: 'obj-208-sun-liu',
       forceId: 'sun',
       primary: {
-        title: { zh: '赤壁の戦い', en: 'Win at Red Cliffs' },
+        title: { zh: '赤壁之戰', en: 'Win at Red Cliffs' },
         description: 'Repel Cao Cao\'s force and survive 210 AD.',
         goal: { kind: 'survive-until', year: 210 },
       },
@@ -143,7 +143,7 @@ export const SCENARIO_OBJECTIVES: Record<string, ScenarioObjective[]> = {
       id: 'obj-220-cao',
       forceId: 'cao',
       primary: {
-        title: { zh: '魏の天下統一', en: 'Wei Unifies the Realm' },
+        title: { zh: '魏之天下統一', en: 'Wei Unifies the Realm' },
         description: 'Unify all cities under Wei.',
         goal: { kind: 'unify-realm' },
       },

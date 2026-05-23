@@ -720,7 +720,7 @@ export function applyStratagem(
           ...(b.log ?? []),
           {
             turn: b.turn,
-            text: '飛将、突貫!',
+            text: '飛将，突貫!',
             speaker: unit.officerId,
             kind: 'voice',
           },
@@ -762,7 +762,7 @@ export function applyStratagem(
           ...(b.log ?? []),
           {
             turn: b.turn,
-            text: '龍の威、ここに!',
+            text: '龍威在此!',
             speaker: unit.officerId,
             kind: 'voice',
           },

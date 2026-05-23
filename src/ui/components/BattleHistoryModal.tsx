@@ -24,7 +24,7 @@ export function BattleHistoryModal({ onClose }: Props) {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <div>
-            <div className={styles.titleZh}>戦史</div>
+            <div className={styles.titleZh}>戰史</div>
             <div className={styles.titleEn}>
               Battle History — {battles.length} battle{battles.length === 1 ? '' : 's'} recorded
             </div>

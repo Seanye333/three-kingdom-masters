@@ -40,7 +40,7 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
   },
   {
     id: 'map-hulao-pass',
-    name: { en: 'Hulao Pass', zh: '虎牢関' },
+    name: { en: 'Hulao Pass', zh: '虎牢關' },
     description:
       'The mountain chokepoint where Liu, Guan, and Zhang faced Lü Bu. A narrow road runs between sheer cliffs.',
     width: 11,
@@ -65,7 +65,7 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
       return out;
     })(),
     specialTiles: [
-      { coord: { col: 5, row: 2 }, label: { en: 'The Pass', zh: '関門' }, role: 'flag' },
+      { coord: { col: 5, row: 2 }, label: { en: 'The Pass', zh: '關門' }, role: 'flag' },
     ],
   },
   {
@@ -95,7 +95,7 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     })(),
     specialTiles: [
       { coord: { col: 5, row: 4 }, label: { en: 'Changban Bridge', zh: '長坂橋' }, role: 'bridge' },
-      { coord: { col: 5, row: 6 }, label: { en: 'Civilian Wagons', zh: '民の車' }, role: 'wagon' },
+      { coord: { col: 5, row: 6 }, label: { en: 'Civilian Wagons', zh: '民之車' }, role: 'wagon' },
     ],
   },
   {
@@ -120,7 +120,7 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
       return out;
     })(),
     specialTiles: [
-      { coord: { col: 5, row: 3 }, label: { en: 'Star Hill', zh: '星の丘' }, role: 'hill' },
+      { coord: { col: 5, row: 3 }, label: { en: 'Star Hill', zh: '星之丘' }, role: 'hill' },
     ],
   },
   {
@@ -141,7 +141,7 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
       return out;
     })(),
     specialTiles: [
-      { coord: { col: 10, row: 3 }, label: { en: 'Wuchao Granary', zh: '烏巣の倉' }, role: 'supply' },
+      { coord: { col: 10, row: 3 }, label: { en: 'Wuchao Granary', zh: '烏巣之倉' }, role: 'supply' },
     ],
   },
 

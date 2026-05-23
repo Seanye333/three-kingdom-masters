@@ -68,7 +68,7 @@ export const DEATH_POEMS: Record<string, DeathPoem> = {
     en: 'Though this old vassal dies, I have not failed the late Emperor.',
   },
   'zhang-fei': {
-    zh: '殺我者必范疆、張達也!',
+    zh: '殺我者必范疆，張達也!',
     en: 'My killers — they will be Fan Jiang and Zhang Da!',
   },
   'guan-ping': {

@@ -32,10 +32,10 @@ export function CampaignStatsModal({ onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ fontSize: '0.65rem', letterSpacing: '0.4rem', color: '#c19a3b', textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
-          Campaign Statistics · 戦記
+          Campaign Statistics · 戰記
         </div>
         <div style={{ fontSize: '1.6rem', color: '#d4a84a', letterSpacing: '0.3rem', textAlign: 'center', marginBottom: '0.4rem' }}>
-          戦記
+          戰記
         </div>
         <hr style={{ border: 'none', height: 1, background: 'linear-gradient(90deg, transparent, #d4a84a, transparent)', margin: '1rem 0' }} />
 
@@ -47,7 +47,7 @@ export function CampaignStatsModal({ onClose }: Props) {
         <h3 style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', margin: '1rem 0 0.5rem' }}>Records 記録</h3>
 
         {stats.biggestBattle ? (
-          <Card label="Biggest Battle 最大の戦い">
+          <Card label="Biggest Battle 最大之戰">
             <div style={{ color: '#d4a84a' }}>
               {cities[stats.biggestBattle.cityId]?.name.zh ?? '?'} ({stats.biggestBattle.year} {SEASON_LABEL[stats.biggestBattle.season].zh})
             </div>
@@ -55,7 +55,7 @@ export function CampaignStatsModal({ onClose }: Props) {
               {stats.biggestBattle.attackerTroops.toLocaleString()} vs {stats.biggestBattle.defenderTroops.toLocaleString()}
             </div>
           </Card>
-        ) : <Card label="Biggest Battle 最大の戦い"><em style={{ color: '#6a5238' }}>—</em></Card>}
+        ) : <Card label="Biggest Battle 最大之戰"><em style={{ color: '#6a5238' }}>—</em></Card>}
 
         {stats.longestSiege ? (
           <Card label="Longest Siege 最長攻城">
@@ -94,7 +94,7 @@ export function CampaignStatsModal({ onClose }: Props) {
               letterSpacing: '0.25rem',
             }}
           >
-            閉じる Close
+            閉 Close
           </button>
         </div>
       </div>

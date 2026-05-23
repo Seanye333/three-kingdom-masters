@@ -183,10 +183,10 @@ export function MapScreen() {
           items={[
             { label: '絆 Bonds',     onClick: () => setShowBonds(true) },
             { label: '武功 Deeds',   onClick: () => setShowDeeds(true) },
-            { label: '列伝 Wiki',    onClick: () => setShowEncyclopedia(true) },
-            { label: '関係図 Graph', onClick: () => setShowDipGraph(true) },
+            { label: '列傳 Wiki',    onClick: () => setShowEncyclopedia(true) },
+            { label: '關係図 Graph', onClick: () => setShowDipGraph(true) },
             ...(careerMode
-              ? [{ label: '列伝 Career', onClick: () => setShowCareer(true) }]
+              ? [{ label: '列傳 Career', onClick: () => setShowCareer(true) }]
               : []),
           ]}
         />
@@ -197,14 +197,14 @@ export function MapScreen() {
             { label: '任官 Titles',    onClick: () => setShowTitles(true) },
             { label: '州牧 Governors', onClick: () => setShowGovernors(true) },
             { label: '朝廷 Court',     onClick: () => setShowCourt(true) },
-            { label: '書状 Letters',   onClick: () => setShowWishes(true), badge: wishes.length },
+            { label: '書信 Letters',   onClick: () => setShowWishes(true), badge: wishes.length },
           ]}
         />
         <HudMenu
           label="军务"
           title="Military — battles, espionage"
           items={[
-            { label: '戦史 Battles',   onClick: () => setShowHistory(true) },
+            { label: '戰史 Battles',   onClick: () => setShowHistory(true) },
             { label: '戰史 Replays',   onClick: () => setShowReplays(true) },
             { label: '密偵 Espionage', onClick: () => setShowEspionage(true) },
           ]}
@@ -214,15 +214,15 @@ export function MapScreen() {
           title="Crafting — armoury and forge"
           items={[
             { label: '宝物 Armoury', onClick: () => setShowArmoury(true) },
-            { label: '鍛冶 Forge',   onClick: () => setShowForge(true) },
+            { label: '鍛造 Forge',   onClick: () => setShowForge(true) },
           ]}
         />
         <HudMenu
           label="记录"
           title="Records — achievements & stats"
           items={[
-            { label: '勲功 Achievements', onClick: () => setShowAch(true) },
-            { label: '戦記 Stats',        onClick: () => setShowCampaignStats(true) },
+            { label: '勳功 Achievements', onClick: () => setShowAch(true) },
+            { label: '戰記 Stats',        onClick: () => setShowCampaignStats(true) },
           ]}
         />
         <HudMenu
@@ -233,7 +233,7 @@ export function MapScreen() {
             { label: fogOfWar ? '🌫 Fog: On' : '☀ Fog: Off', onClick: () => setFogOfWar(!fogOfWar) },
             { label: '📖 Tutorial',                  onClick: () => setTutorialStep(0) },
             { label: '保存 Save',                    onClick: () => setShowSave('save') },
-            { label: '読込 Load',                    onClick: () => setShowSave('load') },
+            { label: '載入 Load',                    onClick: () => setShowSave('load') },
             { label: soundEnabled ? '🔊 Sound: On' : '🔇 Sound: Off', onClick: () => setSoundEnabled(!soundEnabled) },
             ...THEMES.map((t) => ({
               label: (
@@ -354,7 +354,7 @@ export function MapScreen() {
           }}
         >
           <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#c19a3b' }}>
-            勲功 UNLOCKED
+            勳功 UNLOCKED
           </div>
           <div style={{ fontSize: '0.95rem', marginTop: '0.2rem' }}>
             {recentAchievementUnlocks.length} new achievement{recentAchievementUnlocks.length > 1 ? 's' : ''}

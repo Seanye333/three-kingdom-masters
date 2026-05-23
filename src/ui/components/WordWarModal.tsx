@@ -98,7 +98,7 @@ export function WordWarModal({ result, onClose }: Props) {
                 letterSpacing: '0.2rem',
               }}
             >
-              {idx + 1 < total ? '次へ Next' : '見終 Reveal'}
+              {idx + 1 < total ? '次 Next' : '見終 Reveal'}
             </button>
           </>
         ) : (

@@ -7,7 +7,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ─── Iconic recruits ───────────────────────────────────────────
   {
     id: 'ach-recruit-zhuge',
-    name: { en: 'The Sleeping Dragon Roused', zh: '臥龍の出仕' },
+    name: { en: 'The Sleeping Dragon Roused', zh: '臥龍之出仕' },
     description: 'Recruit Zhuge Liang into your service.',
     tier: 'gold',
     trigger: { kind: 'recruit-officer', targetId: 'zhuge-liang' },
@@ -15,14 +15,14 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'ach-recruit-pang-tong',
-    name: { en: 'The Phoenix Found', zh: '鳳雛の発見' },
+    name: { en: 'The Phoenix Found', zh: '鳳雛之発見' },
     description: 'Recruit Pang Tong into your service.',
     tier: 'gold',
     trigger: { kind: 'recruit-officer', targetId: 'pang-tong' },
   },
   {
     id: 'ach-recruit-lu-bu',
-    name: { en: 'The Flying General Yours', zh: '飛将,我に従う' },
+    name: { en: 'The Flying General Yours', zh: '飛将,我従' },
     description: 'Recruit Lü Bu — the warrior of warriors.',
     tier: 'legendary',
     trigger: { kind: 'recruit-officer', targetId: 'lu-bu' },
@@ -30,7 +30,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'ach-recruit-sima',
-    name: { en: 'The Tomb-Tiger Tamed', zh: '冢虎,我に降る' },
+    name: { en: 'The Tomb-Tiger Tamed', zh: '冢虎,我降' },
     description: 'Recruit Sima Yi.',
     tier: 'legendary',
     trigger: { kind: 'recruit-officer', targetId: 'sima-yi' },
@@ -53,14 +53,14 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'ach-slay-dong-zhuo',
-    name: { en: 'Toppled the Tyrant', zh: '董卓を討つ' },
+    name: { en: 'Toppled the Tyrant', zh: '董卓，討' },
     description: 'Defeat Dong Zhuo.',
     tier: 'gold',
     trigger: { kind: 'defeat-officer', targetId: 'dong-zhuo' },
   },
   {
     id: 'ach-duel-lu-bu',
-    name: { en: 'Duelled the Flying General', zh: '飛将と一騎' },
+    name: { en: 'Duelled the Flying General', zh: '飛将一騎' },
     description: 'Win a duel against Lü Bu.',
     tier: 'legendary',
     trigger: { kind: 'duel-won-vs', targetId: 'lu-bu' },
@@ -93,21 +93,21 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ─── Famous events ─────────────────────────────────────────────
   {
     id: 'ach-three-visits',
-    name: { en: 'Three Visits to the Thatched Cottage', zh: '三顧の礼' },
+    name: { en: 'Three Visits to the Thatched Cottage', zh: '三顧茅廬' },
     description: 'Witness the Three Visits event.',
     tier: 'gold',
     trigger: { kind: 'fire-event', targetId: 'evt-three-visits-to-thatched-cottage' },
   },
   {
     id: 'ach-chibi',
-    name: { en: 'Red Cliffs Survivor', zh: '赤壁の戦い' },
+    name: { en: 'Red Cliffs Survivor', zh: '赤壁之戰' },
     description: 'Be present for the Battle of Red Cliffs.',
     tier: 'gold',
     trigger: { kind: 'fire-event', targetId: 'evt-battle-of-red-cliffs' },
   },
   {
     id: 'ach-empty-fort',
-    name: { en: 'The Empty Fort', zh: '空城の計' },
+    name: { en: 'The Empty Fort', zh: '空城之計' },
     description: 'Witness the Empty Fort Stratagem.',
     tier: 'silver',
     trigger: { kind: 'fire-event', targetId: 'evt-empty-fort-stratagem' },
@@ -121,7 +121,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'ach-wuzhang',
-    name: { en: 'Star Falls at Wuzhang', zh: '五丈原に星墜つ' },
+    name: { en: 'Star Falls at Wuzhang', zh: '五丈原星墜' },
     description: 'Witness Zhuge Liang\'s death at Wuzhang Plains.',
     tier: 'legendary',
     trigger: { kind: 'fire-event', targetId: 'evt-zhuge-liang-dies' },
@@ -168,7 +168,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ─── Imperial ranks ────────────────────────────────────────────
   {
     id: 'ach-king',
-    name: { en: 'King Among Men', zh: '王に即位' },
+    name: { en: 'King Among Men', zh: '王即位' },
     description: 'Achieve the rank of King.',
     tier: 'gold',
     trigger: { kind: 'reach-imperial-rank', targetId: 'king' },
@@ -177,7 +177,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ─── Cumulative ────────────────────────────────────────────────
   {
     id: 'ach-100-kills',
-    name: { en: 'Bloody Hands', zh: '百戦錬磨' },
+    name: { en: 'Bloody Hands', zh: '百戰錬磨' },
     description: 'Kill 100,000 enemy troops across all campaigns.',
     tier: 'bronze',
     trigger: { kind: 'cumulative-kills', threshold: 100_000 },
@@ -205,7 +205,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'ach-100-battles',
-    name: { en: 'Hundred Victories', zh: '百戦百勝' },
+    name: { en: 'Hundred Victories', zh: '百戰百勝' },
     description: 'Win 100 battles cumulatively.',
     tier: 'gold',
     trigger: { kind: 'cumulative-battles-won', threshold: 100 },
@@ -214,7 +214,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ─── Skills ────────────────────────────────────────────────────
   {
     id: 'ach-learn-god-of-war',
-    name: { en: 'Learned the God of War', zh: '武神を会得' },
+    name: { en: 'Learned the God of War', zh: '武神，会得' },
     description: 'Have an officer learn the 武神 skill via level-up.',
     tier: 'legendary',
     trigger: { kind: 'learn-skill', targetId: 'god-of-war' },

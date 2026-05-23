@@ -8,7 +8,7 @@ import { buildInitialOfficers } from './officers';
 
 const FORCES_184: Force[] = [
   { id: 'han',         name: { en: 'Han Court',       zh: '漢室'     }, rulerOfficerId: 'lu-zhi',      capitalCityId: 'luoyang',  color: '#d4a84a', isPlayer: false },
-  { id: 'yellow-turban',name:{ en: 'Yellow Turbans',  zh: '黄巾'     }, rulerOfficerId: 'zhang-jiao',  capitalCityId: 'julu',     color: '#c19a3b', isPlayer: false },
+  { id: 'yellow-turban',name:{ en: 'Yellow Turbans',  zh: '黃巾'     }, rulerOfficerId: 'zhang-jiao',  capitalCityId: 'julu',     color: '#c19a3b', isPlayer: false },
   { id: 'huangfu',     name: { en: 'Huangfu Song',    zh: '皇甫嵩軍' }, rulerOfficerId: 'huangfu-song',capitalCityId: 'chenliu',  color: '#3a7dd9', isPlayer: false },
   { id: 'zhujun',      name: { en: 'Zhu Jun',         zh: '朱儁軍'   }, rulerOfficerId: 'zhu-jun',     capitalCityId: 'wancheng', color: '#5a9bb8', isPlayer: false },
   { id: 'dong-184',    name: { en: 'Dong Zhuo',       zh: '董卓軍'   }, rulerOfficerId: 'dong-zhuo',   capitalCityId: 'changan',  color: '#6b4a8a', isPlayer: false },
@@ -82,7 +82,7 @@ const DEAD_BY_184: string[] = [];
 
 export const SCENARIO_184_YELLOW_TURBAN: Scenario = {
   id: 'scn-184-yellow-turban',
-  name: { en: 'The Yellow Turban Rebellion', zh: '黄巾の亂' },
+  name: { en: 'The Yellow Turban Rebellion', zh: '黃巾之亂' },
   description:
     'Spring 184 AD. The Yellow Turbans rise across five provinces under Zhang Jiao\'s Way of Great Peace. ' +
     'The Han court rallies Huangfu Song, Lu Zhi, and Zhu Jun. Among their volunteers: a young Cao Cao, ' +
@@ -208,7 +208,7 @@ const OFFICER_ASSIGNMENTS_190: Record<string, { forceId: string; cityId: string 
 
 export const SCENARIO_190_ANTI_DONG_ZHUO: Scenario = {
   id: 'scn-190-anti-dong-zhuo',
-  name: { en: 'Anti-Dong Zhuo Coalition', zh: '反董卓連合' },
+  name: { en: 'Anti-Dong Zhuo Coalition', zh: '反董卓聯軍' },
   description:
     'Spring 190 AD. Dong Zhuo controls the Han court at Luoyang and rules through terror. ' +
     'A coalition of regional lords assembles to depose him. 30 cities, 11 warlords vie for the empire.',
@@ -1603,7 +1603,7 @@ const DEAD_BY_197 = ['sun-jian', 'dong-zhuo', 'li-ru', 'tao-qian', 'kong-rong'];
 
 export const SCENARIO_197_BOHAI: Scenario = {
   id: 'scn-197-bohai',
-  name: { en: 'Cao vs Yuan — The Northern Front', zh: '渤海戦線' },
+  name: { en: 'Cao vs Yuan — The Northern Front', zh: '渤海戰線' },
   description:
     'Spring 197 AD. Cao Cao has just escorted Emperor Xian to Xuchang; ' +
     'Yuan Shao broods to the north with twice his strength. ' +
@@ -1902,7 +1902,7 @@ const DEAD_BY_225 = [
 
 export const SCENARIO_225_SOUTHERN: Scenario = {
   id: 'scn-225-southern',
-  name: { en: 'The Southern Campaign', zh: '南征の役' },
+  name: { en: 'The Southern Campaign', zh: '南征之役' },
   description:
     'Spring 225 AD. With Liu Bei gone, the southern tribes under Meng Huo have raised the war banner. ' +
     'Zhuge Liang marches south himself, vowing to win not by force but by surrender of the heart. ' +

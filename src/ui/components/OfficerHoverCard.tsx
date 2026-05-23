@@ -114,7 +114,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
           {items.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
               <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
-                持物 ITEMS ({items.length})
+                持有 ITEMS ({items.length})
               </div>
               <div style={{ fontSize: '0.72rem', color: '#88b7e8' }}>
                 {items.map((i) => i!.name.zh).join(' · ')}

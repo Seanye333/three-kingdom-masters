@@ -153,7 +153,7 @@ export function BattlePrepModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <div>
-            <div className={styles.titleZh}>戦闘準備</div>
+            <div className={styles.titleZh}>戰闘準備</div>
             <div className={styles.titleEn}>
               Battle Preparation: {source?.name.en} → {target?.name.en}
             </div>
@@ -164,7 +164,7 @@ export function BattlePrepModal({
         <div className={styles.body}>
           <div className={styles.context}>
             <div className={styles.ctxCard}>
-              <div className={styles.ctxLabel}>Map 戦場</div>
+              <div className={styles.ctxLabel}>Map 戰場</div>
               <div className={styles.ctxValue}>
                 {namedMap ? namedMap.name.zh + ' ' + namedMap.name.en : 'Procedural'}
               </div>

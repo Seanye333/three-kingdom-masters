@@ -1575,8 +1575,8 @@ export const useGameStore = create<GameStore>()(
             const won = winner === playerSide;
             careerMilestones.push({
               title: won
-                ? { zh: `${cityName.zh}の戦勝`, en: `Victory at ${cityName.en}` }
-                : { zh: `${cityName.zh}の敗北`, en: `Defeat at ${cityName.en}` },
+                ? { zh: `${cityName.zh}之戰勝`, en: `Victory at ${cityName.en}` }
+                : { zh: `${cityName.zh}敗北`, en: `Defeat at ${cityName.en}` },
               year: state.date.year,
               season: state.date.season,
             });

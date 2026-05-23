@@ -273,7 +273,7 @@ export function TacticalBattleScreen() {
   const svgHeight = battle.height * HEX_ROW_STEP + HEX_H;
 
   const namedMap = NAMED_MAPS_BY_ID[`map-${battle.cityId.replace('city-', '')}`];
-  const battleTitleZh = namedMap?.name.zh ?? '戦術戦闘';
+  const battleTitleZh = namedMap?.name.zh ?? '戰術戰闘';
   const battleTitleEn = namedMap?.name.en ?? 'Tactical Battle';
 
   return (

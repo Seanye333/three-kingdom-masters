@@ -161,7 +161,7 @@ export type StratagemId =
   | 'charge'        // 突撃
   | 'defend'        // 防御
   | 'rally'         // 鼓舞
-  | 'rain-of-arrows' // 矢の雨
+  | 'rain-of-arrows' // 矢雨齊發
   | 'chain-ships'   // 連環 — link enemies so they share damage
   | 'false-retreat' // 偽計 — fake rout to lure pursuers into a kill zone
   | 'precognition'  // 神算 — reveal enemy AP & cooldowns next turn

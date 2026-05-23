@@ -43,7 +43,7 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
         <header className={styles.header}>
           <div>
             <div className={styles.titleZh}>
-              {mode === 'save' ? '保存' : '読込'}
+              {mode === 'save' ? '保存' : '載入'}
             </div>
             <div className={styles.titleEn}>
               {mode === 'save' ? 'Save Game' : 'Load Game'}
@@ -82,7 +82,7 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                   </span>
                 </div>
                 <button className={styles.loadBtn} onClick={() => doLoad(s.id)}>
-                  読込 Load
+                  載入 Load
                 </button>
                 <button className={styles.delBtn} onClick={() => doDelete(s.id)}>
                   Delete

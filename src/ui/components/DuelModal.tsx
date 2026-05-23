@@ -181,7 +181,7 @@ export function DuelModal({ result, onClose }: Props) {
                 textShadow: '0 0 14px rgba(212,168,74,0.4)',
               }}
             >
-              {result.winner === 'draw' ? '互角の勝負' : '勝!'}
+              {result.winner === 'draw' ? '勢均力敵' : '勝!'}
             </div>
             <div style={{ textAlign: 'center', color: '#c0a878', fontStyle: 'italic', marginTop: '0.5rem' }}>
               {result.winner === 'draw'

@@ -8,7 +8,7 @@ export type Terrain =
   | 'water'    // 水郷 — riverine / lakeside
   | 'desert'   // 砂漠 — arid frontier
   | 'wetland'  // 湿地 — marshy lowland
-  | 'pass';    // 関 — narrow chokepoint
+  | 'pass';    // 關 — narrow chokepoint
 
 export const TERRAIN_DEFS: Record<Terrain, { zh: string; en: string; color: string }> = {
   plain:    { zh: '平原', en: 'Plain',    color: '#a8c87a' },
@@ -17,7 +17,7 @@ export const TERRAIN_DEFS: Record<Terrain, { zh: string; en: string; color: stri
   water:    { zh: '水郷', en: 'Riverine', color: '#88b7e8' },
   desert:   { zh: '砂漠', en: 'Desert',   color: '#c19a3b' },
   wetland:  { zh: '湿地', en: 'Wetland',  color: '#5a8a7a' },
-  pass:     { zh: '関',   en: 'Pass',     color: '#a8442e' },
+  pass:     { zh: '關',   en: 'Pass',     color: '#a8442e' },
 };
 
 interface CityTemplate {

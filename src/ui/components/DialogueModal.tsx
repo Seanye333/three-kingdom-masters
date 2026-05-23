@@ -40,7 +40,7 @@ export function DialogueModal() {
           marginBottom: '0.7rem',
           textAlign: 'center',
         }}>
-          書状 · Court Event
+          書信 · Court Event
         </div>
         <div style={{ fontSize: '1.2rem', color: '#d4a84a', letterSpacing: '0.2rem', textAlign: 'center' }}>
           {speakerName.zh}

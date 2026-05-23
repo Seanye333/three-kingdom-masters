@@ -48,7 +48,7 @@ export const STRATAGEMS: Stratagem[] = [
   },
   {
     id: 'rain-of-arrows',
-    name: { en: 'Rain of Arrows', zh: '矢の雨' },
+    name: { en: 'Rain of Arrows', zh: '矢雨齊發' },
     description:
       'A volley at range 2–4 dealing 12% damage to one enemy unit. Range halved at night.',
     minIntelligence: 0,

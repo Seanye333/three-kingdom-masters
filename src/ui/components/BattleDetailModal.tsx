@@ -19,7 +19,7 @@ export function BattleDetailModal({ battle, onClose }: Props) {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <div>
-            <div className={styles.titleZh}>戦況</div>
+            <div className={styles.titleZh}>戰況</div>
             <div className={styles.titleEn}>
               Battle Report — {city?.name.en ?? battle.cityId}
             </div>
@@ -36,7 +36,7 @@ export function BattleDetailModal({ battle, onClose }: Props) {
             </span>
           ) : battle.attackerWins ? (
             <span className={`${styles.outcome} ${styles.victory}`}>
-              戦勝 Attacker won (no breach)
+              戰勝 Attacker won (no breach)
             </span>
           ) : (
             <span className={`${styles.outcome} ${styles.defeat}`}>

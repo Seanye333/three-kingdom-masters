@@ -10,25 +10,25 @@ const TUTORIAL_STEPS: Array<{ titleZh: string; titleEn: string; bodyZh: string; 
   {
     titleZh: '地图与城市',
     titleEn: 'The Map & Cities',
-    bodyZh: '点击地图上的城市选择它。你的城市会显示金钱、粮食、兵力。点击建筑面板建造兵营、市场、寺院等。',
+    bodyZh: '点击地图上的城市选择它。你的城市会显示金钱，粮食，兵力。点击建筑面板建造兵营，市场，寺院等。',
     bodyEn: 'Click a city to select it. Your cities show gold, food, and troops. Build barracks, markets, and temples in the Buildings panel.',
   },
   {
     titleZh: '武将与命令',
     titleEn: 'Officers & Orders',
-    bodyZh: '武将是你的核心资源。每个季节他们可以执行一项命令:征兵、内政、出阵、外交、密谋。统率、武力、知力、政治、魅力决定他们擅长什么。',
+    bodyZh: '武将是你的核心资源。每个季节他们可以执行一项命令:征兵，内政，出阵，外交，密谋。统率，武力，知力，政治，魅力决定他们擅长什么。',
     bodyEn: 'Officers are your core resource. Each season they can perform one task: recruit, develop, march, diplomacy, espionage. Leadership/War/Intelligence/Politics/Charisma determine what they\'re good at.',
   },
   {
     titleZh: '战斗',
     titleEn: 'Combat',
-    bodyZh: '点击地图上的敌城,在出阵菜单选择「戦術 Tactical」进入战术战斗。布阵、选兵种、用计谋。或者用「March!」即时结算。',
+    bodyZh: '点击地图上的敌城,在出阵菜单选择「戰術 Tactical」进入战术战斗。布阵，选兵种，用计谋。或者用「March!」即时结算。',
     bodyEn: 'Click an enemy city, choose March, then "Tactical" to launch a hex-grid tactical battle. Pick formations, unit types, and stratagems. Or use "March!" for instant resolution.',
   },
   {
     titleZh: '探索',
     titleEn: 'Explore',
-    bodyZh: '使用上方按钮探索:武将(全员)、宝物(装备)、密偵(谍报)、朝廷(诏令)、保存。准备好结束本季时点「End Season →」。',
+    bodyZh: '使用上方按钮探索:武将(全员)，宝物(装备)，密偵(谍报)，朝廷(诏令)，保存。准备好结束本季时点「End Season →」。',
     bodyEn: 'Use the top-bar buttons: Officers, Armoury, Espionage, Court, Save. When you\'ve issued all your orders, click "End Season →".',
   },
 ];
@@ -117,7 +117,7 @@ export function TutorialOverlay() {
             letterSpacing: '0.15rem',
           }}
         >
-          {isLast ? '完了 Done' : '次へ Next'}
+          {isLast ? '完了 Done' : '次 Next'}
         </button>
       </div>
     </div>

@@ -25,7 +25,7 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
   },
   'liu-bei': {
     era: { zh: '蜀汉昭烈帝', en: 'Emperor Zhaolie of Shu Han' },
-    zh: '字玄德,涿郡涿县人。汉景帝玄孙,中山靖王刘胜之后。少有大志,与关羽、张飞桃园结义。一生颠沛,屡败屡战,终入蜀建立汉中之业,称帝白帝。仁德爱民,以德服人,与曹操形成天下两极。',
+    zh: '字玄德,涿郡涿县人。汉景帝玄孙,中山靖王刘胜之后。少有大志,与关羽，张飞桃园结义。一生颠沛,屡败屡战,终入蜀建立汉中之业,称帝白帝。仁德爱民,以德服人,与曹操形成天下两极。',
     en: 'Style name Xuande. A descendant of Emperor Jing of Han through Prince Jing of Zhongshan, Liu Sheng. Ambitious from youth, he swore the Peach Garden Oath with Guan Yu and Zhang Fei. Through a lifetime of defeat and flight, he eventually entered Shu, took Hanzhong, and proclaimed himself emperor at Baidicheng. His benevolence drew men to him; with Cao Cao he formed the two poles of the realm.',
     quote: { zh: '勿以善小而不为,勿以恶小而为之。', en: 'Do no good so small it can be neglected; do no evil so small it can be excused.' },
   },
@@ -36,7 +36,7 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
   },
   'guan-yu': {
     era: { zh: '武圣', en: 'Saint of War' },
-    zh: '字云长,河东解良人。身长九尺,髯长二尺,面如重枣。义薄云天,与刘备、张飞结为兄弟。 千里走单骑,过五关斩六将。水淹七军,威震华夏,败走麦城而死。后世尊为武圣,庙祀遍天下。',
+    zh: '字云长,河东解良人。身长九尺,髯长二尺,面如重枣。义薄云天,与刘备，张飞结为兄弟。 千里走单骑,过五关斩六将。水淹七军,威震华夏,败走麦城而死。后世尊为武圣,庙祀遍天下。',
     en: 'Style name Yunchang. Nine chi tall with a two-chi beard and a date-red face. His loyalty stretched higher than the clouds; he was sworn brother to Liu Bei and Zhang Fei. He rode a thousand li alone, slew six commanders at five passes, drowned seven armies at Fancheng, and shook all China — then fell at Maicheng. Later ages worshipped him as the Saint of War; temples to him stand across the realm.',
     quote: { zh: '玉可碎而不可改其白,竹可焚而不可毁其节。', en: 'Jade may shatter but its whiteness will not change; bamboo may burn but its uprightness will not be destroyed.' },
   },
@@ -59,13 +59,13 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
   },
   'lu-bu': {
     era: { zh: '飞将', en: 'The Flying General' },
-    zh: '字奉先,五原九原人。弓马娴熟,有"人中吕布,马中赤兔"之誉。事丁原、董卓、王允,三易其主,世人称"三姓家奴"。辕门射戟,虎牢关战三英。最后败于下邳,白门楼为曹操所缢。',
+    zh: '字奉先,五原九原人。弓马娴熟,有"人中吕布,马中赤兔"之誉。事丁原，董卓，王允,三易其主,世人称"三姓家奴"。辕门射戟,虎牢关战三英。最后败于下邳,白门楼为曹操所缢。',
     en: 'Style name Fengxian, of Jiuyuan in Wuyuan. Master of bow and horse, the saying went: "Among men, Lü Bu; among horses, Red Hare." He served Ding Yuan, Dong Zhuo, and Wang Yun in turn — the world called him "the slave of three surnames." He shot the halberd at Yuanmen and held off the three sworn brothers at Hulao Pass. In the end he was strangled by Cao Cao\'s order at White Gate Tower.',
     quote: { zh: '大丈夫生于天地间,岂能郁郁久居人下!', en: 'A real man between heaven and earth — how can he linger long under another?' },
   },
   'sun-jian': {
     era: { zh: '江东之虎', en: 'Tiger of Jiangdong' },
-    zh: '字文台,吴郡富春人。少年时孤身追海盗,声名远播。讨黄巾、伐董卓,首入洛阳,得传国玉玺。征荆州刘表,中流矢而死,年三十七。',
+    zh: '字文台,吴郡富春人。少年时孤身追海盗,声名远播。讨黃巾，伐董卓,首入洛阳,得传国玉玺。征荆州刘表,中流矢而死,年三十七。',
     en: 'Style name Wentai, of Fuchun in Wu. As a boy he chased down pirates alone and made his name. He crushed the Yellow Turbans, led the assault on Dong Zhuo, was first into Luoyang and there found the imperial seal. Campaigning against Liu Biao in Jingzhou, he was struck by an arrow and died at thirty-seven.',
   },
   'sun-ce': {
@@ -80,7 +80,7 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
   },
   'sima-yi': {
     era: { zh: '冢虎', en: 'The Tomb-Tiger' },
-    zh: '字仲达,河内温县人。隐忍多智,曹操疑其有狼顾之相而忌之。 历事曹操、丕、叡、芳四主。 拒诸葛于五丈原,平辽东公孙渊。 晚年发动高平陵之变,夺曹爽之权,为西晋开基。',
+    zh: '字仲达,河内温县人。隐忍多智,曹操疑其有狼顾之相而忌之。 历事曹操，丕，叡，芳四主。 拒诸葛于五丈原,平辽东公孙渊。 晚年发动高平陵之变,夺曹爽之权,为西晋开基。',
     en: 'Style name Zhongda, of Wen in Henei. Patient and deep-counseled; Cao Cao saw the wolf-glance in him and was wary. He served four lords of Wei in turn. He held Zhuge Liang at Wuzhang Plains and crushed Gongsun Yuan in Liaodong. Late in life he sprang the Gaopingling coup, seized power from Cao Shuang, and laid the foundation of Jin.',
   },
   'zhang-liao': {
@@ -134,11 +134,11 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
   },
   'diaochan': {
     era: { zh: '貂蝉', en: 'Diaochan' },
-    zh: '王允义女,容貌倾国。 司徒以连环之计,使吕布、董卓父子反目。 凤仪亭一变,董卓死,汉室得苏。 四大美人之一。',
+    zh: '王允义女,容貌倾国。 司徒以连环之计,使吕布，董卓父子反目。 凤仪亭一变,董卓死,汉室得苏。 四大美人之一。',
     en: 'Adopted daughter of Wang Yun, of nation-toppling beauty. The Minister wove the Chain Stratagem with her, turning the foster-son Lü Bu against the tyrant Dong Zhuo. In the moment at Phoenix Pavilion the tyrant fell and the Han line breathed again. One of the four classical beauties of China.',
   },
   'huang-yueying': {
-    zh: '诸葛亮之妻,黄承彦之女。 容貌虽不出众,而才识过人。 善制木牛流马、连弩等机械,助孔明经天纬地。',
+    zh: '诸葛亮之妻,黄承彦之女。 容貌虽不出众,而才识过人。 善制木牛流马，连弩等机械,助孔明经天纬地。',
     en: "Wife of Zhuge Liang, daughter of Huang Chengyan. Not beautiful in face, but matchless in talent and learning. She devised the Wooden Ox and Flowing Horse carts, the repeating crossbow, and other machines, helping Kongming weave together heaven and earth.",
   },
   'dong-zhuo': {
@@ -163,12 +163,12 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     en: 'Style name Fengxiao, of Yangzhai in Yingchuan. Cao Cao\'s chief counselor. His "Ten Victories, Ten Defeats" memorial set the strategy for the conquest of the north. He died at thirty-eight; Cao Cao wept: "If Fengxiao were alive, I would not have come to this!"',
   },
   'xun-yu': {
-    zh: '字文若,颍川颍阴人。 王佐之才,曹操称之"吾之子房"。 助曹定都许昌、迎天子,运筹帷幄二十年。 后因反对曹操称魏公,郁郁而终。',
+    zh: '字文若,颍川颍阴人。 王佐之才,曹操称之"吾之子房"。 助曹定都许昌，迎天子,运筹帷幄二十年。 后因反对曹操称魏公,郁郁而终。',
     en: 'Style name Wenruo, of Yingyin in Yingchuan. "A talent fit to assist a king" — Cao Cao called him "my Zifang." He helped Cao set the capital at Xuchang, escort the emperor, and steered grand strategy for twenty years. Opposing the elevation of Cao to Duke of Wei, he sank into despair and died.',
   },
   'jia-xu': {
     era: { zh: '毒士', en: 'The Poisonous Counselor' },
-    zh: '字文和,武威姑臧人。 算无遗策,屡换其主而善终。 助贾诩献离间之计破马超、计败张绣、保曹丕嗣位。',
+    zh: '字文和,武威姑臧人。 算无遗策,屡换其主而善终。 助贾诩献离间之计破马超，计败张绣，保曹丕嗣位。',
     en: 'Style name Wenhe, of Guzang in Wuwei. His strategies never miscarried, and he served many lords yet died in his bed. He sowed division between Ma Chao and Han Sui, broke Zhang Xiu through a trick, and secured Cao Pi as heir of Wei.',
   },
   'hua-tuo': {
@@ -185,16 +185,16 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     en: 'Style name Zihuan, second son of Cao Cao. He deposed Emperor Xian of Han and founded Wei. Skilled in poetry, he stood among the Seven Masters of Jian\'an. He gave his brother Cao Zhi seven paces to compose a poem on pain of death — and so was born the immortal verse of beans burning by their own stalks.',
   },
   'cao-zhi': {
-    zh: '字子建,曹操三子。 才高八斗,与曹操、曹丕并称三曹。 七步成诗:"煮豆燃豆萁,豆在釜中泣;本是同根生,相煎何太急!"',
+    zh: '字子建,曹操三子。 才高八斗,与曹操，曹丕并称三曹。 七步成诗:"煮豆燃豆萁,豆在釜中泣;本是同根生,相煎何太急!"',
     en: 'Style name Zijian, third son of Cao Cao. Of him it was said: "If the world\'s talent be ten dou, Zijian holds eight." With his father and brother he made up the Three Caos of letters. His seven-step poem: "Beans burn over a fire of bean-stalks / the beans in the pot are weeping / both grew from one root — / why must we devour each other so fast?"',
   },
   'wang-yun': {
-    zh: '字子师,太原祁县人。 汉室忠臣,假女貂蝉施连环计,使吕布刺杀董卓。 后被李傕、郭汜攻陷长安,自焚而死。',
+    zh: '字子师,太原祁县人。 汉室忠臣,假女貂蝉施连环计,使吕布刺杀董卓。 后被李傕，郭汜攻陷长安,自焚而死。',
     en: 'Style name Zishi, of Qi in Taiyuan. A loyal minister of Han. Through his ward Diaochan he wove the Chain Stratagem and had Lü Bu strike down Dong Zhuo. When Li Jue and Guo Si seized Chang\'an, he threw himself into the flames.',
   },
   'zhang-jiao': {
     era: { zh: '大贤良师', en: 'The Great Worthy Teacher' },
-    zh: '钜鹿人。 创太平道,以符水治病传教,聚徒数十万。 中平元年,以"苍天已死,黄天当立"为号起义,黄巾之乱遂起。 数月后病死。',
+    zh: '钜鹿人。 创太平道,以符水治病传教,聚徒数十万。 中平元年,以"苍天已死,黄天当立"为号起义,黃巾之乱遂起。 数月后病死。',
     en: 'Of Julu. Founder of the Way of Great Peace, healing with talisman-water and gathering hundreds of thousands of converts. In the first year of Zhongping he raised his rebellion under the slogan "The Blue Heaven is dead, the Yellow Heaven shall stand" — and the Yellow Turbans rose. Within months he died of illness.',
   },
   'meng-huo': {
@@ -213,16 +213,16 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
   },
   'sima-shi': {
     era: { zh: '景皇帝', en: 'Emperor Jing of Jin' },
-    zh: '字子元,司馬懿長子。 高平陵之變後執政,平王凌之亂、擒毋丘儉,以陰柔之術駕馭士林。 後司馬昭得以順承其志,終成晉室。',
+    zh: '字子元,司馬懿長子。 高平陵之變後執政,平王凌之亂，擒毋丘儉,以陰柔之術駕馭士林。 後司馬昭得以順承其志,終成晉室。',
     en: 'Style name Ziyuan, eldest son of Sima Yi. After the Gaopingling coup he took the regency. He crushed the revolt of Wang Ling, captured Guanqiu Jian, and bent the gentry to his will by quiet hands. His brother Sima Zhao would carry his designs forward — and his nephew would found Jin.',
   },
   'sima-zhao': {
     era: { zh: '文皇帝', en: 'Emperor Wen of Jin' },
-    zh: '字子上,司馬懿次子。 兄死後執政。 鎮諸葛誕之叛、攬鄧艾鍾會以滅蜀。 弒高貴鄉公曹髦,獨攬大權。 「司馬昭之心,路人皆知。」',
+    zh: '字子上,司馬懿次子。 兄死後執政。 鎮諸葛誕之叛，攬鄧艾鍾會以滅蜀。 弒高貴鄉公曹髦,獨攬大權。 「司馬昭之心,路人皆知。」',
     en: 'Style name Zishang, second son of Sima Yi. He took power after his brother died. He crushed Zhuge Dan\'s revolt, gathered Deng Ai and Zhong Hui to swallow Shu, and finally killed the Duke of Gaogui — Emperor Mao — to clear the throne for his son. "The heart of Sima Zhao is known even to passersby."',
   },
   'guo-huai': {
-    zh: '字伯濟,太原陽曲人。 鎮守關西二十年,屢挫蜀漢北伐。 大破馬岱、姜維,鎮羌氐諸部安如磐石。',
+    zh: '字伯濟,太原陽曲人。 鎮守關西二十年,屢挫蜀漢北伐。 大破馬岱，姜維,鎮羌氐諸部安如磐石。',
     en: 'Style name Boji, of Yangqu in Taiyuan. Twenty years he held the western marches, blunting every Shu northern campaign. He broke Ma Dai and Jiang Wei, and held the Qiang and Di tribes to peace like an unmoved rock.',
   },
   'hao-zhao': {
@@ -231,7 +231,7 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
   },
   'liao-hua': {
     era: { zh: '蜀漢之忠', en: "Shu's Faithful Veteran" },
-    zh: '字元儉,襄陽人。 始隨關羽守荊州,後事先主、後主。 「蜀中無大將,廖化作先鋒。」 一生轉戰三世,八十而戰不衰。',
+    zh: '字元儉,襄陽人。 始隨關羽守荊州,後事先主，後主。 「蜀中無大將,廖化作先鋒。」 一生轉戰三世,八十而戰不衰。',
     en: 'Style name Yuanjian, of Xiangyang. He first followed Guan Yu at Jingzhou, then served both First and Second Emperors of Shu. They said: "When Shu has no great general, Liao Hua takes the van." Through three reigns he marched, still in the field at eighty.',
   },
   'guan-xing': {
@@ -255,7 +255,7 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     en: 'Style name Ziyu, elder brother of Zhuge Liang. For forty years he served Sun Quan and was known for sincerity. His two brothers served Wei, Shu, and Wu in turn — yet he passed no private word between them. Public and private were strictly separated.',
   },
   'zhuge-ke': {
-    zh: '字元遜,諸葛瑾長子。 才思過人而剛愎自用。 平山越、伐魏,初勝後敗,終為孫峻所殺,夷三族。',
+    zh: '字元遜,諸葛瑾長子。 才思過人而剛愎自用。 平山越，伐魏,初勝後敗,終為孫峻所殺,夷三族。',
     en: 'Style name Yuanxun, eldest son of Zhuge Jin. His wit was beyond men\'s, but he was stubborn and self-willed. He pacified the Shan Yue, then marched on Wei — won at first, lost at last. Sun Jun killed him and wiped out three branches of his clan.',
   },
   'zhong-yao': {
@@ -264,7 +264,7 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     en: 'Style name Yuanchang, of Changshe in Yingchuan. A great minister bridging Han and Wei, and the founding master of regular-script calligraphy. He held the Guanzhong region steady and quieted the Qiang; Cao Cao said his merit equaled Xiao He\'s.',
   },
   'chen-qun': {
-    zh: '字長文,潁川許昌人。 制九品中正,定百年選官之制。 魏室棟梁,直諫曹丕、曹叡,稱賢相。',
+    zh: '字長文,潁川許昌人。 制九品中正,定百年選官之制。 魏室棟梁,直諫曹丕，曹叡,稱賢相。',
     en: 'Style name Changwen, of Xu in Yingchuan. He established the Nine-rank System, which would govern official appointments for a hundred years. A pillar of Wei, he remonstrated with both Cao Pi and Cao Rui and was called a worthy chancellor.',
   },
   'yang-xiu': {

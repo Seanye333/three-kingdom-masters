@@ -380,7 +380,7 @@ export function OfficerDetail({
         {officer.equipment.length > 0 && (
           <section className={styles.statsSection}>
             <h3 className={styles.sectionTitle}>
-              Equipment 持物 ({officer.equipment.length})
+              Equipment 持有 ({officer.equipment.length})
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {/* Group items by kind for readability, but render every one. */}
@@ -401,7 +401,7 @@ export function OfficerDetail({
         )}
 
         <section className={styles.statsSection}>
-          <h3 className={styles.sectionTitle}>Biography 列伝</h3>
+          <h3 className={styles.sectionTitle}>Biography 列傳</h3>
           <BiographyBlock officer={officer} />
         </section>
 
