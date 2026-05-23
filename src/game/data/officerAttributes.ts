@@ -240,7 +240,20 @@ export type TacticId =
   | 'tree-flower' // 樹上開花
   | 'guest-host'  // 反客為主
   | 'feign-mad'   // 假癡不癲
-  | 'pull-ladder';// 上屋抽梯
+  | 'pull-ladder' // 上屋抽梯
+  // ── Phase 57: remaining 36-stratagems + 三國奇計 ──
+  | 'borrow-knife'// 借刀殺人
+  | 'lead-sheep'  // 順手牽羊
+  | 'borrow-corpse'// 借屍還魂
+  | 'plum-peach'  // 李代桃僵
+  | 'borrow-road' // 假途伐虢
+  | 'switch-beam' // 偷梁換柱
+  | 'point-curse' // 指桑罵槐
+  | 'plum-thirst' // 望梅止渴 (Cao Cao)
+  | 'seven-lamp'  // 七星燈 (Zhuge Liang)
+  | 'chu-songs'   // 四面楚歌 (Han Xin)
+  | 'burn-bowang' // 火燒博望 (Zhuge Liang)
+  | 'wooden-ox';  // 木牛流馬 (Zhuge Liang's logistics device)
 
 export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   charge:        { zh: '突擊', en: 'Charge' },
@@ -291,6 +304,18 @@ export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   'guest-host':  { zh: '反客為主', en: 'Turn the Guest into the Host' },
   'feign-mad':   { zh: '假癡不癲', en: 'Feign Madness but Keep Your Wits' },
   'pull-ladder': { zh: '上屋抽梯', en: 'Lure to the Roof, Pull the Ladder' },
+  'borrow-knife':{ zh: '借刀殺人', en: 'Kill with a Borrowed Knife' },
+  'lead-sheep':  { zh: '順手牽羊', en: 'Lead Away the Sheep in Passing' },
+  'borrow-corpse':{ zh: '借屍還魂', en: 'Borrow a Corpse to Return the Soul' },
+  'plum-peach':  { zh: '李代桃僵', en: 'Plum Tree Withers for the Peach' },
+  'borrow-road': { zh: '假途伐虢', en: 'Borrow a Path to Conquer Guo' },
+  'switch-beam': { zh: '偷梁換柱', en: 'Replace the Beams with Rotten Timbers' },
+  'point-curse': { zh: '指桑罵槐', en: 'Point at Mulberry, Curse the Locust' },
+  'plum-thirst': { zh: '望梅止渴', en: 'Quench Thirst by Hoping for Plums' },
+  'seven-lamp':  { zh: '七星燈', en: 'Seven-Star Lamps' },
+  'chu-songs':   { zh: '四面楚歌', en: 'Songs of Chu from All Sides' },
+  'burn-bowang': { zh: '火燒博望', en: 'Burn Bowang' },
+  'wooden-ox':   { zh: '木牛流馬', en: 'Wooden Ox & Flowing Horse' },
 };
 
 export const OFFICER_TACTICS: Record<string, TacticId[]> = {

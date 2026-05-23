@@ -51,6 +51,18 @@ const TACTIC_CATEGORY: Record<string, string> = {
   'guest-host':   'strategy',
   'feign-mad':    'disrupt',
   'pull-ladder':  'strategy',
+  'borrow-knife': 'disrupt',
+  'lead-sheep':   'strategy',
+  'borrow-corpse':'strategy',
+  'plum-peach':   'strategy',
+  'borrow-road':  'strategy',
+  'switch-beam':  'disrupt',
+  'point-curse':  'disrupt',
+  'plum-thirst':  'melee',
+  'seven-lamp':   'mystic',
+  'chu-songs':    'disrupt',
+  'burn-bowang':  'mystic',
+  'wooden-ox':    'strategy',
 };
 
 const TACTIC_DESC: Record<string, string> = {
@@ -104,6 +116,19 @@ const TACTIC_DESC: Record<string, string> = {
   'guest-host':   '反客為主 — 漸進蠶食。在敵境內駐留 3 回合後，反過來掌控當地。',
   'feign-mad':    '假癡不癲 — 大智若愚。假裝平庸無能，使敵放鬆警惕，反擊時 War +20。',
   'pull-ladder':  '上屋抽梯 — 斷其退路。誘敵深入後切斷退路，敵全軍每回合 −15% 士氣。',
+  // ── Phase 57: remaining 36-stratagems + 三國奇計 ──
+  'borrow-knife': '借刀殺人 — 借敵勢力之手除敵。挑撥兩個敵國交戰，本方坐收漁利。',
+  'lead-sheep':   '順手牽羊 — 乘隙取小利。途經敵境時，每回合自動奪取 5% 敵方糧草 / 兵力。',
+  'borrow-corpse':'借屍還魂 — 借舊有威名復興。已亡勢力之名號可被借用，當前勢力獲 +20 民望。',
+  'plum-peach':   '李代桃僵 — 棄車保帥。犧牲一員副將，主將與精銳兵力完整保全。',
+  'borrow-road':  '假途伐虢 — 借道而行，順手取之。借盟友通道行軍，途中可奇襲沿途城池。',
+  'switch-beam':  '偷梁換柱 — 暗中替換敵核心。摻入間諜替換敵主將參謀，敵計策全數失敗。',
+  'point-curse':  '指桑罵槐 — 殺雞儆猴。處死某低階副將以儆全軍，己方所有將領 +15 忠誠。',
+  'plum-thirst':  '望梅止渴 — 曹操故事。激勵口渴疲憊之兵，全軍士氣 +25%，持續 2 回合。',
+  'seven-lamp':   '七星燈 — 諸葛延壽之術。年邁主將每回合恢復 1 點壽元，但失敗則立即死亡。',
+  'chu-songs':    '四面楚歌 — 韓信絕招。包圍敵軍後唱其家鄉之歌，敵每回合 30% 機率部分倒戈。',
+  'burn-bowang':  '火燒博望 — 諸葛初出茅廬之計。森林地形 + 風天可觸發，敵軍全軍 burning 3 回合。',
+  'wooden-ox':    '木牛流馬 — 諸葛運糧器械。山地行軍時，每回合糧食消耗 −50%，可長期遠征。',
 };
 
 const CATEGORIES: CatalogCategory[] = [
