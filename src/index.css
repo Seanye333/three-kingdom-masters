@@ -281,47 +281,83 @@ button:not(:disabled):active {
     overflow-y: auto !important;
   }
   [class*="mapWrap"] {
-    min-height: 50vh;
-    max-height: 60vh;
+    min-height: auto !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
   }
   [class*="CityPanel"] {
     width: 100% !important;
     max-width: 100% !important;
   }
 
-  /* TopBar: scroll horizontally, never wrap awkwardly */
+  /* TopBar: scroll horizontally, never wrap, all kids keep natural width */
   [class*="topBar"] {
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
+    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
     padding: 0.35rem 0.5rem !important;
+    align-items: stretch !important;
   }
+  /* CRITICAL: every direct child of topBar must NOT shrink (otherwise
+   * flex squeezes buttons to ~1 character wide and text overlaps). */
+  [class*="topBar"] > * {
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+  }
+
+  /* Date block: horizontal layout, smaller, single short line */
   [class*="dateBlock"] {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
     padding: 0.1rem 0.5rem !important;
     min-width: auto !important;
+    border: none !important;
   }
+  [class*="dateBlock"] > * { white-space: nowrap !important; }
   [class*="year"] {
-    font-size: 0.9rem !important;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
   }
   [class*="season"] {
-    font-size: 0.62rem !important;
+    font-size: 0.6rem !important;
+    line-height: 1 !important;
   }
+  /* Hide bulky info; the dropdowns can still show details */
   [class*="playerBlock"],
   [class*="orderBlock"] {
-    display: none !important;  /* save horizontal space on phone */
+    display: none !important;
   }
+  /* Hide weather + mandate chips on tiny screens (date stays) */
+  [class*="dateBlock"] > [class*="season"]:nth-of-type(n+3) {
+    display: none !important;
+  }
+
+  /* Buttons: tight padding, never wrap, never shrink */
   [class*="forcesButton"] {
-    font-size: 0.7rem !important;
-    padding: 0.4rem 0.6rem !important;
+    font-size: 0.72rem !important;
+    padding: 0.4rem 0.55rem !important;
     letter-spacing: 0.05rem !important;
+    white-space: nowrap !important;
   }
   [class*="advanceButton"] {
-    font-size: 0.78rem !important;
-    padding: 0.45rem 0.7rem !important;
+    font-size: 0.74rem !important;
+    padding: 0.45rem 0.65rem !important;
+    white-space: nowrap !important;
   }
   [class*="backButton"] {
-    padding: 0.35rem 0.6rem !important;
-    font-size: 0.72rem !important;
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.7rem !important;
+    white-space: nowrap !important;
+  }
+  /* HUD dropdown triggers (the 6 ▾ menus) */
+  .hud-menu-trigger {
+    font-size: 0.74rem !important;
+    padding: 0.4rem 0.55rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
   }
 
   /* Modals: full-screen on phone */
