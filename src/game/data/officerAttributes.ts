@@ -253,7 +253,20 @@ export type TacticId =
   | 'seven-lamp'  // 七星燈 (Zhuge Liang)
   | 'chu-songs'   // 四面楚歌 (Han Xin)
   | 'burn-bowang' // 火燒博望 (Zhuge Liang)
-  | 'wooden-ox';  // 木牛流馬 (Zhuge Liang's logistics device)
+  | 'wooden-ox'   // 木牛流馬 (Zhuge Liang's logistics device)
+  // ── Phase 58: 三國名場面 + 孫子兵法 ──
+  | 'hair-head'   // 割髮代首 (Cao Cao discipline)
+  | 'white-robe'  // 白衣渡江 (Lü Meng surprise raid)
+  | 'song-map'    // 張松獻圖 (Zhang Song's map)
+  | 'seven-grab'  // 七擒孟獲 (Zhuge pacifies Nanman)
+  | 'tongue-war'  // 舌戰群儒 (Zhuge at Wu court)
+  | 'changban'    // 長坂單騎 (Zhao Yun's lone ride)
+  | 'zhuge-bow'   // 諸葛弩 (repeating crossbow)
+  | 'chain-ship'  // 連環船 (Pang Tong's chained fleet)
+  | 'burn-yiling' // 火燒連營 (Lu Xun at Yiling)
+  | 'know-self'   // 知己知彼 (Sun Tzu)
+  | 'fast-strike' // 兵貴神速 (Sun Tzu — speed)
+  | 'deception';  // 兵不厭詐 (Sun Tzu — deception is permitted)
 
 export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   charge:        { zh: '突擊', en: 'Charge' },
@@ -316,6 +329,18 @@ export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   'chu-songs':   { zh: '四面楚歌', en: 'Songs of Chu from All Sides' },
   'burn-bowang': { zh: '火燒博望', en: 'Burn Bowang' },
   'wooden-ox':   { zh: '木牛流馬', en: 'Wooden Ox & Flowing Horse' },
+  'hair-head':   { zh: '割髮代首', en: 'Hair in Lieu of Head' },
+  'white-robe':  { zh: '白衣渡江', en: 'Cross the River in White Robes' },
+  'song-map':    { zh: '張松獻圖', en: 'Zhang Song Presents the Map' },
+  'seven-grab':  { zh: '七擒孟獲', en: 'Seven Captures of Meng Huo' },
+  'tongue-war':  { zh: '舌戰群儒', en: 'Tongue-Battle with the Scholars' },
+  changban:      { zh: '長坂單騎', en: 'Single Rider at Changban' },
+  'zhuge-bow':   { zh: '諸葛連弩', en: "Zhuge's Repeating Crossbow" },
+  'chain-ship':  { zh: '連環船', en: 'Chain the Ships' },
+  'burn-yiling': { zh: '火燒連營', en: 'Burn the Camps at Yiling' },
+  'know-self':   { zh: '知己知彼', en: 'Know Yourself, Know the Enemy' },
+  'fast-strike': { zh: '兵貴神速', en: 'Speed is the Soul of War' },
+  deception:     { zh: '兵不厭詐', en: 'In War, Deception Is Welcome' },
 };
 
 export const OFFICER_TACTICS: Record<string, TacticId[]> = {

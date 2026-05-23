@@ -63,6 +63,18 @@ const TACTIC_CATEGORY: Record<string, string> = {
   'chu-songs':    'disrupt',
   'burn-bowang':  'mystic',
   'wooden-ox':    'strategy',
+  'hair-head':    'strategy',
+  'white-robe':   'disrupt',
+  'song-map':     'strategy',
+  'seven-grab':   'strategy',
+  'tongue-war':   'strategy',
+  changban:       'melee',
+  'zhuge-bow':    'ranged',
+  'chain-ship':   'strategy',
+  'burn-yiling':  'mystic',
+  'know-self':    'strategy',
+  'fast-strike':  'melee',
+  deception:      'disrupt',
 };
 
 const TACTIC_DESC: Record<string, string> = {
@@ -129,6 +141,19 @@ const TACTIC_DESC: Record<string, string> = {
   'chu-songs':    '四面楚歌 — 韓信絕招。包圍敵軍後唱其家鄉之歌，敵每回合 30% 機率部分倒戈。',
   'burn-bowang':  '火燒博望 — 諸葛初出茅廬之計。森林地形 + 風天可觸發，敵軍全軍 burning 3 回合。',
   'wooden-ox':    '木牛流馬 — 諸葛運糧器械。山地行軍時，每回合糧食消耗 −50%，可長期遠征。',
+  // ── Phase 58: 三國名場面 + 孫子兵法 ──
+  'hair-head':    '割髮代首 — 曹操踐麥律自罰之計。主將觸犯軍法時可選此代死，全軍忠誠 +20 + 軍紀 +30%。',
+  'white-robe':   '白衣渡江 — 呂蒙取荊州之計。喬裝商隊渡江，敵守軍 100% 措手不及，奪城損失 −80%。',
+  'song-map':     '張松獻圖 — 內應獻地圖之術。揭示敵境內所有城防 / 駐軍 / 糧草虛實，持續 3 回合。',
+  'seven-grab':   '七擒孟獲 — 諸葛南征攻心之計。對異族 / 叛軍使用，每擒一次降伏 +25%，七次後永久歸順。',
+  'tongue-war':   '舌戰群儒 — 諸葛說服東吳之術。主將魅力 / 智力 ≥85 時，可使中立勢力參戰己方。',
+  changban:       '長坂單騎 — 趙雲救主之勇。兵力 <10% 時，主將自動突圍救出友軍，0 損失脫戰。',
+  'zhuge-bow':    '諸葛連弩 — 連發十矢之弩。弓兵每回合多攻 2 次，但 −30% 移動。',
+  'chain-ship':   '連環船 — 龐統獻策。水軍鎖船結陣，+40% 水戰穩定性，但若被火攻則全軍覆沒。',
+  'burn-yiling':  '火燒連營 — 陸遜破劉備之計。敵軍連營七百里時觸發，全軍 burning + 大規模潰敗。',
+  'know-self':    '知己知彼 — 孫子曰：百戰不殆。揭示敵主將屬性 / 計策 / 兵種克制，本戰全局加成 +15%。',
+  'fast-strike':  '兵貴神速 — 孫子兵法。下回合本方所有單位行動點 +1，先機制敵。',
+  deception:      '兵不厭詐 — 孫子曰：兵者，詭道也。計策成功率 +20%，但失敗時敵方識破回敬反傷。',
 };
 
 const CATEGORIES: CatalogCategory[] = [
