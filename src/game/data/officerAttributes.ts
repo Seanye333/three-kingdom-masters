@@ -201,7 +201,20 @@ export type TacticId =
   | 'disorder'    // 撹乱
   | 'pitfall'     // 落穴
   | 'ambush'      // 急襲
-  | 'curse';      // 罵声
+  | 'curse'       // 罵声
+  // ── Phase 54 expansion ──
+  | 'last-stand'  // 死戰 — low-HP rage
+  | 'iron-wall'   // 鐵壁 — anti-melee bulwark
+  | 'rush'        // 突進 — cavalry surge
+  | 'fire-arrow'  // 火矢 — incendiary archery
+  | 'meteor'      // 流星 — splash stone-throw
+  | 'thunder'     // 雷震 — Daoist stun
+  | 'borrow-wind' // 借東風 — summon east wind 2 turns
+  | 'eight-gates' // 八門遁甲 — confuse + dispel
+  | 'beauty'      // 美人計 — defection roll
+  | 'chain'       // 連環計 — daisy-chained debuffs
+  | 'self-injury' // 苦肉計 — sacrifice for huge enemy debuff
+  | 'retreat';    // 走為上 — safe withdraw
 
 export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   charge:        { zh: '突擊', en: 'Charge' },
@@ -216,6 +229,18 @@ export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   pitfall:       { zh: '落穴', en: 'Pitfall' },
   ambush:        { zh: '急襲', en: 'Ambush' },
   curse:         { zh: '罵声', en: 'Curse' },
+  'last-stand':  { zh: '死戰', en: 'Last Stand' },
+  'iron-wall':   { zh: '鐵壁', en: 'Iron Wall' },
+  rush:          { zh: '突進', en: 'Surge' },
+  'fire-arrow':  { zh: '火矢', en: 'Fire Arrow' },
+  meteor:        { zh: '流星', en: 'Meteor' },
+  thunder:       { zh: '雷震', en: 'Thunder' },
+  'borrow-wind': { zh: '借東風', en: 'Borrow East Wind' },
+  'eight-gates': { zh: '八門遁甲', en: 'Eight Gates' },
+  beauty:        { zh: '美人計', en: 'Beauty Plot' },
+  chain:         { zh: '連環計', en: 'Chain Stratagem' },
+  'self-injury': { zh: '苦肉計', en: 'Self-Injury' },
+  retreat:       { zh: '走為上', en: 'Strategic Retreat' },
 };
 
 export const OFFICER_TACTICS: Record<string, TacticId[]> = {
