@@ -11,7 +11,17 @@ export type FormationId =
   | 'eight-trigrams' // 八陣 — heal aura, slows enemies (Zhuge Liang)
   | 'arrow-tip'      // 鋒矢 — +charge damage, +1 cavalry move
   | 'crane-wing'     // 鶴翼 — encircling, +range bonus
-  | 'spread-out';    // 散開 — fire/aoe resistance
+  | 'spread-out'     // 散開 — fire/aoe resistance
+  | 'awl'            // 錐行 — first-strike piercing
+  | 'wheel'          // 車懸 — rotating attack, lower own losses each turn
+  | 'square'         // 方圓 — all-side defense, reduced move
+  | 'crescent-moon'  // 偃月 — anti-flank
+  | 'wild-goose'     // 雁行 — balanced archer/cavalry
+  | 'trinity'        // 三才 — bonus when 3+ allied officers grouped
+  | 'back-to-water'  // 背水 — Han Xin death-or-victory
+  | 'ten-ambush'     // 十面埋伏 — Han Xin's surround
+  | 'long-snake'     // 長蛇 — column for mountain/pass
+  | 'crescent-withdraw'; // 却月 — Liu Yu's cart-crossbow circle
 
 export interface FormationDef {
   id: FormationId;

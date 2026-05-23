@@ -342,13 +342,22 @@ export function attackUnits(
     target.side === 'attacker' ? b.attackerFormation : b.defenderFormation;
   const defenseMul = defensiveFormationBonus(b, target, targetFormation ?? 'none');
 
+  // Attacker's formation offensive bonus.
+  const attackerFormation =
+    attacker.side === 'attacker' ? b.attackerFormation : b.defenderFormation;
+  const offenseMul = offensiveFormationBonus(
+    attackerFormation ?? 'none',
+    attacker.unitType,
+    b.turn,
+  );
+
   // Weather effects.
   const weatherMul = weatherDamageMul(b.weather, attacker.unitType);
 
   const base =
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
-    base * counter * aTerrainMod * weatherMul * defenseMul,
+    base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
@@ -466,6 +475,53 @@ function defensiveFormationBonus(
     if (adjAllies.length > 0) return 0.85; // 15% damage reduction
   }
   if (formation === 'spread-out') return 0.9;
+  // ── New formations ──
+  if (formation === 'square') return 0.80;             // all-side defense
+  if (formation === 'crescent-moon') return 0.85;      // anti-flank
+  if (formation === 'wheel') {
+    // Compounding: each turn elapsed shaves more losses. floor 0.65.
+    return Math.max(0.65, 0.95 - b.turn * 0.05);
+  }
+  if (formation === 'back-to-water') return 0.70;      // -30% own losses
+  if (formation === 'trinity') {
+    const sameSide = b.units.filter((u) => u.side === target.side).length;
+    if (sameSide >= 3) return 0.90;                    // -10% when 3+ officers
+  }
+  if (formation === 'crescent-withdraw') {
+    if (target.unitType === 'archers') return 0.75;    // crossbow corps protected
+    return 0.95;
+  }
+  if (formation === 'long-snake') {
+    // Strong from front, weak from flank — approximated as flat +5% bonus.
+    return 0.95;
+  }
+  return 1.0;
+}
+
+/**
+ * Offensive multiplier from the attacker's formation.
+ */
+export function offensiveFormationBonus(
+  formation: FormationId,
+  unitType: UnitType,
+  turn: number,
+): number {
+  if (formation === 'awl') {
+    return turn === 1 ? 1.35 : 1.0;                    // first-strike piercing
+  }
+  if (formation === 'arrow-tip') {
+    if (unitType === 'cavalry') return 1.15;
+    return 1.05;
+  }
+  if (formation === 'wild-goose') {
+    if (unitType === 'archers') return 1.15;
+    return 1.05;
+  }
+  if (formation === 'back-to-water') return 1.20;      // death-or-victory
+  if (formation === 'ten-ambush') return 1.25;         // multi-axis surprise
+  if (formation === 'crescent-withdraw' && unitType === 'archers') return 1.25;
+  if (formation === 'long-snake') return 1.05;
+  if (formation === 'trinity') return 1.10;
   return 1.0;
 }
 
