@@ -145,11 +145,14 @@ export function FormationsModal({ onClose }: Props) {
 
         {/* Formation list */}
         <div style={{
-          flex: 1, overflowY: 'auto',
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
           padding: '0.75rem 1rem',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          display: 'flex',
+          flexWrap: 'wrap',
           gap: '0.75rem',
+          alignContent: 'flex-start',
         }}>
           {list.map((f) => {
             const c = CATEGORY[f.id] ?? 'balance';
@@ -160,9 +163,14 @@ export function FormationsModal({ onClose }: Props) {
                 style={{
                   border: `1px solid ${accent}55`,
                   background: 'var(--tkm-bg-raised, #251c14)',
-                  padding: '0.7rem 0.85rem',
+                  padding: '0.8rem 0.9rem 0.7rem 1.05rem',
                   position: 'relative',
                   overflow: 'hidden',
+                  flex: '1 1 280px',
+                  minWidth: 0,
+                  minHeight: 130,
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
                 {/* Side accent bar */}
