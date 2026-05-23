@@ -1158,11 +1158,119 @@ export const TACTIC_SIGNATURE: Partial<Record<string, TacticBonus>> = {
   'attack-plans':    { war: 0, leadership: 8, intelligence: 15, politics: 0, charisma: 0 },
   'attack-heart':    { war: 0, leadership: 8, intelligence: 15, politics: 0, charisma: 5 },
   'subdue-no-fight': { war: 0, leadership: 12, intelligence: 18, politics: 0, charisma: 5 },
+  // ── Phase 66: more named signatures ──
+  'cao-rui-vase':    { war: 0, leadership: 5, intelligence: 8, politics: 12, charisma: 12 },
+  'liu-shan-stupid': { war: 0, leadership: 0, intelligence: 3, politics: 8, charisma: 8 },
+  'da-qiao-marriage':{ war: 0, leadership: 5, intelligence: 5, politics: 10, charisma: 15 },
+  'dong-zhuo-fat':   { war: 12, leadership: 5, intelligence: 0, politics: 5, charisma: 0 },
+  'dong-zhuo-tyrant':{ war: 15, leadership: 10, intelligence: 0, politics: 8, charisma: 0 },
+  'lu-zhi-master':   { war: 5, leadership: 8, intelligence: 15, politics: 10, charisma: 5 },
+  'cai-yong-lute':   { war: 0, leadership: 0, intelligence: 12, politics: 5, charisma: 15 },
+  'mi-heng-drum':    { war: 0, leadership: 0, intelligence: 10, politics: 0, charisma: 15 },
+  'zhang-jiao-yellow':{ war: 5, leadership: 10, intelligence: 12, politics: 0, charisma: 15 },
+  'zhang-lu-rice':   { war: 3, leadership: 8, intelligence: 10, politics: 12, charisma: 10 },
+  // 三国 more (60+ here)
+  'peach-garden-tac':{ war: 12, leadership: 15, intelligence: 5, politics: 5, charisma: 12 },
+  'sworn-brothers':  { war: 8, leadership: 12, intelligence: 0, politics: 0, charisma: 12 },
+  'protect-people':  { war: 0, leadership: 10, intelligence: 5, politics: 12, charisma: 18 },
+  'liu-bei-tears':   { war: 0, leadership: 8, intelligence: 5, politics: 8, charisma: 18 },
+  'liu-bei-share-meat':{ war: 0, leadership: 10, intelligence: 0, politics: 5, charisma: 15 },
+  'sun-jian-tiger':  { war: 18, leadership: 12, intelligence: 5, politics: 0, charisma: 8 },
+  'sunce-blade':     { war: 18, leadership: 10, intelligence: 5, politics: 0, charisma: 8 },
+  'sunquan-blue-eye':{ war: 5, leadership: 15, intelligence: 10, politics: 12, charisma: 12 },
+  'sun-quan-bow':    { war: 10, leadership: 10, intelligence: 0, politics: 0, charisma: 8 },
+  'sun-shangxiang':  { war: 12, leadership: 5, intelligence: 0, politics: 0, charisma: 12 },
+  'yuan-shao-noble': { war: 5, leadership: 12, intelligence: 5, politics: 12, charisma: 15 },
+  'yuan-shu-jade':   { war: 5, leadership: 5, intelligence: 0, politics: 12, charisma: 5 },
+  'gongsun-zan-white':{ war: 12, leadership: 10, intelligence: 0, politics: 5, charisma: 5 },
+  'wang-yun-plot':   { war: 0, leadership: 5, intelligence: 18, politics: 12, charisma: 8 },
+  'diaochan':        { war: 0, leadership: 0, intelligence: 15, politics: 5, charisma: 20 },
+  'cao-zhi-poem':    { war: 0, leadership: 0, intelligence: 15, politics: 0, charisma: 18 },
+  'huang-yueying':   { war: 0, leadership: 5, intelligence: 18, politics: 8, charisma: 5 },
+  'lu-lingqi':       { war: 15, leadership: 5, intelligence: 0, politics: 0, charisma: 8 },
+  'ma-yunlu':        { war: 12, leadership: 5, intelligence: 0, politics: 0, charisma: 8 },
+  'lady-zhurong-tac':{ war: 12, leadership: 8, intelligence: 0, politics: 0, charisma: 10 },
+  'fan-lihua':       { war: 8, leadership: 5, intelligence: 18, politics: 0, charisma: 12 },
+  'mu-guiying':      { war: 12, leadership: 12, intelligence: 8, politics: 0, charisma: 10 },
+  mulan:             { war: 12, leadership: 10, intelligence: 5, politics: 0, charisma: 12 },
+  // 武器名家 — 武力专属
+  'twin-spear':      { war: 10, leadership: 3, intelligence: 0, politics: 0, charisma: 0 },
+  'long-halberd':    { war: 12, leadership: 3, intelligence: 0, politics: 0, charisma: 0 },
+  'twin-axe':        { war: 10, leadership: 0, intelligence: 0, politics: 0, charisma: 0 },
+  'meteor-hammer':   { war: 10, leadership: 0, intelligence: 0, politics: 0, charisma: 0 },
+  'flying-knife':    { war: 8, leadership: 0, intelligence: 5, politics: 0, charisma: 0 },
+  'iron-sand-palm':  { war: 12, leadership: 0, intelligence: 0, politics: 0, charisma: 0 },
+  'vajra-finger':    { war: 12, leadership: 0, intelligence: 0, politics: 0, charisma: 0 },
+  // 内功
+  'yi-jin-jing':     { war: 12, leadership: 5, intelligence: 8, politics: 0, charisma: 0 },
+  'xi-sui-jing':     { war: 5, leadership: 0, intelligence: 15, politics: 0, charisma: 0 },
+  'nine-yin':        { war: 8, leadership: 0, intelligence: 12, politics: 0, charisma: 0 },
+  'nine-yang':       { war: 12, leadership: 5, intelligence: 8, politics: 0, charisma: 0 },
+  'iron-shirt':      { war: 8, leadership: 5, intelligence: 0, politics: 0, charisma: 0 },
+  'golden-bell':     { war: 8, leadership: 5, intelligence: 0, politics: 0, charisma: 0 },
+  // 西方
+  'caesar-cross':    { war: 10, leadership: 15, intelligence: 8, politics: 5, charisma: 8 },
+  'napoleon-flank':  { war: 5, leadership: 12, intelligence: 15, politics: 0, charisma: 0 },
+  'hannibal-cannae': { war: 8, leadership: 15, intelligence: 12, politics: 0, charisma: 0 },
+  'spartan-300':     { war: 18, leadership: 15, intelligence: 0, politics: 0, charisma: 0 },
+  'mongol-whirlwind':{ war: 15, leadership: 8, intelligence: 0, politics: 0, charisma: 0 },
+  // 邪教 / 妖术 — mystic 强
+  'yellow-turban-mob':{ war: 8, leadership: 10, intelligence: 5, politics: 0, charisma: 12 },
+  'water-bandit':    { war: 8, leadership: 8, intelligence: 0, politics: 0, charisma: 0 },
+  'black-mountain-bandit':{ war: 10, leadership: 8, intelligence: 0, politics: 0, charisma: 0 },
+  'rebel-uprising':  { war: 5, leadership: 10, intelligence: 0, politics: 8, charisma: 12 },
+  'beans-to-soldiers':{ war: 5, leadership: 5, intelligence: 15, politics: 0, charisma: 5 },
+  'ride-clouds':     { war: 0, leadership: 0, intelligence: 15, politics: 0, charisma: 5 },
+  'maoshan-rite':    { war: 0, leadership: 0, intelligence: 18, politics: 0, charisma: 5 },
+  'summon-gods':     { war: 5, leadership: 0, intelligence: 18, politics: 0, charisma: 8 },
+  'gu-poison':       { war: 0, leadership: 0, intelligence: 15, politics: 0, charisma: 0 },
+  // 政治
+  'eunuch-power':    { war: 0, leadership: 0, intelligence: 12, politics: 18, charisma: 5 },
+  'imperial-inlaw':  { war: 0, leadership: 5, intelligence: 10, politics: 15, charisma: 10 },
+  'court-debate':    { war: 0, leadership: 5, intelligence: 12, politics: 12, charisma: 12 },
+  'faction-manipulate':{ war: 0, leadership: 5, intelligence: 15, politics: 12, charisma: 5 },
+  // 经济
+  'salt-monopoly':   { war: 0, leadership: 5, intelligence: 8, politics: 15, charisma: 0 },
+  'tea-trade':       { war: 0, leadership: 0, intelligence: 5, politics: 12, charisma: 5 },
+  'silk-road':       { war: 5, leadership: 5, intelligence: 8, politics: 15, charisma: 8 },
+  'tax-cut':         { war: 0, leadership: 5, intelligence: 5, politics: 15, charisma: 12 },
 };
 
-/** Bonus from a single tactic id (signature takes priority). */
+/**
+ * Deterministic per-id variance — every non-signature tactic gets a small,
+ * unique stat sprinkle on top of the category default so no two cards look
+ * identical even within the same category.
+ */
+function idVariance(id: string): TacticBonus {
+  let h = 5381;
+  for (let i = 0; i < id.length; i++) {
+    h = ((h * 33) ^ id.charCodeAt(i)) >>> 0;
+  }
+  // 30 distinct patterns derived from the hash. Each adds 2-3 stat points.
+  const pattern = h % 30;
+  const a = Math.floor(h / 30) % 5; // primary stat
+  const b = (a + 1 + (Math.floor(h / 150) % 4)) % 5; // secondary stat
+  const v: TacticBonus = { war: 0, leadership: 0, intelligence: 0, politics: 0, charisma: 0 };
+  const stats: Array<keyof TacticBonus> = ['war', 'leadership', 'intelligence', 'politics', 'charisma'];
+  v[stats[a]] += pattern < 15 ? 2 : 1;
+  v[stats[b]] += pattern < 15 ? 1 : 2;
+  return v;
+}
+
+function addBonus(a: TacticBonus, b: TacticBonus): TacticBonus {
+  return {
+    war: a.war + b.war,
+    leadership: a.leadership + b.leadership,
+    intelligence: a.intelligence + b.intelligence,
+    politics: a.politics + b.politics,
+    charisma: a.charisma + b.charisma,
+  };
+}
+
+/** Bonus from a single tactic id (signature takes priority, else category + variance). */
 export function tacticBonus(id: string): TacticBonus {
-  return TACTIC_SIGNATURE[id] ?? CATEGORY_BONUS[categoryOfTactic(id)];
+  if (TACTIC_SIGNATURE[id]) return TACTIC_SIGNATURE[id]!;
+  return addBonus(CATEGORY_BONUS[categoryOfTactic(id)], idVariance(id));
 }
 
 /** Whether a tactic has a signature (named) bonus rather than category default. */
