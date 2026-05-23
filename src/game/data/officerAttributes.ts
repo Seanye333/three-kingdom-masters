@@ -389,7 +389,66 @@ export type TacticId =
   | 'iron-guard' | 'ballista-emplace' | 'feather-arrow' | 'chain-mail-foot'
   | 'wooden-ox-mk2' | 'zhuge-bow-mk2' | 'thousand-arrows' | 'chain-machines'
   | 'fire-crow' | 'one-nest-bees' | 'sky-fire-crow' | 'cannon-man-slayer'
-  | 'red-cannon' | 'iron-cart-train' | 'flame-thrower';
+  | 'red-cannon' | 'iron-cart-train' | 'flame-thrower'
+  // ── Phase 64: 600-tactic megabatch ──
+  // 真實歷史戰役 (40)
+  | 'zhuolu' | 'dazexiang' | 'chu-han' | 'mobei-battle' | 'feishui'
+  | 'sui-chen' | 'xuanwumen' | 'anshi' | 'huangchao' | 'chanyuan'
+  | 'jingkang' | 'fishing-castle' | 'mongol-song' | 'poyang-lake' | 'tumu'
+  | 'beijing-defense' | 'wanli-three' | 'sarhu' | 'ningjin' | 'yangzhou-ten'
+  | 'jiading-three' | 'three-feudatories' | 'yaksa' | 'ulan-butong' | 'mengjin-cross'
+  | 'mawei-slope' | 'dingjun-mtn' | 'jieting-loss' | 'wuzhang-fall' | 'jincheng-defend'
+  | 'shangfang-valley' | 'yiling-fire' | 'hefei-defense' | 'jiameng-pass' | 'xiapi-flood'
+  | 'jingzhou-fall' | 'fancheng-flood' | 'changban-bridge' | 'guandu-grain' | 'red-cliffs-wind'
+  // 中外名將絕招 (40)
+  | 'han-xin-count' | 'xiang-yu-horse' | 'fan-li-retire' | 'lian-po-thorn'
+  | 'zhao-she-vs-zhao' | 'wang-jian-six' | 'zhou-yafu' | 'wei-qing-north'
+  | 'ban-chao-far' | 'ma-yuan-coffin' | 'deng-yu-zhongxing' | 'kou-xun-henei'
+  | 'feng-yi-cart' | 'du-yu-bamboo' | 'xie-xuan-8k' | 'liu-yu-north'
+  | 'wei-rui-liang' | 'yang-su-chen' | 'han-qinhu-cross' | 'li-jing-turk'
+  | 'guo-ziyi-lone' | 'yue-fei-yan' | 'han-shizhong-water' | 'wu-jie-mtn'
+  | 'meng-gong-defend' | 'zhang-shijie-naval' | 'qi-jiguang-wokou' | 'yu-dayou-fujian'
+  | 'li-rusong-korea' | 'song-yingchang-korea' | 'mao-wenlong-pidao' | 'lu-xiangsheng'
+  | 'sun-chuanting-tang' | 'shi-kefa-yangzhou' | 'zheng-zhilong-sea' | 'liu-mingchuan-taiwan'
+  | 'feng-zicai-zhennan' | 'nie-shicheng-tianjin' | 'duan-qirui-anhui' | 'feng-yuxiang-xian'
+  // 各國流派 (20)
+  | 'jin-school' | 'han-school' | 'wu-school' | 'shu-school' | 'wei-school'
+  | 'yue-school' | 'qin-school' | 'chu-school' | 'qi-school' | 'yan-school'
+  | 'mongol-school' | 'persian-school' | 'japan-school' | 'korean-school' | 'india-school'
+  | 'tibet-school' | 'manchu-school' | 'tangut-school' | 'jurchen-school' | 'khitan-school'
+  // 角色專屬絕招 (40)
+  | 'lubu-flying' | 'guanyu-greendragon' | 'zhangfei-yelling' | 'zhaoyun-shadow'
+  | 'machao-spear' | 'huangzhong-bow' | 'weiyan-charge' | 'jiangwei-disciple'
+  | 'caocao-poetry' | 'xiahoudun-eye' | 'dianwei-double-axe' | 'xuchu-iron-fist'
+  | 'zhanghe-mobility' | 'zhanglao-ambush' | 'panghong-sleep' | 'simayi-tortoise'
+  | 'sunce-blade' | 'sunquan-blue-eye' | 'zhouyu-music' | 'lumeng-study'
+  | 'luxun-fire' | 'taishici-arch' | 'huanggai-old' | 'gan-ning-bell'
+  | 'zhuge-fan' | 'pang-tong-chain' | 'fazheng-strategy' | 'huangzhong-old-bow'
+  | 'jiang-ji-loyalty' | 'wenping-shield' | 'yuejin-light' | 'lidian-scholar'
+  | 'liu-bei-tears' | 'sun-jian-tiger' | 'yuan-shao-noble' | 'yuan-shu-jade'
+  | 'gongsun-zan-white' | 'dong-zhuo-tyrant' | 'wang-yun-plot' | 'cao-zhi-poem'
+  // 軍事工程 (15)
+  | 'tunnel-warfare' | 'pontoon-bridge' | 'mining-walls' | 'gate-tower'
+  | 'arrow-tower' | 'wall-corner' | 'moat-deep' | 'caltrops'
+  | 'ballista-tower' | 'fire-arrow-tower' | 'cauldron-oil' | 'rolling-logs'
+  | 'spike-pit' | 'iron-stakes' | 'observation-tower'
+  // 心理戰 (15)
+  | 'fake-letter' | 'planted-spy' | 'reverse-spy' | 'turn-defector'
+  | 'morale-collapse' | 'banner-burn' | 'name-call' | 'mass-execution'
+  | 'mercy-show' | 'hostage-display' | 'public-feast' | 'rumor-defection'
+  | 'shame-disgrace' | 'ancestor-mock' | 'family-threat'
+  // 經濟戰 (10)
+  | 'salt-monopoly' | 'iron-monopoly' | 'tea-trade' | 'silk-road'
+  | 'mint-coin' | 'tax-cut' | 'land-reform' | 'merchant-tax'
+  | 'tribute-system' | 'forge-currency'
+  // 諜報細分 (10)
+  | 'spy-network' | 'double-agent' | 'sleeper-cell' | 'dead-drop'
+  | 'fake-defector' | 'court-bribery' | 'maid-spy' | 'letter-intercept'
+  | 'signal-flag' | 'carrier-pigeon'
+  // 罕見名場面 (10)
+  | 'sun-ce-mirror' | 'cao-rui-vase' | 'liu-shan-stupid' | 'da-qiao-marriage'
+  | 'dong-zhuo-fat' | 'lu-zhi-master' | 'cai-yong-lute' | 'mi-heng-drum'
+  | 'zhang-jiao-yellow' | 'zhang-lu-rice';
 
 export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   charge:        { zh: '突擊', en: 'Charge' },
@@ -785,6 +844,109 @@ export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   'red-cannon':     { zh: '紅夷大炮', en: 'Red-Barbarian Cannon' },
   'iron-cart-train':{ zh: '鐵車連營', en: 'Iron-Cart Linked Camp' },
   'flame-thrower':  { zh: '猛火油櫃', en: 'Naphtha Flame-Thrower' },
+  // ── Phase 64 (200 new) ──
+  zhuolu:{zh:'涿鹿之戰',en:'Battle of Zhuolu'}, dazexiang:{zh:'大澤鄉起義',en:'Daze Uprising'},
+  'chu-han':{zh:'楚漢相爭',en:'Chu-Han Contention'}, 'mobei-battle':{zh:'漠北之戰',en:'Battle of Mobei'},
+  feishui:{zh:'淝水之戰',en:'Battle of Feishui'}, 'sui-chen':{zh:'隋滅陳',en:'Sui Conquers Chen'},
+  xuanwumen:{zh:'玄武門之變',en:'Xuanwumen Incident'}, anshi:{zh:'安史之亂',en:'An-Shi Rebellion'},
+  huangchao:{zh:'黃巢之亂',en:'Huang Chao Rebellion'}, chanyuan:{zh:'澶淵之盟',en:'Treaty of Chanyuan'},
+  jingkang:{zh:'靖康之恥',en:'Jingkang Incident'}, 'fishing-castle':{zh:'釣魚城',en:'Diaoyu Castle'},
+  'mongol-song':{zh:'蒙古滅宋',en:'Mongol Destroys Song'}, 'poyang-lake':{zh:'鄱陽湖',en:'Battle of Lake Poyang'},
+  tumu:{zh:'土木堡',en:'Tumu Crisis'}, 'beijing-defense':{zh:'北京保衛戰',en:'Defense of Beijing'},
+  'wanli-three':{zh:'萬曆三大征',en:"Wanli's Three Campaigns"}, sarhu:{zh:'薩爾滸',en:'Battle of Sarhu'},
+  ningjin:{zh:'寧錦大捷',en:'Ningjin Victory'}, 'yangzhou-ten':{zh:'揚州十日',en:'Yangzhou Ten Days'},
+  'jiading-three':{zh:'嘉定三屠',en:'Three Massacres at Jiading'}, 'three-feudatories':{zh:'平定三藩',en:'Pacify Three Feudatories'},
+  yaksa:{zh:'雅克薩',en:'Battle of Yaksa'}, 'ulan-butong':{zh:'烏蘭布通',en:'Battle of Ulan Butong'},
+  'mengjin-cross':{zh:'孟津渡',en:'Cross at Mengjin'}, 'mawei-slope':{zh:'馬尾坡',en:"Slope at Mawei"},
+  'dingjun-mtn':{zh:'定軍山',en:'Mount Dingjun'}, 'jieting-loss':{zh:'街亭之失',en:'Loss of Jieting'},
+  'wuzhang-fall':{zh:'五丈原',en:'Wuzhang Plain'}, 'jincheng-defend':{zh:'金城守',en:'Defense of Jincheng'},
+  'shangfang-valley':{zh:'上方谷',en:'Shangfang Valley'}, 'yiling-fire':{zh:'夷陵火',en:'Yiling Fire'},
+  'hefei-defense':{zh:'合肥守',en:'Defense of Hefei'}, 'jiameng-pass':{zh:'葭萌關',en:'Jiameng Pass'},
+  'xiapi-flood':{zh:'下邳水淹',en:'Flood Xiapi'}, 'jingzhou-fall':{zh:'荊州失',en:'Fall of Jingzhou'},
+  'fancheng-flood':{zh:'樊城水淹',en:'Flood Fancheng'}, 'changban-bridge':{zh:'長坂橋',en:'Changban Bridge'},
+  'guandu-grain':{zh:'官渡糧',en:'Guandu Granary'}, 'red-cliffs-wind':{zh:'赤壁東風',en:'Red Cliffs East Wind'},
+  'han-xin-count':{zh:'韓信點兵',en:'Han Xin Counts the Troops'},
+  'xiang-yu-horse':{zh:'項羽烏騅',en:"Xiang Yu's Wuzhui Horse"},
+  'fan-li-retire':{zh:'范蠡退隱',en:'Fan Li Retires'}, 'lian-po-thorn':{zh:'廉頗負荊',en:'Lian Po Bears Thorns'},
+  'zhao-she-vs-zhao':{zh:'趙奢戰韓',en:'Zhao She vs Han'}, 'wang-jian-six':{zh:'王翦掃六合',en:'Wang Jian Sweeps Six States'},
+  'zhou-yafu':{zh:'周亞夫細柳',en:'Zhou Yafu at Xiliu'}, 'wei-qing-north':{zh:'衛青漠北',en:'Wei Qing North'},
+  'ban-chao-far':{zh:'班超遠征',en:'Ban Chao Far West'}, 'ma-yuan-coffin':{zh:'馬援裹屍',en:'Ma Yuan Wrapped in Horse-Hide'},
+  'deng-yu-zhongxing':{zh:'鄧禹中興',en:'Deng Yu Restores Han'}, 'kou-xun-henei':{zh:'寇恂河內',en:'Kou Xun at Henei'},
+  'feng-yi-cart':{zh:'馮異車戰',en:'Feng Yi Cart War'}, 'du-yu-bamboo':{zh:'杜預破竹',en:'Du Yu Splits Bamboo'},
+  'xie-xuan-8k':{zh:'謝玄八千',en:"Xie Xuan's 8000"}, 'liu-yu-north':{zh:'劉裕北伐',en:'Liu Yu Northern Campaign'},
+  'wei-rui-liang':{zh:'韋叡梁將',en:'Wei Rui of Liang'}, 'yang-su-chen':{zh:'楊素破陳',en:'Yang Su Breaks Chen'},
+  'han-qinhu-cross':{zh:'韓擒虎渡江',en:'Han Qinhu Crosses the River'}, 'li-jing-turk':{zh:'李靖破突厥',en:'Li Jing Crushes Turks'},
+  'guo-ziyi-lone':{zh:'郭子儀單騎',en:'Guo Ziyi Rides Alone'}, 'yue-fei-yan':{zh:'岳飛槍法',en:"Yue Fei's Spear Art"},
+  'han-shizhong-water':{zh:'韓世忠水戰',en:'Han Shizhong Naval Victory'}, 'wu-jie-mtn':{zh:'吳玠和尚原',en:'Wu Jie at Heshangyuan'},
+  'meng-gong-defend':{zh:'孟珙守城',en:'Meng Gong Defends'}, 'zhang-shijie-naval':{zh:'張世傑海戰',en:'Zhang Shijie Naval'},
+  'qi-jiguang-wokou':{zh:'戚繼光抗倭',en:'Qi Jiguang vs Wokou'}, 'yu-dayou-fujian':{zh:'俞大猷福建',en:'Yu Dayou Fujian'},
+  'li-rusong-korea':{zh:'李如松援朝',en:'Li Rusong Aids Korea'}, 'song-yingchang-korea':{zh:'宋應昌朝鮮',en:'Song Yingchang in Korea'},
+  'mao-wenlong-pidao':{zh:'毛文龍皮島',en:'Mao Wenlong at Pidao'}, 'lu-xiangsheng':{zh:'盧象升戰清',en:'Lu Xiangsheng vs Qing'},
+  'sun-chuanting-tang':{zh:'孫傳庭潼關',en:'Sun Chuanting at Tongguan'}, 'shi-kefa-yangzhou':{zh:'史可法揚州',en:'Shi Kefa Yangzhou'},
+  'zheng-zhilong-sea':{zh:'鄭芝龍海',en:'Zheng Zhilong Sea Lord'}, 'liu-mingchuan-taiwan':{zh:'劉銘傳台灣',en:'Liu Mingchuan Taiwan'},
+  'feng-zicai-zhennan':{zh:'馮子材鎮南關',en:'Feng Zicai at Zhennan'}, 'nie-shicheng-tianjin':{zh:'聶士成天津',en:'Nie Shicheng Tianjin'},
+  'duan-qirui-anhui':{zh:'段祺瑞皖派',en:'Duan Qirui Anhui Clique'}, 'feng-yuxiang-xian':{zh:'馮玉祥西安',en:"Feng Yuxiang's Xi'an"},
+  'jin-school':{zh:'晉派兵法',en:'Jin School of War'}, 'han-school':{zh:'漢派兵法',en:'Han School'},
+  'wu-school':{zh:'吳派兵法',en:'Wu School'}, 'shu-school':{zh:'蜀派兵法',en:'Shu School'},
+  'wei-school':{zh:'魏派兵法',en:'Wei School'}, 'yue-school':{zh:'越派兵法',en:'Yue School'},
+  'qin-school':{zh:'秦派兵法',en:'Qin School'}, 'chu-school':{zh:'楚派兵法',en:'Chu School'},
+  'qi-school':{zh:'齊派兵法',en:'Qi School'}, 'yan-school':{zh:'燕派兵法',en:'Yan School'},
+  'mongol-school':{zh:'蒙古派',en:'Mongol School'}, 'persian-school':{zh:'波斯派',en:'Persian School'},
+  'japan-school':{zh:'日本派',en:'Japanese School'}, 'korean-school':{zh:'朝鮮派',en:'Korean School'},
+  'india-school':{zh:'天竺派',en:'Indian School'}, 'tibet-school':{zh:'吐蕃派',en:'Tibetan School'},
+  'manchu-school':{zh:'滿洲派',en:'Manchu School'}, 'tangut-school':{zh:'西夏派',en:'Tangut School'},
+  'jurchen-school':{zh:'女真派',en:'Jurchen School'}, 'khitan-school':{zh:'契丹派',en:'Khitan School'},
+  'lubu-flying':{zh:'呂布飛將',en:'Lu Bu Flying General'}, 'guanyu-greendragon':{zh:'關羽青龍',en:"Guan Yu's Green Dragon"},
+  'zhangfei-yelling':{zh:'張飛吼喝',en:"Zhang Fei's Roar"}, 'zhaoyun-shadow':{zh:'趙雲幻影',en:"Zhao Yun's Shadow"},
+  'machao-spear':{zh:'馬超銀槍',en:"Ma Chao's Silver Spear"}, 'huangzhong-bow':{zh:'黃忠寶弓',en:"Huang Zhong's Treasured Bow"},
+  'weiyan-charge':{zh:'魏延突進',en:"Wei Yan's Charge"}, 'jiangwei-disciple':{zh:'姜維傳人',en:"Jiang Wei the Disciple"},
+  'caocao-poetry':{zh:'曹操詩才',en:"Cao Cao's Poetry"}, 'xiahoudun-eye':{zh:'夏侯惇獨眼',en:"Xiahou Dun's Eye"},
+  'dianwei-double-axe':{zh:'典韋雙戟',en:"Dian Wei's Twin Halberds"}, 'xuchu-iron-fist':{zh:'許褚虎癡',en:"Xu Chu the Tiger"},
+  'zhanghe-mobility':{zh:'張郃機動',en:"Zhang He's Mobility"}, 'zhanglao-ambush':{zh:'張遼伏擊',en:"Zhang Liao Ambush"},
+  'panghong-sleep':{zh:'龐統假寐',en:'Pang Tong Plays Drunk'}, 'simayi-tortoise':{zh:'司馬龜縮',en:'Sima Yi Turtles'},
+  'sunce-blade':{zh:'孫策小霸王',en:'Sun Ce Little Conqueror'}, 'sunquan-blue-eye':{zh:'孫權碧眼',en:"Sun Quan Blue-Eyed"},
+  'zhouyu-music':{zh:'周郎曲誤',en:"Zhou Yu's Music"}, 'lumeng-study':{zh:'呂蒙刮目',en:'Lu Meng Studies'},
+  'luxun-fire':{zh:'陸遜火攻',en:"Lu Xun's Fire"}, 'taishici-arch':{zh:'太史慈射箭',en:'Tai Shi Ci Archer'},
+  'huanggai-old':{zh:'黃蓋老將',en:'Huang Gai Old General'}, 'gan-ning-bell':{zh:'甘寧鈴聲',en:"Gan Ning's Bell"},
+  'zhuge-fan':{zh:'諸葛羽扇',en:"Zhuge's Feather Fan"}, 'pang-tong-chain':{zh:'龐統連環',en:"Pang Tong's Chain"},
+  'fazheng-strategy':{zh:'法正謀略',en:"Fa Zheng's Strategy"}, 'huangzhong-old-bow':{zh:'黃忠老當益壯',en:'Huang Zhong Stronger With Age'},
+  'jiang-ji-loyalty':{zh:'蔣濟忠誠',en:"Jiang Ji's Loyalty"}, 'wenping-shield':{zh:'文聘盾陣',en:"Wen Pin's Shield"},
+  'yuejin-light':{zh:'樂進輕兵',en:"Le Jin Light Infantry"}, 'lidian-scholar':{zh:'李典儒將',en:'Li Dian Scholar-General'},
+  'liu-bei-tears':{zh:'劉備淚水',en:"Liu Bei's Tears"}, 'sun-jian-tiger':{zh:'孫堅猛虎',en:'Sun Jian the Tiger'},
+  'yuan-shao-noble':{zh:'袁紹貴族',en:'Yuan Shao Aristocrat'}, 'yuan-shu-jade':{zh:'袁術玉璽',en:'Yuan Shu Imperial Seal'},
+  'gongsun-zan-white':{zh:'公孫瓚白馬',en:'Gongsun Zan White Horse'}, 'dong-zhuo-tyrant':{zh:'董卓暴政',en:'Dong Zhuo Tyrant'},
+  'wang-yun-plot':{zh:'王允連環',en:"Wang Yun's Plot"}, 'cao-zhi-poem':{zh:'曹植七步',en:'Cao Zhi Seven Steps'},
+  'tunnel-warfare':{zh:'地道戰',en:'Tunnel Warfare'}, 'pontoon-bridge':{zh:'浮橋',en:'Pontoon Bridge'},
+  'mining-walls':{zh:'挖牆',en:'Mining Walls'}, 'gate-tower':{zh:'城門樓',en:'Gate Tower'},
+  'arrow-tower':{zh:'箭樓',en:'Arrow Tower'}, 'wall-corner':{zh:'敵樓',en:'Wall-Corner Bastion'},
+  'moat-deep':{zh:'深溝',en:'Deep Moat'}, caltrops:{zh:'蒺藜',en:'Caltrops'},
+  'ballista-tower':{zh:'弩樓',en:'Ballista Tower'}, 'fire-arrow-tower':{zh:'火箭樓',en:'Fire-Arrow Tower'},
+  'cauldron-oil':{zh:'熱油鍋',en:'Boiling Oil'}, 'rolling-logs':{zh:'滾木',en:'Rolling Logs'},
+  'spike-pit':{zh:'刺穴',en:'Spike Pit'}, 'iron-stakes':{zh:'鐵蒺藜',en:'Iron Stakes'},
+  'observation-tower':{zh:'望樓',en:'Observation Tower'},
+  'fake-letter':{zh:'偽書信',en:'Forged Letter'}, 'planted-spy':{zh:'潛伏間諜',en:'Planted Spy'},
+  'reverse-spy':{zh:'反間之計',en:'Reverse-Spy Plot'}, 'turn-defector':{zh:'策反',en:'Turn the Defector'},
+  'morale-collapse':{zh:'士氣崩潰',en:'Morale Collapse'}, 'banner-burn':{zh:'焚旗',en:'Burn the Banner'},
+  'name-call':{zh:'指名點殺',en:'Call Names to Demoralize'}, 'mass-execution':{zh:'處決恐嚇',en:'Mass Execution'},
+  'mercy-show':{zh:'示恩懷柔',en:'Show Mercy'}, 'hostage-display':{zh:'懸首示眾',en:'Display Hostage'},
+  'public-feast':{zh:'設宴款軍',en:'Public Feast'}, 'rumor-defection':{zh:'謠言叛亂',en:'Rumor of Defection'},
+  'shame-disgrace':{zh:'羞辱降將',en:'Shame the Defeated'}, 'ancestor-mock':{zh:'辱其先祖',en:'Mock Their Ancestors'},
+  'family-threat':{zh:'家眷威脅',en:'Threaten the Family'},
+  'salt-monopoly':{zh:'鹽鐵專營',en:'Salt Monopoly'}, 'iron-monopoly':{zh:'鐵專營',en:'Iron Monopoly'},
+  'tea-trade':{zh:'茶馬貿易',en:'Tea-Horse Trade'}, 'silk-road':{zh:'絲綢之路',en:'Silk Road'},
+  'mint-coin':{zh:'鑄幣',en:'Mint Coinage'}, 'tax-cut':{zh:'輕徭薄賦',en:'Tax Cut'},
+  'land-reform':{zh:'均田',en:'Land Equalization'}, 'merchant-tax':{zh:'商稅',en:'Merchant Tax'},
+  'tribute-system':{zh:'朝貢',en:'Tribute System'}, 'forge-currency':{zh:'偽造錢幣',en:'Forge Currency'},
+  'spy-network':{zh:'間諜網',en:'Spy Network'}, 'double-agent':{zh:'雙面間諜',en:'Double Agent'},
+  'sleeper-cell':{zh:'潛伏細胞',en:'Sleeper Cell'}, 'dead-drop':{zh:'死信箱',en:'Dead Drop'},
+  'fake-defector':{zh:'假降',en:'Fake Defector'}, 'court-bribery':{zh:'宮廷賄賂',en:'Court Bribery'},
+  'maid-spy':{zh:'侍女間諜',en:'Maid Spy'}, 'letter-intercept':{zh:'截獲書信',en:'Intercept Letters'},
+  'signal-flag':{zh:'信號旗',en:'Signal Flags'}, 'carrier-pigeon':{zh:'信鴿',en:'Carrier Pigeon'},
+  'sun-ce-mirror':{zh:'孫策鏡破',en:'Sun Ce Mirror Break'}, 'cao-rui-vase':{zh:'曹叡奢華',en:'Cao Rui Luxury'},
+  'liu-shan-stupid':{zh:'劉禪庸主',en:'Liu Shan Mediocre Lord'}, 'da-qiao-marriage':{zh:'大喬聯姻',en:'Da Qiao Marriage'},
+  'dong-zhuo-fat':{zh:'董卓肥油',en:"Dong Zhuo's Fat"}, 'lu-zhi-master':{zh:'盧植師教',en:'Lu Zhi Teaches'},
+  'cai-yong-lute':{zh:'蔡邕焦尾',en:"Cai Yong's Burnt-Tail Lute"}, 'mi-heng-drum':{zh:'禰衡擊鼓',en:'Mi Heng Drums'},
+  'zhang-jiao-yellow':{zh:'張角黃天',en:'Zhang Jiao Yellow Heaven'}, 'zhang-lu-rice':{zh:'張魯五斗',en:'Zhang Lu Five Pecks'},
 };
 
 export const OFFICER_TACTICS: Record<string, TacticId[]> = {
