@@ -117,6 +117,65 @@ export const FORMATIONS: FormationDef[] = [
       'Liu Yu\'s riverside formation: armored carts ring a crossbow corps. Archer range +1, archer damage +25%. Movement halved.',
     minIntelligence: 85,
   },
+  // ── Anti-cavalry / specialist ──
+  {
+    id: 'yoke',
+    name: { en: 'Yoke', zh: '衡軛' },
+    description:
+      'V-shaped pikes locked at the joint. +50% damage vs cavalry; no effect vs infantry/archers.',
+    minIntelligence: 65,
+  },
+  {
+    id: 'armored-cart',
+    name: { en: 'Armored Cart Line', zh: '武剛車' },
+    description:
+      "Han Wudi's anti-Xiongnu deployment — iron-plated war carts linked in line. +50% defense vs cavalry; movement halved.",
+    minIntelligence: 70,
+  },
+  // ── Daoist / mystical ──
+  {
+    id: 'seven-star',
+    name: { en: 'Seven Star', zh: '七星' },
+    description:
+      "Beidou ritual deployment after the Northern Dipper. Stratagem range +1 and stratagem success rate +20%. Zhuge Liang's altar layout.",
+    minIntelligence: 88,
+  },
+  {
+    id: 'five-elements',
+    name: { en: 'Five Elements', zh: '五行' },
+    description:
+      "Metal / wood / water / fire / earth rotation. Each turn a different element auto-buffs your side: weapons / defense / move / archers / loss-reduction.",
+    minIntelligence: 85,
+  },
+  {
+    id: 'four-symbols',
+    name: { en: 'Four Symbols', zh: '四象' },
+    description:
+      "Azure Dragon east attack + White Tiger west defense + Vermilion Bird south fire + Black Tortoise north water. +15% in all directions, capped.",
+    minIntelligence: 80,
+  },
+  // ── Special / regional ──
+  {
+    id: 'rattan-armor',
+    name: { en: 'Rattan-Armor Line', zh: '藤甲' },
+    description:
+      "Wuge tribesmen in oil-cured rattan. Arrows skid off (−60% archer damage taken), but fire deals 2× damage. Wutugu's signature.",
+    minIntelligence: 50,
+  },
+  {
+    id: 'stacked',
+    name: { en: 'Layered Shield-Wall', zh: '疊陣' },
+    description:
+      "Song-era anti-cavalry: front shields, middle pikes, rear crossbows. −40% frontal damage taken; movement −1.",
+    minIntelligence: 70,
+  },
+  {
+    id: 'mandarin-duck',
+    name: { en: 'Mandarin Duck', zh: '鴛鴦' },
+    description:
+      "Qi Jiguang's 11-man anti-pirate squad — shield, langxian, pike, fork in one unit. Melee damage +25%, but requires close coordination.",
+    minIntelligence: 75,
+  },
 ];
 
 export const FORMATIONS_BY_ID: Record<string, FormationDef> =

@@ -495,6 +495,32 @@ function defensiveFormationBonus(
     // Strong from front, weak from flank — approximated as flat +5% bonus.
     return 0.95;
   }
+  // ── Phase 53 additions ──
+  if (formation === 'armored-cart') {
+    // The cart wall — extra strong vs cavalry attackers.
+    // (Attacker's unit type is unknown here; approximate as flat 0.80 defense.)
+    return 0.80;
+  }
+  if (formation === 'stacked') {
+    // Layered shield wall — strong frontal defense.
+    return 0.60;
+  }
+  if (formation === 'four-symbols') {
+    // Balanced — +15% on all sides translates to defense ~0.85.
+    return 0.85;
+  }
+  if (formation === 'rattan-armor') {
+    // Arrows skid off — but caller for fire-attack must double damage elsewhere.
+    if (b.weather === 'rain') return 0.95; // wet rattan loses springiness
+    return 0.70;
+  }
+  if (formation === 'five-elements') {
+    // Cycle: earth turn (turn % 5 == 4) reduces losses heavily.
+    const phase = b.turn % 5;
+    if (phase === 4) return 0.75; // 土 — loss reduction
+    if (phase === 1) return 0.85; // 木 — defense
+    return 0.92;
+  }
   return 1.0;
 }
 
@@ -522,6 +548,22 @@ export function offensiveFormationBonus(
   if (formation === 'crescent-withdraw' && unitType === 'archers') return 1.25;
   if (formation === 'long-snake') return 1.05;
   if (formation === 'trinity') return 1.10;
+  // ── Phase 53 additions ──
+  if (formation === 'yoke' && unitType === 'spearmen') return 1.50; // anti-cavalry pikes
+  if (formation === 'armored-cart' && unitType === 'infantry') return 1.15;
+  if (formation === 'mandarin-duck' && unitType === 'infantry') return 1.25;
+  if (formation === 'four-symbols') return 1.15;
+  if (formation === 'seven-star') {
+    // Stratagem-focused formation; small generic +5% melee.
+    return 1.05;
+  }
+  if (formation === 'five-elements') {
+    const phase = turn % 5;
+    if (phase === 0 && (unitType === 'infantry' || unitType === 'spearmen')) return 1.20; // 金 — weapons
+    if (phase === 2 && unitType === 'cavalry') return 1.20; // 水 — flow
+    if (phase === 3 && unitType === 'archers') return 1.25; // 火 — archers (fire arrows)
+    return 1.05;
+  }
   return 1.0;
 }
 
@@ -875,9 +917,12 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   const tickedUnits = b.units.map((u) => {
     let troops = u.troops;
     const newEffects: TacticalStatus[] = [];
+    // Rattan-armor doubles fire damage (oil-cured rattan ignites).
+    const uSideFormation = u.side === 'attacker' ? b.attackerFormation : b.defenderFormation;
+    const fireMul = uSideFormation === 'rattan-armor' ? 2.0 : 1.0;
     for (const e of u.effects) {
       if (e.kind === 'burning') {
-        const burn = Math.floor(u.maxTroops * 0.08);
+        const burn = Math.floor(u.maxTroops * 0.08 * fireMul);
         troops = Math.max(0, troops - burn);
       }
       if (e.turnsLeft > 1) {
