@@ -27,6 +27,18 @@ const TACTIC_CATEGORY: Record<string, string> = {
   chain:          'disrupt',
   'self-injury':  'disrupt',
   retreat:        'disrupt',
+  feint:          'strategy',
+  'besiege-wei':  'strategy',
+  'wait-tired':   'strategy',
+  'sneak-cross':  'strategy',
+  'probe-snake':  'strategy',
+  'lure-tiger':   'strategy',
+  'loose-catch':  'strategy',
+  'kill-king':    'strategy',
+  'cut-supply':   'strategy',
+  cicada:         'strategy',
+  'far-near':     'strategy',
+  'borrow-arrow': 'ranged',
 };
 
 const TACTIC_DESC: Record<string, string> = {
@@ -55,13 +67,27 @@ const TACTIC_DESC: Record<string, string> = {
   chain:          '連環計 — 多重計策串接，破陣後敵全軍受三段 debuff（−攻 / −防 / −士氣）。',
   'self-injury':  '苦肉計 — 黃蓋詐降之術。犧牲己方一員，敵主將被引入致命陷阱。',
   retreat:        '走為上 — 安全撤退。我方部隊 0 損失退出戰場，但放棄當前目標。',
+  // ── Phase 55: 三十六計 ──
+  feint:          '聲東擊西 — 攻其無備。一回合內擾亂敵防線，使其判斷錯誤，主攻方向 +30% 傷害。',
+  'besiege-wei':  '圍魏救趙 — 攻其必救。對敵主城施壓，引敵回援，解我方城被圍之困。',
+  'wait-tired':   '以逸待勞 — 養精蓄銳。一回合不動，下回合所有反擊傷害 +50%。',
+  'sneak-cross':  '暗渡陳倉 — 明修棧道暗渡之計。看似強攻一處，實則從未防之側突入。',
+  'probe-snake':  '打草驚蛇 — 試探敵情。揭示敵下回合所有行動意圖。',
+  'lure-tiger':   '調虎離山 — 誘使敵主力出城。敵守將 War ≥ 85 時優先離開原位。',
+  'loose-catch':  '欲擒故縱 — 七擒之術。佯敗誘敵深入，敵追擊時觸發致命反伏。',
+  'kill-king':    '擒賊擒王 — 直取主將。突襲敵主將，無視前排（要求 War ≥ 90）。',
+  'cut-supply':   '釜底抽薪 — 斷其糧道。敵兵每回合自損 5%，持續 3 回合。',
+  cicada:         '金蟬脫殼 — 偽裝替身脫身。我方留下虛位，主力悄然轉移。',
+  'far-near':     '遠交近攻 — 範睢戰國之計。+30% 與遠方勢力建交成功率，鄰國敵意 +10。',
+  'borrow-arrow': '草船借箭 — 諸葛之妙。霧天用草船誘敵射箭，反獲敵箭萬支，下回合弓兵 +50%。',
 };
 
 const CATEGORIES: CatalogCategory[] = [
-  { key: 'melee',   zh: '近戰', en: 'Melee',   color: '#b8442e' },
-  { key: 'ranged',  zh: '遠程', en: 'Ranged',  color: '#b8c87a' },
-  { key: 'mystic',  zh: '奇門', en: 'Mystic',  color: '#c178c7' },
-  { key: 'disrupt', zh: '擾亂', en: 'Disrupt', color: '#88b7e8' },
+  { key: 'melee',    zh: '近戰', en: 'Melee',    color: '#b8442e' },
+  { key: 'ranged',   zh: '遠程', en: 'Ranged',   color: '#b8c87a' },
+  { key: 'mystic',   zh: '奇門', en: 'Mystic',   color: '#c178c7' },
+  { key: 'disrupt',  zh: '擾亂', en: 'Disrupt',  color: '#88b7e8' },
+  { key: 'strategy', zh: '策略', en: 'Strategy', color: '#d4a84a' },
 ];
 
 interface Props { onClose: () => void; }

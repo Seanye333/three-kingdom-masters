@@ -214,7 +214,20 @@ export type TacticId =
   | 'beauty'      // 美人計 — defection roll
   | 'chain'       // 連環計 — daisy-chained debuffs
   | 'self-injury' // 苦肉計 — sacrifice for huge enemy debuff
-  | 'retreat';    // 走為上 — safe withdraw
+  | 'retreat'     // 走為上 — safe withdraw
+  // ── Phase 55: 三十六計 expansion ──
+  | 'feint'       // 聲東擊西
+  | 'besiege-wei' // 圍魏救趙
+  | 'wait-tired'  // 以逸待勞
+  | 'sneak-cross' // 暗渡陳倉
+  | 'probe-snake' // 打草驚蛇
+  | 'lure-tiger'  // 調虎離山
+  | 'loose-catch' // 欲擒故縱
+  | 'kill-king'   // 擒賊擒王
+  | 'cut-supply'  // 釜底抽薪
+  | 'cicada'      // 金蟬脫殼
+  | 'far-near'    // 遠交近攻
+  | 'borrow-arrow';// 草船借箭
 
 export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   charge:        { zh: '突擊', en: 'Charge' },
@@ -241,6 +254,18 @@ export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
   chain:         { zh: '連環計', en: 'Chain Stratagem' },
   'self-injury': { zh: '苦肉計', en: 'Self-Injury' },
   retreat:       { zh: '走為上', en: 'Strategic Retreat' },
+  feint:         { zh: '聲東擊西', en: 'Feint East Strike West' },
+  'besiege-wei': { zh: '圍魏救趙', en: 'Besiege Wei to Save Zhao' },
+  'wait-tired':  { zh: '以逸待勞', en: 'Wait for the Exhausted' },
+  'sneak-cross': { zh: '暗渡陳倉', en: 'Sneak Across Chen Cang' },
+  'probe-snake': { zh: '打草驚蛇', en: 'Beat Grass, Startle Snake' },
+  'lure-tiger':  { zh: '調虎離山', en: 'Lure the Tiger Down' },
+  'loose-catch': { zh: '欲擒故縱', en: 'Catch by Releasing' },
+  'kill-king':   { zh: '擒賊擒王', en: 'Capture the Ringleader' },
+  'cut-supply':  { zh: '釜底抽薪', en: 'Pull Wood From Under the Pot' },
+  cicada:        { zh: '金蟬脫殼', en: "Cicada's Empty Shell" },
+  'far-near':    { zh: '遠交近攻', en: 'Befriend Distant, Attack Near' },
+  'borrow-arrow':{ zh: '草船借箭', en: 'Borrow Arrows with Straw Boats' },
 };
 
 export const OFFICER_TACTICS: Record<string, TacticId[]> = {
