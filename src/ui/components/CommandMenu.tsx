@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
-import { COMMAND_DEFS } from '../../game/systems/commands';
+import { COMMAND_DEFS, meetsMinSize } from '../../game/systems/commands';
+import { citySize, CITY_SIZES_BY_ID } from '../../game/systems/citySize';
 import type { EntityId, InternalAffairsType } from '../../game/types';
 import { MarchPicker } from './MarchPicker';
 import { OfficerPicker } from './OfficerPicker';
@@ -11,12 +12,19 @@ interface Props {
 }
 
 const INTERNAL_ORDER: InternalAffairsType[] = [
+  // ── Basic (always available) ──
   'develop-agriculture',
   'develop-commerce',
   'build-defense',
   'recruit-troops',
   'improve-loyalty',
   'search',
+  'encourage-migration',
+  // ── Tier-2 (requires 城 tier+) ──
+  'major-agriculture',
+  'major-commerce',
+  'major-defense',
+  'upgrade-wall',
 ];
 
 type ModalState =
@@ -90,15 +98,24 @@ export function CommandMenu({ cityId }: Props) {
         {INTERNAL_ORDER.map((type) => {
           const def = COMMAND_DEFS[type];
           const canAfford = city.gold >= def.goldCost;
+          const currentSize = citySize(city);
+          const tierOk = meetsMinSize(currentSize.id, def.minSize);
+          const minSizeDef = def.minSize ? CITY_SIZES_BY_ID[def.minSize] : null;
+          const lockedReason = !tierOk && minSizeDef ? `Requires ${minSizeDef.name.zh}+ tier` : null;
+          const reason = lockedReason ?? (!canAfford ? 'Not enough gold' : def.description);
           return (
             <button
               key={type}
               className={styles.cmdButton}
               onClick={() => setModal({ kind: 'internal', type })}
-              disabled={!canAfford}
-              title={!canAfford ? 'Not enough gold' : def.description}
+              disabled={!canAfford || !tierOk}
+              title={reason}
+              style={!tierOk ? { opacity: 0.45 } : undefined}
             >
-              <span className={styles.cmdLabelZh}>{def.label.zh}</span>
+              <span className={styles.cmdLabelZh}>
+                {def.label.zh}
+                {def.minSize && <span style={{ fontSize: '0.55rem', color: '#8a7050', marginLeft: 4 }}>★{minSizeDef?.name.zh}+</span>}
+              </span>
               <span className={styles.cmdLabelEn}>{def.label.en}</span>
               <span className={styles.cmdCost}>{def.goldCost}g</span>
             </button>

@@ -7,7 +7,7 @@ import type {
   ReportEntry,
 } from '../types';
 import { ITEMS_BY_ID } from '../data/items';
-import { cityStatCap, citySize } from './citySize';
+import { cityStatCap, citySize, CITY_SIZES, type CitySize } from './citySize';
 
 export interface CommandDef {
   type: CommandType;
@@ -15,6 +15,17 @@ export interface CommandDef {
   stat: keyof Officer['stats'];
   goldCost: number;
   description: string;
+  /** Minimum city size tier required to issue this command. Default: hamlet (all). */
+  minSize?: CitySize;
+}
+
+/** Index of city sizes (邑=0 ... 都=4) for tier comparisons. */
+const SIZE_RANK: Record<CitySize, number> = Object.fromEntries(
+  CITY_SIZES.map((s, i) => [s.id, i]),
+) as Record<CitySize, number>;
+export function meetsMinSize(citySizeId: CitySize, minSize?: CitySize): boolean {
+  if (!minSize) return true;
+  return SIZE_RANK[citySizeId] >= SIZE_RANK[minSize];
 }
 
 export const COMMAND_DEFS: Record<CommandType, CommandDef> = {
@@ -66,6 +77,51 @@ export const COMMAND_DEFS: Record<CommandType, CommandDef> = {
     description:
       'Send the officer to scour the city for unknown talent. Charisma decides success. Discovered officers appear as free agents in this city.',
   },
+  // ── Tier-2 mass development (requires city ≥ 城 City) ──
+  'major-agriculture': {
+    type: 'major-agriculture',
+    label: { en: 'Mass Agriculture', zh: '大農政' },
+    stat: 'politics',
+    goldCost: 800,
+    minSize: 'city',
+    description:
+      '大農政 — Triple-strength agriculture push. Costs 800g but gains 3× over basic. Requires 城 (City) tier.',
+  },
+  'major-commerce': {
+    type: 'major-commerce',
+    label: { en: 'Mass Commerce', zh: '大商政' },
+    stat: 'politics',
+    goldCost: 800,
+    minSize: 'city',
+    description:
+      '大商政 — Triple-strength commerce drive. Costs 800g, +3× over basic. Requires 城 tier.',
+  },
+  'major-defense': {
+    type: 'major-defense',
+    label: { en: 'Mass Fortification', zh: '大築城' },
+    stat: 'politics',
+    goldCost: 1000,
+    minSize: 'city',
+    description:
+      '大築城 — Massive fortification project. 1000g, +3× defense over basic. Requires 城 tier.',
+  },
+  'encourage-migration': {
+    type: 'encourage-migration',
+    label: { en: 'Encourage Migration', zh: '招撫流民' },
+    stat: 'charisma',
+    goldCost: 400,
+    description:
+      '招撫流民 — Welcome refugees and migrants. Boosts population, which advances the city size tier when thresholds are crossed.',
+  },
+  'upgrade-wall': {
+    type: 'upgrade-wall',
+    label: { en: 'Upgrade Walls', zh: '城壁強化' },
+    stat: 'politics',
+    goldCost: 1500,
+    minSize: 'city',
+    description:
+      '城壁強化 — Upgrade fortification tier (1→2→3). Tier 2 = inner wall +18% def; Tier 3 = citadel like 合肥/長安/洛陽 +40% def. Massive gold cost, can only be done at 城 tier+.',
+  },
   march: {
     type: 'march',
     label: { en: 'March', zh: '出陣' },
@@ -85,6 +141,7 @@ export interface CommandResult {
     troops: number;
     population: number;
     loyalty: number;
+    wallTier: 1 | 2 | 3;
   }>;
   message: string;
 }
@@ -155,6 +212,57 @@ export function resolveInternalAffairs(
         success: gain > 0,
         delta: { loyalty: gain },
         message: `${officer.name.en} raised Loyalty by ${gain} (now ${city.loyalty + gain}).`,
+      };
+    }
+    case 'major-agriculture': {
+      const gain = Math.min(cap - city.agriculture, applyDevelopment(city.agriculture, statValue, rng, cap) * 3);
+      return {
+        success: gain > 0,
+        delta: { agriculture: gain },
+        message: `${officer.name.en} 大農政: Agriculture +${gain} (now ${city.agriculture + gain}/${cap}).`,
+      };
+    }
+    case 'major-commerce': {
+      const gain = Math.min(cap - city.commerce, applyDevelopment(city.commerce, statValue, rng, cap) * 3);
+      return {
+        success: gain > 0,
+        delta: { commerce: gain },
+        message: `${officer.name.en} 大商政: Commerce +${gain} (now ${city.commerce + gain}/${cap}).`,
+      };
+    }
+    case 'major-defense': {
+      const gain = Math.min(cap - city.defense, applyDevelopment(city.defense, statValue, rng, cap) * 3);
+      return {
+        success: gain > 0,
+        delta: { defense: gain },
+        message: `${officer.name.en} 大築城: Defense +${gain} (now ${city.defense + gain}/${cap}).`,
+      };
+    }
+    case 'encourage-migration': {
+      // Population boost proportional to charisma + small random.
+      const base = Math.floor(statValue * 80) + 2000;
+      const variance = Math.floor(rng() * 1500);
+      const popGain = base + variance;
+      return {
+        success: true,
+        delta: { population: popGain, loyalty: 1 },
+        message: `${officer.name.en} 招撫流民: +${popGain.toLocaleString()} population (loyalty +1).`,
+      };
+    }
+    case 'upgrade-wall': {
+      const cur = city.wallTier ?? 1;
+      if (cur >= 3) {
+        return {
+          success: false,
+          delta: {},
+          message: `${officer.name.en}: 城壁已達最高等級 (Tier 3 citadel).`,
+        };
+      }
+      const next = (cur + 1) as 1 | 2 | 3;
+      return {
+        success: true,
+        delta: { wallTier: next, defense: 5 },
+        message: `${officer.name.en} 城壁強化: Wall tier ${cur} → ${next}. (+50% effective defense in siege).`,
       };
     }
   }
