@@ -967,9 +967,18 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'guan-ping':      ['charge', 'volley', 'rouse'],
   'guan-xing':      ['charge', 'volley'],
   'zhang-bao':      ['charge', 'rouse'],
-  'liao-hua':       ['charge', 'rouse'],
-  'huang-yueying':  ['huang-yueying', 'catapult', 'zhuge-bow'],
-  'sun-shang-xiang':['sun-shangxiang', 'charge', 'volley'],
+  'lady-huang':     ['huang-yueying', 'catapult', 'zhuge-bow'],
+  'lady-sun':       ['sun-shangxiang', 'charge', 'volley'],
+  'ma-liang':       ['attack-plans', 'protect-people', 'court-debate'],
+  'liao-hua':       ['charge', 'rouse', 'volley'],
+  'jiang-wan':      ['attack-plans', 'court-debate', 'seek-talent'],
+  'fei-yi':         ['court-debate', 'tongue-war', 'attack-plans'],
+  'dong-yun':       ['court-debate', 'attack-plans'],
+  'jian-yong':      ['tongue-war', 'court-debate'],
+  'sun-qian':       ['tongue-war', 'court-debate'],
+  'mi-zhu':         ['salt-monopoly', 'tea-trade', 'silk-road'],
+  'xu-shu':         ['ruse', 'pitfall', 'attack-plans', 'ambush'],
+  'huo-jun':        ['attack-plans', 'court-debate'],
 
   // ─── 魏 Wei ───
   'cao-cao':        ['caocao-poetry', 'plum-wine', 'plum-thirst', 'seek-talent', 'wuchao-grain', 'two-tigers', 'lure-tiger-wolf', 'fire-attack', 'ambush', 'rouse'],
@@ -998,6 +1007,26 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'cheng-yu':       ['ruse', 'ambush', 'attack-plans'],
   'man-chong':      ['charge', 'attack-plans'],
   'liu-ye':         ['ruse', 'attack-plans'],
+  // ─── Wei generals (Xiahou clan + Five Generals + later officers) ──
+  'xiahou-dun':     ['charge', 'rouse', 'lone-blade', 'self-injury', 'iron-shirt'],  // 拔矢啖睛
+  'xiahou-yuan':    ['charge', 'volley', 'thousand-ride', 'huangzhong-bow'],          // killed at Mt Dingjun
+  'xiahou-ba':      ['charge', 'rouse', 'ambush'],
+  'xiahou-shang':   ['charge', 'volley'],
+  'le-jin':         ['charge', 'le-jin-raid', 'ambush'],
+  'li-dian':        ['charge', 'rouse', 'ambush'],
+  'zang-ba':        ['charge', 'volley'],
+  'cao-xiu':        ['charge', 'rouse'],
+  'cao-zhen':       ['charge', 'rouse', 'iron-wall'],
+  'cao-chun':       ['charge', 'thousand-ride'],  // 虎豹騎
+  'guo-huai':       ['charge', 'attack-plans', 'iron-wall'],
+  'wen-pin':        ['charge', 'rouse', 'iron-wall'],
+  'tian-yu':        ['charge', 'ambush', 'wind-forest'],
+  'wang-lang':      ['tongue-war', 'court-debate', 'faction-manipulate'],
+  'hua-xin':        ['court-debate', 'faction-manipulate'],
+  'chen-qun':       ['court-debate', 'attack-plans', 'faction-manipulate'],  // 九品中正
+  'yang-xiu':       ['ruse', 'attack-plans', 'court-debate'],
+  'zhong-hui':      ['attack-plans', 'ambush', 'ruse', 'fire-attack'],
+  'mao-jie':        ['attack-plans', 'court-debate'],
 
   // ─── 吳 Wu ───
   'sun-jian':       ['sun-jian-tiger', 'charge', 'rouse', 'ambush'],
@@ -1009,7 +1038,6 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'lu-su':          ['attack-plans', 'tongue-war', 'seek-talent'],
   'zhang-zhao':     ['court-debate', 'tongue-war', 'faction-manipulate'],
   'gan-ning':       ['gan-ning-100', 'gan-ning-bell', 'charge', 'ambush', 'water-bandit'],
-  'tai-shi-ci':     ['taishi-ci-vs-sunce', 'charge', 'volley', 'rouse'],
   'huang-gai':      ['self-injury', 'fire-attack', 'charge', 'rouse'],
   'cheng-pu':       ['charge', 'rouse', 'attack-plans'],
   'han-dang':       ['charge', 'volley'],
@@ -1017,9 +1045,26 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'zhou-tai':       ['charge', 'last-stand', 'iron-shirt'],
   'da-qiao':        ['da-qiao-marriage', 'court-debate'],
   'xiao-qiao':      ['da-qiao-marriage'],
-  'lady-zhurong':   ['lady-zhurong-tac', 'charge', 'ambush'],
+  'zhurong':        ['lady-zhurong-tac', 'charge', 'ambush'],
   'meng-huo':       ['charge', 'rouse', 'water-bandit'],
   'shamoke':        ['charge', 'fire-arrow'],
+  // ─── More Wu officers ──
+  'taishi-ci':      ['taishi-ci-vs-sunce', 'charge', 'volley', 'rouse'],
+  'jiang-qin':      ['charge', 'volley'],
+  'zhu-ran':        ['charge', 'ambush', 'rouse'],
+  'ding-feng':      ['charge', 'volley', 'iron-shirt'],
+  'pan-zhang':      ['charge', 'ambush'],
+  'zhu-zhi':        ['charge', 'rouse'],
+  'zhu-huan':       ['charge', 'attack-plans'],
+  'zhang-hong':     ['court-debate', 'attack-plans'],
+  'gu-yong':        ['court-debate', 'attack-plans', 'tongue-war'],
+  'bu-zhi':         ['court-debate'],
+  'zhuge-jin':      ['tongue-war', 'court-debate', 'attack-plans'],
+  'zhuge-ke':       ['ruse', 'ambush', 'attack-plans'],
+  'sun-jun':        ['charge', 'ambush', 'faction-manipulate'],
+  'sun-shao':       ['charge', 'volley'],
+  'lu-kang':        ['attack-plans', 'iron-wall', 'rouse'],     // Lu Xun's son
+  'lu-ji':          ['attack-plans', 'court-debate'],
 
   // ─── 群雄 Other Warlords ───
   'yuan-shao':      ['yuan-shao-noble', 'rouse', 'charge', 'court-debate'],
@@ -1031,7 +1076,6 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'dong-zhuo':      ['dong-zhuo-fat', 'dong-zhuo-tyrant', 'charge', 'eunuch-power'],
   'lu-bu':          ['lubu-flying', 'lu-bu-yuan-gate', 'three-fight-lubu', 'long-halberd', 'charge', 'rouse'],
   'diaochan':       ['diaochan', 'beauty'],
-  'lu-lingqi':      ['lu-lingqi', 'charge', 'twin-spear'],
   'cai-yong':       ['cai-yong-lute'],
   'cai-wenji':      ['cai-yong-lute'],
   'mi-heng':        ['mi-heng-drum'],
@@ -1042,6 +1086,58 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'yan-liang':      ['charge', 'long-halberd'],
   'gao-shun':       ['charge', 'iron-wall', 'last-stand'],
   'chen-gong':      ['ruse', 'pitfall', 'attack-plans'],
+  // ─── Yuan clan & their advisors ──
+  'yuan-tan':       ['charge', 'rouse', 'court-debate'],
+  'yuan-shang':     ['charge', 'rouse'],
+  'yuan-xi':        ['charge'],
+  'guo-tu':         ['ruse', 'attack-plans', 'faction-manipulate'],
+  'feng-ji':        ['ruse', 'attack-plans'],
+  'gao-lan':        ['charge'],
+  'ma-teng':        ['charge', 'rouse', 'thousand-ride'],
+  'ma-dai':         ['charge', 'ambush'],
+  // ─── Early warlords (pre-coalition) ──
+  'ji-ling':        ['charge', 'long-halberd'],
+  'li-ru':          ['ruse', 'attack-plans', 'pitfall'],
+  'liu-yan':        ['protect-people', 'court-debate'],
+  'tao-qian':       ['protect-people', 'court-debate'],
+  'kong-rong':      ['court-debate', 'tongue-war', 'protect-people'],
+  'zhang-yang':     ['charge', 'rouse'],
+  'ze-rong':        ['ride-clouds', 'gu-poison'],
+  'qiao-mao':       ['court-debate'],
+  // ─── Late era / Sima Wei ──
+  'wang-jun':       ['attack-plans', 'water-bandit'],   // 王濬 navy admiral
+  'du-yu':          ['attack-plans', 'wind-forest', 'ruse'],
+  'jia-chong':      ['ruse', 'faction-manipulate', 'eunuch-power'],
+  'shi-bao':        ['charge', 'rouse'],
+  'chen-tai':       ['attack-plans', 'iron-wall'],
+  'zhuge-dan':      ['charge', 'rouse', 'iron-wall'],
+  'wu-jing':        ['charge'],
+  'zhou-fang':      ['ruse', 'pitfall', 'ambush'],      // 周魴 cut hair & defected
+  // ─── Shu cont'd & Nanman ──
+  'zhang-ren':      ['volley', 'ambush', 'pitfall'],    // killed Pang Tong at Luofeng
+  'yan-yan':        ['charge', 'iron-wall', 'last-stand'],
+  'wu-yi':          ['charge', 'attack-plans'],
+  'wang-ping':      ['charge', 'ambush', 'iron-wall'],
+  'zhang-yi':       ['charge', 'rouse'],
+  'meng-da':        ['ruse', 'faction-manipulate'],
+  // ─── Cao officers more ──
+  'mi-fang':        ['protect-people'],
+  // ─── Cao subordinates (more) ──
+  'cao-shuang':     ['faction-manipulate', 'court-debate'],
+  'cao-fang':       ['liu-shan-stupid'],
+  'cao-mao':        ['charge', 'last-stand'],
+  // ─── More Wu generals ──
+  'sun-yi':         ['charge'],
+  // ─── Ten Eunuchs / Han dynasty rotten power ──
+  'zhang-rang':     ['eunuch-power', 'faction-manipulate'],
+  'jian-shuo':      ['eunuch-power'],
+  // ─── Famous craftsmen / doctors ──
+  'hua-tuo':        ['protect-people', 'court-debate'],
+  'zhang-ji':       ['protect-people', 'court-debate'],
+  // ─── Dongwu late ──
+  'lu-dai':         ['charge', 'water-bandit'],
+  'sun-hao':        ['eunuch-power', 'liu-shan-stupid'],
+  'sun-xiu':        ['court-debate'],
 
   // ─── 黃巾 / 妖道 Yellow Turbans & Mystics ───
   'zhang-jiao':     ['zhang-jiao-yellow', 'yellow-turban-mob', 'summon-gods', 'beans-to-soldiers', 'ride-clouds'],
@@ -1051,7 +1147,7 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'yu-ji':          ['ride-clouds', 'summon-gods', 'gu-poison'],
   'zuo-ci':         ['ride-clouds', 'summon-gods', 'maoshan-rite', 'feign-mad'],
   'guan-lu':        ['ruse', 'attack-plans'],
-  'nanhua-old-sage':['ride-clouds', 'summon-gods', 'maoshan-rite'],
+  'nanhua-laoxian': ['ride-clouds', 'summon-gods', 'maoshan-rite'],
 
   // ─── 漢室 Han Court ───
   'lu-zhi':         ['lu-zhi-master', 'attack-plans', 'court-debate'],
@@ -1059,21 +1155,10 @@ export const OFFICER_TACTICS: Record<string, TacticId[]> = {
   'zhu-jun':        ['charge', 'rouse'],
   'he-jin':         ['eunuch-power', 'imperial-inlaw'],
 
-  // ─── 古名將 / 歷代英雄 Historical Heroes ───
-  'sun-zi':         ['know-self', 'wind-forest', 'attack-plans', 'attack-heart', 'subdue-no-fight'],
-  'han-xin':        ['han-xin-count', 'sand-dam', 'chu-songs', 'fire-ox'],
-  'xiang-yu':       ['xiang-yu-horse', 'julu-battle', 'charge'],
-  'caesar':         ['caesar-cross', 'charge'],
-  'napoleon':       ['napoleon-flank', 'attack-plans'],
-  'hannibal':       ['hannibal-cannae', 'ambush'],
-  'leonidas':       ['spartan-300', 'last-stand', 'iron-wall'],
-  'genghis-khan':   ['mongol-whirlwind', 'charge', 'thousand-ride'],
-
-  // ─── 女將 Female Warriors ───
-  'ma-yunlu':       ['ma-yunlu', 'twin-spear', 'charge'],
-  'fan-lihua':      ['fan-lihua', 'attack-plans'],
-  'mu-guiying':     ['mu-guiying', 'charge', 'rouse'],
-  mulan:            ['mulan', 'charge', 'volley'],
+  // (Note: Sun Tzu 孫武, Han Xin, Caesar, Napoleon etc. are historical figures
+  //  whose signature tactics live in TACTIC_SIGNATURE for stat bonuses but
+  //  who are not in the playable roster, so they don't appear here.)
+  'sun-zi':         ['attack-plans', 'court-debate'],  // 孫資 — Wei official, not Sun Tzu
 };
 
 /** Hash an officer id into a small bucket for deterministic per-officer variance. */
