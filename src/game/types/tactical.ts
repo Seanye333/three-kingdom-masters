@@ -259,4 +259,25 @@ export interface TacticalBattle {
     gold: number;
     itemId?: EntityId;
   };
+  /**
+   * Defensive structures the defender's city has built on its perimeter,
+   * placed onto specific hex coords on the battlefield. Visible to both
+   * sides; auto-attack attackers each turn (watchtower fires arrows, etc.).
+   */
+  cityStructures?: TacticalCityStructure[];
+}
+
+export interface TacticalCityStructure {
+  /** Reference back to the city's slot index (0-7 compass position). */
+  slotIndex: number;
+  /** Building kind — see DEFENSE_BUILDINGS. */
+  buildingId: import('../data/defenseBuildings').DefenseBuildingId;
+  /** Current level (1-3). */
+  level: number;
+  /** Position on the hex grid. */
+  coord: HexCoord;
+  /** Current HP — destructible. Initial = level * 200. */
+  hp: number;
+  /** Has the trap been triggered (rockfall etc. are one-shot). */
+  triggered?: boolean;
 }

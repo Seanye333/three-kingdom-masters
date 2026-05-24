@@ -588,6 +588,21 @@ export function TacticalBattleScreen() {
                 </g>
               );
             })}
+            {/* City defense structures placed on the defender's edge */}
+            {(battle.cityStructures ?? []).map((s) => {
+              const { x, y } = hexCenter(s.coord.col, s.coord.row);
+              return (
+                <CityStructureIcon
+                  key={`struct-${s.slotIndex}`}
+                  x={x}
+                  y={y}
+                  buildingId={s.buildingId}
+                  level={s.level}
+                  hp={s.hp}
+                  maxHp={100 * s.level + 100}
+                />
+              );
+            })}
             {battle.units.map((u) => {
               const { x, y } = hexCenter(u.coord.col, u.coord.row);
               const off = officers[u.officerId];
@@ -1364,4 +1379,71 @@ const COMPOUND_SURNAMES = ['諸葛', '司馬', '夏侯', '太史', '公孫', '�
 function surname(zh: string): string {
   for (const s of COMPOUND_SURNAMES) if (zh.startsWith(s)) return s.charAt(0);
   return zh.charAt(0);
+}
+
+/** Icon for a city defense structure placed on a hex. Distinct silhouette per kind. */
+function CityStructureIcon({
+  x, y, buildingId, level, hp, maxHp,
+}: {
+  x: number; y: number;
+  buildingId: import('../../game/data/defenseBuildings').DefenseBuildingId;
+  level: number;
+  hp: number;
+  maxHp: number;
+}) {
+  const hpPct = Math.max(0, Math.min(1, hp / maxHp));
+  const COLOR: Record<string, string> = {
+    'watchtower': '#d4a84a',
+    'beacon': '#b8442e',
+    'caltrops': '#7a6750',
+    'lookout': '#88b7e8',
+    'barracks-out': '#a87858',
+    'granary-out': '#b8c87a',
+    'iron-chains': '#5a4530',
+    'rockfall': '#4a3a30',
+    'arrow-platform': '#c19a3b',
+  };
+  const ZH: Record<string, string> = {
+    'watchtower': '箭', 'beacon': '烽', 'caltrops': '拒',
+    'lookout': '瞭', 'barracks-out': '營', 'granary-out': '倉',
+    'iron-chains': '索', 'rockfall': '石', 'arrow-platform': '台',
+  };
+  const color = COLOR[buildingId] ?? '#d4a84a';
+  const glyph = ZH[buildingId] ?? '?';
+
+  return (
+    <g pointerEvents="none">
+      {/* Structure base — small tower-shape silhouette */}
+      <rect
+        x={x - 11} y={y - 14} width="22" height="22"
+        fill={color} stroke="#1a1410" strokeWidth="1"
+        opacity={0.92}
+      />
+      {/* Crenellated top edge */}
+      <rect x={x - 11} y={y - 16} width="3" height="3" fill={color} stroke="#1a1410" strokeWidth="0.4" />
+      <rect x={x - 5}  y={y - 16} width="3" height="3" fill={color} stroke="#1a1410" strokeWidth="0.4" />
+      <rect x={x + 1}  y={y - 16} width="3" height="3" fill={color} stroke="#1a1410" strokeWidth="0.4" />
+      <rect x={x + 7}  y={y - 16} width="3" height="3" fill={color} stroke="#1a1410" strokeWidth="0.4" />
+      {/* zh glyph identifying kind */}
+      <text
+        x={x} y={y + 1} textAnchor="middle"
+        fontSize="11" fill="#fff" fontWeight="bold"
+        fontFamily="Songti SC, serif"
+        stroke="#1a1410" strokeWidth="0.3"
+      >
+        {glyph}
+      </text>
+      {/* Level dots underneath */}
+      <text
+        x={x} y={y + 13} textAnchor="middle"
+        fontSize="7" fill="#f0e0b0"
+        fontFamily="ui-monospace, monospace"
+      >
+        {'★'.repeat(level)}
+      </text>
+      {/* HP bar */}
+      <rect x={x - 11} y={y + 16} width="22" height="2" fill="#1a1410" stroke="#3a2818" strokeWidth="0.3" />
+      <rect x={x - 11} y={y + 16} width={22 * hpPct} height="2" fill={hpPct > 0.5 ? '#7ed68a' : '#b8442e'} />
+    </g>
+  );
 }

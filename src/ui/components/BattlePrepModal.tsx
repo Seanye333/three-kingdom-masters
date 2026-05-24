@@ -183,6 +183,8 @@ export function BattlePrepModal({
       attackers,
       defenders: defenderEntries,
       attackerFormation: formation,
+      // Carry the defender city's perimeter defense structures into the battle.
+      buildSlots: target.buildSlots,
     });
 
     // 舌戰 — if both sides have an officer with INT ≥ 80, run a war of words first.

@@ -120,6 +120,8 @@ export interface SetupParams {
   reinforcements?: Reinforcement[];
   /** Pre-rolled scripted map (overrides city-based lookup). */
   namedMapId?: EntityId;
+  /** Build slots from the defender's city — placed on the hex grid as fixed structures. */
+  buildSlots?: ReadonlyArray<{ slot: number; buildingId?: import('../data/defenseBuildings').DefenseBuildingId; level: number }>;
 }
 
 const TERRAIN_RNG_SEED = (cityId: string) => {
@@ -217,6 +219,31 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     }
   }
 
+  // Place city defense structures on the defender's edge — 8 compass-rose
+  // slots map to a 2-column band on the right (defender) side of the map.
+  const cityStructures: TacticalBattle['cityStructures'] = [];
+  if (p.buildSlots && p.buildSlots.length > 0) {
+    // Even-distributed positions in the rightmost 2 columns.
+    const SLOT_TO_HEX = computeSlotPositions(width, height);
+    // Track which hex coords are already occupied by units so we don't overlap.
+    const taken = new Set(units.map((u) => `${u.coord.col},${u.coord.row}`));
+    for (const slot of p.buildSlots) {
+      if (!slot.buildingId) continue;
+      const target = SLOT_TO_HEX[slot.slot];
+      if (!target) continue;
+      const key = `${target.col},${target.row}`;
+      if (taken.has(key)) continue;  // skip if conflicting with a unit
+      taken.add(key);
+      cityStructures.push({
+        slotIndex: slot.slot,
+        buildingId: slot.buildingId,
+        level: slot.level,
+        coord: target,
+        hp: 100 * slot.level + 100,
+      });
+    }
+  }
+
   return {
     id: `tac-${p.cityId}-${Date.now()}`,
     cityId: p.cityId,
@@ -241,7 +268,35 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     specialTiles: namedMap?.specialTiles ?? [],
     damagePopups: [],
     log,
+    cityStructures: cityStructures.length > 0 ? cityStructures : undefined,
   };
+}
+
+/**
+ * Maps the 8 compass-rose slot indices (N/NE/E/SE/S/SW/W/NW) to hex coords
+ * on the defender's side of the battlefield (rightmost 2 columns).
+ */
+function computeSlotPositions(width: number, height: number): HexCoord[] {
+  const colA = width - 1;       // defender's edge column
+  const colB = Math.max(0, width - 2); // one hex inland
+  const rows = {
+    top:    Math.max(0, Math.floor(height * 0.15)),
+    upper:  Math.max(0, Math.floor(height * 0.30)),
+    mid:    Math.floor(height / 2),
+    lower:  Math.min(height - 1, Math.floor(height * 0.70)),
+    bottom: Math.min(height - 1, Math.floor(height * 0.85)),
+  };
+  // Index order matches SLOT_POSITIONS in defenseBuildings.ts: N, NE, E, SE, S, SW, W, NW
+  return [
+    { col: colB, row: rows.top },     // 0 N
+    { col: colA, row: rows.top },     // 1 NE
+    { col: colA, row: rows.mid },     // 2 E
+    { col: colA, row: rows.bottom },  // 3 SE
+    { col: colB, row: rows.bottom },  // 4 S
+    { col: colB, row: rows.lower },   // 5 SW
+    { col: colB, row: rows.mid },     // 6 W
+    { col: colB, row: rows.upper },   // 7 NW
+  ];
 }
 
 // ─── Action processing ────────────────────────────────────────────────
@@ -1014,19 +1069,86 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   else if (!attackerLeft || attackerCommanderDown) winner = 'defender';
   else if (!defenderLeft || defenderCommanderDown) winner = 'attacker';
 
+  // ── City defense structures auto-act at end of attacker's turn ──
+  // Watchtowers + arrow-platforms fire at closest attacker.
+  // Caltrops damage adjacent attacker units.
+  // Rockfalls trigger when an attacker is on the trap hex.
+  const turnEndingForAttacker = b.activeSide === 'attacker';
+  const structurePopups: DamagePopup[] = [];
+  const structureLog: NonNullable<TacticalBattle['log']> = [];
+  let updatedStructures = b.cityStructures;
+  let unitsAfterStructures = surviving;
+  let additionalAttackerLoss = 0;
+  if (turnEndingForAttacker && b.cityStructures && b.cityStructures.length > 0) {
+    const next = b.cityStructures.map((s) => ({ ...s }));
+    for (const s of next) {
+      if (s.hp <= 0 || s.triggered) continue;
+      const attackerUnits = unitsAfterStructures.filter((u) => u.side === 'attacker' && u.troops > 0);
+      if (attackerUnits.length === 0) continue;
+      // Range and damage per kind.
+      let range = 0, dmg = 0, oneShot = false;
+      switch (s.buildingId) {
+        case 'watchtower':       range = 4; dmg = 80 * s.level; break;
+        case 'arrow-platform':   range = 5; dmg = 100 * s.level; break;
+        case 'rockfall':         range = 1; dmg = 200 * s.level; oneShot = true; break;
+        case 'caltrops':         range = 1; dmg = 40 * s.level; break;
+        case 'beacon':           range = 0; dmg = 0; break;  // intel-only, no auto-fire
+        case 'iron-chains':      range = 1; dmg = 60 * s.level; break;
+        default:                 range = 0; dmg = 0;
+      }
+      if (range === 0 || dmg === 0) continue;
+      // Find closest attacker in range.
+      let target: typeof attackerUnits[0] | null = null;
+      let targetDist = Infinity;
+      for (const u of attackerUnits) {
+        const d = hexDistance(s.coord, u.coord);
+        if (d <= range && d < targetDist) {
+          targetDist = d;
+          target = u;
+        }
+      }
+      if (!target) continue;
+      unitsAfterStructures = unitsAfterStructures.map((u) =>
+        u.id === target!.id ? { ...u, troops: Math.max(0, u.troops - dmg) } : u,
+      );
+      additionalAttackerLoss += Math.min(target.troops, dmg);
+      // UI popup at the target's hex.
+      const popupId = `struct-${s.slotIndex}-t${b.turn}`;
+      structurePopups.push({
+        id: popupId,
+        coord: target.coord,
+        text: `−${dmg}`,
+        color: '#d4a84a',
+        spawnedAt: Date.now(),
+      });
+      const ZH: Record<string, string> = {
+        'watchtower': '箭樓', 'arrow-platform': '箭台', 'rockfall': '落石',
+        'caltrops': '拒馬', 'iron-chains': '鐵索',
+      };
+      structureLog.push({
+        turn: b.turn,
+        text: `${ZH[s.buildingId] ?? s.buildingId} 射出！${dmg} 兵傷亡。`,
+        kind: 'event',
+      });
+      if (oneShot) s.triggered = true;
+    }
+    updatedStructures = next;
+  }
+
   return {
     ...b,
-    units: surviving,
+    units: unitsAfterStructures.filter((u) => u.troops > 0 && u.morale > 0),
     turn: b.turn + 1,
     activeSide: b.activeSide === 'attacker' ? 'defender' : 'attacker',
-    attackerLosses: b.attackerLosses + newAttackerLoss,
+    attackerLosses: b.attackerLosses + newAttackerLoss + additionalAttackerLoss,
     defenderLosses: b.defenderLosses + newDefenderLoss,
     winner: winner ?? b.winner,
     attackerObjective: attackerObj,
     defenderObjective: defenderObj,
     reinforcements: remaining,
-    log: [...(b.log ?? []), ...arrivalLog],
-    damagePopups: [], // clear per turn
+    log: [...(b.log ?? []), ...arrivalLog, ...structureLog],
+    damagePopups: structurePopups, // visible briefly on turn flip
+    cityStructures: updatedStructures,
   };
 }
 
