@@ -950,62 +950,188 @@ export const TACTIC_DEFS: Record<TacticId, { zh: string; en: string }> = {
 };
 
 export const OFFICER_TACTICS: Record<string, TacticId[]> = {
-  'cao-cao':     ['fire-attack', 'rouse', 'ambush'],
-  'zhuge-liang': ['fire-attack', 'water-attack', 'ruse', 'pitfall'],
-  'sima-yi':     ['ruse', 'pitfall', 'rouse'],
-  'guo-jia':     ['fire-attack', 'ambush', 'ruse'],
-  'jia-xu':      ['ruse', 'ambush', 'fire-attack'],
-  'zhou-yu':     ['fire-attack', 'water-attack', 'rouse'],
-  'lu-xun':      ['fire-attack', 'ruse', 'pitfall'],
-  'lu-meng':     ['ruse', 'rouse'],
-  'pang-tong':   ['fire-attack', 'ruse'],
-  'fa-zheng':    ['ruse', 'pitfall'],
-  'jiang-wei':   ['ruse', 'pitfall', 'fire-attack'],
-  'deng-ai':     ['ruse', 'ambush'],
-  'lu-bu':       ['charge', 'rouse'],
-  'guan-yu':     ['charge', 'volley'],
-  'zhang-fei':   ['charge', 'curse', 'rouse'],
-  'zhao-yun':    ['charge', 'rouse'],
-  'ma-chao':     ['charge', 'rouse'],
-  'huang-zhong': ['volley', 'charge'],
-  'zhang-liao':  ['charge', 'ambush', 'rouse'],
-  'xu-chu':      ['charge', 'curse'],
-  'dian-wei':    ['charge', 'curse'],
-  'gan-ning':    ['charge', 'ambush'],
-  'tai-shi-ci':  ['charge', 'volley'],
-  'wei-yan':     ['charge', 'ambush'],
-  'wen-chou':    ['charge'],
-  'yan-liang':   ['charge'],
-  'pang-de':     ['charge', 'volley'],
-  'xu-huang':    ['charge', 'ambush'],
-  'zhang-he':    ['charge', 'ambush'],
-  'sun-ce':      ['charge', 'rouse'],
-  'sun-jian':    ['charge', 'rouse'],
-  'cao-ren':     ['rouse', 'volley'],
-  'hao-zhao':    ['volley', 'catapult'],
-  'huang-gai':   ['fire-attack', 'charge'],
-  'cheng-pu':    ['charge', 'rouse'],
-  'tian-feng':   ['ruse', 'pitfall'],
-  'ju-shou':     ['ruse', 'rouse'],
-  'shen-pei':    ['volley', 'catapult'],
-  'guan-lu':     ['ruse'],
-  'yu-ji':       ['curse', 'ruse'],
-  'zuo-ci':      ['ruse', 'disorder'],
+  // ─── 蜀 Shu ───
+  'liu-bei':        ['peach-garden-tac', 'sworn-brothers', 'protect-people', 'liu-bei-tears', 'liu-bei-share-meat', 'rouse'],
+  'guan-yu':        ['guanyu-greendragon', 'warm-wine', 'lone-blade', 'guan-yu-pardon', 'thousand-ride', 'pass-six', 'charge', 'volley'],
+  'zhang-fei':      ['zhangfei-yelling', 'changban-bridge', 'whip-postman', 'three-fight-lubu', 'charge', 'rouse'],
+  'zhao-yun':       ['changban', 'zhaoyun-shadow', 'zhao-yun-courage', 'zhao-yun-baby', 'charge', 'rouse', 'ambush'],
+  'ma-chao':        ['machao-spear', 'twin-spear', 'charge', 'rouse', 'ambush'],
+  'huang-zhong':    ['huangzhong-bow', 'huangzhong-old-bow', 'dingjun-mtn', 'volley', 'charge', 'fire-arrow'],
+  'zhuge-liang':    ['seven-grab', 'borrow-wind', 'borrow-arrow', 'star-prayer', 'seven-lamp', 'longzhong', 'zhuge-bow', 'burn-bowang', 'burn-xinye', 'six-expeditions', 'wooden-ox', 'memorial', 'tearful-ma', 'eight-gates', 'fire-attack'],
+  'pang-tong':      ['pang-tong-chain', 'chain', 'fire-attack', 'ruse', 'pitfall', 'attack-plans'],
+  'fa-zheng':       ['attack-plans', 'ruse', 'pitfall', 'ambush'],
+  'jiang-wei':      ['six-expeditions', 'ruse', 'pitfall', 'fire-attack', 'ambush', 'charge'],
+  'wei-yan':        ['charge', 'ambush', 'rouse', 'twin-spear'],
+  'ma-su':          ['attack-heart', 'ruse', 'attack-plans'],
+  'liu-shan':       ['liu-shan-stupid'],
+  'guan-ping':      ['charge', 'volley', 'rouse'],
+  'guan-xing':      ['charge', 'volley'],
+  'zhang-bao':      ['charge', 'rouse'],
+  'liao-hua':       ['charge', 'rouse'],
+  'huang-yueying':  ['huang-yueying', 'catapult', 'zhuge-bow'],
+  'sun-shang-xiang':['sun-shangxiang', 'charge', 'volley'],
+
+  // ─── 魏 Wei ───
+  'cao-cao':        ['caocao-poetry', 'plum-wine', 'plum-thirst', 'seek-talent', 'wuchao-grain', 'two-tigers', 'lure-tiger-wolf', 'fire-attack', 'ambush', 'rouse'],
+  'guo-jia':        ['two-tigers', 'lure-tiger-wolf', 'fire-attack', 'ambush', 'ruse', 'attack-plans'],
+  'jia-xu':         ['ruse', 'ambush', 'fire-attack', 'pitfall', 'two-tigers'],
+  'xun-yu':         ['seek-talent', 'attack-plans', 'attack-heart', 'ruse'],
+  'xun-you':        ['ruse', 'ambush', 'pitfall', 'attack-plans'],
+  'sima-yi':        ['simayi-tortoise', 'feign-illness', 'sima-eight', 'ruse', 'pitfall', 'attack-plans', 'lure-tiger-wolf', 'fire-attack'],
+  'sima-shi':       ['ruse', 'ambush', 'attack-plans', 'rouse'],
+  'sima-zhao':      ['ruse', 'ambush', 'attack-plans', 'fire-attack'],
+  'deng-ai':        ['attack-plans', 'ambush', 'charge', 'ruse'],
+  'zhang-liao':     ['zhang-liao-xiaoyao', 'charge', 'ambush', 'rouse', 'volley'],
+  'dian-wei':       ['dianwei-double-axe', 'twin-axe', 'charge', 'rouse'],
+  'xu-chu':         ['xuchu-iron-fist', 'iron-sand-palm', 'charge', 'rouse'],
+  'cao-ren':        ['rouse', 'volley', 'charge', 'iron-wall'],
+  'cao-hong':       ['charge', 'rouse'],
+  'cao-zhang':      ['charge', 'rouse', 'twin-axe'],
+  'cao-pi':         ['seek-talent', 'court-debate', 'faction-manipulate'],
+  'cao-zhi':        ['cao-zhi-poem', 'court-debate'],
+  'cao-rui':        ['cao-rui-vase', 'court-debate', 'faction-manipulate'],
+  'hao-zhao':       ['volley', 'catapult', 'iron-wall', 'last-stand'],
+  'xu-huang':       ['charge', 'ambush', 'attack-plans'],
+  'zhang-he':       ['charge', 'ambush', 'volley'],
+  'pang-de':        ['charge', 'volley', 'self-injury'],
+  'yu-jin':         ['charge', 'rouse'],
+  'cheng-yu':       ['ruse', 'ambush', 'attack-plans'],
+  'man-chong':      ['charge', 'attack-plans'],
+  'liu-ye':         ['ruse', 'attack-plans'],
+
+  // ─── 吳 Wu ───
+  'sun-jian':       ['sun-jian-tiger', 'charge', 'rouse', 'ambush'],
+  'sun-ce':         ['sunce-blade', 'charge', 'rouse', 'twin-spear'],
+  'sun-quan':       ['sunquan-blue-eye', 'sun-quan-bow', 'seek-talent', 'court-debate'],
+  'zhou-yu':        ['burn-chibi', 'zhou-yu-plan', 'zhouyu-music', 'chain-ship', 'fire-attack', 'rouse', 'attack-plans'],
+  'lu-xun':         ['luxun-fire', 'burn-yiling', 'fire-attack', 'ruse', 'ambush', 'pitfall'],
+  'lu-meng':        ['white-robe', 'lumeng-study', 'ambush', 'ruse', 'charge', 'attack-plans'],
+  'lu-su':          ['attack-plans', 'tongue-war', 'seek-talent'],
+  'zhang-zhao':     ['court-debate', 'tongue-war', 'faction-manipulate'],
+  'gan-ning':       ['gan-ning-100', 'gan-ning-bell', 'charge', 'ambush', 'water-bandit'],
+  'tai-shi-ci':     ['taishi-ci-vs-sunce', 'charge', 'volley', 'rouse'],
+  'huang-gai':      ['self-injury', 'fire-attack', 'charge', 'rouse'],
+  'cheng-pu':       ['charge', 'rouse', 'attack-plans'],
+  'han-dang':       ['charge', 'volley'],
+  'ling-tong':      ['charge', 'rouse'],
+  'zhou-tai':       ['charge', 'last-stand', 'iron-shirt'],
+  'da-qiao':        ['da-qiao-marriage', 'court-debate'],
+  'xiao-qiao':      ['da-qiao-marriage'],
+  'lady-zhurong':   ['lady-zhurong-tac', 'charge', 'ambush'],
+  'meng-huo':       ['charge', 'rouse', 'water-bandit'],
+  'shamoke':        ['charge', 'fire-arrow'],
+
+  // ─── 群雄 Other Warlords ───
+  'yuan-shao':      ['yuan-shao-noble', 'rouse', 'charge', 'court-debate'],
+  'yuan-shu':       ['yuan-shu-jade', 'imperial-inlaw'],
+  'gongsun-zan':    ['gongsun-zan-white', 'charge', 'volley', 'rouse'],
+  'liu-biao':       ['rouse', 'protect-people', 'court-debate'],
+  'liu-zhang':      ['court-debate'],
+  'wang-yun':       ['wang-yun-plot', 'diaochan', 'faction-manipulate', 'court-debate'],
+  'dong-zhuo':      ['dong-zhuo-fat', 'dong-zhuo-tyrant', 'charge', 'eunuch-power'],
+  'lu-bu':          ['lubu-flying', 'lu-bu-yuan-gate', 'three-fight-lubu', 'long-halberd', 'charge', 'rouse'],
+  'diaochan':       ['diaochan', 'beauty'],
+  'lu-lingqi':      ['lu-lingqi', 'charge', 'twin-spear'],
+  'cai-yong':       ['cai-yong-lute'],
+  'cai-wenji':      ['cai-yong-lute'],
+  'mi-heng':        ['mi-heng-drum'],
+  'tian-feng':      ['ruse', 'pitfall', 'attack-plans'],
+  'ju-shou':        ['ruse', 'rouse', 'attack-plans'],
+  'shen-pei':       ['volley', 'catapult', 'iron-wall'],
+  'wen-chou':       ['charge', 'twin-spear'],
+  'yan-liang':      ['charge', 'long-halberd'],
+  'gao-shun':       ['charge', 'iron-wall', 'last-stand'],
+  'chen-gong':      ['ruse', 'pitfall', 'attack-plans'],
+
+  // ─── 黃巾 / 妖道 Yellow Turbans & Mystics ───
+  'zhang-jiao':     ['zhang-jiao-yellow', 'yellow-turban-mob', 'summon-gods', 'beans-to-soldiers', 'ride-clouds'],
+  'zhang-bao-yt':   ['yellow-turban-mob', 'maoshan-rite', 'gu-poison'],
+  'zhang-liang-yt': ['yellow-turban-mob', 'summon-gods'],
+  'zhang-lu':       ['zhang-lu-rice', 'maoshan-rite'],
+  'yu-ji':          ['ride-clouds', 'summon-gods', 'gu-poison'],
+  'zuo-ci':         ['ride-clouds', 'summon-gods', 'maoshan-rite', 'feign-mad'],
+  'guan-lu':        ['ruse', 'attack-plans'],
+  'nanhua-old-sage':['ride-clouds', 'summon-gods', 'maoshan-rite'],
+
+  // ─── 漢室 Han Court ───
+  'lu-zhi':         ['lu-zhi-master', 'attack-plans', 'court-debate'],
+  'huangfu-song':   ['charge', 'rouse', 'attack-plans'],
+  'zhu-jun':        ['charge', 'rouse'],
+  'he-jin':         ['eunuch-power', 'imperial-inlaw'],
+
+  // ─── 古名將 / 歷代英雄 Historical Heroes ───
+  'sun-zi':         ['know-self', 'wind-forest', 'attack-plans', 'attack-heart', 'subdue-no-fight'],
+  'han-xin':        ['han-xin-count', 'sand-dam', 'chu-songs', 'fire-ox'],
+  'xiang-yu':       ['xiang-yu-horse', 'julu-battle', 'charge'],
+  'caesar':         ['caesar-cross', 'charge'],
+  'napoleon':       ['napoleon-flank', 'attack-plans'],
+  'hannibal':       ['hannibal-cannae', 'ambush'],
+  'leonidas':       ['spartan-300', 'last-stand', 'iron-wall'],
+  'genghis-khan':   ['mongol-whirlwind', 'charge', 'thousand-ride'],
+
+  // ─── 女將 Female Warriors ───
+  'ma-yunlu':       ['ma-yunlu', 'twin-spear', 'charge'],
+  'fan-lihua':      ['fan-lihua', 'attack-plans'],
+  'mu-guiying':     ['mu-guiying', 'charge', 'rouse'],
+  mulan:            ['mulan', 'charge', 'volley'],
 };
+
+/** Hash an officer id into a small bucket for deterministic per-officer variance. */
+function tacticBucket(id: string | undefined, mod: number): number {
+  if (!id) return 0;
+  let h = 5381;
+  for (let i = 0; i < id.length; i++) h = ((h * 33) ^ id.charCodeAt(i)) >>> 0;
+  return h % mod;
+}
 
 export function deriveTactics(stats: OfficerStats, id?: string): TacticId[] {
   if (id && OFFICER_TACTICS[id]) return OFFICER_TACTICS[id];
-  const { war, intelligence } = stats;
+  const { war, leadership, intelligence, politics, charisma } = stats;
   const list: TacticId[] = [];
-  if (war >= 80) list.push('charge');
-  if (war >= 70 && war < 80) list.push('volley');
-  if (intelligence >= 85) list.push('fire-attack');
-  if (intelligence >= 80) list.push('ruse');
-  if (intelligence >= 75 && intelligence < 80) list.push('pitfall');
-  if (intelligence >= 70 && intelligence < 75) list.push('disorder');
-  if (war >= 70 && war < 80 && intelligence < 70) list.push('rouse');
-  if (war < 60 && intelligence < 60) list.push('curse');
-  return Array.from(new Set(list)).slice(0, 3);
+  const b = tacticBucket(id, 8); // 0-7, used to pick among equally-good options
+
+  // ── Melee (high war) ──
+  if (war >= 90) list.push('charge', (['twin-spear', 'long-halberd', 'twin-axe', 'meteor-hammer'] as const)[b % 4]);
+  else if (war >= 80) list.push('charge', (['ambush', 'rouse', 'twin-spear'] as const)[b % 3]);
+  else if (war >= 70) list.push((['volley', 'charge'] as const)[b % 2], 'rouse');
+  else if (war >= 60) list.push('volley');
+
+  // ── Ranged (war + some int) ──
+  if (war >= 75 && intelligence >= 60 && intelligence < 85) {
+    list.push((['volley', 'fire-arrow', 'crossbow'] as const)[b % 3]);
+  }
+  if (intelligence >= 70 && war < 60) {
+    list.push((['catapult', 'zhuge-bow'] as const)[b % 2]);
+  }
+
+  // ── Mystic / Intelligence ──
+  if (intelligence >= 95) list.push('fire-attack', (['ruse', 'attack-plans', 'eight-gates'] as const)[b % 3]);
+  else if (intelligence >= 85) list.push('fire-attack', (['ruse', 'pitfall', 'attack-plans'] as const)[b % 3]);
+  else if (intelligence >= 75) list.push((['ruse', 'pitfall', 'ambush'] as const)[b % 3]);
+  else if (intelligence >= 65) list.push((['pitfall', 'disorder', 'ambush'] as const)[b % 3]);
+  else if (intelligence >= 55) list.push('disorder');
+
+  // ── Leadership / Strategy ──
+  if (leadership >= 85) list.push((['rouse', 'iron-wall', 'wind-forest'] as const)[b % 3]);
+  else if (leadership >= 75) list.push(b % 2 === 0 ? 'rouse' : 'iron-wall');
+
+  // ── Politics / civil-focused ──
+  if (politics >= 85 && war < 60) list.push((['court-debate', 'tongue-war', 'faction-manipulate'] as const)[b % 3]);
+  else if (politics >= 70 && war < 50) list.push('court-debate');
+
+  // ── Charisma ──
+  if (charisma >= 90 && intelligence >= 60) list.push((['protect-people', 'tongue-war'] as const)[b % 2]);
+  else if (charisma >= 80) list.push('rouse');
+
+  // ── Low-stat / mystic edge cases ──
+  if (war < 50 && intelligence < 50 && charisma >= 70) list.push('curse');
+  if (war < 40 && intelligence >= 80) list.push((['ride-clouds', 'gu-poison', 'maoshan-rite'] as const)[b % 3]);
+
+  // Defaults if still empty (very weak officers)
+  if (list.length === 0) list.push('charge');
+
+  // Dedupe, cap at 5 to keep the panel tidy.
+  return Array.from(new Set(list)).slice(0, 5);
 }
 
 // ──────────────────────────────────────────────────────────────────────
