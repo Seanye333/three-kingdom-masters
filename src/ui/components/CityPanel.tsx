@@ -96,24 +96,10 @@ export function CityPanel() {
       {/* City size badge — derived from population */}
       <CitySizeBadge city={city} />
 
-      {/* Open the per-city map (build slots, defensive structures) */}
-      <button
-        onClick={() => setShowCityMap(true)}
-        style={{
-          margin: '0 0 0.5rem 0',
-          width: '100%',
-          padding: '0.5rem',
-          background: 'linear-gradient(180deg, #3a2d20, #1f1610)',
-          border: '1px solid #d4a84a',
-          color: '#d4a84a',
-          fontFamily: 'inherit',
-          letterSpacing: '0.2rem',
-          cursor: 'pointer',
-          fontSize: '0.85rem',
-        }}
-      >
-        ★ 城邑地圖 · City Map ({(city.buildSlots ?? []).filter((s) => s.buildingId).length}/8)
-      </button>
+      {/* Inline mini-map preview — clicking opens the full screen.
+          Shows the city walls + 8 build slots so the player can see at a
+          glance what's built and what's not. */}
+      <CityMiniMap city={city} onClick={() => setShowCityMap(true)} />
 
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Resources</h3>
@@ -137,7 +123,7 @@ export function CityPanel() {
       {isPlayerCity && (
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>Orders 命令</h3>
-          <CommandMenu cityId={city.id} />
+          <CommandMenu cityId={city.id} onOpenCityMap={() => setShowCityMap(true)} />
         </section>
       )}
 
@@ -287,6 +273,91 @@ function Stat({ label, zh, value }: { label: string; zh: string; value: string }
       </span>
       <span className={styles.statValue}>{value}</span>
     </div>
+  );
+}
+
+/** Inline 8-slot mini map shown at the top of the CityPanel. Click to open full City Map. */
+function CityMiniMap({
+  city, onClick,
+}: { city: import('../../game/types').City; onClick: () => void }) {
+  // Dynamic import-style require would break SSR; import names at top of file are
+  // fine here since we already import DEFENSE_BUILDINGS in CityMapScreen.
+  // Use this lightweight reference for the slots.
+  const slots = city.buildSlots ?? [];
+  // Positions on a 160×160 mini grid (matches compass-rose layout).
+  const POS = [
+    { x: 80, y: 18  }, // N
+    { x: 130, y: 38 }, // NE
+    { x: 142, y: 80 }, // E
+    { x: 130, y: 122 }, // SE
+    { x: 80, y: 142 }, // S
+    { x: 30, y: 122 }, // SW
+    { x: 18, y: 80  }, // W
+    { x: 30, y: 38  }, // NW
+  ];
+  const slotMap = new Map(slots.map((s) => [s.slot, s]));
+  const builtCount = slots.filter((s) => s.buildingId).length;
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%',
+        background: 'linear-gradient(180deg, #2a1f15, #1a1408)',
+        border: '1px solid #d4a84a',
+        padding: '0.5rem',
+        margin: '0 0 0.5rem 0',
+        cursor: 'pointer',
+        display: 'flex',
+        gap: '0.6rem',
+        alignItems: 'center',
+        fontFamily: 'inherit',
+      }}
+      title="Click to open full city map — build outer defenses"
+    >
+      <svg width="80" height="80" viewBox="0 0 160 160" style={{ flexShrink: 0 }}>
+        {/* City walls in center */}
+        <rect x="62" y="62" width="36" height="36" fill="#5a4530" stroke="#d4a84a" strokeWidth="2" rx="2" />
+        <text x="80" y="86" textAnchor="middle" fontSize="14" fill="#f0e0b0" fontFamily="Songti SC, serif">
+          {city.name.zh[0]}
+        </text>
+        {/* 8 slot dots */}
+        {POS.map((p, idx) => {
+          const slot = slotMap.get(idx);
+          const built = !!slot?.buildingId;
+          return (
+            <g key={idx}>
+              <circle
+                cx={p.x} cy={p.y} r="9"
+                fill={built ? '#d4a84a' : 'none'}
+                stroke={built ? '#f0e0b0' : '#5a4530'}
+                strokeWidth="1.2"
+                strokeDasharray={built ? undefined : '2 2'}
+              />
+              {built && (
+                <text x={p.x} y={p.y + 1} textAnchor="middle" fontSize="8" fill="#1a1408" fontWeight="bold">
+                  {slot.level}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ textAlign: 'left', flex: 1 }}>
+        <div style={{
+          color: '#d4a84a', fontSize: '0.85rem',
+          letterSpacing: '0.2rem', fontWeight: 'bold',
+          fontFamily: 'var(--tkm-font-zh)',
+        }}>
+          ★ 城邑地圖
+        </div>
+        <div style={{ color: '#c0a878', fontSize: '0.68rem', letterSpacing: '0.1rem' }}>
+          {builtCount}/8 建築 · 城壁 Tier {city.wallTier ?? 1}
+        </div>
+        <div style={{ color: '#8a7050', fontSize: '0.6rem', marginTop: '0.15rem' }}>
+          點擊建造 箭樓 / 拒馬 / 鐵索 / 落石…
+        </div>
+      </div>
+    </button>
   );
 }
 

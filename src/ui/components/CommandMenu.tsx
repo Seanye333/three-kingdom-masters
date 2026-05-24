@@ -9,6 +9,8 @@ import styles from './CommandMenu.module.css';
 
 interface Props {
   cityId: EntityId;
+  /** Open the city's outer-perimeter defense map. */
+  onOpenCityMap?: () => void;
 }
 
 const INTERNAL_ORDER: InternalAffairsType[] = [
@@ -32,7 +34,7 @@ type ModalState =
   | { kind: 'internal'; type: InternalAffairsType }
   | { kind: 'march' };
 
-export function CommandMenu({ cityId }: Props) {
+export function CommandMenu({ cityId, onOpenCityMap }: Props) {
   const [modal, setModal] = useState<ModalState>({ kind: 'closed' });
   const city = useGameStore((s) => s.cities[cityId]);
   // Select the map by reference (stable) — filter inside useMemo to avoid creating
@@ -137,6 +139,18 @@ export function CommandMenu({ cityId }: Props) {
           <span className={styles.cmdLabelEn}>{marchDef.label.en}</span>
           <span className={styles.cmdCost}>{marchDef.goldCost}g</span>
         </button>
+        {onOpenCityMap && (
+          <button
+            className={styles.cmdButton}
+            onClick={onOpenCityMap}
+            title="Open city map — build outer defenses (箭樓 / 拒馬 / 鐵索 / 落石…)"
+            style={{ borderColor: '#d4a84a' }}
+          >
+            <span className={styles.cmdLabelZh}>★ 城邑地圖</span>
+            <span className={styles.cmdLabelEn}>City Map</span>
+            <span className={styles.cmdCost}>open</span>
+          </button>
+        )}
       </div>
 
       {modal.kind === 'internal' && (
