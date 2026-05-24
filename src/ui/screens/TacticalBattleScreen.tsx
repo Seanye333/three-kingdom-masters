@@ -87,11 +87,11 @@ function hexPoints(cx: number, cy: number, size = HEX_SIZE): string {
 }
 
 const TERRAIN_FILL: Record<TerrainKind, string> = {
-  plain: '#3a3525',
-  forest: '#2a4225',
-  mountain: '#4a3a30',
-  river: '#2c4a6a',
-  road: '#5a4530',
+  plain:    'url(#tkmPlainGrad)',
+  forest:   'url(#tkmForestGrad)',
+  mountain: 'url(#tkmMountainGrad)',
+  river:    'url(#tkmRiverGrad)',
+  road:     'url(#tkmRoadGrad)',
 };
 
 
@@ -121,6 +121,9 @@ export function TacticalBattleScreen() {
   const [voiceLine, setVoiceLine] = useState<{ text: string; key: number } | null>(null);
   const [duelResult, setDuelResult] = useState<DuelResult | null>(null);
   const [hoveredCoord, setHoveredCoord] = useState<HexCoord | null>(null);
+  // Visual effects: trails for recent moves, arcs for recent attacks.
+  const [moveTrails, setMoveTrails] = useState<{ id: number; from: HexCoord; to: HexCoord }[]>([]);
+  const [attackArcs, setAttackArcs] = useState<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged' }[]>([]);
 
   // Identify which side the player is on.
   const playerSide: 'attacker' | 'defender' | null = useMemo(() => {
@@ -198,12 +201,20 @@ export function TacticalBattleScreen() {
     if (!selected) return;
     // Mode-dependent dispatch.
     if (actionMode.kind === 'move' && canMove(battle, selected, c)) {
+      const fromCoord = selected.coord;
       start(moveUnit(battle, selected.id, c));
+      const tid = Date.now();
+      setMoveTrails((t) => [...t, { id: tid, from: fromCoord, to: c }]);
+      setTimeout(() => setMoveTrails((t) => t.filter((x) => x.id !== tid)), 900);
       setActionMode({ kind: 'none' });
       return;
     }
     if (actionMode.kind === 'attack' && u && u.side !== playerSide) {
       if (canAttack(battle, selected, u)) {
+        const kind: 'melee' | 'ranged' = selected.unitType === 'archers' || selected.unitType === 'siege' ? 'ranged' : 'melee';
+        const aid = Date.now();
+        setAttackArcs((a) => [...a, { id: aid, from: selected.coord, to: u.coord, kind }]);
+        setTimeout(() => setAttackArcs((a) => a.filter((x) => x.id !== aid)), 700);
         start(attackUnits(battle, selected.id, u.id, officers, Math.random));
         setActionMode({ kind: 'none' });
       }
@@ -462,6 +473,10 @@ export function TacticalBattleScreen() {
             height={svgHeight}
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           >
+            <MapDefs />
+            {/* Atmospheric backdrop — sky gradient + soft vignette behind the hex field */}
+            <rect width={svgWidth} height={svgHeight} fill="url(#tkmMapBg)" />
+            <rect width={svgWidth} height={svgHeight} fill="url(#tkmVignette)" pointerEvents="none" />
             {battle.tiles.map((t) => {
               const { x, y } = hexCenter(t.coord.col, t.coord.row);
               const isReachable =
@@ -508,6 +523,69 @@ export function TacticalBattleScreen() {
                 </g>
               );
             })}
+            {/* Movement trails — dotted line from previous coord to new coord */}
+            {moveTrails.map((t) => {
+              const a = hexCenter(t.from.col, t.from.row);
+              const b = hexCenter(t.to.col, t.to.row);
+              return (
+                <g key={`trail-${t.id}`} pointerEvents="none">
+                  <line
+                    x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                    stroke="#d4a84a"
+                    strokeWidth="2"
+                    strokeDasharray="3 3"
+                    opacity="0.85"
+                  >
+                    <animate attributeName="opacity" values="0.95;0" dur="0.9s" fill="freeze" />
+                  </line>
+                  <circle cx={a.x} cy={a.y} r="3" fill="#d4a84a">
+                    <animate attributeName="opacity" values="1;0" dur="0.9s" fill="freeze" />
+                  </circle>
+                </g>
+              );
+            })}
+            {/* Attack arcs — projectile for ranged, slash for melee */}
+            {attackArcs.map((a) => {
+              const p1 = hexCenter(a.from.col, a.from.row);
+              const p2 = hexCenter(a.to.col, a.to.row);
+              if (a.kind === 'ranged') {
+                const midX = (p1.x + p2.x) / 2;
+                const midY = (p1.y + p2.y) / 2 - 40;
+                return (
+                  <g key={`arc-${a.id}`} pointerEvents="none">
+                    <path
+                      d={`M ${p1.x} ${p1.y} Q ${midX} ${midY} ${p2.x} ${p2.y}`}
+                      stroke="#d4a84a"
+                      strokeWidth="1.5"
+                      fill="none"
+                      strokeDasharray="200"
+                      strokeDashoffset="200"
+                      opacity="0.9"
+                    >
+                      <animate attributeName="stroke-dashoffset" values="200;0" dur="0.4s" fill="freeze" />
+                      <animate attributeName="opacity" values="0.95;0" begin="0.4s" dur="0.3s" fill="freeze" />
+                    </path>
+                    <circle r="3" fill="#f0e0b0">
+                      <animateMotion path={`M ${p1.x} ${p1.y} Q ${midX} ${midY} ${p2.x} ${p2.y}`} dur="0.5s" fill="freeze" />
+                      <animate attributeName="opacity" values="1;1;0" dur="0.7s" fill="freeze" />
+                    </circle>
+                  </g>
+                );
+              }
+              return (
+                <g key={`arc-${a.id}`} pointerEvents="none">
+                  <line
+                    x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
+                    stroke="#ffb494"
+                    strokeWidth="3"
+                    opacity="0.85"
+                  >
+                    <animate attributeName="opacity" values="1;0" dur="0.6s" fill="freeze" />
+                    <animate attributeName="stroke-width" values="3;0.5" dur="0.6s" fill="freeze" />
+                  </line>
+                </g>
+              );
+            })}
             {battle.units.map((u) => {
               const { x, y } = hexCenter(u.coord.col, u.coord.row);
               const off = officers[u.officerId];
@@ -535,13 +613,30 @@ export function TacticalBattleScreen() {
                       <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.5s" repeatCount="indefinite" />
                     </circle>
                   )}
-                  {/* Shield base — large rounded rect with force color */}
+                  {/* Body — silhouette varies by unit type */}
                   <path
-                    d={shieldPath(x, y, HEX_SIZE * 0.75)}
+                    d={unitSilhouette(x, y, HEX_SIZE * 0.75, u.unitType)}
                     fill={color}
                     stroke={isSel ? '#d4a84a' : '#1a1410'}
                     strokeWidth={isSel ? 2.5 : 1.5}
                     opacity={0.92}
+                  />
+                  {/* Pennant flag on a pole — color matches side */}
+                  <line
+                    x1={x + HEX_SIZE * 0.5}
+                    y1={y - HEX_SIZE * 0.85}
+                    x2={x + HEX_SIZE * 0.5}
+                    y2={y - HEX_SIZE * 1.15}
+                    stroke="#1a1410"
+                    strokeWidth="0.8"
+                  />
+                  <path
+                    d={`M ${x + HEX_SIZE * 0.5} ${y - HEX_SIZE * 1.15}
+                        L ${x + HEX_SIZE * 0.95} ${y - HEX_SIZE * 1.05}
+                        L ${x + HEX_SIZE * 0.5} ${y - HEX_SIZE * 0.95} Z`}
+                    fill={color}
+                    stroke="#1a1410"
+                    strokeWidth="0.4"
                   />
                   {/* Unit-type weapon ornament */}
                   <UnitTypeIcon x={x} y={y} unitType={u.unitType} side={u.side} />
@@ -607,6 +702,9 @@ export function TacticalBattleScreen() {
                 </g>
               );
             })}
+            {/* Decorative map frame + compass overlay (rendered last so they sit on top) */}
+            <MapFrame width={svgWidth} height={svgHeight} />
+            <CompassRose x={svgWidth - 50} y={50} />
           </svg>
         </div>
 
@@ -841,49 +939,191 @@ function describeObjective(obj: BattleObjective): string {
 
 /** Terrain artwork — replaces the kanji glyph with a small SVG vignette. */
 function TerrainArt({ x, y, terrain }: { x: number; y: number; terrain: TerrainKind }) {
+  // Deterministic small jitter per coord so each hex looks slightly unique.
+  const jitter = ((x * 31 + y * 17) % 5) - 2;
+  const jitter2 = ((x * 13 + y * 23) % 5) - 2;
   switch (terrain) {
     case 'forest':
       return (
         <g pointerEvents="none">
-          {/* Pair of pines */}
-          <path d={`M ${x - 7} ${y + 7} L ${x - 4} ${y - 5} L ${x - 1} ${y + 7} Z`} fill="#1e3a1e" stroke="#0a0805" strokeWidth="0.4" />
-          <path d={`M ${x + 1} ${y + 7} L ${x + 4} ${y - 7} L ${x + 7} ${y + 7} Z`} fill="#1e3a1e" stroke="#0a0805" strokeWidth="0.4" />
+          {/* Layered canopy — back row (darker) */}
+          <ellipse cx={x - 5} cy={y + 2} rx="5" ry="4" fill="#152812" opacity="0.7" />
+          <ellipse cx={x + 5} cy={y + 1} rx="5" ry="4" fill="#152812" opacity="0.7" />
+          {/* Three pines with depth */}
+          <path d={`M ${x - 8 + jitter} ${y + 8} L ${x - 5 + jitter} ${y - 6} L ${x - 2 + jitter} ${y + 8} Z`} fill="#2d4a28" stroke="#0a1808" strokeWidth="0.5" />
+          <path d={`M ${x - 8 + jitter} ${y + 4} L ${x - 5 + jitter} ${y - 3} L ${x - 2 + jitter} ${y + 4} Z`} fill="#3a5a32" stroke="#0a1808" strokeWidth="0.3" opacity="0.85" />
+          <path d={`M ${x + 1 + jitter2} ${y + 8} L ${x + 4 + jitter2} ${y - 8} L ${x + 7 + jitter2} ${y + 8} Z`} fill="#2d4a28" stroke="#0a1808" strokeWidth="0.5" />
+          <path d={`M ${x + 1 + jitter2} ${y + 4} L ${x + 4 + jitter2} ${y - 4} L ${x + 7 + jitter2} ${y + 4} Z`} fill="#3a5a32" stroke="#0a1808" strokeWidth="0.3" opacity="0.85" />
+          {/* Trunk hints */}
+          <line x1={x - 5 + jitter} y1={y + 8} x2={x - 5 + jitter} y2={y + 10} stroke="#3a2818" strokeWidth="1" />
+          <line x1={x + 4 + jitter2} y1={y + 8} x2={x + 4 + jitter2} y2={y + 10} stroke="#3a2818" strokeWidth="1" />
         </g>
       );
     case 'mountain':
       return (
         <g pointerEvents="none">
-          {/* Two peaks */}
-          <path d={`M ${x - 9} ${y + 6} L ${x - 4} ${y - 7} L ${x} ${y + 2} L ${x + 4} ${y - 9} L ${x + 9} ${y + 6} Z`} fill="#4a3a30" stroke="#1a1410" strokeWidth="0.5" />
-          {/* Snow caps */}
-          <path d={`M ${x - 5} ${y - 4} L ${x - 4} ${y - 7} L ${x - 3} ${y - 4} Z`} fill="#e8d9b0" />
-          <path d={`M ${x + 3} ${y - 6} L ${x + 4} ${y - 9} L ${x + 5} ${y - 6} Z`} fill="#e8d9b0" />
+          {/* Shadow base */}
+          <ellipse cx={x} cy={y + 9} rx="11" ry="2.5" fill="rgba(0,0,0,0.35)" />
+          {/* Back peak (taller, in shadow) */}
+          <path d={`M ${x - 6} ${y + 7} L ${x - 1} ${y - 12} L ${x + 4} ${y + 7} Z`} fill="#3a2d20" stroke="#0a0805" strokeWidth="0.5" />
+          {/* Front peak (right, lighter face) */}
+          <path d={`M ${x - 2} ${y + 8} L ${x + 4} ${y - 6} L ${x + 10} ${y + 8} Z`} fill="#5a4530" stroke="#0a0805" strokeWidth="0.5" />
+          {/* Shadow side of front peak */}
+          <path d={`M ${x + 4} ${y - 6} L ${x + 10} ${y + 8} L ${x + 7} ${y + 8} Z`} fill="#3a2818" opacity="0.7" />
+          {/* Snow cap (back peak) */}
+          <path d={`M ${x - 2.5} ${y - 5} L ${x - 1} ${y - 12} L ${x + 0.5} ${y - 5} L ${x - 0.5} ${y - 3.5} L ${x - 1.5} ${y - 3.5} Z`} fill="#f0e0b0" stroke="#a89878" strokeWidth="0.2" />
+          {/* Snow cap (front peak, smaller) */}
+          <path d={`M ${x + 2.5} ${y - 2} L ${x + 4} ${y - 6} L ${x + 5.5} ${y - 2} Z`} fill="#f0e0b0" stroke="#a89878" strokeWidth="0.2" />
         </g>
       );
     case 'river':
       return (
-        <g pointerEvents="none" stroke="#4a8ab8" strokeWidth="0.9" fill="none">
-          <path d={`M ${x - 10} ${y - 2} Q ${x - 5} ${y - 5} ${x} ${y - 2} Q ${x + 5} ${y + 1} ${x + 10} ${y - 2}`} />
-          <path d={`M ${x - 10} ${y + 3} Q ${x - 5} ${y} ${x} ${y + 3} Q ${x + 5} ${y + 6} ${x + 10} ${y + 3}`} />
+        <g pointerEvents="none">
+          {/* Water highlight band */}
+          <ellipse cx={x} cy={y - 1} rx="11" ry="3" fill="#5a9bc8" opacity="0.4" />
+          {/* Wavelets — three rows for depth */}
+          <g stroke="#a8d4f0" strokeWidth="0.7" fill="none" opacity="0.95">
+            <path d={`M ${x - 11} ${y - 5} Q ${x - 5.5} ${y - 7} ${x} ${y - 5} Q ${x + 5.5} ${y - 3} ${x + 11} ${y - 5}`} />
+            <path d={`M ${x - 11} ${y} Q ${x - 5.5} ${y - 2.5} ${x} ${y} Q ${x + 5.5} ${y + 2.5} ${x + 11} ${y}`} />
+            <path d={`M ${x - 11} ${y + 5} Q ${x - 5.5} ${y + 2.5} ${x} ${y + 5} Q ${x + 5.5} ${y + 7.5} ${x + 11} ${y + 5}`} />
+          </g>
+          {/* Glint */}
+          <circle cx={x + jitter} cy={y - 3} r="1" fill="#f0f7ff" opacity="0.7" />
+          <circle cx={x + jitter2 - 4} cy={y + 3} r="0.8" fill="#f0f7ff" opacity="0.6" />
         </g>
       );
     case 'road':
       return (
         <g pointerEvents="none">
-          <line x1={x - 11} y1={y} x2={x + 11} y2={y} stroke="#3a2d20" strokeWidth="2" />
-          <line x1={x - 11} y1={y} x2={x + 11} y2={y} stroke="#a89878" strokeWidth="0.8" strokeDasharray="3 3" />
+          {/* Road bed */}
+          <rect x={x - 13} y={y - 4} width="26" height="8" fill="#5a4838" stroke="#3a2d20" strokeWidth="0.5" rx="1" />
+          {/* Cobblestones — small irregular blocks */}
+          <rect x={x - 11} y={y - 3} width="4" height="3" fill="#7a6750" opacity="0.6" />
+          <rect x={x - 6} y={y - 3} width="4" height="3" fill="#8a7560" opacity="0.55" />
+          <rect x={x - 1} y={y - 3} width="4" height="3" fill="#7a6750" opacity="0.6" />
+          <rect x={x + 4} y={y - 3} width="4" height="3" fill="#8a7560" opacity="0.55" />
+          <rect x={x - 11} y={y + 1} width="4" height="3" fill="#8a7560" opacity="0.55" />
+          <rect x={x - 6} y={y + 1} width="4" height="3" fill="#7a6750" opacity="0.6" />
+          <rect x={x - 1} y={y + 1} width="4" height="3" fill="#8a7560" opacity="0.55" />
+          <rect x={x + 4} y={y + 1} width="4" height="3" fill="#7a6750" opacity="0.6" />
+          {/* Worn center line */}
+          <line x1={x - 13} y1={y} x2={x + 13} y2={y} stroke="#3a2d20" strokeWidth="0.4" opacity="0.7" />
         </g>
       );
     case 'plain':
     default:
       return (
         <g pointerEvents="none">
-          {/* Faint grass tufts */}
-          <line x1={x - 5} y1={y + 4} x2={x - 5} y2={y + 1} stroke="#5a6535" strokeWidth="0.6" />
-          <line x1={x + 4} y1={y + 4} x2={x + 4} y2={y + 1} stroke="#5a6535" strokeWidth="0.6" />
+          {/* Scattered grass tufts (deterministic positions per hex) */}
+          <line x1={x - 7 + jitter}  y1={y + 5} x2={x - 7 + jitter}  y2={y + 1} stroke="#6a7a3a" strokeWidth="0.7" />
+          <line x1={x - 8 + jitter}  y1={y + 5} x2={x - 6 + jitter}  y2={y + 2} stroke="#5a6a30" strokeWidth="0.5" />
+          <line x1={x - 1 + jitter2} y1={y + 4} x2={x - 1 + jitter2} y2={y + 0} stroke="#6a7a3a" strokeWidth="0.7" />
+          <line x1={x + 5 + jitter2} y1={y + 6} x2={x + 5 + jitter2} y2={y + 1} stroke="#6a7a3a" strokeWidth="0.7" />
+          <line x1={x + 6 + jitter2} y1={y + 5} x2={x + 4 + jitter2} y2={y + 2} stroke="#5a6a30" strokeWidth="0.5" />
+          {/* Occasional small pebbles */}
+          {jitter > 0 && (
+            <circle cx={x - 3 + jitter} cy={y + 6} r="0.8" fill="#8a7050" opacity="0.6" />
+          )}
+          {jitter2 < 0 && (
+            <ellipse cx={x + 7 + jitter2} cy={y + 7} rx="1.2" ry="0.6" fill="#8a7050" opacity="0.5" />
+          )}
         </g>
       );
   }
+}
+
+/** SVG <defs>: gradients for each terrain, sky backdrop, vignette, drop shadow. */
+function MapDefs() {
+  return (
+    <defs>
+      <linearGradient id="tkmPlainGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#4a4530" />
+        <stop offset="100%" stopColor="#2a2515" />
+      </linearGradient>
+      <linearGradient id="tkmForestGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#3a5530" />
+        <stop offset="100%" stopColor="#1a2a18" />
+      </linearGradient>
+      <linearGradient id="tkmMountainGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#5a4838" />
+        <stop offset="100%" stopColor="#2a1f15" />
+      </linearGradient>
+      <linearGradient id="tkmRiverGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#3a6a98" />
+        <stop offset="50%" stopColor="#2c4a6a" />
+        <stop offset="100%" stopColor="#1a3050" />
+      </linearGradient>
+      <linearGradient id="tkmRoadGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#6a5538" />
+        <stop offset="100%" stopColor="#3a2818" />
+      </linearGradient>
+      {/* Sky backdrop — top horizon glow → deep night */}
+      <linearGradient id="tkmMapBg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stopColor="#1a1408" />
+        <stop offset="20%"  stopColor="#241810" />
+        <stop offset="100%" stopColor="#0a0805" />
+      </linearGradient>
+      {/* Soft vignette darkening corners */}
+      <radialGradient id="tkmVignette" cx="50%" cy="50%" r="65%">
+        <stop offset="60%"  stopColor="rgba(0,0,0,0)" />
+        <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
+      </radialGradient>
+      {/* Hex drop shadow filter — gives the field a sense of depth */}
+      <filter id="tkmHexShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="0.6" />
+      </filter>
+    </defs>
+  );
+}
+
+/** Decorative ornamental frame + corner brackets around the battlefield. */
+function MapFrame({ width, height }: { width: number; height: number }) {
+  const pad = 6;
+  const bracket = 24;
+  return (
+    <g pointerEvents="none">
+      {/* Outer thin border */}
+      <rect
+        x={pad} y={pad}
+        width={width - pad * 2} height={height - pad * 2}
+        fill="none"
+        stroke="#5a4530"
+        strokeWidth="0.6"
+        opacity="0.6"
+      />
+      {/* Four corner brackets — like a scroll's marks */}
+      {([
+        [pad, pad, 1, 1],
+        [width - pad, pad, -1, 1],
+        [pad, height - pad, 1, -1],
+        [width - pad, height - pad, -1, -1],
+      ] as Array<[number, number, number, number]>).map(([cx, cy, sx, sy], i) => (
+        <g key={i} stroke="#d4a84a" strokeWidth="1.4" fill="none" opacity="0.85">
+          <line x1={cx} y1={cy} x2={cx + bracket * sx} y2={cy} />
+          <line x1={cx} y1={cy} x2={cx} y2={cy + bracket * sy} />
+          <circle cx={cx + 2 * sx} cy={cy + 2 * sy} r="1.5" fill="#d4a84a" stroke="none" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** Compass rose in a corner — 4 cardinal points with a center diamond. */
+function CompassRose({ x, y }: { x: number; y: number }) {
+  const r = 18;
+  return (
+    <g pointerEvents="none" opacity="0.78">
+      <circle cx={x} cy={y} r={r} fill="rgba(20,14,8,0.6)" stroke="#5a4530" strokeWidth="0.6" />
+      <circle cx={x} cy={y} r={r - 3} fill="none" stroke="#3a2d20" strokeWidth="0.4" />
+      {/* N point (highlighted) */}
+      <path d={`M ${x} ${y - r + 2} L ${x - 3} ${y} L ${x} ${y + r - 2} L ${x + 3} ${y} Z`} fill="#d4a84a" opacity="0.85" />
+      <path d={`M ${x - r + 2} ${y} L ${x} ${y - 3} L ${x + r - 2} ${y} L ${x} ${y + 3} Z`} fill="#8a7050" opacity="0.6" />
+      {/* N label */}
+      <text x={x} y={y - r + 1} textAnchor="middle" fontSize="6" fill="#f0e0b0" fontFamily="Songti SC, serif" fontWeight="bold">N</text>
+      {/* Center dot */}
+      <circle cx={x} cy={y} r="1.2" fill="#f0e0b0" />
+    </g>
+  );
 }
 
 /**
@@ -897,6 +1137,58 @@ function shieldPath(cx: number, cy: number, r: number): string {
           L ${cx} ${cy + r * 0.95}
           L ${cx - r * 0.95} ${cy + r * 0.4}
           Z`;
+}
+
+/** Distinct silhouette per unit type — replaces shield for visual identity. */
+function unitSilhouette(cx: number, cy: number, r: number, unitType: UnitType): string {
+  switch (unitType) {
+    case 'cavalry':
+      // Kite shield — narrow pointed bottom, suggests a rider's profile.
+      return `M ${cx - r * 0.85} ${cy - r * 0.85}
+              L ${cx + r * 0.85} ${cy - r * 0.85}
+              L ${cx + r * 0.7}  ${cy + r * 0.3}
+              L ${cx}            ${cy + r * 1.05}
+              L ${cx - r * 0.7}  ${cy + r * 0.3}
+              Z`;
+    case 'archers':
+      // Curved half-moon (like a recurved bow drawn back).
+      return `M ${cx - r * 0.95} ${cy - r * 0.7}
+              Q ${cx} ${cy - r * 1.05} ${cx + r * 0.95} ${cy - r * 0.7}
+              Q ${cx + r * 0.8} ${cy + r * 0.3} ${cx} ${cy + r * 0.85}
+              Q ${cx - r * 0.8} ${cy + r * 0.3} ${cx - r * 0.95} ${cy - r * 0.7} Z`;
+    case 'spearmen':
+      // Tall narrow pavise with peaked top.
+      return `M ${cx - r * 0.7} ${cy - r * 0.7}
+              L ${cx}            ${cy - r * 1.05}
+              L ${cx + r * 0.7}  ${cy - r * 0.7}
+              L ${cx + r * 0.7}  ${cy + r * 0.85}
+              L ${cx - r * 0.7}  ${cy + r * 0.85} Z`;
+    case 'siege':
+      // Wide rectangular tower with crenellated top.
+      return `M ${cx - r * 1.0}  ${cy - r * 0.7}
+              L ${cx - r * 0.7}  ${cy - r * 0.7}
+              L ${cx - r * 0.7}  ${cy - r * 0.95}
+              L ${cx - r * 0.35} ${cy - r * 0.95}
+              L ${cx - r * 0.35} ${cy - r * 0.7}
+              L ${cx + r * 0.35} ${cy - r * 0.7}
+              L ${cx + r * 0.35} ${cy - r * 0.95}
+              L ${cx + r * 0.7}  ${cy - r * 0.95}
+              L ${cx + r * 0.7}  ${cy - r * 0.7}
+              L ${cx + r * 1.0}  ${cy - r * 0.7}
+              L ${cx + r * 1.0}  ${cy + r * 0.85}
+              L ${cx - r * 1.0}  ${cy + r * 0.85} Z`;
+    case 'navy':
+      // Ship hull silhouette — flat top, curved bottom.
+      return `M ${cx - r * 1.0}  ${cy - r * 0.7}
+              L ${cx + r * 1.0}  ${cy - r * 0.7}
+              L ${cx + r * 0.85} ${cy + r * 0.2}
+              Q ${cx}            ${cy + r * 1.0}
+                ${cx - r * 0.85} ${cy + r * 0.2}
+              Z`;
+    case 'infantry':
+    default:
+      return shieldPath(cx, cy, r);
+  }
 }
 
 /** Unit-type icon shown on the shield — weapon/horse/bow/ship etc. */

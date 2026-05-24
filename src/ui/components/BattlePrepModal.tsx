@@ -31,6 +31,65 @@ const UNIT_TYPE_LABEL: Record<UnitType, string> = {
   navy: '水 Navy',
 };
 
+// 5-dot normalized [0..1]² layout per formation — the commander is the gold dot (first).
+// Designed to suggest the formation's shape (V-spearhead for awl, wide arc for crane-wing, etc.).
+function formationLayout(id: FormationId): { x: number; y: number }[] {
+  const map: Partial<Record<FormationId, { x: number; y: number }[]>> = {
+    'fish-scale':        [{x:.5,y:.3},{x:.3,y:.5},{x:.5,y:.5},{x:.7,y:.5},{x:.5,y:.7}],
+    'eight-trigrams':    [{x:.5,y:.5},{x:.2,y:.3},{x:.8,y:.3},{x:.2,y:.7},{x:.8,y:.7}],
+    'arrow-tip':         [{x:.5,y:.15},{x:.35,y:.45},{x:.65,y:.45},{x:.2,y:.75},{x:.8,y:.75}],
+    'crane-wing':        [{x:.5,y:.55},{x:.15,y:.35},{x:.85,y:.35},{x:.25,y:.7},{x:.75,y:.7}],
+    'spread-out':        [{x:.1,y:.5},{x:.3,y:.5},{x:.5,y:.5},{x:.7,y:.5},{x:.9,y:.5}],
+    'awl':               [{x:.5,y:.15},{x:.4,y:.4},{x:.6,y:.4},{x:.3,y:.7},{x:.7,y:.7}],
+    'wheel':             [{x:.5,y:.5},{x:.5,y:.2},{x:.8,y:.5},{x:.5,y:.8},{x:.2,y:.5}],
+    'square':            [{x:.5,y:.5},{x:.3,y:.3},{x:.7,y:.3},{x:.3,y:.7},{x:.7,y:.7}],
+    'crescent-moon':     [{x:.5,y:.55},{x:.2,y:.4},{x:.35,y:.3},{x:.65,y:.3},{x:.8,y:.4}],
+    'wild-goose':        [{x:.5,y:.2},{x:.35,y:.4},{x:.65,y:.4},{x:.2,y:.65},{x:.8,y:.65}],
+    'trinity':           [{x:.5,y:.3},{x:.25,y:.65},{x:.75,y:.65},{x:.4,y:.85},{x:.6,y:.85}],
+    'back-to-water':     [{x:.5,y:.8},{x:.3,y:.55},{x:.5,y:.5},{x:.7,y:.55},{x:.5,y:.3}],
+    'ten-ambush':        [{x:.5,y:.5},{x:.15,y:.2},{x:.85,y:.2},{x:.15,y:.8},{x:.85,y:.8}],
+    'long-snake':        [{x:.5,y:.1},{x:.5,y:.3},{x:.5,y:.5},{x:.5,y:.7},{x:.5,y:.9}],
+    'crescent-withdraw': [{x:.5,y:.7},{x:.2,y:.55},{x:.35,y:.4},{x:.65,y:.4},{x:.8,y:.55}],
+    'yoke':              [{x:.5,y:.5},{x:.3,y:.3},{x:.7,y:.3},{x:.4,y:.75},{x:.6,y:.75}],
+    'armored-cart':      [{x:.5,y:.6},{x:.3,y:.45},{x:.7,y:.45},{x:.35,y:.8},{x:.65,y:.8}],
+    'seven-star':        [{x:.5,y:.45},{x:.25,y:.25},{x:.75,y:.25},{x:.2,y:.7},{x:.8,y:.7}],
+    'five-elements':     [{x:.5,y:.5},{x:.5,y:.2},{x:.8,y:.55},{x:.65,y:.85},{x:.2,y:.55}],
+    'four-symbols':      [{x:.5,y:.5},{x:.5,y:.2},{x:.8,y:.5},{x:.5,y:.8},{x:.2,y:.5}],
+    'rattan-armor':      [{x:.4,y:.3},{x:.6,y:.3},{x:.4,y:.55},{x:.6,y:.55},{x:.5,y:.8}],
+    'stacked':           [{x:.5,y:.25},{x:.5,y:.45},{x:.5,y:.6},{x:.35,y:.8},{x:.65,y:.8}],
+    'mandarin-duck':     [{x:.4,y:.4},{x:.6,y:.4},{x:.4,y:.65},{x:.6,y:.65},{x:.5,y:.85}],
+  };
+  return map[id] ?? [{x:.2,y:.5},{x:.35,y:.5},{x:.5,y:.5},{x:.65,y:.5},{x:.8,y:.5}];
+}
+
+function FormationDiagram({ id }: { id: FormationId }) {
+  const pts = formationLayout(id);
+  return (
+    <svg viewBox="0 0 100 60" style={{ width: '100%', height: 48, display: 'block' }}>
+      {/* Ground line */}
+      <line x1="0" y1="55" x2="100" y2="55" stroke="#4a3520" strokeWidth="0.5" strokeDasharray="2 2" />
+      {/* Unit dots: first dot = commander (gold star), rest = troops (small circles) */}
+      {pts.map((p, i) => {
+        const cx = p.x * 100;
+        const cy = p.y * 60;
+        if (i === 0) {
+          return (
+            <g key={i}>
+              <circle cx={cx} cy={cy} r="5.5" fill="#d4a84a" stroke="#1a1410" strokeWidth="0.8" />
+              <text x={cx} y={cy + 1.6} textAnchor="middle" fontSize="6" fill="#1a1410" fontWeight="bold">★</text>
+            </g>
+          );
+        }
+        return (
+          <circle key={i} cx={cx} cy={cy} r="3.8" fill="#7a9bd9" stroke="#1a1410" strokeWidth="0.6" />
+        );
+      })}
+      {/* Engagement arrow pointing up toward enemy */}
+      <path d="M 50 4 L 47 9 L 50 7 L 53 9 Z" fill="#b8442e" opacity="0.7" />
+    </svg>
+  );
+}
+
 export function BattlePrepModal({
   sourceCityId,
   targetCityId,
@@ -64,7 +123,7 @@ export function BattlePrepModal({
             o.status === 'idle',
         )
         .sort((a, b) => b.stats.war - a.stats.war)
-        .slice(0, 4),
+        .slice(0, 6),
     [officers, targetCityId, target?.ownerForceId],
   );
 
@@ -117,8 +176,8 @@ export function BattlePrepModal({
 
     const battle = setupTacticalBattle({
       cityId: target.id,
-      width: namedMap?.width ?? 10,
-      height: namedMap?.height ?? 7,
+      width: namedMap?.width ?? 14,
+      height: namedMap?.height ?? 10,
       attackerForceId: source.ownerForceId,
       defenderForceId: target.ownerForceId,
       attackers,
@@ -239,6 +298,7 @@ export function BattlePrepModal({
                       <span className={styles.formName}>{f.name.zh}</span>
                       <span className={styles.formNameEn}>{f.name.en}</span>
                     </div>
+                    <FormationDiagram id={f.id} />
                     <div className={styles.formDesc}>{f.description}</div>
                     <div style={{ fontSize: '0.65rem', color: '#8a7050' }}>
                       req INT {f.minIntelligence}

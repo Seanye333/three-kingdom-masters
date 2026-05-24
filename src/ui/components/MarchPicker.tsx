@@ -11,6 +11,8 @@ interface Props {
   onClose: () => void;
 }
 
+const MAX_COMPANIONS = 5;
+
 export function MarchPicker({ cityId, onClose }: Props) {
   const def = COMMAND_DEFS['march'];
   const issueMarch = useGameStore((s) => s.issueMarch);
@@ -56,7 +58,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
   const toggleAdditional = (id: EntityId) => {
     setAdditionalIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 2) return prev; // cap at 2
+      if (prev.length >= MAX_COMPANIONS) return prev;
       return [...prev, id];
     });
   };
@@ -187,14 +189,14 @@ export function MarchPicker({ cityId, onClose }: Props) {
 
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>
-            Accompanying Officers 副将 — {additionalIds.length} / 2
+            Accompanying Officers 副将 — {additionalIds.length} / {MAX_COMPANIONS}
           </h3>
           <div className={styles.officerGrid}>
             {officers
               .filter((o) => o.id !== officerId)
               .map((o) => {
                 const picked = additionalIds.includes(o.id);
-                const disabled = !picked && additionalIds.length >= 2;
+                const disabled = !picked && additionalIds.length >= MAX_COMPANIONS;
                 return (
                   <OfficerHoverCard key={o.id} officer={o}>
                     <button

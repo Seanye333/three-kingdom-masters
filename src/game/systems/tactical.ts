@@ -170,18 +170,25 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     pool: Array<{ officer: Officer; troops: number; unitType?: UnitType }>,
     side: 'attacker' | 'defender',
   ): TacticalUnit[] => {
-    const startCol = side === 'attacker' ? 0 : width - 1;
-    return pool.slice(0, Math.floor(height / 2) + 1).map((entry, i) => {
-      const row = Math.floor(height / 2) + (i % 2 === 0 ? -Math.floor(i / 2) : Math.floor((i + 1) / 2));
+    // Front column at the edge; back column one hex inland for larger armies.
+    const frontCol = side === 'attacker' ? 0 : width - 1;
+    const backCol  = side === 'attacker' ? 1 : width - 2;
+    // Front rank takes the most units height permits; overflow goes to back rank.
+    const frontRankCapacity = height; // can fill the whole column if needed
+    return pool.slice(0, frontRankCapacity * 2).map((entry, i) => {
+      const isBackRank = i >= frontRankCapacity;
+      const rankIndex = isBackRank ? i - frontRankCapacity : i;
+      // Interleave around the vertical center: 0, +1, -1, +2, -2, ...
+      const row = Math.floor(height / 2)
+        + (rankIndex % 2 === 0 ? -Math.floor(rankIndex / 2) : Math.floor((rankIndex + 1) / 2));
       const unitType = entry.unitType ?? inferUnitType(entry.officer);
-      // Cavalry get extra AP, siege get less.
       const maxAp = unitType === 'cavalry' ? 4 : unitType === 'siege' ? 2 : 3;
       return {
         id: `${side}-${entry.officer.id}`,
         officerId: entry.officer.id,
         side,
         coord: {
-          col: startCol,
+          col: isBackRank ? backCol : frontCol,
           row: Math.max(0, Math.min(height - 1, row)),
         },
         troops: entry.troops,

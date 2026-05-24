@@ -59,6 +59,37 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
   const aMoraleNow = currentPhase?.attackerMorale ?? battle.attackerMoraleEnd ?? 60;
   const dMoraleNow = currentPhase?.defenderMorale ?? battle.defenderMoraleEnd ?? 60;
 
+  // Distribute total casualties across phases so the troop counter ticks down each act.
+  // Heaviest fighting at mainEngagement, lighter in skirmish / pursuit, none in formation.
+  const phaseWeights: Record<string, number> = {
+    formation: 0,
+    skirmish: 0.18,
+    mainEngagement: 0.62,
+    pursuit: 0.2,
+  };
+  const cumulative = (upTo: number) => {
+    let aw = 0, dw = 0;
+    for (let i = 0; i <= upTo && i < phases.length; i++) {
+      aw += phaseWeights[phases[i].phase] ?? 0;
+      dw += phaseWeights[phases[i].phase] ?? 0;
+    }
+    return { aw, dw };
+  };
+  const fullA = phases.reduce((s, p) => s + (phaseWeights[p.phase] ?? 0), 0) || 1;
+  const fullD = fullA;
+  const idx = Math.min(step, phases.length - 1);
+  const { aw: aWeight, dw: dWeight } = isSummary ? { aw: fullA, dw: fullD } : cumulative(idx);
+  const aTroopsNow = Math.max(0, Math.round(battle.attacker.troops - (battle.attackerLosses * aWeight) / fullA));
+  const dTroopsNow = Math.max(0, Math.round(battle.defender.troops - (battle.defenderLosses * dWeight) / fullD));
+
+  // Per-phase casualty delta (for floating numbers).
+  const phaseAttackerLoss = currentPhase && !isSummary
+    ? Math.round((battle.attackerLosses * (phaseWeights[currentPhase.phase] ?? 0)) / fullA)
+    : 0;
+  const phaseDefenderLoss = currentPhase && !isSummary
+    ? Math.round((battle.defenderLosses * (phaseWeights[currentPhase.phase] ?? 0)) / fullD)
+    : 0;
+
   // Pick a victor's line when summary appears
   const victorLine = useMemo(() => {
     if (!isSummary) return null;
@@ -125,44 +156,50 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
 
         {/* Two armies */}
         <div style={{
-          display: 'grid', gridTemplateColumns: '1fr auto 1fr',
-          gap: '1rem', alignItems: 'center', marginBottom: '1.2rem',
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          gap: '1rem', alignItems: 'center', marginBottom: '0.6rem',
         }}>
-          {/* Attacker */}
           <ArmyPanel
             officer={attacker}
             force={aForce}
-            troops={battle.attacker.troops}
+            troops={aTroopsNow}
             morale={aMoraleNow}
             year={currentYear}
             align="left"
             winning={battle.attackerWins && isSummary}
           />
-
-          {/* Center clash icon */}
-          <div style={{
-            fontSize: '2rem',
-            color: 'var(--tkm-text-h2, #d4a84a)',
-            letterSpacing: '0.2rem',
-            textAlign: 'center',
-          }}>
-            {currentPhase?.phase === 'mainEngagement' ? (
-              <span className="tkm-clash">⚔</span>
-            ) : (
-              <span>⚔</span>
-            )}
-          </div>
-
-          {/* Defender */}
           <ArmyPanel
             officer={defender}
             force={dForce}
-            troops={battle.defender.troops}
+            troops={dTroopsNow}
             morale={dMoraleNow}
             year={currentYear}
             align="right"
             winning={!battle.attackerWins && isSummary}
           />
+        </div>
+
+        {/* Animated battlefield strip */}
+        <BattlefieldStrip
+          phase={currentPhase?.phase ?? 'formation'}
+          step={step}
+          attackerLosses={phaseAttackerLoss}
+          defenderLosses={phaseDefenderLoss}
+          flashKey={
+            (battle.stratagem?.succeeded && currentPhase?.phase === 'mainEngagement')
+              ? `s${step}` : null
+          }
+        />
+
+        {/* Phase progress dots */}
+        <div className="tkm-phase-dots">
+          {phases.map((_, i) => (
+            <div
+              key={i}
+              className={`tkm-phase-dot ${i === step ? 'active' : i < step ? 'past' : ''}`}
+            />
+          ))}
+          {isSummary && <div className="tkm-phase-dot active" />}
         </div>
 
         {/* Phase banner + narration */}
@@ -316,6 +353,112 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
             : `⟫ ${step + 1} / ${phases.length}  ·  點擊跳至下一幕`}
         </div>
       </div>
+    </div>
+  );
+}
+
+function BattlefieldStrip({
+  phase, step, attackerLosses, defenderLosses, flashKey,
+}: {
+  phase: 'formation' | 'skirmish' | 'mainEngagement' | 'pursuit';
+  step: number;
+  attackerLosses: number;
+  defenderLosses: number;
+  flashKey: string | null;
+}) {
+  // Layout: 6 silhouettes per side, marching in place.
+  // Position shifts by phase: formation = far apart, skirmish = closer + arrows fly,
+  // mainEngagement = interlocked (clash flash), pursuit = attackers chasing right.
+  const layout: Record<typeof phase, { aStart: number; aGap: number; dStart: number; dGap: number; cls: string }> = {
+    formation:      { aStart: 8,  aGap: 14, dStart: 70, dGap: 14, cls: '' },
+    skirmish:       { aStart: 16, aGap: 14, dStart: 60, dGap: 14, cls: '' },
+    mainEngagement: { aStart: 30, aGap: 8,  dStart: 50, dGap: 8,  cls: '' },
+    pursuit:        { aStart: 30, aGap: 11, dStart: 75, dGap: 14, cls: 'pursuit' },
+  } as never;
+  const cfg = layout[phase] ?? layout.formation;
+  const aGlyph = '人';
+  const dGlyph = '人';
+
+  return (
+    <div className="tkm-battlefield" key={`strip-${step}`}>
+      {flashKey && <div className="tkm-flash" key={flashKey} />}
+
+      {/* Attacker soldiers */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={`a-${i}`}
+          className={`tkm-soldier attacker ${phase === 'mainEngagement' ? 'tkm-advance-r' : ''}`}
+          style={{ left: `${cfg.aStart + i * cfg.aGap}%`, animationDelay: `${i * 0.08}s` }}
+        >
+          {aGlyph}
+        </div>
+      ))}
+      {/* Defender soldiers */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={`d-${i}`}
+          className={`tkm-soldier defender ${phase === 'mainEngagement' ? 'tkm-advance-l' : ''}`}
+          style={{ left: `${cfg.dStart + i * cfg.dGap}%`, animationDelay: `${i * 0.08}s` }}
+        >
+          {dGlyph}
+        </div>
+      ))}
+
+      {/* Arrow volley for skirmish */}
+      {phase === 'skirmish' && Array.from({ length: 8 }).map((_, i) => {
+        const fromLeft = i % 2 === 0;
+        const startY = 35 + (i % 3) * 6;
+        return (
+          <div
+            key={`arrow-${i}`}
+            className="tkm-arrow"
+            style={{
+              left: fromLeft ? '20%' : '70%',
+              top: `${startY}%`,
+              animationDelay: `${i * 0.08}s`,
+              ['--dx' as never]: fromLeft ? '180px' : '-180px',
+              ['--dy' as never]: '-10px',
+              ['--ang' as never]: fromLeft ? '-12deg' : '192deg',
+            } as React.CSSProperties}
+          />
+        );
+      })}
+
+      {/* Pursuit dust */}
+      {phase === 'pursuit' && Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={`dust-${i}`}
+          className="tkm-dust"
+          style={{
+            left: `${20 + i * 14}%`,
+            bottom: '10px',
+            animationDelay: `${i * 0.15}s`,
+          }}
+        />
+      ))}
+
+      {/* Clash icon for mainEngagement */}
+      {phase === 'mainEngagement' && (
+        <div style={{
+          position: 'absolute', left: '50%', top: '30%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '2.2rem', color: 'var(--tkm-warn, #d4a84a)',
+        }}>
+          <span className="tkm-clash">⚔</span>
+        </div>
+      )}
+
+      {/* Casualty floaters */}
+      {attackerLosses > 0 && (
+        <div className="tkm-casualty" style={{ left: '18%' }}>
+          −{attackerLosses.toLocaleString()}
+        </div>
+      )}
+      {defenderLosses > 0 && (
+        <div className="tkm-casualty" style={{ right: '18%' }}>
+          −{defenderLosses.toLocaleString()}
+        </div>
+      )}
     </div>
   );
 }

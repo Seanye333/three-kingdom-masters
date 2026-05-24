@@ -468,6 +468,162 @@ button:not(:disabled):active {
   animation: tkmFireWave 1.2s ease-out forwards;
 }
 
+/* ── BattleTheater: animated battlefield strip ─────────────────── */
+.tkm-battlefield {
+  position: relative;
+  height: 96px;
+  background:
+    linear-gradient(to bottom,
+      rgba(212, 168, 74, 0.05) 0%,
+      rgba(50, 38, 25, 0.4) 60%,
+      rgba(20, 14, 8, 0.85) 100%),
+    repeating-linear-gradient(90deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(74, 53, 32, 0.18) 19px,
+      transparent 20px);
+  border-top: 1px solid var(--tkm-border-soft, #3a2818);
+  border-bottom: 1px solid var(--tkm-border-soft, #3a2818);
+  overflow: hidden;
+}
+.tkm-battlefield::before {
+  /* horizon mountains silhouette */
+  content: '';
+  position: absolute;
+  inset: 0 0 30px 0;
+  background:
+    radial-gradient(ellipse at 15% 100%, rgba(80, 65, 45, 0.6) 0%, transparent 35%),
+    radial-gradient(ellipse at 50% 110%, rgba(60, 50, 35, 0.5) 0%, transparent 40%),
+    radial-gradient(ellipse at 85% 100%, rgba(80, 65, 45, 0.6) 0%, transparent 35%);
+  pointer-events: none;
+}
+
+.tkm-soldier {
+  position: absolute;
+  bottom: 14px;
+  width: 14px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--tkm-font-zh);
+  font-size: 12px;
+  color: var(--tkm-text-h1);
+  text-shadow: 0 0 3px rgba(0,0,0,0.9), 0 1px 0 rgba(0,0,0,0.7);
+  pointer-events: none;
+}
+.tkm-soldier.attacker { color: #ffb494; }
+.tkm-soldier.defender { color: #94beff; }
+
+@keyframes tkmMarchRight {
+  0%   { transform: translateX(0)    translateY(0); }
+  25%  { transform: translateX(0)    translateY(-2px); }
+  50%  { transform: translateX(2px)  translateY(0); }
+  75%  { transform: translateX(2px)  translateY(-2px); }
+  100% { transform: translateX(0)    translateY(0); }
+}
+@keyframes tkmMarchLeft {
+  0%   { transform: translateX(0)    translateY(0)    scaleX(-1); }
+  25%  { transform: translateX(0)    translateY(-2px) scaleX(-1); }
+  50%  { transform: translateX(-2px) translateY(0)    scaleX(-1); }
+  75%  { transform: translateX(-2px) translateY(-2px) scaleX(-1); }
+  100% { transform: translateX(0)    translateY(0)    scaleX(-1); }
+}
+.tkm-soldier.attacker { animation: tkmMarchRight 0.7s ease-in-out infinite; }
+.tkm-soldier.defender { animation: tkmMarchLeft  0.7s ease-in-out infinite; }
+
+/* Phase: closing-in advance */
+@keyframes tkmAdvanceRight { from { transform: translateX(-40px); } to { transform: translateX(0); } }
+@keyframes tkmAdvanceLeft  { from { transform: translateX(40px);  } to { transform: translateX(0); } }
+.tkm-advance-r { animation: tkmAdvanceRight 1.4s ease-out forwards; }
+.tkm-advance-l { animation: tkmAdvanceLeft  1.4s ease-out forwards; }
+
+/* Arrow volley */
+@keyframes tkmArrowFly {
+  0%   { transform: translateX(0)   translateY(0)   rotate(var(--ang, 0deg)); opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translateX(var(--dx, 100px)) translateY(var(--dy, -30px)) rotate(var(--ang, 0deg)); opacity: 0; }
+}
+.tkm-arrow {
+  position: absolute;
+  width: 14px;
+  height: 2px;
+  background: linear-gradient(to right, transparent 0%, #d4a84a 30%, #f0e0b0 100%);
+  pointer-events: none;
+  transform-origin: center;
+  animation: tkmArrowFly 0.9s ease-out forwards;
+}
+
+/* Pursuit dust cloud */
+@keyframes tkmDustPuff {
+  0%   { transform: scale(0.3); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.tkm-dust {
+  position: absolute;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180, 150, 110, 0.7) 0%, transparent 70%);
+  pointer-events: none;
+  animation: tkmDustPuff 0.8s ease-out forwards;
+}
+
+/* Mid-screen flash (stratagem success / city falls) */
+@keyframes tkmFlashWipe {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.tkm-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(255, 230, 140, 0.65) 0%, transparent 60%);
+  animation: tkmFlashWipe 0.7s ease-out forwards;
+}
+
+/* Casualty counter floats up */
+@keyframes tkmCasualtyFloat {
+  0%   { transform: translateY(8px); opacity: 0; }
+  25%  { transform: translateY(0);   opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(-20px); opacity: 0; }
+}
+.tkm-casualty {
+  position: absolute;
+  top: 6px;
+  font-family: var(--tkm-font-mono, ui-monospace, monospace);
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--tkm-danger, #b8442e);
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+  pointer-events: none;
+  animation: tkmCasualtyFloat 1.6s ease-out forwards;
+}
+
+/* Phase progress dots */
+.tkm-phase-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin: 0.5rem 0 0.2rem 0;
+}
+.tkm-phase-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tkm-border-soft, #3a2818);
+  transition: all 0.3s ease;
+}
+.tkm-phase-dot.active {
+  background: var(--tkm-text-h2, #d4a84a);
+  box-shadow: 0 0 6px var(--tkm-text-h2, #d4a84a);
+  transform: scale(1.3);
+}
+.tkm-phase-dot.past {
+  background: var(--tkm-text-muted, #8a7050);
+}
+
 /* Officer portrait base */
 .tkm-portrait {
   display: inline-block;

@@ -11,8 +11,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Red Cliffs', zh: '赤壁' },
     description:
       'A long Yangtze front. The northern fleet chained at the bank; the southern allies upstream. A wind from the south is the only hope.',
-    width: 12,
-    height: 8,
+    width: 15,
+    height: 11,
     weather: 'wind',
     timeOfDay: 'dusk',
     terrainOverrides: (() => {
@@ -43,8 +43,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Hulao Pass', zh: '虎牢關' },
     description:
       'The mountain chokepoint where Liu, Guan, and Zhang faced Lü Bu. A narrow road runs between sheer cliffs.',
-    width: 11,
-    height: 6,
+    width: 14,
+    height: 10,
     weather: 'clear',
     timeOfDay: 'day',
     terrainOverrides: (() => {
@@ -73,8 +73,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Changban Bridge', zh: '長坂橋' },
     description:
       'Liu Bei flees south; Zhang Fei holds the bridge alone, Zhao Yun rides through the Cao army. Civilians fill the road.',
-    width: 10,
-    height: 7,
+    width: 13,
+    height: 10,
     weather: 'clear',
     timeOfDay: 'day',
     terrainOverrides: (() => {
@@ -103,8 +103,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Wuzhang Plains', zh: '五丈原' },
     description:
       "Zhuge Liang's last campaign. A wide plain with the Wei river to the north. Sima Yi refuses every challenge.",
-    width: 11,
-    height: 7,
+    width: 14,
+    height: 10,
     weather: 'clear',
     timeOfDay: 'day',
     terrainOverrides: (() => {
@@ -128,8 +128,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Guandu', zh: '官渡' },
     description:
       "Cao Cao's smaller host faces Yuan Shao's massive army. Granaries at Wuchao are the key.",
-    width: 12,
-    height: 7,
+    width: 15,
+    height: 10,
     weather: 'clear',
     timeOfDay: 'day',
     terrainOverrides: (() => {
@@ -151,8 +151,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Maicheng', zh: '麥城' },
     description:
       "Guan Yu's last stand. A small walled town encircled by Wu forces; his only path west is cut by Lü Meng's cavalry.",
-    width: 9,
-    height: 6,
+    width: 12,
+    height: 9,
     weather: 'rain',
     timeOfDay: 'dusk',
     terrainOverrides: (() => {
@@ -175,8 +175,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Fancheng', zh: '樊城' },
     description:
       "Guan Yu's siege of Cao's general Cao Ren. The Han river overflowed; Guan dammed it to drown Yu Jin's seven armies.",
-    width: 11,
-    height: 7,
+    width: 14,
+    height: 10,
     weather: 'rain',
     timeOfDay: 'day',
     terrainOverrides: (() => {
@@ -201,8 +201,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Mt. Dingjun', zh: '定軍山' },
     description:
       "Huang Zhong's miracle. A tall mountain over the Hanzhong corridor where the old general struck down Xiahou Yuan in a single charge.",
-    width: 10,
-    height: 8,
+    width: 13,
+    height: 11,
     weather: 'clear',
     timeOfDay: 'dawn',
     terrainOverrides: (() => {
@@ -225,8 +225,8 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     name: { en: 'Jieting', zh: '街亭' },
     description:
       'The strategic chokepoint Ma Su lost — by camping atop the hill instead of holding the road below. Sima Yi cut off his water and broke him.',
-    width: 10,
-    height: 6,
+    width: 13,
+    height: 9,
     weather: 'clear',
     timeOfDay: 'day',
     terrainOverrides: (() => {
