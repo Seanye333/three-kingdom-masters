@@ -50,6 +50,7 @@ import {
 } from '../systems/officerFate';
 import { resolveSeason } from '../systems/resolution';
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
+import { DEFENSE_BUILDINGS } from '../data/defenseBuildings';
 import { awardBattleXp } from '../systems/growth';
 import { tickBuildings } from '../systems/buildings';
 import { evaluateCoalition } from '../systems/coalition';
@@ -129,6 +130,14 @@ interface GameStore extends GameState {
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
   cancelCommand: (cityId: EntityId) => void;
+  /** Build or upgrade a defense structure at a city's perimeter slot. */
+  buildDefenseStructure: (
+    cityId: EntityId,
+    slot: number,
+    buildingId: import('../data/defenseBuildings').DefenseBuildingId,
+  ) => { ok: boolean; reason?: string };
+  upgradeDefenseStructure: (cityId: EntityId, slot: number) => { ok: boolean; reason?: string };
+  demolishDefenseStructure: (cityId: EntityId, slot: number) => void;
   endSeason: () => void;
   dismissReport: () => void;
   dismissBattleTheater: () => void;
@@ -421,6 +430,77 @@ export const useGameStore = create<GameStore>()(
             : state.cities,
           officers: officersUpdate,
           pendingCommands: next,
+        });
+      },
+
+      buildDefenseStructure: (cityId, slot, buildingId) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city) return { ok: false, reason: 'no city' };
+        if (city.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'not your city' };
+        if (slot < 0 || slot > 7) return { ok: false, reason: 'invalid slot' };
+const def = DEFENSE_BUILDINGS[buildingId];
+        if (!def) return { ok: false, reason: 'unknown building' };
+        if (def.requiresTerrain === 'river' && !city.port)
+          return { ok: false, reason: 'requires river/port city' };
+        if (def.requiresTerrain === 'mountain' && city.terrain !== 'mountain')
+          return { ok: false, reason: 'requires mountain terrain' };
+        if (city.gold < def.goldCost) return { ok: false, reason: 'not enough gold' };
+        const slots = city.buildSlots ?? [];
+        const existingIdx = slots.findIndex((s) => s.slot === slot);
+        if (existingIdx >= 0 && slots[existingIdx].buildingId)
+          return { ok: false, reason: 'slot already built' };
+        const newSlot = { slot, buildingId, level: 1 } as import('../types').BuildSlot;
+        const newSlots = existingIdx >= 0
+          ? slots.map((s, i) => (i === existingIdx ? newSlot : s))
+          : [...slots, newSlot];
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - def.goldCost, buildSlots: newSlots },
+          },
+        });
+        return { ok: true };
+      },
+
+      upgradeDefenseStructure: (cityId, slot) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city) return { ok: false, reason: 'no city' };
+        if (city.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'not your city' };
+        const slots = city.buildSlots ?? [];
+        const idx = slots.findIndex((s) => s.slot === slot);
+        if (idx < 0 || !slots[idx].buildingId)
+          return { ok: false, reason: 'nothing to upgrade' };
+        const current = slots[idx];
+const def = DEFENSE_BUILDINGS[current.buildingId!];
+        if (current.level >= def.maxLevel)
+          return { ok: false, reason: 'already at max level' };
+        // Upgrade cost = base cost × (current level + 1).
+        const upgradeCost = def.goldCost * (current.level + 1);
+        if (city.gold < upgradeCost) return { ok: false, reason: 'not enough gold' };
+        const newSlots = slots.map((s, i) =>
+          i === idx ? { ...s, level: s.level + 1 } : s,
+        );
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - upgradeCost, buildSlots: newSlots },
+          },
+        });
+        return { ok: true };
+      },
+
+      demolishDefenseStructure: (cityId, slot) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city || city.ownerForceId !== state.playerForceId) return;
+        const slots = city.buildSlots ?? [];
+        const newSlots = slots.filter((s) => s.slot !== slot);
+        set({
+          cities: { ...state.cities, [cityId]: { ...city, buildSlots: newSlots } },
         });
       },
 

@@ -4,6 +4,7 @@ import { COMMAND_DEFS } from '../../game/systems/commands';
 import { cityPolicyEffects } from '../../game/systems/policyEffects';
 import { citySize, nextTierPop } from '../../game/systems/citySize';
 import type { EntityId, Officer } from '../../game/types';
+import { CityMapScreen } from '../screens/CityMapScreen';
 import { BuildingsPanel } from './BuildingsPanel';
 import { CaptivesSection } from './CaptivesSection';
 import { CommandMenu } from './CommandMenu';
@@ -44,6 +45,7 @@ export function CityPanel() {
   }
 
   const isPlayerCity = city.ownerForceId === playerForceId;
+  const [showCityMap, setShowCityMap] = useState(false);
 
   return (
     <aside className={styles.root}>
@@ -92,6 +94,25 @@ export function CityPanel() {
 
       {/* City size badge — derived from population */}
       <CitySizeBadge city={city} />
+
+      {/* Open the per-city map (build slots, defensive structures) */}
+      <button
+        onClick={() => setShowCityMap(true)}
+        style={{
+          margin: '0 0 0.5rem 0',
+          width: '100%',
+          padding: '0.5rem',
+          background: 'linear-gradient(180deg, #3a2d20, #1f1610)',
+          border: '1px solid #d4a84a',
+          color: '#d4a84a',
+          fontFamily: 'inherit',
+          letterSpacing: '0.2rem',
+          cursor: 'pointer',
+          fontSize: '0.85rem',
+        }}
+      >
+        ★ 城邑地圖 · City Map ({(city.buildSlots ?? []).filter((s) => s.buildingId).length}/8)
+      </button>
 
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Resources</h3>
@@ -144,6 +165,9 @@ export function CityPanel() {
           </ul>
         )}
       </section>
+      {showCityMap && (
+        <CityMapScreen cityId={city.id} onClose={() => setShowCityMap(false)} />
+      )}
     </aside>
   );
 }

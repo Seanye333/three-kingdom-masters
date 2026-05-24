@@ -22,6 +22,7 @@ import {
   type StratagemEffect,
 } from '../data/stratagems2';
 import { combatPolicyEffects, cityPolicyEffects } from './policyEffects';
+import { aggregateSlotEffects } from '../data/defenseBuildings';
 import type { Weather } from './weather';
 
 /** Helper: compute combat-context policy effects for a side. */
@@ -144,6 +145,8 @@ export interface BattleContext {
   weather?: Weather;
   /** If true, attacker may pursue retreating enemy after win. */
   allowPursuit?: boolean;
+  /** Multiplier on attacker damage from city defensive structures (烽火台 etc.). <1 = attacker hits softer. */
+  attackerDamageMul?: number;
 }
 
 export function resolveBattle(
@@ -344,12 +347,16 @@ export function resolveBattle(
   const variance = (rng() - 0.5) * 0.15;
   // Casualties: own losses scale with own's "ownLossMultiplier" (lower=better),
   // plus the enemy's "enemyLossMultiplier" (higher=worse for us).
+  // Defensive structures on the perimeter make the attacker take more damage.
+  // (attackerDamageMul < 1 = attacker hits softer → defender takes less → attacker takes MORE proportionally)
+  const structureAttackerLossBoost = ctx?.attackerDamageMul ? 1 / Math.max(0.5, ctx.attackerDamageMul) : 1;
   const aLossRate = clamp01(
     (dRatio + variance) *
       aSkillEffects.ownLossMultiplier *
       dSkillEffects.enemyLossMultiplier *
       aEliteOwnLoss *
-      (stratEffect.ownLossMul ?? 1),
+      (stratEffect.ownLossMul ?? 1) *
+      structureAttackerLossBoost,
   );
   const dLossRate = clamp01(
     (aRatio - variance) *
@@ -666,10 +673,15 @@ export function handleMarch(
     const eff = cityPolicyEffects(target, cityResidents);
     return eff.defenseBonus;
   })();
-  const effectiveDefense = target.defense + defenseBonusFromPolicy;
+  // Defense structures built on the city's perimeter (箭樓/拒馬/鐵索/...).
+  const slotEffects = aggregateSlotEffects(target.buildSlots ?? []);
+  const effectiveDefense = target.defense + defenseBonusFromPolicy + slotEffects.defenseBonus;
+
+  // Watchtower / arrow-platform / rockfall pre-strike the attacker before battle math.
+  const adjustedAttackerTroops = Math.max(0, sentTroops - slotEffects.rangedPrestrike);
 
   const result = resolveBattle(
-    { troops: sentTroops, commander, companions },
+    { troops: adjustedAttackerTroops, commander, companions },
     {
       troops: target.troops,
       commander: defenderCommander,
@@ -677,8 +689,17 @@ export function handleMarch(
     },
     effectiveDefense,
     ctx.rng,
-    { city: target, weather: ctx.weather, allowPursuit: true },
+    {
+      city: target,
+      weather: ctx.weather,
+      allowPursuit: true,
+      attackerDamageMul: slotEffects.attackerDamageMul,
+    },
   );
+  // Account for the prestrike in the casualty report.
+  if (slotEffects.rangedPrestrike > 0) {
+    result.attackerLosses += slotEffects.rangedPrestrike;
+  }
 
   // Wounded officers: apply 'wounded' status with recovery countdown.
   if (result.wounded) {
