@@ -104,12 +104,17 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // 2. Economy tick per city — only on season boundary (every 9 periods).
   if (seasonBoundary)
   for (const city of Object.values(cities)) {
-    const tick = tickCityEconomy(city, input.date.season);
+    // Gather officers stationed in this city for policy effect aggregation.
+    const cityOfficers = Object.values(officers).filter(
+      (o) => o.locationCityId === city.id && o.status !== 'dead' && o.status !== 'unsearched',
+    );
+    const tick = tickCityEconomy(city, input.date.season, cityOfficers);
     const updated: City = {
       ...city,
       gold: city.gold + tick.goldIncome,
       food: Math.max(0, city.food + tick.foodIncome - tick.foodUpkeep),
       troops: Math.max(0, city.troops - tick.desertion),
+      loyalty: Math.max(0, Math.min(100, city.loyalty + tick.loyaltyDelta)),
     };
     cities[city.id] = updated;
 
@@ -119,7 +124,14 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         kind: 'income',
         text: `${city.name.en}: +${tick.goldIncome} gold${
           tick.foodIncome ? `, +${tick.foodIncome} food (harvest)` : ''
-        }.`,
+        }${tick.policyBadges.length ? ` · ${tick.policyBadges.slice(0, 2).join(' · ')}` : ''}.`,
+      });
+    }
+    if (tick.loyaltyDelta !== 0) {
+      entries.push({
+        cityId: city.id,
+        kind: tick.loyaltyDelta > 0 ? 'income' : 'desertion',
+        text: `${city.name.en}: 民忠 ${tick.loyaltyDelta > 0 ? '+' : ''}${tick.loyaltyDelta} (policy effect).`,
       });
     }
     if (tick.foodUpkeep > 0) {

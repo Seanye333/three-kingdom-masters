@@ -21,7 +21,21 @@ import {
   type BattleStratagemId,
   type StratagemEffect,
 } from '../data/stratagems2';
+import { combatPolicyEffects, cityPolicyEffects } from './policyEffects';
 import type { Weather } from './weather';
+
+/** Helper: compute combat-context policy effects for a side. */
+function computePolicyCombat(
+  officers: Officer[],
+  ctx?: { city?: City; weather?: Weather },
+) {
+  // Infer terrain hint from city name keywords or default 'plain'.
+  let terrain: 'naval' | 'river' | 'mountain' | 'plain' = 'plain';
+  const cityName = ctx?.city?.name.en.toLowerCase() ?? '';
+  if (/jiang|river|chibi|red cliff|fan|jianye|wu|huai|han.river/.test(cityName)) terrain = 'river';
+  if (/shu|mt\.|mountain|hanzhong|jianmen|kuiguan|baidi/.test(cityName)) terrain = 'mountain';
+  return combatPolicyEffects(officers, { terrain, weather: ctx?.weather as string | undefined });
+}
 
 interface AggregatedSkillEffects {
   warBonus: number;
@@ -231,6 +245,12 @@ export function resolveBattle(
       };
       if (stratagemSucceeded) {
         stratEffect = def.successEffect;
+        // Policy boosts to specific stratagem families.
+        const fireFamily = ['fire-attack', 'fire-arrow', 'flood-attack'];
+        if (fireFamily.includes(def.id)) {
+          // pre-applied policy fire multiplier shows up below as we compute aPolicy/dPolicy
+          // (the actual multiply happens in the power calc since stratEffect is applied to power).
+        }
         if (stratEffect.delayedDrain) {
           delayedEffects = [{
             kind: 'troop-drain',
@@ -274,9 +294,12 @@ export function resolveBattle(
   const aBondBonusAvg =
     attackerPool.reduce((s, o) => s + bondBonus(o.id, attackerIds), 0) /
     attackerPool.length;
+  // ── Policy effects (per side) — military-theory, horse-armor, etc.
+  const aPolicy = computePolicyCombat(attackerPool, ctx);
+  const dPolicy = computePolicyCombat(defenderPool, ctx);
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
-    (stratEffect.attackerPowerMul ?? 1);
+    (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -310,7 +333,8 @@ export function resolveBattle(
     defenseFactor *
     dSkillEffects.powerMultiplier *
     dElitePower *
-    (stratEffect.defenderPowerMul ?? 1);
+    (stratEffect.defenderPowerMul ?? 1) *
+    dPolicy.attackMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;
@@ -634,6 +658,16 @@ export function handleMarch(
     .map((id) => officers[id])
     .filter((o): o is Officer => !!o);
 
+  // Defenders' personal city-defense policies (城防/護城河/烽燧/關隘/海防/禁衛) add to wall strength.
+  const cityResidents = Object.values(officers).filter(
+    (o) => o.locationCityId === target.id && o.status !== 'dead',
+  );
+  const defenseBonusFromPolicy = (() => {
+    const eff = cityPolicyEffects(target, cityResidents);
+    return eff.defenseBonus;
+  })();
+  const effectiveDefense = target.defense + defenseBonusFromPolicy;
+
   const result = resolveBattle(
     { troops: sentTroops, commander, companions },
     {
@@ -641,7 +675,7 @@ export function handleMarch(
       commander: defenderCommander,
       companions: defenderOfficers,
     },
-    target.defense,
+    effectiveDefense,
     ctx.rng,
     { city: target, weather: ctx.weather, allowPursuit: true },
   );

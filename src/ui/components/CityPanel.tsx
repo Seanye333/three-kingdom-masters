@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
+import { cityPolicyEffects } from '../../game/systems/policyEffects';
 import type { EntityId, Officer } from '../../game/types';
 import { BuildingsPanel } from './BuildingsPanel';
 import { CaptivesSection } from './CaptivesSection';
@@ -103,6 +104,9 @@ export function CityPanel() {
         <Bar label="Defense" zh="守備" value={city.defense} />
         <Bar label="Loyalty" zh="民忠" value={city.loyalty} />
       </section>
+
+      {/* Active policy effects from resident officers — REAL gameplay impact */}
+      <PolicyEffectsSection city={city} cityOfficers={officers} />
 
       {isPlayerCity && (
         <section className={styles.section}>
@@ -273,5 +277,44 @@ function Bar({ label, zh, value }: { label: string; zh: string; value: number })
         />
       </div>
     </div>
+  );
+}
+
+function PolicyEffectsSection({
+  city, cityOfficers,
+}: { city: import('../../game/types').City; cityOfficers: Officer[] }) {
+  const eff = cityPolicyEffects(city, cityOfficers);
+  if (eff.badges.length === 0) return null;
+  return (
+    <section className={styles.section}>
+      <h3 className={styles.sectionTitle}>★ 政策效果 Policy Effects</h3>
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', gap: '0.3rem',
+        fontSize: '0.7rem',
+      }}>
+        {eff.badges.map((b, i) => (
+          <span
+            key={i}
+            style={{
+              padding: '0.18rem 0.45rem',
+              background: 'rgba(212, 168, 74, 0.12)',
+              border: '1px solid rgba(212, 168, 74, 0.4)',
+              color: '#d4a84a',
+              borderRadius: '2px',
+              letterSpacing: '0.05rem',
+              fontFamily: 'var(--tkm-font-zh)',
+            }}
+          >
+            {b}
+          </span>
+        ))}
+      </div>
+      <div style={{
+        marginTop: '0.4rem', fontSize: '0.65rem', color: '#8a7050',
+        letterSpacing: '0.1rem',
+      }}>
+        {cityOfficers.length} 武將在城 · 政策由其個人專業聚合而成
+      </div>
+    </section>
   );
 }
