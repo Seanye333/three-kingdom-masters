@@ -36,6 +36,8 @@ export function CityPanel() {
     [officersMap, selectedCityId, city?.ownerForceId],
   );
 
+  const [showCityMap, setShowCityMap] = useState(false);
+
   if (!city) {
     return (
       <aside className={styles.root}>
@@ -45,7 +47,6 @@ export function CityPanel() {
   }
 
   const isPlayerCity = city.ownerForceId === playerForceId;
-  const [showCityMap, setShowCityMap] = useState(false);
 
   return (
     <aside className={styles.root}>
