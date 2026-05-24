@@ -137,6 +137,58 @@ const TERRAIN_RNG_SEED = (cityId: string) => {
   };
 };
 
+/**
+ * Peace-time preview of the same battlefield a tactical battle would use,
+ * without any units. Used by CityMapScreen to show players where their
+ * defense structures will appear in actual combat.
+ */
+export interface BattlefieldPreview {
+  width: number;
+  height: number;
+  tiles: TacticalTile[];
+  weather: Weather;
+  timeOfDay: TimeOfDay;
+  specialTiles: NamedBattleMap['specialTiles'];
+  /** Hex coords where the 8 build slots map to. */
+  slotPositions: HexCoord[];
+  namedMapName?: { zh: string; en: string };
+}
+
+export function previewBattlefield(cityId: EntityId, fallbackWidth = 14, fallbackHeight = 10): BattlefieldPreview {
+  const namedMapId = NAMED_MAPS_BY_CITY[cityId];
+  const namedMap: NamedBattleMap | undefined = namedMapId
+    ? NAMED_MAPS_BY_ID[namedMapId]
+    : undefined;
+  const width = namedMap?.width ?? fallbackWidth;
+  const height = namedMap?.height ?? fallbackHeight;
+  const rng = TERRAIN_RNG_SEED(cityId);
+  const tiles: TacticalTile[] = [];
+  for (let row = 0; row < height; row++) {
+    for (let col = 0; col < width; col++) {
+      const key = `${col},${row}`;
+      let terrain: TerrainKind = 'plain';
+      if (namedMap?.terrainOverrides[key]) {
+        terrain = namedMap.terrainOverrides[key];
+      } else {
+        const r = rng();
+        if (r < 0.08) terrain = 'mountain';
+        else if (r < 0.22) terrain = 'forest';
+        else if (r < 0.28) terrain = 'river';
+        else if (row === Math.floor(height / 2) && r < 0.5) terrain = 'road';
+      }
+      tiles.push({ coord: { col, row }, terrain });
+    }
+  }
+  return {
+    width, height, tiles,
+    weather: namedMap?.weather ?? 'clear',
+    timeOfDay: namedMap?.timeOfDay ?? 'day',
+    specialTiles: namedMap?.specialTiles ?? [],
+    slotPositions: computeSlotPositions(width, height),
+    namedMapName: namedMap?.name,
+  };
+}
+
 export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   // Named map override?
   const namedMapId = p.namedMapId ?? NAMED_MAPS_BY_CITY[p.cityId];
@@ -276,7 +328,7 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
  * Maps the 8 compass-rose slot indices (N/NE/E/SE/S/SW/W/NW) to hex coords
  * on the defender's side of the battlefield (rightmost 2 columns).
  */
-function computeSlotPositions(width: number, height: number): HexCoord[] {
+export function computeSlotPositions(width: number, height: number): HexCoord[] {
   const colA = width - 1;       // defender's edge column
   const colB = Math.max(0, width - 2); // one hex inland
   const rows = {
