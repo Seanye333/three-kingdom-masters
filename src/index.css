@@ -624,6 +624,62 @@ button:not(:disabled):active {
   background: var(--tkm-text-muted, #8a7050);
 }
 
+/* ── Hex map animations: water waves + tree sway + hover glow ──────── */
+
+/* River hex: gentle continuous wave motion */
+@keyframes tkmHexWave {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(1.5px); }
+}
+.tkm-hex-wave {
+  animation: tkmHexWave 3.2s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Forest hex: subtle sway like wind */
+@keyframes tkmHexSway {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(0.6deg); }
+}
+.tkm-hex-sway {
+  animation: tkmHexSway 4.5s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Water glint: subtle twinkle */
+@keyframes tkmGlint {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+.tkm-glint {
+  animation: tkmGlint 1.8s ease-in-out infinite;
+}
+
+/* Hover glow on interactive hex polygons. */
+.tkm-hex-interactive {
+  cursor: pointer;
+  transition: filter 0.18s ease-out, transform 0.18s ease-out;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.tkm-hex-interactive:hover {
+  filter: drop-shadow(0 0 4px #f0e0b0) drop-shadow(0 0 2px #d4a84a);
+  transform: scale(1.04);
+}
+
+/* Pennant flag: slight wave animation. */
+@keyframes tkmPennant {
+  0%, 100% { transform: skewY(0deg) scaleX(1); }
+  50%      { transform: skewY(-2deg) scaleX(0.95); }
+}
+.tkm-pennant {
+  animation: tkmPennant 2.2s ease-in-out infinite;
+  transform-origin: left center;
+  transform-box: fill-box;
+}
+
 /* Officer portrait base */
 .tkm-portrait {
   display: inline-block;

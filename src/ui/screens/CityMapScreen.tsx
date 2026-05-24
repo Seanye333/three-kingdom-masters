@@ -8,7 +8,8 @@ import {
 } from '../../game/data/defenseBuildings';
 import { previewBattlefield } from '../../game/systems/tactical';
 import { citySize } from '../../game/systems/citySize';
-import type { City, EntityId, TerrainKind } from '../../game/types';
+import type { City, EntityId } from '../../game/types';
+import { MapDefs, MapFrame, CompassRose, TerrainArt, TERRAIN_FILL_URL } from '../components/hexMapShared';
 
 /**
  * Full-screen city map — renders the SAME hex battlefield that tactical
@@ -38,13 +39,6 @@ function hexPoints(cx: number, cy: number, size = HEX_SIZE): string {
   return pts.join(' ');
 }
 
-const TERRAIN_FILL: Record<TerrainKind, string> = {
-  plain:    '#3a3525',
-  forest:   '#2a4225',
-  mountain: '#4a3a30',
-  river:    '#2c4a6a',
-  road:     '#5a4530',
-};
 
 export function CityMapScreen({ cityId, onClose }: { cityId: EntityId; onClose: () => void }) {
   const city = useGameStore((s) => s.cities[cityId]);
@@ -169,6 +163,10 @@ export function CityMapScreen({ cityId, onClose }: { cityId: EntityId; onClose: 
               'linear-gradient(180deg, #1a1408 0%, #0a0805 100%)',
           }}>
             <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
+              <MapDefs />
+              {/* Sky backdrop + vignette */}
+              <rect width={svgWidth} height={svgHeight} fill="url(#tkmMapBg)" />
+              <rect width={svgWidth} height={svgHeight} fill="url(#tkmVignette)" pointerEvents="none" />
               {/* Terrain hexes */}
               {preview.tiles.map((t) => {
                 const { x, y } = hexCenter(t.coord.col, t.coord.row);
@@ -177,18 +175,20 @@ export function CityMapScreen({ cityId, onClose }: { cityId: EntityId; onClose: 
                 const isSlot = slotIdx !== undefined;
                 const isCityWall = t.coord.col === cityWallCol && !isSlot;
                 const isSel = selectedSlot === slotIdx;
+                const interactive = isPlayer && isSlot;
                 return (
                   <g
                     key={`${t.coord.col},${t.coord.row}`}
                     onClick={() => {
-                      if (!isPlayer || !isSlot) return;
+                      if (!interactive) return;
                       setSelectedSlot(isSel ? null : slotIdx!);
                     }}
-                    style={{ cursor: isPlayer && isSlot ? 'pointer' : 'default' }}
+                    className={interactive ? 'tkm-hex-interactive' : undefined}
+                    style={{ cursor: interactive ? 'pointer' : 'default' }}
                   >
                     <polygon
                       points={hexPoints(x, y)}
-                      fill={isCityWall ? '#5a4530' : TERRAIN_FILL[t.terrain]}
+                      fill={isCityWall ? '#5a4530' : TERRAIN_FILL_URL[t.terrain]}
                       stroke={
                         isSel ? '#f0e0b0'
                         : isSlot ? '#d4a84a'
@@ -197,6 +197,7 @@ export function CityMapScreen({ cityId, onClose }: { cityId: EntityId; onClose: 
                       }
                       strokeWidth={isSel ? 2.5 : isSlot ? 2 : isCityWall ? 1.5 : 1}
                       opacity={0.94}
+                      filter={isSel ? 'url(#tkmHexGlow)' : undefined}
                     />
                     <TerrainArt x={x} y={y} terrain={t.terrain} />
                     {/* City wall mark */}
@@ -245,6 +246,9 @@ export function CityMapScreen({ cityId, onClose }: { cityId: EntityId; onClose: 
               >
                 攻方 ATTACKER →
               </text>
+              {/* Decorative frame + compass — drawn last so they sit on top. */}
+              <MapFrame width={svgWidth} height={svgHeight} />
+              <CompassRose x={svgWidth - 38} y={48} />
             </svg>
           </div>
 
@@ -345,40 +349,6 @@ function BuiltStructureIcon({
       </text>
     </g>
   );
-}
-
-function TerrainArt({ x, y, terrain }: { x: number; y: number; terrain: TerrainKind }) {
-  switch (terrain) {
-    case 'forest':
-      return (
-        <g pointerEvents="none">
-          <path d={`M ${x - 6} ${y + 6} L ${x - 3} ${y - 4} L ${x} ${y + 6} Z`} fill="#1e3a1e" />
-          <path d={`M ${x} ${y + 6} L ${x + 3} ${y - 6} L ${x + 6} ${y + 6} Z`} fill="#1e3a1e" />
-        </g>
-      );
-    case 'mountain':
-      return (
-        <g pointerEvents="none">
-          <path d={`M ${x - 8} ${y + 5} L ${x - 3} ${y - 6} L ${x + 1} ${y + 1} L ${x + 4} ${y - 8} L ${x + 8} ${y + 5} Z`}
-            fill="#4a3a30" stroke="#1a1410" strokeWidth="0.4" />
-        </g>
-      );
-    case 'river':
-      return (
-        <g pointerEvents="none" stroke="#4a8ab8" strokeWidth="0.8" fill="none">
-          <path d={`M ${x - 9} ${y - 1} Q ${x - 4} ${y - 4} ${x} ${y - 1} Q ${x + 4} ${y + 2} ${x + 9} ${y - 1}`} />
-          <path d={`M ${x - 9} ${y + 4} Q ${x - 4} ${y + 1} ${x} ${y + 4} Q ${x + 4} ${y + 7} ${x + 9} ${y + 4}`} />
-        </g>
-      );
-    case 'road':
-      return (
-        <g pointerEvents="none">
-          <line x1={x - 10} y1={y} x2={x + 10} y2={y} stroke="#a89878" strokeWidth="0.7" strokeDasharray="3 3" />
-        </g>
-      );
-    default:
-      return null;
-  }
 }
 
 function SlotEditor({
