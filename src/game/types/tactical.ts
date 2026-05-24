@@ -198,6 +198,12 @@ export interface Stratagem {
   range: number;
   /** Cooldown in turns (0 = once per battle). */
   cooldown: number;
+  /** If set, ONLY these specific officer IDs can use this stratagem (signature move). */
+  signatureOf?: string[];
+  /** If set, the unit must be one of these types. */
+  requiresUnitType?: ReadonlyArray<'infantry' | 'spearmen' | 'cavalry' | 'archers' | 'siege' | 'navy'>;
+  /** Min war stat (for melee-heavy stratagems like 突撃). */
+  minWar?: number;
 }
 
 export interface TacticalBattle {

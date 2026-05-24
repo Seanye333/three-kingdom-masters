@@ -14,11 +14,13 @@ import {
 } from '../../game/systems/tactical';
 import { canDuel, resolveDuel, type DuelResult } from '../../game/systems/duel';
 import { predictAttackDamage } from '../../game/systems/damagePredict';
+import { personalTacticsForUnit } from '../../game/systems/personalTactics';
 import { playSfx } from '../../game/systems/sound';
 import { useGameStore } from '../../game/state/store';
 import type {
   BattleObjective,
   HexCoord,
+  Officer,
   StratagemId,
   TacticalBattle,
   TacticalUnit,
@@ -712,7 +714,7 @@ export function TacticalBattleScreen() {
           {selected ? (
             <UnitPanel
               unit={selected}
-              officerName={officers[selected.officerId]?.name ?? null}
+              officer={officers[selected.officerId] ?? null}
               actionMode={actionMode}
               setActionMode={setActionMode}
               canAct={!!myTurn && selected.side === playerSide}
@@ -791,26 +793,47 @@ export function TacticalBattleScreen() {
 
 function UnitPanel({
   unit,
-  officerName,
+  officer,
   actionMode,
   setActionMode,
   canAct,
   battle,
 }: {
   unit: TacticalUnit;
-  officerName: { en: string; zh: string } | null;
+  officer: Officer | null;
   actionMode: ActionMode;
   setActionMode: (m: ActionMode) => void;
   canAct: boolean;
   battle: TacticalBattle;
 }) {
+  // Each officer's personal 戰法 list, mapped to runtime tactical-battle actions.
+  const personalTactics = personalTacticsForUnit(officer, unit);
+
+  // Stratagems available to THIS officer/unit — filter by INT / WAR / unit type / signature.
+  const availableStratagems = STRATAGEMS.filter((s) => {
+    if (!officer) return false;
+    if (s.signatureOf) {
+      // Signature moves — only their owners can use them; others never see them.
+      if (!s.signatureOf.includes(officer.id)) return false;
+    }
+    if (s.minIntelligence && officer.stats.intelligence < s.minIntelligence) return false;
+    if (s.minWar && officer.stats.war < s.minWar) return false;
+    if (s.requiresUnitType && !s.requiresUnitType.includes(unit.unitType)) return false;
+    return true;
+  });
+
   return (
     <div className={styles.sidePanel}>
       <div className={styles.panelLabel}>Selected Unit</div>
       <div>
-        <span className={styles.unitName}>{officerName?.zh ?? '?'}</span>
-        <span className={styles.unitNameEn}>{officerName?.en ?? ''}</span>
+        <span className={styles.unitName}>{officer?.name.zh ?? '?'}</span>
+        <span className={styles.unitNameEn}>{officer?.name.en ?? ''}</span>
       </div>
+      {officer && (
+        <div style={{ fontSize: '0.65rem', color: '#8a7050', marginTop: '0.15rem', letterSpacing: '0.1rem' }}>
+          LED {officer.stats.leadership} · WAR {officer.stats.war} · INT {officer.stats.intelligence}
+        </div>
+      )}
       <div className={styles.unitStats}>
         <span>HP {unit.troops.toLocaleString()}/{unit.maxTroops.toLocaleString()}</span>
         <span>AP {unit.ap}/{unit.maxAp}</span>
@@ -869,20 +892,33 @@ function UnitPanel({
             Challenge an adjacent enemy commander to single combat. Decisive — the loser dies.
           </div>
         </button>
-        {STRATAGEMS.map((s) => {
+        {availableStratagems.length === 0 && (
+          <div style={{
+            fontSize: '0.72rem', color: '#8a7050', fontStyle: 'italic',
+            padding: '0.5rem 0.65rem', borderTop: '1px dotted #3a2d20', marginTop: '0.3rem',
+          }}>
+            此武將無計可施 — INT/WAR 不足或兵種不符。
+          </div>
+        )}
+        {availableStratagems.map((s) => {
           const cdKey = `${unit.id}-${s.id}`;
           const onCd = (battle.stratagemCooldowns[cdKey] ?? 0) > battle.turn;
           const active = actionMode.kind === 'stratagem' && actionMode.id === s.id;
+          const isSignature = !!s.signatureOf;
           return (
             <button
               key={s.id}
               className={`${styles.actionButton} ${active ? styles.actionButtonActive : ''}`}
               disabled={!canAct || unit.ap === 0 || onCd}
               onClick={() => setActionMode(active ? { kind: 'none' } : { kind: 'stratagem', id: s.id })}
+              style={isSignature ? { borderColor: '#d4a84a', boxShadow: 'inset 0 0 6px rgba(212,168,74,0.18)' } : undefined}
             >
               <div className={styles.actionTitle}>
                 <span>
-                  <span className={styles.actionLabel}>{s.name.zh}</span>
+                  <span className={styles.actionLabel}>
+                    {isSignature && <span style={{ color: '#d4a84a' }}>★ </span>}
+                    {s.name.zh}
+                  </span>
                   <span className={styles.actionLabelEn}>{s.name.en}</span>
                 </span>
                 <span style={{ fontSize: '0.7rem', color: '#8a7050' }}>
@@ -893,10 +929,69 @@ function UnitPanel({
             </button>
           );
         })}
+
+        {/* ── Personal Tactics 個人戰法 ── unique to this officer */}
+        {personalTactics.length > 0 && (
+          <>
+            <div style={{
+              marginTop: '0.6rem',
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.65rem',
+              letterSpacing: '0.2rem',
+              color: '#d4a84a',
+              textTransform: 'uppercase',
+              borderTop: '1px solid #4a3520',
+              borderBottom: '1px dotted #3a2d20',
+            }}>
+              ★ 個人戰法 · Personal Tactics
+            </div>
+            {personalTactics.map((t) => {
+              const cdKey = `${unit.id}-${t.underlying}`;
+              const onCd = (battle.stratagemCooldowns[cdKey] ?? 0) > battle.turn;
+              const active = actionMode.kind === 'stratagem' && actionMode.id === t.underlying;
+              return (
+                <button
+                  key={t.id}
+                  className={`${styles.actionButton} ${active ? styles.actionButtonActive : ''}`}
+                  disabled={!canAct || unit.ap === 0 || onCd}
+                  onClick={() => setActionMode(active ? { kind: 'none' } : { kind: 'stratagem', id: t.underlying })}
+                  style={t.isSignature
+                    ? { borderColor: '#d4a84a', boxShadow: 'inset 0 0 6px rgba(212,168,74,0.18)' }
+                    : { borderColor: '#5a4530' }}
+                  title={`${t.description} · via ${t.underlying}`}
+                >
+                  <div className={styles.actionTitle}>
+                    <span>
+                      <span className={styles.actionLabel}>
+                        {t.isSignature && <span style={{ color: '#d4a84a' }}>★ </span>}
+                        {t.nameZh}
+                      </span>
+                      <span className={styles.actionLabelEn}>{t.nameEn}</span>
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: '#8a7050' }}>
+                      {onCd ? `CD ${(battle.stratagemCooldowns[cdKey] ?? 0) - battle.turn}t` : `rng ${t.range}`}
+                    </span>
+                  </div>
+                  <div className={styles.actionDesc} style={{ fontStyle: 'italic' }}>
+                    <span style={{ color: '#8a7050' }}>{CATEGORY_LABEL[t.category]}</span> · {t.nameEn}
+                  </div>
+                </button>
+              );
+            })}
+          </>
+        )}
       </div>
     </div>
   );
 }
+
+const CATEGORY_LABEL: Record<'melee' | 'ranged' | 'mystic' | 'disrupt' | 'strategy', string> = {
+  melee:    '近戰 Melee',
+  ranged:   '遠射 Ranged',
+  mystic:   '玄妙 Mystic',
+  disrupt:  '惑亂 Disrupt',
+  strategy: '統御 Strategy',
+};
 
 function ForcePanel({ battle }: { battle: TacticalBattle }) {
   const attackers = battle.units.filter((u) => u.side === 'attacker');

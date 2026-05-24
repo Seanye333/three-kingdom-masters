@@ -25,6 +25,8 @@ export const STRATAGEMS: Stratagem[] = [
     description:
       'A devastating melee attack: +50% damage on this strike, but spends all remaining AP.',
     minIntelligence: 0,
+    minWar: 70,
+    requiresUnitType: ['infantry', 'spearmen', 'cavalry'],
     range: 1,
     cooldown: 2,
   },
@@ -52,6 +54,7 @@ export const STRATAGEMS: Stratagem[] = [
     description:
       'A volley at range 2–4 dealing 12% damage to one enemy unit. Range halved at night.',
     minIntelligence: 0,
+    requiresUnitType: ['archers', 'siege'],
     range: 4,
     cooldown: 1,
   },
@@ -59,8 +62,9 @@ export const STRATAGEMS: Stratagem[] = [
     id: 'chain-ships',
     name: { en: 'Chain Ships', zh: '連環' },
     description:
-      'Link the target and its neighbors with chains for 4 turns. Damage to any chained enemy spreads 50% to the others. Devastating with fire.',
+      "Pang Tong's masterstroke. Link the target and its neighbors with chains for 4 turns. Damage to any chained enemy spreads 50% to the others. Devastating with fire.",
     minIntelligence: 80,
+    signatureOf: ['pang-tong'],
     range: 3,
     cooldown: 0,
   },
@@ -70,6 +74,7 @@ export const STRATAGEMS: Stratagem[] = [
     description:
       'Pretend to break and flee. Closest enemy pursues — and arrives confused, losing AP next turn.',
     minIntelligence: 70,
+    requiresUnitType: ['infantry', 'spearmen', 'cavalry'],
     range: 0,
     cooldown: 0,
   },
@@ -77,14 +82,15 @@ export const STRATAGEMS: Stratagem[] = [
     id: 'precognition',
     name: { en: 'Precognition', zh: '神算' },
     description:
-      'See all enemy AP, status, and cooldowns for 2 turns. Reveals their next move intent.',
+      "Zhuge Liang & Sima Yi's mastery. See all enemy AP, status, and cooldowns for 2 turns. Reveals their next move intent.",
     minIntelligence: 90,
+    signatureOf: ['zhuge-liang', 'sima-yi', 'pang-tong', 'guo-jia'],
     range: 0,
     cooldown: 0,
   },
   {
     id: 'lightning',
-    name: { en: 'Heaven\'s Lightning', zh: '落雷' },
+    name: { en: "Heaven's Lightning", zh: '落雷' },
     description:
       'A bolt strikes a tile within 4 hexes for 15% damage. 30% chance to confuse the struck unit.',
     minIntelligence: 85,
@@ -106,6 +112,8 @@ export const STRATAGEMS: Stratagem[] = [
     description:
       "Lü Bu's signature. Charge up to 3 hexes in a straight line, attacking the first enemy you reach for +75% damage.",
     minIntelligence: 0,
+    signatureOf: ['lu-bu'],
+    requiresUnitType: ['cavalry'],
     range: 3,
     cooldown: 3,
   },
@@ -115,6 +123,7 @@ export const STRATAGEMS: Stratagem[] = [
     description:
       "Zhao Yun's signature. Make a free attack on every adjacent enemy with no AP cost.",
     minIntelligence: 0,
+    signatureOf: ['zhao-yun'],
     range: 0,
     cooldown: 3,
   },
