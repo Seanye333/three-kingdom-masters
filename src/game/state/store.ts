@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   BuildingId,
   CivicTitleId,
+  Command,
   EdictKind,
   EntityId,
   EspionageKind,
@@ -281,8 +282,9 @@ export const useGameStore = create<GameStore>()(
           return { ok: false, reason: 'officer not in this city' };
         if (officer.task)
           return { ok: false, reason: 'officer already assigned' };
-        if (state.pendingCommands[cityId])
-          return { ok: false, reason: 'city already has a command' };
+        // pendingCommands keyed by officerId — one task per officer, many per city.
+        if (state.pendingCommands[officerId])
+          return { ok: false, reason: 'officer already has a pending command' };
         if (city.gold < def.goldCost)
           return { ok: false, reason: 'not enough gold' };
 
@@ -297,7 +299,7 @@ export const useGameStore = create<GameStore>()(
           },
           pendingCommands: {
             ...state.pendingCommands,
-            [cityId]: { type, cityId, officerId },
+            [officerId]: { type, cityId, officerId },
           },
         });
         return { ok: true };
@@ -319,8 +321,8 @@ export const useGameStore = create<GameStore>()(
           return { ok: false, reason: 'officer not in this city' };
         if (officer.task)
           return { ok: false, reason: 'officer already assigned' };
-        if (state.pendingCommands[sourceId])
-          return { ok: false, reason: 'city already has a command' };
+        if (state.pendingCommands[officerId])
+          return { ok: false, reason: 'officer already has a pending command' };
         if (troops <= 0 || troops > source.troops)
           return { ok: false, reason: 'invalid troop count' };
         if (source.gold < def.goldCost)
@@ -372,7 +374,7 @@ export const useGameStore = create<GameStore>()(
           officers: officersUpdate,
           pendingCommands: {
             ...state.pendingCommands,
-            [sourceId]: {
+            [officerId]: {
               type: 'march',
               cityId: sourceId,
               officerId,
@@ -385,15 +387,22 @@ export const useGameStore = create<GameStore>()(
         return { ok: true };
       },
 
-      cancelCommand: (cityId) => {
+      cancelCommand: (idOrOfficerId) => {
+        // Backwards-compatible: accepts either an officerId (preferred) or a cityId
+        // (legacy — finds the first command in that city if any).
         const state = get();
-        const cmd = state.pendingCommands[cityId];
+        let cmd: Command | undefined = state.pendingCommands[idOrOfficerId];
+        if (!cmd) {
+          // Legacy: try as cityId
+          cmd = Object.values(state.pendingCommands).find((c) => c.cityId === idOrOfficerId);
+        }
         if (!cmd) return;
-        const city = state.cities[cityId];
+        const officerKey = cmd.officerId;
+        const city = state.cities[cmd.cityId];
         const officer = state.officers[cmd.officerId];
         const def = COMMAND_DEFS[cmd.type];
         const next = { ...state.pendingCommands };
-        delete next[cityId];
+        delete next[officerKey];
 
         // Free up all officers (including march accompaniers).
         const officersUpdate = { ...state.officers };
@@ -408,7 +417,7 @@ export const useGameStore = create<GameStore>()(
 
         set({
           cities: city
-            ? { ...state.cities, [cityId]: { ...city, gold: city.gold + def.goldCost } }
+            ? { ...state.cities, [cmd.cityId]: { ...city, gold: city.gold + def.goldCost } }
             : state.cities,
           officers: officersUpdate,
           pendingCommands: next,

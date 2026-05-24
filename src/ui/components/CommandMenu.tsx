@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import type { EntityId, InternalAffairsType } from '../../game/types';
@@ -27,57 +27,65 @@ type ModalState =
 export function CommandMenu({ cityId }: Props) {
   const [modal, setModal] = useState<ModalState>({ kind: 'closed' });
   const city = useGameStore((s) => s.cities[cityId]);
-  const pending = useGameStore((s) => s.pendingCommands[cityId]);
-  const officer = useGameStore((s) =>
-    pending ? s.officers[pending.officerId] : null,
+  // Select the map by reference (stable) — filter inside useMemo to avoid creating
+  // a new array on every render (which would trigger an infinite re-render loop).
+  const allPending = useGameStore((s) => s.pendingCommands);
+  const pendingInCity = useMemo(
+    () => Object.values(allPending).filter((c) => c.cityId === cityId),
+    [allPending, cityId],
   );
-  const targetCity = useGameStore((s) =>
-    pending && pending.type === 'march'
-      ? s.cities[pending.targetCityId]
-      : null,
-  );
+  const officersMap = useGameStore((s) => s.officers);
+  const citiesMap = useGameStore((s) => s.cities);
   const cancelCommand = useGameStore((s) => s.cancelCommand);
 
   if (!city) return null;
-
-  if (pending && officer) {
-    const def = COMMAND_DEFS[pending.type];
-    return (
-      <div className={styles.activeCmd}>
-        <div className={styles.activeRow}>
-          <div className={styles.activeText}>
-            <span className={styles.activeLabel}>
-              {def.label.zh} · {def.label.en}
-            </span>
-            <span className={styles.activeOfficer}>
-              by {officer.name.zh} {officer.name.en}
-              {pending.type === 'march' && targetCity && (
-                <>
-                  {' → '}
-                  <strong>{targetCity.name.zh}</strong>
-                  {' with '}
-                  {pending.troops.toLocaleString()} troops
-                </>
-              )}
-            </span>
-          </div>
-          <button
-            className={styles.cancelButton}
-            onClick={() => cancelCommand(cityId)}
-            title="Cancel command (refund gold)"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const marchDef = COMMAND_DEFS['march'];
   const canMarch = city.gold >= marchDef.goldCost && city.troops > 0;
 
   return (
     <>
+      {/* Currently pending commands in this city — one per assigned officer */}
+      {pendingInCity.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '0.5rem' }}>
+          {pendingInCity.map((cmd) => {
+            const officer = officersMap[cmd.officerId];
+            if (!officer) return null;
+            const def = COMMAND_DEFS[cmd.type];
+            const targetCity = cmd.type === 'march' ? citiesMap[cmd.targetCityId] : null;
+            return (
+              <div key={cmd.officerId} className={styles.activeCmd}>
+                <div className={styles.activeRow}>
+                  <div className={styles.activeText}>
+                    <span className={styles.activeLabel}>
+                      {def.label.zh} · {def.label.en}
+                    </span>
+                    <span className={styles.activeOfficer}>
+                      by {officer.name.zh} {officer.name.en}
+                      {cmd.type === 'march' && targetCity && (
+                        <>
+                          {' → '}
+                          <strong>{targetCity.name.zh}</strong>
+                          {' with '}
+                          {cmd.troops.toLocaleString()} troops
+                        </>
+                      )}
+                    </span>
+                  </div>
+                  <button
+                    className={styles.cancelButton}
+                    onClick={() => cancelCommand(cmd.officerId)}
+                    title="Cancel command (refund gold)"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div className={styles.menu}>
         {INTERNAL_ORDER.map((type) => {
           const def = COMMAND_DEFS[type];
