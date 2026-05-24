@@ -1,10 +1,22 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
+import {
+  deriveFormations, deriveTactics, derivePolicies,
+} from '../../game/data/officerAttributes';
 import type { EntityId, Officer, OfficerStats } from '../../game/types';
 import { OfficerDetail } from './OfficerDetail';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import styles from './OfficersTab.module.css';
+
+function topStatKey(s: OfficerStats): keyof OfficerStats {
+  let key: keyof OfficerStats = 'leadership';
+  let best = s.leadership;
+  for (const k of ['war', 'intelligence', 'politics', 'charisma'] as const) {
+    if (s[k] > best) { best = s[k]; key = k; }
+  }
+  return key;
+}
 
 interface Props {
   onClose: () => void;
@@ -31,7 +43,7 @@ const SORT_LABEL: Record<SortKey, string> = {
   age:          'Age',
 };
 
-type FilterKey = 'all' | 'mine' | 'free-agent' | 'captive' | string; // string = forceId
+type FilterKey = 'all' | 'mine' | 'free-agent' | 'captive' | 'elite' | string; // string = forceId
 
 export function OfficersTab({ onClose }: Props) {
   const officers = useGameStore((s) => s.officers);
@@ -68,6 +80,10 @@ export function OfficersTab({ onClose }: Props) {
       list = list.filter((o) => o.forceId === null && o.status === 'idle');
     } else if (filter === 'captive') {
       list = list.filter((o) => o.status === 'imprisoned');
+    } else if (filter === 'elite') {
+      list = list.filter((o) =>
+        Math.max(o.stats.leadership, o.stats.war, o.stats.intelligence, o.stats.politics, o.stats.charisma) >= 90,
+      );
     } else if (filter !== 'all') {
       list = list.filter((o) => o.forceId === filter);
     }
@@ -99,12 +115,15 @@ export function OfficersTab({ onClose }: Props) {
     const sumStats = (s: OfficerStats) =>
       s.leadership + s.war + s.intelligence + s.politics + s.charisma;
 
-    const cmp = (a: Officer, b: Officer): number => {
-      if (sortKey === 'name') return a.name.en.localeCompare(b.name.en);
-      if (sortKey === 'age') return a.birthYear - b.birthYear; // older first by default
-      if (sortKey === 'total') return sumStats(b.stats) - sumStats(a.stats);
+    const sum = (o: Officer) => sumStats(o.stats);
+    const primary = (a: Officer, b: Officer): number => {
+      if (sortKey === 'name') return b.name.en.localeCompare(a.name.en); // desc = Z→A
+      if (sortKey === 'age') return b.birthYear - a.birthYear; // desc = youngest first
+      if (sortKey === 'total') return sum(b) - sum(a);
       return b.stats[sortKey] - a.stats[sortKey];
     };
+    // Tiebreaker: fall back to total stats so equal primary values sort by overall rank.
+    const cmp = (a: Officer, b: Officer): number => primary(a, b) || sum(b) - sum(a);
     return [...list].sort((a, b) => (sortDir === 'desc' ? cmp(a, b) : -cmp(a, b)));
   }, [officers, filter, sortKey, sortDir, playerForceId, search, minStat, statKey]);
 
@@ -170,6 +189,13 @@ export function OfficersTab({ onClose }: Props) {
               onClick={() => setFilter('captive')}
             >
               Captives
+            </button>
+            <button
+              className={`${styles.chip} ${filter === 'elite' ? styles.chipActive : ''}`}
+              onClick={() => setFilter('elite')}
+              title="Officers with any stat ≥ 90"
+            >
+              ★ Elite
             </button>
             {liveForces
               .filter((f) => f.id !== playerForceId)
@@ -254,6 +280,7 @@ export function OfficersTab({ onClose }: Props) {
           <SortHeader label="INT" col="intelligence" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
           <SortHeader label="POL" col="politics" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
           <SortHeader label="CHA" col="charisma" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
+          <span className={styles.h2meta} title="Tactics · Formations · Policies">戰·陣·政</span>
           <SortHeader label="Age · Loy" col="age" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
         </div>
 
@@ -324,6 +351,10 @@ function OfficerRow({
 }: RowProps) {
   const age = currentYear - o.birthYear;
   const task = o.task ? COMMAND_DEFS[o.task]?.label.zh : null;
+  const top = topStatKey(o.stats);
+  const tacticsCount = deriveTactics(o.stats, o.id).length;
+  const formationsCount = deriveFormations(o.stats, o.id).length;
+  const policiesCount = derivePolicies(o.stats, o.id).length;
 
   return (
     <li
@@ -356,11 +387,12 @@ function OfficerRow({
           )}
         </span>
       </span>
-      <StatCell value={o.stats.leadership} />
-      <StatCell value={o.stats.war} />
-      <StatCell value={o.stats.intelligence} />
-      <StatCell value={o.stats.politics} />
-      <StatCell value={o.stats.charisma} />
+      <StatCell value={o.stats.leadership} top={top === 'leadership'} />
+      <StatCell value={o.stats.war}        top={top === 'war'} />
+      <StatCell value={o.stats.intelligence} top={top === 'intelligence'} />
+      <StatCell value={o.stats.politics}    top={top === 'politics'} />
+      <StatCell value={o.stats.charisma}    top={top === 'charisma'} />
+      <KitCell tactics={tacticsCount} formations={formationsCount} policies={policiesCount} />
       <span className={styles.rowMeta}>
         <span className={styles.rowAge}>{age}</span>
         <span className={styles.rowLoyalty}>{o.loyalty}</span>
@@ -369,13 +401,22 @@ function OfficerRow({
   );
 }
 
-function StatCell({ value }: { value: number }) {
+function StatCell({ value, top = false }: { value: number; top?: boolean }) {
   const tone =
     value >= 90 ? styles.statEpic
     : value >= 80 ? styles.statHigh
     : value >= 60 ? styles.statMid
     : styles.statLow;
-  return <span className={`${styles.statCell} ${tone}`}>{value}</span>;
+  return <span className={`${styles.statCell} ${tone} ${top ? styles.statTop : ''}`}>{value}</span>;
+}
+
+function KitCell({ tactics, formations, policies }: { tactics: number; formations: number; policies: number }) {
+  const cls = (n: number) => n >= 6 ? styles.kitCountStrong : n >= 3 ? styles.kitCount : '';
+  return (
+    <span className={styles.kitCell} title={`${tactics} tactics · ${formations} formations · ${policies} policies`}>
+      <span className={cls(tactics)}>{tactics}</span>·<span className={cls(formations)}>{formations}</span>·<span className={cls(policies)}>{policies}</span>
+    </span>
+  );
 }
 
 interface SortHeaderProps {

@@ -110,7 +110,7 @@
 
 .header2 {
   display: grid;
-  grid-template-columns: 2.3fr 2fr repeat(5, 0.55fr) 1.1fr;
+  grid-template-columns: 2.3fr 2fr repeat(5, 0.55fr) 0.7fr 1.1fr;
   gap: 0.35rem;
   align-items: stretch;
   padding: 0.4rem 0.35rem;
@@ -119,6 +119,10 @@
   letter-spacing: 0.15rem;
   text-transform: uppercase;
   color: #8a7050;
+  position: sticky;
+  top: 0;
+  background: #2a1f15;
+  z-index: 2;
 }
 
 .h2name { padding: 0 0.3rem; }
@@ -171,7 +175,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 2.3fr 2fr repeat(5, 0.55fr) 1.1fr;
+  grid-template-columns: 2.3fr 2fr repeat(5, 0.55fr) 0.7fr 1.1fr;
   gap: 0.35rem;
   align-items: center;
   padding: 0.4rem 0.65rem;
@@ -253,6 +257,23 @@
 .statMid  { color: #8a7050; }
 .statLow  { color: #5a4530; }
 
+.statTop {
+  background: rgba(212, 168, 74, 0.12);
+  border: 1px solid rgba(212, 168, 74, 0.4);
+  border-radius: 3px;
+}
+
+.kitCell {
+  text-align: center;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: #8a7050;
+  letter-spacing: 0.05rem;
+  white-space: nowrap;
+}
+.kitCount { color: #c0a878; }
+.kitCountStrong { color: #d4a84a; font-weight: bold; }
+
 .rowMeta {
   text-align: center;
   display: flex;
@@ -327,6 +348,13 @@
     flex: 1 1 100% !important;
     text-align: right;
     font-size: 0.72rem;
+    color: var(--tkm-text-muted, #8c7a5a);
+  }
+
+  .kitCell {
+    flex: 1 1 100% !important;
+    text-align: right;
+    font-size: 0.7rem;
     color: var(--tkm-text-muted, #8c7a5a);
   }
 

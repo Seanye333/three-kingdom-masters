@@ -1,7 +1,19 @@
 import { useMemo, useState } from 'react';
 import type { Officer, OfficerStats, Scenario } from '../../game/types';
+import {
+  deriveFormations, deriveTactics, derivePolicies,
+} from '../../game/data/officerAttributes';
 import { OfficerDetail } from './OfficerDetail';
 import styles from './OfficersTab.module.css';
+
+function topStatKey(s: OfficerStats): keyof OfficerStats {
+  let key: keyof OfficerStats = 'leadership';
+  let best = s.leadership;
+  for (const k of ['war', 'intelligence', 'politics', 'charisma'] as const) {
+    if (s[k] > best) { best = s[k]; key = k; }
+  }
+  return key;
+}
 
 interface Props {
   scenario: Scenario;
@@ -29,13 +41,16 @@ const SORT_LABEL: Record<SortKey, string> = {
   age:          'Age',
 };
 
-type FilterKey = 'all' | 'unsearched' | 'free-agent' | string; // string = forceId
+type FilterKey = 'all' | 'unsearched' | 'free-agent' | 'elite' | string; // string = forceId
 
 export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('total');
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const [filter, setFilter] = useState<FilterKey>('all');
   const [selectedOfficer, setSelectedOfficer] = useState<Officer | null>(null);
+  const [search, setSearch] = useState('');
+  const [minStat, setMinStat] = useState<number>(0);
+  const [statKey, setStatKey] = useState<keyof OfficerStats | 'any'>('any');
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -53,21 +68,49 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
       list = list.filter((o) => o.status === 'unsearched');
     } else if (filter === 'free-agent') {
       list = list.filter((o) => o.forceId === null && o.status === 'idle');
+    } else if (filter === 'elite') {
+      list = list.filter((o) =>
+        Math.max(o.stats.leadership, o.stats.war, o.stats.intelligence, o.stats.politics, o.stats.charisma) >= 90,
+      );
     } else if (filter !== 'all') {
       list = list.filter((o) => o.forceId === filter);
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (o) =>
+          o.name.en.toLowerCase().includes(q) ||
+          o.name.zh.includes(search) ||
+          (o.courtesyName?.en.toLowerCase().includes(q) ?? false) ||
+          (o.courtesyName?.zh.includes(search) ?? false),
+      );
+    }
+
+    if (minStat > 0) {
+      list = list.filter((o) => {
+        if (statKey === 'any') {
+          return Math.max(
+            o.stats.leadership, o.stats.war, o.stats.intelligence, o.stats.politics, o.stats.charisma,
+          ) >= minStat;
+        }
+        return o.stats[statKey] >= minStat;
+      });
     }
 
     const sumStats = (s: OfficerStats) =>
       s.leadership + s.war + s.intelligence + s.politics + s.charisma;
 
-    const cmp = (a: Officer, b: Officer): number => {
-      if (sortKey === 'name') return a.name.en.localeCompare(b.name.en);
-      if (sortKey === 'age') return a.birthYear - b.birthYear; // older first by default
-      if (sortKey === 'total') return sumStats(b.stats) - sumStats(a.stats);
+    const sum = (o: Officer) => sumStats(o.stats);
+    const primary = (a: Officer, b: Officer): number => {
+      if (sortKey === 'name') return b.name.en.localeCompare(a.name.en); // desc = Z→A
+      if (sortKey === 'age') return b.birthYear - a.birthYear; // desc = youngest first
+      if (sortKey === 'total') return sum(b) - sum(a);
       return b.stats[sortKey] - a.stats[sortKey];
     };
+    const cmp = (a: Officer, b: Officer): number => primary(a, b) || sum(b) - sum(a);
     return [...list].sort((a, b) => (sortDir === 'desc' ? cmp(a, b) : -cmp(a, b)));
-  }, [scenario, filter, sortKey, sortDir]);
+  }, [scenario, filter, sortKey, sortDir, search, minStat, statKey]);
 
   const forcesById = useMemo(
     () => Object.fromEntries(scenario.forces.map((f) => [f.id, f])),
@@ -120,6 +163,13 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
             >
               Free
             </button>
+            <button
+              className={`${styles.chip} ${filter === 'elite' ? styles.chipActive : ''}`}
+              onClick={() => setFilter('elite')}
+              title="Officers with any stat ≥ 90"
+            >
+              ★ Elite
+            </button>
             {scenario.forces.map((f) => (
               <button
                 key={f.id}
@@ -133,6 +183,45 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
                 {f.name.zh}
               </button>
             ))}
+          </div>
+
+          <div className={styles.controlRow}>
+            <span className={styles.controlLabel}>Search</span>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Name / 名 / courtesy"
+              style={{
+                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                padding: '0.3rem 0.5rem', fontFamily: 'inherit', flex: 1, maxWidth: 220,
+              }}
+            />
+            <span className={styles.controlLabel} style={{ marginLeft: '0.5rem' }}>Min</span>
+            <select
+              value={statKey}
+              onChange={(e) => setStatKey(e.target.value as keyof OfficerStats | 'any')}
+              style={{
+                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                padding: '0.3rem', fontFamily: 'inherit',
+              }}
+            >
+              <option value="any">any</option>
+              <option value="leadership">統率</option>
+              <option value="war">武力</option>
+              <option value="intelligence">知力</option>
+              <option value="politics">政治</option>
+              <option value="charisma">魅力</option>
+            </select>
+            <input
+              type="number"
+              min={0} max={150}
+              value={minStat}
+              onChange={(e) => setMinStat(Number(e.target.value) || 0)}
+              style={{
+                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                padding: '0.3rem', fontFamily: 'ui-monospace, monospace', width: 60,
+              }}
+            />
           </div>
 
           <div className={styles.controlRow}>
@@ -157,6 +246,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
           <SortHeader label="INT" col="intelligence" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
           <SortHeader label="POL" col="politics" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
           <SortHeader label="CHA" col="charisma" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
+          <span className={styles.h2meta} title="Tactics · Formations · Policies">戰·陣·政</span>
           <SortHeader label="Age" col="age" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
         </div>
 
@@ -168,6 +258,10 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
               const force = o.forceId ? forcesById[o.forceId] : null;
               const city = o.locationCityId ? citiesById[o.locationCityId] : null;
               const age = scenario.startDate.year - o.birthYear;
+              const top = topStatKey(o.stats);
+              const tCount = deriveTactics(o.stats, o.id).length;
+              const fCount = deriveFormations(o.stats, o.id).length;
+              const pCount = derivePolicies(o.stats, o.id).length;
               return (
                 <li
                   key={o.id}
@@ -193,11 +287,18 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
                       )}
                     </span>
                   </span>
-                  <StatCell value={o.stats.leadership} />
-                  <StatCell value={o.stats.war} />
-                  <StatCell value={o.stats.intelligence} />
-                  <StatCell value={o.stats.politics} />
-                  <StatCell value={o.stats.charisma} />
+                  <StatCell value={o.stats.leadership}    top={top === 'leadership'} />
+                  <StatCell value={o.stats.war}           top={top === 'war'} />
+                  <StatCell value={o.stats.intelligence}  top={top === 'intelligence'} />
+                  <StatCell value={o.stats.politics}      top={top === 'politics'} />
+                  <StatCell value={o.stats.charisma}      top={top === 'charisma'} />
+                  <span className={styles.kitCell} title={`${tCount} tactics · ${fCount} formations · ${pCount} policies`}>
+                    <span className={tCount >= 6 ? styles.kitCountStrong : tCount >= 3 ? styles.kitCount : ''}>{tCount}</span>
+                    ·
+                    <span className={fCount >= 6 ? styles.kitCountStrong : fCount >= 3 ? styles.kitCount : ''}>{fCount}</span>
+                    ·
+                    <span className={pCount >= 6 ? styles.kitCountStrong : pCount >= 3 ? styles.kitCount : ''}>{pCount}</span>
+                  </span>
                   <span className={styles.rowMeta}>
                     <span className={styles.rowAge}>{age}</span>
                   </span>
@@ -221,13 +322,13 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
   );
 }
 
-function StatCell({ value }: { value: number }) {
+function StatCell({ value, top = false }: { value: number; top?: boolean }) {
   const tone =
     value >= 90 ? styles.statEpic
     : value >= 80 ? styles.statHigh
     : value >= 60 ? styles.statMid
     : styles.statLow;
-  return <span className={`${styles.statCell} ${tone}`}>{value}</span>;
+  return <span className={`${styles.statCell} ${tone} ${top ? styles.statTop : ''}`}>{value}</span>;
 }
 
 interface SortHeaderProps {
