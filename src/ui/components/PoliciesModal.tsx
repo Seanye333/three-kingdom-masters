@@ -39,6 +39,32 @@ const POLICY_CATEGORY: Record<string, string> = {
   'spy-network':       'diplomacy',
   propaganda:          'diplomacy',
   'frontier-pacification': 'diplomacy',
+  // ── new economy ──
+  granary:             'economy',
+  'maritime-trade':    'economy',
+  'silk-loom':         'economy',
+  'ox-plowing':        'economy',
+  'fish-salt':         'economy',
+  // ── new military ──
+  fortifications:      'military',
+  'ambush-corps':      'military',
+  'mountain-warfare':  'military',
+  conscription:        'military',
+  'elite-guards':      'military',
+  arsenal:             'military',
+  // ── new civil ──
+  'imperial-academy':  'civil',
+  'post-roads':        'civil',
+  'community-granary': 'civil',
+  'court-music':       'civil',
+  buddhism:            'civil',
+  taoism:              'civil',
+  divination:          'civil',
+  // ── new diplomacy / intel ──
+  'hostage-system':    'diplomacy',
+  assassins:           'diplomacy',
+  'counter-intel':     'diplomacy',
+  'defector-reward':   'diplomacy',
 };
 
 const POLICY_DESC: Record<string, string> = {
@@ -79,6 +105,33 @@ const POLICY_DESC: Record<string, string> = {
   'spy-network':       '細作 — 培訓間諜。敵情可視範圍 +1 城，計謀成功率 +15%。',
   propaganda:          '檄文 — 起草檄文討伐。戰前敵兵叛逃率 +5%，盟友參戰意願 +15。',
   'frontier-pacification': '撫夷 — 攻心為上，南撫蠻夷。南方/西涼異族叛亂 −60%，可徵召蠻兵。',
+  // ── new economy ──
+  granary:             '倉廩 — 設常平倉。糧價穩定，凶年無饑民，金庫每季 −20 維護。',
+  'maritime-trade':    '海貿 — 沿海港口開放。每季金 +80，需港口城。東吳特色。',
+  'silk-loom':         '蠶桑 — 推廣蠶絲。商業 +10，可生產絲綢進貢/外銷。',
+  'ox-plowing':        '牛耕 — 鼓勵牛拉重犁。農業上限 +12，農時 −15%。',
+  'fish-salt':         '漁鹽 — 沿海漁鹽兼營。糧 +15%，金 +40/季，需沿海城。',
+  // ── new military ──
+  fortifications:      '城防 — 加固城牆建箭樓。城防 +30%，攻城時間 +30%。',
+  'ambush-corps':      '伏兵營 — 林山伏擊訓練。伏兵戰法成功率 +25%，森林/山地戰力 +15%。',
+  'mountain-warfare':  '山戰 — 山地行軍與作戰。山地移動 ×2，山地傷害 +20%。',
+  conscription:        '徵兵 — 大規模強徵。兵力上限 +35%，但民忠 −1/季、農業 −10%。',
+  'elite-guards':      '親衛 — 培訓親衛精銳。主將護衛 +40 兵，主將戰死率 −50%。',
+  arsenal:             '軍械庫 — 設中央軍械庫。出征自動配發兵器，每月 −15g 維護。',
+  // ── new civil ──
+  'imperial-academy':  '太學 — 設立太學。學者武將每季 INT +1，可培養儒生官吏。',
+  'post-roads':        '驛站 — 全國驛站。命令傳達 +1 城/季，行軍速度 +10%。',
+  'community-granary': '義倉 — 鄉社互助糧倉。災情自動賑濟，民忠 +3，金庫 −30/季。',
+  'court-music':       '雅樂 — 朝廷正樂。文官效率 +10%，外賓禮節分 +5。',
+  // ── cultural / religious ──
+  buddhism:            '佛教 — 建寺度僧。民忠 +3/季，少部分人口出家不耕戰 (−5%)。',
+  taoism:              '道教 — 設道觀。瘟疫 −30%，秘術系戰法 +10% 成功率。',
+  divination:          '卜筮 — 太卜署。重大決策前可窺天意，戰前資訊 +1 條。',
+  // ── new diplomacy / intel ──
+  'hostage-system':    '質子 — 收他國貴族為質。盟約穩定 ×2，對方背叛代價 ×3。',
+  assassins:           '刺客 — 培養死士。可派遣刺殺敵將，成功率隨 INT 提升。',
+  'counter-intel':     '反間 — 反查細作。敵方間諜成功率 −50%，可植入假情報。',
+  'defector-reward':   '招降 — 厚賞降將。敵將戰敗投降概率 +20%。',
 };
 
 const CATEGORIES: CatalogCategory[] = [

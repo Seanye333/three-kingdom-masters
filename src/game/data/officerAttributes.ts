@@ -1560,7 +1560,34 @@ export type PolicyId =
   // ── Intelligence / Frontier (3) ──
   | 'spy-network'       // 細作 — espionage corps
   | 'propaganda'        // 檄文 — written denunciations & manifestos
-  | 'frontier-pacification'; // 撫夷 — pacify southern/western tribes (Zhuge's 攻心)
+  | 'frontier-pacification' // 撫夷 — pacify southern/western tribes (Zhuge's 攻心)
+  // ── More economy (5) ──
+  | 'granary'           // 倉廩 — state grain reserves & price stabilization
+  | 'maritime-trade'    // 海貿 — coastal sea trade (Wu strength)
+  | 'silk-loom'         // 蠶桑 — silkworm cultivation
+  | 'ox-plowing'        // 牛耕 — heavy-plow agriculture
+  | 'fish-salt'         // 漁鹽 — coastal fishery + salt panning
+  // ── More military (6) ──
+  | 'fortifications'    // 城防 — wall upgrade and tower construction
+  | 'ambush-corps'      // 伏兵營 — guerrilla training (forest/mountain)
+  | 'mountain-warfare'  // 山戰 — mountain combat doctrine (Wu's Shanyue, Shu's Hanzhong)
+  | 'conscription'      // 徵兵 — mass conscription (boosts numbers, hurts loyalty)
+  | 'elite-guards'      // 親衛 — bodyguard regiment (Cao's 虎豹騎, Yuan's 大戟士)
+  | 'arsenal'           // 軍械庫 — central arsenal for distribution
+  // ── More civil (4) ──
+  | 'imperial-academy'  // 太學 — Imperial University (Han classic)
+  | 'post-roads'        // 驛站 — postal road system
+  | 'community-granary' // 義倉 — village charity granaries
+  | 'court-music'       // 雅樂 — courtly ceremonial music
+  // ── Cultural / Religious (3) ──
+  | 'buddhism'          // 佛教 — Buddhist temple patronage
+  | 'taoism'            // 道教 — Taoist temple patronage (late Han uprisings)
+  | 'divination'        // 卜筮 — official divination
+  // ── More diplomacy / intel (4) ──
+  | 'hostage-system'    // 質子 — keep enemy princes hostage
+  | 'assassins'         // 刺客 — assassination programs
+  | 'counter-intel'     // 反間 — counter-espionage / planting false info
+  | 'defector-reward';  // 招降 — pay enemy officers to defect
 
 export const POLICY_DEFS: Record<PolicyId, { zh: string; en: string }> = {
   tuntian:             { zh: '屯田', en: 'Tuntian' },
@@ -1596,55 +1623,68 @@ export const POLICY_DEFS: Record<PolicyId, { zh: string; en: string }> = {
   'spy-network':       { zh: '細作', en: 'Spy Network' },
   propaganda:          { zh: '檄文', en: 'Proclamations' },
   'frontier-pacification': { zh: '撫夷', en: 'Frontier Pacification' },
+  granary:             { zh: '倉廩', en: 'State Granaries' },
+  'maritime-trade':    { zh: '海貿', en: 'Maritime Trade' },
+  'silk-loom':         { zh: '蠶桑', en: 'Silk Weaving' },
+  'ox-plowing':        { zh: '牛耕', en: 'Ox Plowing' },
+  'fish-salt':         { zh: '漁鹽', en: 'Fishery & Salt' },
+  fortifications:      { zh: '城防', en: 'Fortifications' },
+  'ambush-corps':      { zh: '伏兵營', en: 'Ambush Corps' },
+  'mountain-warfare':  { zh: '山戰', en: 'Mountain Warfare' },
+  conscription:        { zh: '徵兵', en: 'Mass Conscription' },
+  'elite-guards':      { zh: '親衛', en: 'Elite Guards' },
+  arsenal:             { zh: '軍械庫', en: 'Arsenal' },
+  'imperial-academy':  { zh: '太學', en: 'Imperial Academy' },
+  'post-roads':        { zh: '驛站', en: 'Postal Roads' },
+  'community-granary': { zh: '義倉', en: 'Community Granary' },
+  'court-music':       { zh: '雅樂', en: 'Court Music' },
+  buddhism:            { zh: '佛教', en: 'Buddhism' },
+  taoism:              { zh: '道教', en: 'Taoism' },
+  divination:          { zh: '卜筮', en: 'Divination' },
+  'hostage-system':    { zh: '質子', en: 'Hostage System' },
+  assassins:           { zh: '刺客', en: 'Assassins' },
+  'counter-intel':     { zh: '反間', en: 'Counter-Intel' },
+  'defector-reward':   { zh: '招降', en: 'Defector Reward' },
 };
 
 export const OFFICER_POLICIES: Record<string, PolicyId[]> = {
   // ─── 魏 Wei — central court ─────────────────────────
-  'cao-cao':      ['tuntian', 'legalism', 'recruitment', 'military-theory', 'salt-monopoly', 'iron-monopoly', 'spy-network', 'propaganda'],
+  'cao-cao':      ['tuntian', 'legalism', 'recruitment', 'military-theory', 'salt-monopoly', 'iron-monopoly', 'spy-network', 'propaganda', 'elite-guards', 'arsenal', 'counter-intel'],
   'cao-pi':       ['nine-grade', 'legalism', 'rites', 'ancestor-rites'],
   'cao-rui':      ['rites', 'ancestor-rites', 'astronomy'],
-  'sima-yi':      ['legalism', 'recruitment', 'military-theory', 'spy-network', 'border-garrison'],
+  'sima-yi':      ['legalism', 'recruitment', 'military-theory', 'spy-network', 'border-garrison', 'counter-intel', 'ambush-corps', 'fortifications'],
   'sima-shi':     ['legalism', 'inspection', 'nine-grade'],
   'sima-zhao':    ['legalism', 'inspection', 'spy-network'],
   'sima-yan':     ['land-reform', 'nine-grade', 'rites', 'ancestor-rites'],   // founded Jin
   'xun-yu':       ['legalism', 'scholarship', 'rites', 'ancestor-rites', 'nine-grade'],
   'xun-you':      ['legalism', 'scholarship', 'spy-network'],
-  'cheng-yu':     ['legalism', 'military-theory', 'spy-network'],
   'guo-jia':      ['military-theory', 'legalism', 'spy-network'],
   'jia-xu':       ['military-theory', 'legalism', 'spy-network'],
   'zao-zhi':      ['tuntian', 'hydraulics', 'poor-relief'],
   'ren-jun':      ['tuntian', 'hydraulics'],
-  'liu-fu':       ['tuntian', 'hydraulics', 'commerce', 'poor-relief'],
   'cui-yan':      ['rites', 'scholarship', 'nine-grade', 'inspection'],
   'chen-qun':     ['nine-grade', 'legalism', 'scholarship', 'rites'],     // creator of 九品中正
   'zhong-yao':    ['scholarship', 'rites', 'hydraulics', 'calendar-reform'],
   'wang-lang':    ['scholarship', 'rites', 'ancestor-rites'],
   'hua-xin':      ['rites', 'scholarship', 'inspection'],
   'man-chong':    ['legalism', 'border-garrison', 'inspection'],
-  'liu-ye':       ['military-theory', 'spy-network', 'propaganda'],
   'mao-jie':      ['legalism', 'tuntian', 'inspection'],
-  'jia-chong':    ['legalism', 'inspection', 'spy-network'],
   'du-yu':        ['scholarship', 'military-theory', 'calendar-reform', 'naval-academy'],
   'wang-jun':     ['naval-academy', 'engineering', 'siege-school'],         // 王濬樓船下益州
   // ─── 蜀 Shu ─────────────────────────────────────────
-  'liu-bei':      ['rites', 'recruitment', 'rites', 'ancestor-rites', 'poor-relief'],
-  'zhuge-liang':  ['legalism', 'tuntian', 'engineering', 'military-theory', 'crossbow-corps', 'frontier-pacification', 'astronomy', 'calendar-reform'],
+  'zhuge-liang':  ['legalism', 'tuntian', 'engineering', 'military-theory', 'crossbow-corps', 'frontier-pacification', 'astronomy', 'calendar-reform', 'fortifications', 'mountain-warfare', 'divination', 'post-roads'],
   'pang-tong':    ['military-theory', 'legalism', 'land-reform'],
   'fa-zheng':     ['legalism', 'military-theory', 'spy-network'],
-  'jiang-wan':    ['legalism', 'scholarship', 'tuntian', 'poor-relief'],    // Zhuge's successor
-  'fei-yi':       ['legalism', 'rites', 'scholarship', 'poor-relief'],
   'dong-yun':     ['legalism', 'rites', 'inspection'],
   'mi-zhu':       ['commerce', 'rites', 'salt-monopoly', 'silk-trade'],     // famed merchant
   'jian-yong':    ['rites', 'commerce'],
   'sun-qian':     ['rites', 'commerce', 'tribute-system'],
-  'jiang-wei':    ['military-theory', 'tuntian', 'border-garrison', 'crossbow-corps'],
   'ma-su':        ['military-theory', 'scholarship', 'frontier-pacification'],
   'liao-hua':     ['border-garrison', 'recruitment'],
   'ma-liang':     ['scholarship', 'rites', 'frontier-pacification'],
   // ─── 吳 Wu ──────────────────────────────────────────
-  'sun-quan':     ['commerce', 'recruitment', 'legalism', 'naval-academy', 'salt-monopoly', 'silk-trade', 'tribute-system'],
-  'sun-ce':       ['recruitment', 'naval-academy', 'border-garrison'],
-  'sun-jian':     ['recruitment', 'naval-academy'],
+  'sun-quan':     ['commerce', 'recruitment', 'legalism', 'naval-academy', 'salt-monopoly', 'silk-trade', 'tribute-system', 'maritime-trade', 'fish-salt'],
+  'sun-ce':       ['recruitment', 'naval-academy', 'border-garrison', 'maritime-trade'],
   'zhang-zhao':   ['rites', 'scholarship', 'legalism', 'nine-grade', 'ancestor-rites'],
   'zhang-hong':   ['rites', 'scholarship'],
   'gu-yong':      ['legalism', 'rites', 'scholarship', 'inspection'],
@@ -1652,8 +1692,6 @@ export const OFFICER_POLICIES: Record<string, PolicyId[]> = {
   'zhuge-jin':    ['rites', 'scholarship', 'legalism', 'tribute-system'],
   'zhuge-ke':     ['military-theory', 'legalism', 'recruitment'],
   'zhou-yu':      ['military-theory', 'naval-academy', 'recruitment'],
-  'lu-meng':      ['military-theory', 'naval-academy', 'spy-network'],
-  'lu-xun':       ['military-theory', 'tuntian', 'naval-academy', 'frontier-pacification'],
   'lu-kang':      ['military-theory', 'border-garrison', 'naval-academy'],
   'bu-zhi':       ['rites', 'scholarship', 'frontier-pacification'],
   'lu-dai':       ['naval-academy', 'border-garrison', 'frontier-pacification'],
@@ -1663,7 +1701,6 @@ export const OFFICER_POLICIES: Record<string, PolicyId[]> = {
   'liu-biao':     ['rites', 'scholarship', 'commerce'],
   'yuan-shao':    ['rites', 'scholarship', 'recruitment'],
   'yuan-shu':     ['ancestor-rites'],
-  'wang-yun':     ['legalism', 'rites', 'spy-network'],
   'lu-zhi':       ['scholarship', 'rites', 'military-theory'],
   'huangfu-song': ['military-theory', 'recruitment'],
   'zhu-jun':      ['military-theory', 'recruitment'],
@@ -1677,24 +1714,65 @@ export const OFFICER_POLICIES: Record<string, PolicyId[]> = {
   'dong-zhuo':    ['recruitment', 'horse-stewardship', 'propaganda'],
   'li-ru':        ['legalism', 'spy-network'],
   // ─── 黃巾 / 妖道 ────────────────────────────────────
-  'zhang-jiao':   ['poor-relief', 'propaganda', 'ancestor-rites'],
-  'zhang-lu':     ['poor-relief', 'rites', 'ancestor-rites'],
-  // ─── 漢室 / 漢末名士 / 沙門 ──────────────────────────
-  'liu-xie':      ['ancestor-rites', 'rites'],
+  'zhang-jiao':   ['poor-relief', 'propaganda', 'ancestor-rites', 'taoism', 'divination', 'community-granary'],
+  'zhang-lu':     ['poor-relief', 'rites', 'ancestor-rites', 'taoism', 'community-granary'],
+  'yu-ji':        ['taoism', 'divination'],
+  'zuo-ci':       ['taoism', 'divination'],
   // ─── 學者 Scholars ──────────────────────────────────
   'hua-tuo':      ['medicine', 'scholarship'],
   'zhang-zhongjing': ['medicine', 'scholarship', 'poor-relief'],
-  'cai-yong':     ['scholarship', 'rites', 'calendar-reform', 'astronomy'],
   'cai-wenji':    ['scholarship', 'rites'],
-  'zheng-xuan':   ['scholarship', 'rites', 'ancestor-rites'],
   'sima-hui':     ['scholarship', 'rites'],
   'pang-degong':  ['scholarship', 'rites'],
   'cui-zhouping': ['scholarship', 'rites'],
   'huang-chengyan':['scholarship', 'engineering'],
   'xu-shao':      ['scholarship', 'rites', 'inspection'],
   'chen-shou':    ['scholarship', 'rites'],
-  'wang-can':     ['scholarship', 'rites'],
   // (craftsmen ma-jun, pu-yuan, huo-zhi aren't in the playable roster)
+
+  // ─── Officers known for SPECIFIC specialties ─────────────────────────
+  // ── Defense / fortifications ──
+  'hao-zhao':     ['fortifications', 'arsenal', 'recruitment'],         // 陳倉死守
+  'huo-jun':      ['fortifications', 'mountain-warfare', 'recruitment'],// 葭萌死守
+  'yan-yan':      ['fortifications', 'mountain-warfare'],
+  'cao-ren':      ['fortifications', 'recruitment', 'elite-guards'],    // 樊城死守 + 虎豹騎兼領
+  // ── Elite-guard commanders ──
+  'cao-chun':     ['elite-guards', 'horse-stewardship'],                // 虎豹騎統領
+  'dian-wei':     ['elite-guards', 'recruitment'],                      // 曹操親衛
+  'xu-chu':       ['elite-guards', 'recruitment'],                      // 曹操親衛
+  'zhou-tai':     ['elite-guards', 'recruitment'],                      // 孫權親衛
+  // ── Ambush / guerrilla specialists ──
+  'wei-yan':      ['ambush-corps', 'mountain-warfare', 'recruitment'],  // 子午谷計
+  'jiang-wei':    ['military-theory', 'tuntian', 'border-garrison', 'crossbow-corps', 'ambush-corps', 'mountain-warfare'],
+  'wang-ping':    ['ambush-corps', 'mountain-warfare'],
+  'deng-ai':      ['ambush-corps', 'mountain-warfare', 'border-garrison'], // 偷渡陰平
+  'zhou-fang':    ['counter-intel', 'spy-network'],                     // 斷髮詐降
+  // ── Assassins / intel ──
+  'wang-yun':     ['legalism', 'rites', 'spy-network', 'assassins', 'counter-intel'],  // 連環美人計
+  'jia-chong':    ['legalism', 'inspection', 'spy-network', 'assassins'],              // 弒高貴鄉公
+  'guo-tu':       ['spy-network', 'counter-intel'],
+  'cheng-yu':     ['legalism', 'military-theory', 'spy-network', 'ambush-corps'],
+  'liu-ye':       ['military-theory', 'spy-network', 'propaganda', 'counter-intel'],
+  // ── Conscription / recruitment specialists ──
+  'sun-jian':     ['recruitment', 'naval-academy', 'maritime-trade', 'conscription'],
+  'lu-meng':      ['military-theory', 'naval-academy', 'spy-network', 'mountain-warfare'],  // 山越討伐
+  'lu-xun':       ['military-theory', 'tuntian', 'naval-academy', 'frontier-pacification', 'mountain-warfare'],
+  // (Wei Wen and Zhuge Zhi who sailed to 夷洲 aren't in the playable roster)
+  // ── Agricultural pioneers ──
+  'liu-fu':       ['tuntian', 'hydraulics', 'commerce', 'poor-relief', 'ox-plowing', 'silk-loom'],  // 揚州刺史 — turned Hefei into a productive frontier
+  // ── Imperial Academy ──
+  'liu-xie':      ['ancestor-rites', 'rites', 'imperial-academy', 'court-music'],
+  'cai-yong':     ['scholarship', 'rites', 'calendar-reform', 'astronomy', 'imperial-academy', 'court-music'],
+  'zheng-xuan':   ['scholarship', 'rites', 'ancestor-rites', 'imperial-academy'],
+  'wang-can':     ['scholarship', 'rites', 'imperial-academy'],
+  // ── Buddhism / Taoism patrons ──
+  'ze-rong':      ['buddhism', 'commerce'],                             // built first major Buddhist temple in China
+  // ── Defector-reward (recruitment via clemency) ──
+  'liu-bei':      ['rites', 'recruitment', 'ancestor-rites', 'poor-relief', 'defector-reward'],
+  'guan-yu':      ['defector-reward'],                                  // famously 義釋華容
+  // ── Post-roads / logistics ──
+  'jiang-wan':    ['legalism', 'scholarship', 'tuntian', 'poor-relief', 'post-roads', 'granary'],
+  'fei-yi':       ['legalism', 'rites', 'scholarship', 'poor-relief', 'post-roads'],
   // ─── 商人 Merchants ─────────────────────────────────
   // Mi Zhu already up in Shu block
 };
