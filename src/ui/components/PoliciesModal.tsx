@@ -65,6 +65,42 @@ const POLICY_CATEGORY: Record<string, string> = {
   assassins:           'diplomacy',
   'counter-intel':     'diplomacy',
   'defector-reward':   'diplomacy',
+  // ── Phase 3 economy ──
+  'iron-tools':        'economy',
+  'caravan-protection':'economy',
+  'horse-trade':       'economy',
+  'copper-mining':     'economy',
+  'iron-mining':       'economy',
+  timber:              'economy',
+  'pearl-trade':       'economy',
+  'jade-trade':        'economy',
+  corvee:              'economy',
+  'tax-light':         'economy',
+  // ── Phase 3 military ──
+  'watch-towers':      'military',
+  'garrison-rotation': 'military',
+  'chariot-corps':     'military',
+  'shield-wall':       'military',
+  'naval-fireships':   'military',
+  'naval-rams':        'military',
+  'horse-armor':       'military',
+  'mountain-stronghold': 'military',
+  // ── Phase 3 civil ──
+  'household-register':'civil',
+  examination:         'civil',
+  'mourning-rites':    'civil',
+  library:             'civil',
+  'music-bureau':      'civil',
+  'school-village':    'civil',
+  'imperial-edict':    'civil',
+  // ── Phase 3 religion (under civil chip) ──
+  'five-emperors':     'civil',
+  'mountain-spirit':   'civil',
+  'river-god':         'civil',
+  // ── Phase 3 diplomacy ──
+  'envoy-bureau':      'diplomacy',
+  'frontier-market':   'diplomacy',
+  'captives-ransom':   'diplomacy',
 };
 
 const POLICY_DESC: Record<string, string> = {
@@ -132,6 +168,42 @@ const POLICY_DESC: Record<string, string> = {
   assassins:           '刺客 — 培養死士。可派遣刺殺敵將，成功率隨 INT 提升。',
   'counter-intel':     '反間 — 反查細作。敵方間諜成功率 −50%，可植入假情報。',
   'defector-reward':   '招降 — 厚賞降將。敵將戰敗投降概率 +20%。',
+  // ── Phase 3 economy ──
+  'iron-tools':        '鐵具 — 鐵農具普及。農業 +20%，需 iron-mining 政策。',
+  'caravan-protection':'護商 — 沿途設亭驛。商隊損失 −50%，商業 +10%。',
+  'horse-trade':       '馬市 — 邊境馬市。每季新馬 +30 匹，與羌/匈奴互市。',
+  'copper-mining':     '銅礦 — 開銅礦。金 +50/季，需有銅礦資源城。',
+  'iron-mining':       '鐵礦 — 開鐵礦。鍛造效率 +50%，需鐵礦資源城。',
+  timber:              '林業 — 林場伐木。造船/攻城器械成本 −30%。',
+  'pearl-trade':       '珍珠貿 — 沿海珍珠採集。金 +60/季，需沿海城。東吳特色。',
+  'jade-trade':        '玉貿 — 西域玉器貿易。金 +40，外交禮品 +1 等級。',
+  corvee:              '力役 — 徵召民夫服勞役。工程速度 ×1.5，民忠 −2/季。',
+  'tax-light':         '輕徭薄賦 — 減免稅賦。民忠 +5，但金收入 −20%。',
+  // ── Phase 3 military ──
+  'watch-towers':      '烽燧 — 邊境烽火預警。敵軍入侵預警 +1 季。',
+  'garrison-rotation': '番上 — 駐軍輪換。守軍士氣 −30% 損耗，疲勞 −50%。',
+  'chariot-corps':     '戰車 — 戰車軍編成。平原戰力 +20%，山地 −30%。',
+  'shield-wall':       '盾陣 — 盾兵密集。受箭傷害 −30%，受魔法/火傷害 −10%。',
+  'naval-fireships':   '火船 — 火攻船。水戰中可發動連環船+火攻組合，傷害 ×2。',
+  'naval-rams':        '衝角 — 撞角戰術。水戰首擊傷害 +40%，可衝沉敵船。',
+  'horse-armor':       '馬鎧 — 鐵騎兵。騎兵防禦 +30%，但移動 −1。',
+  'mountain-stronghold': '山寨 — 山地築寨。山地城市防 +25%，可徵召山民兵。',
+  // ── Phase 3 civil ──
+  'household-register':'戶籍 — 編製戶口冊。稅收 +10%，徵兵效率 +20%。',
+  examination:         '察舉 — 漢代察舉制。每季全國發現 1-2 名隱士。',
+  'mourning-rites':    '喪禮 — 制定喪禮規格。世族忠誠 +5，但金庫 −20/季。',
+  library:             '圖書 — 設置藏書閣。學者武將智力恢復 +1/季。',
+  'music-bureau':      '樂府 — 採集民間樂歌。文官+魅力恢復 +1/季。',
+  'school-village':    '鄉學 — 廣設鄉校。寒門武將招募 +20%，文化人口 +5%。',
+  'imperial-edict':    '詔書 — 帝制下詔。聯軍可發動共同行動，士氣 +5。',
+  // ── religion (civil chip) ──
+  'five-emperors':     '五帝祭 — 五帝祭祀。皇族正統 +10，建國加分。',
+  'mountain-spirit':   '山神祭 — 祭祀山神。山地城市忠誠 +5，山民歸附 +1。',
+  'river-god':         '河神祭 — 祭祀河神。水患減半，水軍出兵時士氣 +3。',
+  // ── Phase 3 diplomacy ──
+  'envoy-bureau':      '鴻臚寺 — 設外交使團。可同時派 3 個使節，外交效率 +30%。',
+  'frontier-market':   '邊市 — 邊境互市。異族貿易金 +50/季，但細作風險 +1。',
+  'captives-ransom':   '贖俘 — 贖回戰俘。減少士氣損失，可換回被擒武將。',
 };
 
 const CATEGORIES: CatalogCategory[] = [
