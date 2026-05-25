@@ -118,7 +118,7 @@ export function applyWishGrant(
   if (!o) {
     return {
       officers,
-      entry: { cityId: null, kind: 'note', text: 'Wish target gone.' },
+      entry: { cityId: null, kind: 'note', text: 'Wish target gone.', textZh: '心願對象已不在。' },
     };
   }
   if (wish.kind === 'transfer' && wish.targetId) {
@@ -139,6 +139,7 @@ export function applyWishGrant(
       cityId: o.locationCityId,
       kind: 'note',
       text: `Granted ${o.name.en}'s wish (+${wish.grantBonus} loyalty).`,
+      textZh: `達成${o.name.zh}之心願（忠誠 +${wish.grantBonus}）。`,
     },
   };
 }
@@ -152,7 +153,7 @@ export function applyWishReject(
   if (!o) {
     return {
       officers,
-      entry: { cityId: null, kind: 'note', text: 'Wish target gone.' },
+      entry: { cityId: null, kind: 'note', text: 'Wish target gone.', textZh: '心願對象已不在。' },
     };
   }
   officers[o.id] = {
@@ -165,6 +166,7 @@ export function applyWishReject(
       cityId: o.locationCityId,
       kind: 'note',
       text: `Rejected ${o.name.en}'s wish (−${wish.rejectPenalty} loyalty).`,
+      textZh: `回絕${o.name.zh}之心願（忠誠 −${wish.rejectPenalty}）。`,
     },
   };
 }

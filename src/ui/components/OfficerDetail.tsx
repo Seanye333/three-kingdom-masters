@@ -14,9 +14,14 @@ import {
   FORMATION_DEFS,
   TACTIC_DEFS,
   POLICY_DEFS,
+  tacticBonus,
+  isTacticSignature,
 } from '../../game/data/officerAttributes';
 import { WEAPON_TYPE_DEFS, deriveWeaponType } from '../../game/data/weaponTypes';
 import type { City, Force, Officer, Skill } from '../../game/types';
+import { FORMATIONS_BY_ID } from '../../game/data/formations';
+import { TACTIC_DESC } from './TacticsModal';
+import { POLICY_DESC } from './PoliciesModal';
 import styles from './OfficerDetail.module.css';
 import { useT, useLanguage } from '../i18n';
 
@@ -98,6 +103,8 @@ export function OfficerDetail({
   const lang = useLanguage();
   const playerForceId = useGameStore((s) => s.playerForceId);
   const appointments = useGameStore((s) => s.appointments);
+  const pendingTrainings = useGameStore((s) => s.pendingTrainings);
+  const activeTraining = pendingTrainings.find((tr) => tr.officerId === officer.id);
 
   const forces = forcesOverride ?? storeForces;
   const cities = citiesOverride ?? storeCities;
@@ -270,10 +277,13 @@ export function OfficerDetail({
                 return (
                   <div>
                     <span style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>{t('主義', 'Doctrine')} </span>
-                    <span style={{
-                      background: '#1a1410', border: `1px solid ${d.color}`, color: d.color,
-                      padding: '0.2rem 0.55rem', fontSize: '0.8rem', letterSpacing: '0.1rem',
-                    }}>
+                    <span
+                      title={`${d.zh} · ${d.en}`}
+                      style={{
+                        background: '#1a1410', border: `1px solid ${d.color}`, color: d.color,
+                        padding: '0.2rem 0.55rem', fontSize: '0.8rem', letterSpacing: '0.1rem',
+                        }}
+                    >
                       {lang === 'en' ? d.en : d.zh}
                       {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{d.en}</span></>}
                     </span>
@@ -286,10 +296,13 @@ export function OfficerDetail({
                 return (
                   <div>
                     <span style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>{t('兵裝', 'Weapon')} </span>
-                    <span style={{
-                      background: '#1a1410', border: `1px solid ${w.color}`, color: w.color,
-                      padding: '0.2rem 0.55rem', fontSize: '0.8rem', letterSpacing: '0.1rem',
-                    }}>
+                    <span
+                      title={`${w.zh} · ${w.en}`}
+                      style={{
+                        background: '#1a1410', border: `1px solid ${w.color}`, color: w.color,
+                        padding: '0.2rem 0.55rem', fontSize: '0.8rem', letterSpacing: '0.1rem',
+                        }}
+                    >
                       {lang === 'en' ? w.en : w.zh}
                       {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{w.en}</span></>}
                     </span>
@@ -306,11 +319,20 @@ export function OfficerDetail({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {officer.formations.map((fid) => {
                 const f = FORMATION_DEFS[fid];
+                const fdef = FORMATIONS_BY_ID[fid];
+                const fullDesc =
+                  (lang === 'zh' && fdef?.descriptionZh) ||
+                  fdef?.description ||
+                  `${f.zh} · ${f.en}`;
                 return (
-                  <span key={fid} style={{
-                    background: '#1a1410', border: '1px solid #88b7e8', color: '#88b7e8',
-                    padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
-                  }}>
+                  <span
+                    key={fid}
+                    title={fullDesc}
+                    style={{
+                      background: '#1a1410', border: '1px solid #88b7e8', color: '#88b7e8',
+                      padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                    }}
+                  >
                     {lang === 'en' ? f.en : f.zh}
                     {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#5a7090', fontStyle: 'italic' }}>{f.en}</span></>}
                   </span>
@@ -326,11 +348,29 @@ export function OfficerDetail({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {officer.tactics.map((tid) => {
                 const tac = TACTIC_DEFS[tid];
+                const b = tacticBonus(tid);
+                const bonuses = [
+                  b.war         && `武 +${b.war}`,
+                  b.leadership  && `統 +${b.leadership}`,
+                  b.intelligence&& `知 +${b.intelligence}`,
+                  b.politics    && `政 +${b.politics}`,
+                  b.charisma    && `魅 +${b.charisma}`,
+                ].filter(Boolean).join(' · ');
+                const sig = isTacticSignature(tid) ? '★ ' : '';
+                const desc = TACTIC_DESC[tid] ?? `${tac.zh} · ${tac.en}`;
+                const tooltip = bonuses
+                  ? `${sig}${desc}\n${bonuses}`
+                  : `${sig}${desc}`;
                 return (
-                  <span key={tid} style={{
-                    background: '#1a1410', border: '1px solid #b8442e', color: '#b8442e',
-                    padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
-                  }}>
+                  <span
+                    key={tid}
+                    title={tooltip}
+                    style={{
+                      background: '#1a1410', border: '1px solid #b8442e', color: '#b8442e',
+                      padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                    }}
+                  >
+                    {isTacticSignature(tid) && <span style={{ color: '#d4a84a', marginRight: 2 }}>★</span>}
                     {lang === 'en' ? tac.en : tac.zh}
                     {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a4530', fontStyle: 'italic' }}>{tac.en}</span></>}
                   </span>
@@ -340,66 +380,99 @@ export function OfficerDetail({
           </section>
         )}
 
-        {officer.policies && officer.policies.length > 0 && (
+        {((officer.policies && officer.policies.length > 0) || activeTraining) && (
           <section className={styles.statsSection}>
             <h3 className={styles.sectionTitle}>{t('政策', 'Policies')}</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-              {officer.policies.map((pid) => {
+              {(officer.policies ?? []).map((pid) => {
                 const p = POLICY_DEFS[pid];
+                const desc = POLICY_DESC[pid] ?? `${p.zh} · ${p.en}`;
                 return (
-                  <span key={pid} style={{
-                    background: '#1a1410', border: '1px solid #7a9a5a', color: '#7a9a5a',
-                    padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
-                  }}>
+                  <span
+                    key={pid}
+                    title={desc}
+                    style={{
+                      background: '#1a1410', border: '1px solid #7a9a5a', color: '#7a9a5a',
+                      padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                    }}
+                  >
                     {lang === 'en' ? p.en : p.zh}
                     {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#5a7a4a', fontStyle: 'italic' }}>{p.en}</span></>}
                   </span>
                 );
               })}
-            </div>
-          </section>
-        )}
-
-        {officer.traits && officer.traits.length > 0 && (
-          <section className={styles.statsSection}>
-            <h3 className={styles.sectionTitle}>{t('性格', 'Personality')}</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-              {officer.traits.map((tid) => {
-                const tr = TRAIT_DEFS_BY_ID[tid];
-                if (!tr) return null;
+              {activeTraining && (() => {
+                const p = POLICY_DEFS[activeTraining.policyId];
                 return (
                   <span
-                    key={tid}
-                    title={lang === 'zh' && tr.descriptionZh ? tr.descriptionZh : tr.description}
+                    title={t(
+                      `培訓中:${p?.zh ?? activeTraining.policyId} — 剩餘 ${activeTraining.seasonsLeft} 季`,
+                      `Training: ${p?.en ?? activeTraining.policyId} — ${activeTraining.seasonsLeft} season(s) left`,
+                    )}
                     style={{
-                      background: '#1a1410',
-                      border: `1px solid ${tr.color}`,
-                      color: tr.color,
-                      padding: '0.3rem 0.55rem',
-                      fontSize: '0.78rem',
-                      fontFamily: '"Songti SC", serif',
-                      letterSpacing: '0.1rem',
+                      background: 'rgba(136, 183, 232, 0.12)',
+                      border: '1px dashed #88b7e8', color: '#88b7e8',
+                      padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                      fontStyle: 'italic',
                     }}
                   >
-                    {lang === 'en' ? tr.name.en : tr.name.zh}
-                    {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{tr.name.en}</span></>}
+                    ⏳ {lang === 'en' ? p?.en : p?.zh} ({activeTraining.seasonsLeft})
                   </span>
                 );
-              })}
+              })()}
             </div>
           </section>
         )}
 
-        {officer.skills.length > 0 && (
+        {((officer.traits && officer.traits.length > 0) || officer.skills.length > 0) && (
           <section className={styles.statsSection}>
-            <h3 className={styles.sectionTitle}>{t('特技', 'Skills')}</h3>
-            <div className={styles.skillsList}>
+            <h3 className={styles.sectionTitle}>{t('個性', 'Individualities')}</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {officer.skills
                 .map((id) => SKILLS_BY_ID[id])
                 .filter((s): s is Skill => !!s)
-                .map((s) => (
-                  <SkillCard key={s.id} skill={s} />
-                ))}
+                .map((s) => {
+                  // Skill border + text color by category
+                  const color =
+                    s.category === 'combat'  ? '#b8442e'
+                    : s.category === 'command' ? '#d4a84a'
+                    : s.category === 'wisdom'  ? '#88b7e8'
+                    : s.category === 'civil'   ? '#b8c87a'
+                    : '#c178c7';
+                  const desc = lang === 'zh' && s.descriptionZh ? s.descriptionZh : s.description;
+                  return (
+                    <span
+                      key={`skill-${s.id}`}
+                      title={desc}
+                      style={{
+                        background: '#1a1410', border: `1px solid ${color}`, color,
+                        padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                        }}
+                    >
+                      {lang === 'en' ? s.name.en : s.name.zh}
+                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{s.name.en}</span></>}
+                    </span>
+                  );
+                })}
+              {(officer.traits ?? [])
+                .map((tid) => TRAIT_DEFS_BY_ID[tid])
+                .filter((tr): tr is import('../../game/types').PersonalityTraitDef => !!tr)
+                .map((tr) => {
+                  const desc = lang === 'zh' && tr.descriptionZh ? tr.descriptionZh : tr.description;
+                  return (
+                    <span
+                      key={`trait-${tr.id}`}
+                      title={desc}
+                      style={{
+                        background: '#1a1410', border: `1px solid ${tr.color}`, color: tr.color,
+                        padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                        }}
+                    >
+                      {lang === 'en' ? tr.name.en : tr.name.zh}
+                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{tr.name.en}</span></>}
+                    </span>
+                  );
+                })}
             </div>
           </section>
         )}
@@ -411,20 +484,34 @@ export function OfficerDetail({
             <h3 className={styles.sectionTitle}>
               {t('持有', 'Equipment')} ({officer.equipment.length})
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {/* Group items by kind for readability, but render every one. */}
-              {(['weapon', 'horse', 'treasure', 'book'] as const).flatMap((kind) =>
-                officer.equipment
-                  .filter((id) => ITEMS_BY_ID[id]?.kind === kind)
-                  .map((id) => <ItemCard key={id} itemId={id} />),
-              )}
-              {/* Any items whose kind isn't in the standard set still render. */}
-              {officer.equipment
-                .filter((id) => {
-                  const k = ITEMS_BY_ID[id]?.kind;
-                  return k && !['weapon', 'horse', 'treasure', 'book'].includes(k);
-                })
-                .map((id) => <ItemCard key={id} itemId={id} />)}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+              {officer.equipment.map((id) => {
+                const item = ITEMS_BY_ID[id];
+                if (!item) return null;
+                const kindColor =
+                  item.kind === 'weapon'   ? '#b8442e'
+                  : item.kind === 'horse'    ? '#c19a3b'
+                  : item.kind === 'treasure' ? '#d4a84a'
+                  : item.kind === 'book'     ? '#3a7dd9'
+                  : '#5a4530';
+                const desc = lang === 'zh' && item.descriptionZh ? item.descriptionZh : item.description;
+                const effects = Object.entries(item.effects)
+                  .map(([stat, val]) => `${stat.slice(0, 3).toUpperCase()} +${val}`)
+                  .join(' · ');
+                return (
+                  <span
+                    key={id}
+                    title={`${desc}\n${effects}`}
+                    style={{
+                      background: '#1a1410', border: `1px solid ${kindColor}`, color: kindColor,
+                      padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                    }}
+                  >
+                    {lang === 'en' ? item.name.en : item.name.zh}
+                    {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{item.name.en}</span></>}
+                  </span>
+                );
+              })}
             </div>
           </section>
         )}
@@ -777,101 +864,6 @@ function Portrait({
         </text>
       </g>
     </svg>
-  );
-}
-
-function SkillCard({ skill }: { skill: Skill }) {
-  const lang = useLanguage();
-  const catClass =
-    skill.category === 'combat' ? styles.skillCategoryCombat
-    : skill.category === 'command' ? styles.skillCategoryCommand
-    : skill.category === 'wisdom' ? styles.skillCategoryWisdom
-    : skill.category === 'civil' ? styles.skillCategoryCivil
-    : styles.skillCategorySpecial;
-  return (
-    <div className={styles.skillCard}>
-      <div className={styles.skillHeader}>
-        <div>
-          {lang !== 'en' && <span className={styles.skillName}>{skill.name.zh}</span>}
-          {lang !== 'zh' && <span className={styles.skillNameEn}>{skill.name.en}</span>}
-        </div>
-        <span className={`${styles.skillCategory} ${catClass}`}>
-          {skill.category}
-        </span>
-      </div>
-      <div className={styles.skillDesc}>{lang === 'zh' && skill.descriptionZh ? skill.descriptionZh : skill.description}</div>
-    </div>
-  );
-}
-
-function ItemCard({ itemId }: { itemId: string }) {
-  const item = ITEMS_BY_ID[itemId];
-  const lang = useLanguage();
-  if (!item) return null;
-  const kindColor =
-    item.kind === 'weapon'   ? '#b8442e'
-  : item.kind === 'horse'    ? '#c19a3b'
-  : item.kind === 'treasure' ? '#d4a84a'
-  : item.kind === 'book'     ? '#3a7dd9'
-  : '#5a4530';
-  return (
-    <div
-      style={{
-        background: '#1a1410',
-        border: '1px solid #4a3520',
-        borderLeft: `3px solid ${kindColor}`,
-        padding: '0.6rem 0.75rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.3rem',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div>
-          <span style={{ color: '#d4a84a', fontSize: '1.05rem' }}>
-            {lang === 'en' ? item.name.en : item.name.zh}
-          </span>
-          {lang === 'both' && (
-            <span style={{ color: '#8a7050', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
-              {item.name.en}
-            </span>
-          )}
-        </div>
-        <span
-          style={{
-            background: kindColor,
-            color: '#1a1410',
-            fontFamily: 'ui-monospace, monospace',
-            fontSize: '0.65rem',
-            padding: '0.1rem 0.4rem',
-            letterSpacing: '0.1rem',
-            textTransform: 'uppercase',
-          }}
-        >
-          {item.kind}
-        </span>
-      </div>
-      <div style={{ fontSize: '0.78rem', color: '#c0a878', fontStyle: 'italic', lineHeight: 1.4 }}>
-        {lang === 'zh' && item.descriptionZh ? item.descriptionZh : item.description}
-      </div>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        {Object.entries(item.effects).map(([stat, val]) => (
-          <span
-            key={stat}
-            style={{
-              fontFamily: 'ui-monospace, monospace',
-              fontSize: '0.75rem',
-              color: '#88b7e8',
-              background: '#2a1f15',
-              border: '1px solid #3a2d20',
-              padding: '0.1rem 0.45rem',
-            }}
-          >
-            {stat.slice(0, 3).toUpperCase()} +{val}
-          </span>
-        ))}
-      </div>
-    </div>
   );
 }
 

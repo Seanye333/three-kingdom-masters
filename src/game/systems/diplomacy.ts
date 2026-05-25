@@ -237,6 +237,7 @@ export function tickDiplomacy(input: DiplomacyTickInput): DiplomacyTickOutput {
         cityId: null,
         kind: 'note',
         text: `The non-aggression pact between ${rel.forceA} and ${rel.forceB} has expired.`,
+        textZh: `${rel.forceA}與${rel.forceB}之互不侵犯之盟，今已期滿。`,
       });
     }
     // Yearly relation decay toward 0 (slow regression to mean).

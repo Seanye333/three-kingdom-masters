@@ -65,6 +65,9 @@ export interface GameState {
   forces: Record<EntityId, Force>;
   officers: Record<EntityId, Officer>;
   pendingCommands: Record<EntityId, Command>;
+  /** In-flight academy training tasks. Each entry ticks down each season
+   *  and on completion adds a new policy to the officer. */
+  pendingTrainings: Array<import('../systems/training').PendingTraining>;
   lastReport: SeasonReport | null;
   victoryStatus: VictoryStatus;
   difficulty: Difficulty;
@@ -195,6 +198,7 @@ export const EMPTY_STATE: GameState = {
   forces: {},
   officers: {},
   pendingCommands: {},
+  pendingTrainings: [],
   lastReport: null,
   victoryStatus: 'playing',
   difficulty: 'normal',
@@ -351,6 +355,7 @@ export function loadScenario(
     ),
     officers: indexById(officers),
     pendingCommands: {},
+    pendingTrainings: [],
     lastReport: null,
     victoryStatus: 'playing',
     diplomacy: { relations: {} },

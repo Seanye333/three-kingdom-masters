@@ -344,7 +344,7 @@ const TACTIC_CATEGORY: Record<string, string> = {
   'zhang-jiao-yellow':'mystic', 'zhang-lu-rice':'mystic',
 };
 
-const TACTIC_DESC: Record<string, string> = {
+export const TACTIC_DESC: Record<string, string> = {
   charge:         '突擊 — 騎兵衝鋒突破敵陣。對未防禦的密集步兵殺傷尤甚。',
   rouse:          '鼓舞 — 提振士氣，使己方部隊一回合內 +20% 戰力。',
   ambush:         '急襲 — 出其不意，繞至敵後造成 25% 額外傷害。',

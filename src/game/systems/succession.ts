@@ -42,6 +42,7 @@ export function applySuccession(ctx: SuccessionContext): SuccessionOutput {
       cityId: null,
       kind: 'succession',
       text: `${heir.name.en} has inherited the ${force.name.en} force following the death of ${ruler?.name.en ?? 'the previous ruler'}.`,
+      textZh: `${ruler?.name.zh ?? '前主公'}薨，${heir.name.zh}繼承${force.name.zh}基業。`,
     });
   }
   return { forces, entries };

@@ -36,6 +36,7 @@ export function tickBuildings(ctx: BuildingTickContext): BuildingTickOutput {
         cityId: b.cityId,
         kind: 'command-success',
         text: `${def.name.en} in ${city?.name.en ?? '?'} reached level ${b.level + 1}.`,
+        textZh: `${city?.name.zh ?? '?'}的${def.name.zh}達到 ${b.level + 1} 級。`,
       });
       return { ...b, level: b.level + 1, progress: 0 };
     }

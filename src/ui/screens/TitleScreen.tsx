@@ -9,8 +9,7 @@ import { ItemsBrowser } from '../components/ItemsBrowser';
 import { FormationsModal } from '../components/FormationsModal';
 import { TacticsModal } from '../components/TacticsModal';
 import { PoliciesModal } from '../components/PoliciesModal';
-import { TraitsModal } from '../components/TraitsModal';
-import { SkillsModal } from '../components/SkillsModal';
+import { IndividualitiesModal } from '../components/IndividualitiesModal';
 import { SaveSlotsModal } from '../components/SaveSlotsModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { ScenarioOfficersBrowser } from '../components/ScenarioOfficersBrowser';
@@ -42,8 +41,7 @@ export function TitleScreen() {
   const [showFormations, setShowFormations] = useState(false);
   const [showTactics, setShowTactics] = useState(false);
   const [showPolicies, setShowPolicies] = useState(false);
-  const [showTraits, setShowTraits] = useState(false);
-  const [showSkills, setShowSkills] = useState(false);
+  const [showIndividualities, setShowIndividualities] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const enterCareerMode = useGameStore((s) => s.enterCareerMode);
   const setRomanceMode = useGameStore((s) => s.setRomanceMode);
@@ -180,17 +178,10 @@ export function TitleScreen() {
           </button>
           <button
             className={styles.officersButton}
-            onClick={() => setShowTraits(true)}
+            onClick={() => setShowIndividualities(true)}
             style={{ marginTop: '0.5rem' }}
           >
-            {t('性格一覽', 'Browse All Traits')}
-          </button>
-          <button
-            className={styles.officersButton}
-            onClick={() => setShowSkills(true)}
-            style={{ marginTop: '0.5rem' }}
-          >
-            {t('特技一覽', 'Browse All Skills')}
+            {t('個性一覽', 'Browse All Individualities')}
           </button>
           <button
             className={styles.officersButton}
@@ -390,8 +381,7 @@ export function TitleScreen() {
       {showFormations && <FormationsModal onClose={() => setShowFormations(false)} />}
       {showTactics && <TacticsModal onClose={() => setShowTactics(false)} />}
       {showPolicies && <PoliciesModal onClose={() => setShowPolicies(false)} />}
-      {showTraits && <TraitsModal onClose={() => setShowTraits(false)} />}
-      {showSkills && <SkillsModal onClose={() => setShowSkills(false)} />}
+      {showIndividualities && <IndividualitiesModal onClose={() => setShowIndividualities(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
 
       {/* Settings gear in top-right corner */}

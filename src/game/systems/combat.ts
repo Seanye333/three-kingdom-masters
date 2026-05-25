@@ -641,10 +641,14 @@ export function handleMarch(
     const coNames = transferCompanions.length > 0
       ? ` with ${transferCompanions.map((o) => o.name.en).join(', ')}`
       : '';
+    const coNamesZh = transferCompanions.length > 0
+      ? `與${transferCompanions.map((o) => o.name.zh).join('、')}`
+      : '';
     entries.push({
       cityId: target.id,
       kind: 'march',
       text: `${commander.name.en}${coNames} transferred ${sentTroops.toLocaleString()} troops from ${source.name.en} to ${target.name.en}.`,
+      textZh: `${commander.name.zh}${coNamesZh}自${source.name.zh}調兵 ${sentTroops.toLocaleString()} 至${target.name.zh}。`,
     });
     return { cities, officers, entries };
   }
@@ -749,6 +753,9 @@ export function handleMarch(
       text: result.stratagem.succeeded
         ? `${result.stratagem.name.zh} 之計成功 — 攻方 ${commander.name.zh} 用計奏效`
         : `${result.stratagem.name.zh} 之計失敗 — 反受其害`,
+      textZh: result.stratagem.succeeded
+        ? `${result.stratagem.name.zh}之計大成 — 攻方${commander.name.zh}用計奏效。`
+        : `${result.stratagem.name.zh}之計失策 — 反受其害。`,
     });
   }
 
@@ -757,6 +764,7 @@ export function handleMarch(
       cityId: target.id,
       kind: 'battle',
       text: `Duel! ${result.duel.winner.name.en} slew ${result.duel.loser.name.en} on the field.`,
+      textZh: `一騎討！${result.duel.winner.name.zh}陣前斬${result.duel.loser.name.zh}。`,
     });
     officers[result.duel.loser.id] = {
       ...officers[result.duel.loser.id],
@@ -779,6 +787,13 @@ export function handleMarch(
     .slice(0, 4)
     .map((o) => o.name.en)
     .join(' + ');
+  const attackerNamesZh = [commander, ...companions]
+    .map((o) => o.name.zh)
+    .join('、');
+  const defenderNamesZh = [defenderCommander, ...defenderOfficers.filter((o) => o.id !== defenderCommander.id)]
+    .slice(0, 4)
+    .map((o) => o.name.zh)
+    .join('、');
 
   const battleDetail: BattleDetail = {
     cityId: target.id,
@@ -839,6 +854,11 @@ export function handleMarch(
       `${defenderNames} (${target.troops.toLocaleString()}). ` +
       `Casualties — atk ${result.attackerLosses.toLocaleString()}, def ${result.defenderLosses.toLocaleString()}. ` +
       `[Click for breakdown]`,
+    textZh:
+      `${target.name.zh}之戰：${attackerNamesZh}（${sentTroops.toLocaleString()}）對陣` +
+      `${defenderNamesZh}（${target.troops.toLocaleString()}）。` +
+      `折損 — 攻方 ${result.attackerLosses.toLocaleString()}、守方 ${result.defenderLosses.toLocaleString()}。` +
+      `[點擊查看詳情]`,
     battle: battleDetail,
   });
 
@@ -882,10 +902,14 @@ export function handleMarch(
     const coNames = companions.length > 0
       ? ` with ${companions.map((o) => o.name.en).join(', ')}`
       : '';
+    const coNamesZh = companions.length > 0
+      ? `與${companions.map((o) => o.name.zh).join('、')}`
+      : '';
     entries.push({
       cityId: target.id,
       kind: 'conquest',
       text: `${target.name.en} has fallen! ${commander.name.en}${coNames} occupies the city.`,
+      textZh: `${target.name.zh}已陷！${commander.name.zh}${coNamesZh}入城據守。`,
     });
   } else if (result.attackerWins) {
     // Won field but didn't take city — survivors return.
@@ -900,6 +924,7 @@ export function handleMarch(
       cityId: target.id,
       kind: 'battle',
       text: `${commander.name.en} won the field but could not breach ${target.name.en}. Survivors returned.`,
+      textZh: `${commander.name.zh}雖勝於野戰，然未能破${target.name.zh}城，餘眾撤回。`,
     });
   } else {
     // Repulsed.
@@ -914,6 +939,7 @@ export function handleMarch(
       cityId: target.id,
       kind: 'defeat',
       text: `${commander.name.en} was repulsed at ${target.name.en}. ${attackerSurvivors.toLocaleString()} troops returned.`,
+      textZh: `${commander.name.zh}於${target.name.zh}受挫敗退，餘 ${attackerSurvivors.toLocaleString()} 兵歸營。`,
     });
   }
 

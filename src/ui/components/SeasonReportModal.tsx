@@ -4,6 +4,7 @@ import { SEASON_LABEL } from '../../game/types';
 import type { BattleDetail, Season } from '../../game/types';
 import { BattleDetailModal } from './BattleDetailModal';
 import styles from './SeasonReportModal.module.css';
+import { useT, useLanguage } from '../i18n';
 
 export function SeasonReportModal() {
   const report = useGameStore((s) => s.lastReport);
@@ -11,6 +12,8 @@ export function SeasonReportModal() {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const cities = useGameStore((s) => s.cities);
   const [selectedBattle, setSelectedBattle] = useState<BattleDetail | null>(null);
+  const t = useT();
+  const lang = useLanguage();
 
   if (!report) return null;
   const season = SEASON_LABEL[report.date.season as Season];
@@ -39,21 +42,26 @@ export function SeasonReportModal() {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <div className={styles.titleBlock}>
-            <div className={styles.titleZh}>季報</div>
+            <div className={styles.titleZh}>{t('季報', 'Season Report')}</div>
             <div className={styles.titleEn}>
-              Season Report — {season.en} {report.date.year} AD
+              {lang === 'zh'
+                ? `${season.zh} ${report.date.year} 年`
+                : lang === 'both'
+                  ? `${season.zh} · ${season.en} ${report.date.year} AD`
+                  : `Season Report — ${season.en} ${report.date.year} AD`}
             </div>
           </div>
         </header>
 
         {playerEntries.length === 0 ? (
           <div className={styles.empty}>
-            A quiet season. Nothing of note in your domain.
+            {t('季內無事,境內安寧。', 'A quiet season. Nothing of note in your domain.')}
           </div>
         ) : (
           <ul className={styles.entries}>
             {playerEntries.map((e, i) => {
               const clickable = !!e.battle;
+              const body = lang === 'zh' ? (e.textZh ?? e.text) : e.text;
               return (
                 <li
                   key={i}
@@ -65,8 +73,8 @@ export function SeasonReportModal() {
                   }
                   style={clickable ? { cursor: 'pointer' } : undefined}
                 >
-                  <span className={styles.kindTag}>{kindLabel(e.kind)}</span>
-                  <span className={styles.text}>{e.text}</span>
+                  <span className={styles.kindTag}>{kindLabel(e.kind, lang)}</span>
+                  <span className={styles.text}>{body}</span>
                 </li>
               );
             })}
@@ -75,7 +83,7 @@ export function SeasonReportModal() {
 
         <footer className={styles.footer}>
           <button className={styles.closeButton} onClick={dismiss}>
-            Continue
+            {t('繼續', 'Continue')}
           </button>
         </footer>
 
@@ -94,25 +102,30 @@ function kindClass(kind: string): string {
   return `kind_${kind.replace('-', '_')}`;
 }
 
-function kindLabel(kind: string): string {
-  switch (kind) {
-    case 'income':           return 'INCOME';
-    case 'upkeep':           return 'UPKEEP';
-    case 'desertion':        return 'DESERTION';
-    case 'command-success':  return 'ORDER';
-    case 'command-failure':  return 'ORDER';
-    case 'march':            return 'MARCH';
-    case 'battle':           return 'BATTLE';
-    case 'conquest':         return 'CONQUEST';
-    case 'defeat':           return 'DEFEAT';
-    case 'death':            return 'DEATH';
-    case 'succession':       return 'SUCCESSION';
-    case 'dissolution':      return 'DISSOLUTION';
-    case 'rebellion':        return 'REVOLT';
-    case 'harvest':          return 'HARVEST';
-    case 'famine':           return 'FAMINE';
-    case 'plague':           return 'PLAGUE';
-    case 'talent':           return 'TALENT';
-    default:                 return 'NOTE';
-  }
+function kindLabel(kind: string, lang: 'zh' | 'en' | 'both'): string {
+  const pair = ((): { zh: string; en: string } => {
+    switch (kind) {
+      case 'income':           return { zh: '收入', en: 'INCOME' };
+      case 'upkeep':           return { zh: '俸給', en: 'UPKEEP' };
+      case 'desertion':        return { zh: '逃散', en: 'DESERTION' };
+      case 'command-success':  return { zh: '政令', en: 'ORDER' };
+      case 'command-failure':  return { zh: '政令', en: 'ORDER' };
+      case 'march':            return { zh: '進軍', en: 'MARCH' };
+      case 'battle':           return { zh: '戰役', en: 'BATTLE' };
+      case 'conquest':         return { zh: '攻佔', en: 'CONQUEST' };
+      case 'defeat':           return { zh: '敗北', en: 'DEFEAT' };
+      case 'death':            return { zh: '逝世', en: 'DEATH' };
+      case 'succession':       return { zh: '繼承', en: 'SUCCESSION' };
+      case 'dissolution':      return { zh: '滅亡', en: 'DISSOLUTION' };
+      case 'rebellion':        return { zh: '叛亂', en: 'REVOLT' };
+      case 'harvest':          return { zh: '豐收', en: 'HARVEST' };
+      case 'famine':           return { zh: '饑荒', en: 'FAMINE' };
+      case 'plague':           return { zh: '瘟疫', en: 'PLAGUE' };
+      case 'talent':           return { zh: '人才', en: 'TALENT' };
+      default:                 return { zh: '雜事', en: 'NOTE' };
+    }
+  })();
+  if (lang === 'zh') return pair.zh;
+  if (lang === 'both') return `${pair.zh} · ${pair.en}`;
+  return pair.en;
 }

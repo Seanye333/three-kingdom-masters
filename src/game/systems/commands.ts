@@ -144,6 +144,7 @@ export interface CommandResult {
     wallTier: 1 | 2 | 3;
   }>;
   message: string;
+  messageZh: string;
 }
 
 export function resolveInternalAffairs(
@@ -168,6 +169,9 @@ export function resolveInternalAffairs(
         message: capHit
           ? `${officer.name.en}: Agriculture already at ${size.name.zh}'s cap (${cap}). Promote the city first.`
           : `${officer.name.en} raised Agriculture by ${gain} (now ${city.agriculture + gain}/${cap}).`,
+        messageZh: capHit
+          ? `${officer.name.zh}:農業已達${size.name.zh}上限 (${cap}),需先升城。`
+          : `${officer.name.zh}勸農 +${gain} (現 ${city.agriculture + gain}/${cap})。`,
       };
     }
     case 'develop-commerce': {
@@ -179,6 +183,9 @@ export function resolveInternalAffairs(
         message: capHit
           ? `${officer.name.en}: Commerce already at ${size.name.zh}'s cap (${cap}).`
           : `${officer.name.en} raised Commerce by ${gain} (now ${city.commerce + gain}/${cap}).`,
+        messageZh: capHit
+          ? `${officer.name.zh}:商業已達${size.name.zh}上限 (${cap})。`
+          : `${officer.name.zh}興商 +${gain} (現 ${city.commerce + gain}/${cap})。`,
       };
     }
     case 'build-defense': {
@@ -190,6 +197,9 @@ export function resolveInternalAffairs(
         message: capHit
           ? `${officer.name.en}: Defense already at ${size.name.zh}'s cap (${cap}).`
           : `${officer.name.en} reinforced Defense by ${gain} (now ${city.defense + gain}/${cap}).`,
+        messageZh: capHit
+          ? `${officer.name.zh}:城防已達${size.name.zh}上限 (${cap})。`
+          : `${officer.name.zh}築城 +${gain} (現 ${city.defense + gain}/${cap})。`,
       };
     }
     case 'recruit-troops': {
@@ -201,6 +211,7 @@ export function resolveInternalAffairs(
         success: fromPop > 0,
         delta: { troops: fromPop, population: -fromPop * 2 },
         message: `${officer.name.en} recruited ${fromPop} troops (${size.name.zh} cap ${sizeMax}/turn; population −${fromPop * 2}).`,
+        messageZh: `${officer.name.zh}徵兵 ${fromPop} 卒 (${size.name.zh}每季上限 ${sizeMax};民減 ${fromPop * 2})。`,
       };
     }
     case 'improve-loyalty': {
@@ -212,6 +223,7 @@ export function resolveInternalAffairs(
         success: gain > 0,
         delta: { loyalty: gain },
         message: `${officer.name.en} raised Loyalty by ${gain} (now ${city.loyalty + gain}).`,
+        messageZh: `${officer.name.zh}撫民,民忠 +${gain} (現 ${city.loyalty + gain})。`,
       };
     }
     case 'major-agriculture': {
@@ -220,6 +232,7 @@ export function resolveInternalAffairs(
         success: gain > 0,
         delta: { agriculture: gain },
         message: `${officer.name.en} 大農政: Agriculture +${gain} (now ${city.agriculture + gain}/${cap}).`,
+        messageZh: `${officer.name.zh}大農政:農業 +${gain} (現 ${city.agriculture + gain}/${cap})。`,
       };
     }
     case 'major-commerce': {
@@ -228,6 +241,7 @@ export function resolveInternalAffairs(
         success: gain > 0,
         delta: { commerce: gain },
         message: `${officer.name.en} 大商政: Commerce +${gain} (now ${city.commerce + gain}/${cap}).`,
+        messageZh: `${officer.name.zh}大商政:商業 +${gain} (現 ${city.commerce + gain}/${cap})。`,
       };
     }
     case 'major-defense': {
@@ -236,6 +250,7 @@ export function resolveInternalAffairs(
         success: gain > 0,
         delta: { defense: gain },
         message: `${officer.name.en} 大築城: Defense +${gain} (now ${city.defense + gain}/${cap}).`,
+        messageZh: `${officer.name.zh}大築城:城防 +${gain} (現 ${city.defense + gain}/${cap})。`,
       };
     }
     case 'encourage-migration': {
@@ -247,6 +262,7 @@ export function resolveInternalAffairs(
         success: true,
         delta: { population: popGain, loyalty: 1 },
         message: `${officer.name.en} 招撫流民: +${popGain.toLocaleString()} population (loyalty +1).`,
+        messageZh: `${officer.name.zh}招撫流民:民眾 +${popGain.toLocaleString()} (民忠 +1)。`,
       };
     }
     case 'upgrade-wall': {
@@ -256,6 +272,7 @@ export function resolveInternalAffairs(
           success: false,
           delta: {},
           message: `${officer.name.en}: 城壁已達最高等級 (Tier 3 citadel).`,
+          messageZh: `${officer.name.zh}:城壁已達最高等級 (堅城)。`,
         };
       }
       const next = (cur + 1) as 1 | 2 | 3;
@@ -263,6 +280,7 @@ export function resolveInternalAffairs(
         success: true,
         delta: { wallTier: next, defense: 5 },
         message: `${officer.name.en} 城壁強化: Wall tier ${cur} → ${next}. (+50% effective defense in siege).`,
+        messageZh: `${officer.name.zh}城壁強化:城壁 ${cur} → ${next} 級 (圍城時防禦 +50%)。`,
       };
     }
   }
@@ -307,6 +325,7 @@ export function handleSearch(input: SearchInput): SearchOutput {
         cityId: city.id,
         kind: 'command-failure',
         text: `${officer.name.en} found nothing of note in ${city.name.en}.`,
+        textZh: `${officer.name.zh}於${city.name.zh}遍尋無獲。`,
       },
     };
   }
@@ -323,6 +342,7 @@ export function handleSearch(input: SearchInput): SearchOutput {
     const item = ITEMS_BY_ID[found.itemId];
     const updatedOfficers = { ...officers };
     let equippedNote = '';
+    let equippedNoteZh = '';
     if (item && officer.forceId !== null) {
       // No slot cap — the searcher simply keeps anything they find.
       updatedOfficers[officer.id] = {
@@ -330,6 +350,7 @@ export function handleSearch(input: SearchInput): SearchOutput {
         equipment: [...officer.equipment, found.itemId],
       };
       equippedNote = ` ${officer.name.en} keeps it for themselves.`;
+      equippedNoteZh = `${officer.name.zh}遂自珍藏之。`;
     }
     return {
       officers: updatedOfficers,
@@ -338,6 +359,7 @@ export function handleSearch(input: SearchInput): SearchOutput {
         cityId: city.id,
         kind: 'talent',
         text: `${officer.name.en} unearthed ${item?.name.en ?? found.itemId} (${item?.name.zh ?? ''}) in ${city.name.en}!${equippedNote}`,
+        textZh: `${officer.name.zh}於${city.name.zh}得${item?.name.zh ?? found.itemId}！${equippedNoteZh}`,
       },
     };
   }
@@ -362,6 +384,7 @@ export function handleSearch(input: SearchInput): SearchOutput {
         cityId: city.id,
         kind: 'command-failure',
         text: `${officer.name.en} searched ${city.name.en} but found no hidden talent here.`,
+        textZh: `${officer.name.zh}於${city.name.zh}訪查，未得隱才。`,
       },
     };
   }
@@ -377,6 +400,9 @@ export function handleSearch(input: SearchInput): SearchOutput {
   const localFlavor = discovered.locationCityId === city.id
     ? ` ${discovered.name.en} hails from ${city.name.en}!`
     : '';
+  const localFlavorZh = discovered.locationCityId === city.id
+    ? `${discovered.name.zh}本${city.name.zh}人士也！`
+    : '';
   return {
     officers: { ...officers, [discovered.id]: updated },
     lostItems,
@@ -384,6 +410,7 @@ export function handleSearch(input: SearchInput): SearchOutput {
       cityId: city.id,
       kind: 'talent',
       text: `${officer.name.en} discovered ${discovered.name.en} (${discovered.name.zh}) in ${city.name.en}!${localFlavor}`,
+      textZh: `${officer.name.zh}於${city.name.zh}訪得賢才${discovered.name.zh}！${localFlavorZh}`,
     },
   };
 }

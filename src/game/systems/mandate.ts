@@ -98,6 +98,7 @@ export function rollOmen(input: {
       cityId: null,
       kind: 'note',
       text: `${info.zh}（${info.en}） — ${target.name.zh} 天命 ${sign}${delta}`,
+      textZh: `${info.zh} — ${target.name.zh}天命${sign}${delta}。`,
     },
   };
 }

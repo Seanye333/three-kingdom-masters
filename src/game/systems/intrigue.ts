@@ -111,6 +111,7 @@ export function rollIntrigue(input: {
         cityId: target.locationCityId,
         kind: 'death',
         text: `謀殺事件 — ${target.name.zh} assassinated at court by ${plotter.name.zh} (${input.forces[forceId].name.zh}).${poemTail}`,
+        textZh: `謀殺事件 — ${target.name.zh}於朝堂遭${plotter.name.zh}（${input.forces[forceId].name.zh}）所暗殺。${poemTail}`,
       });
       continue;
     }
@@ -130,6 +131,7 @@ export function rollIntrigue(input: {
       cityId: target.locationCityId,
       kind: 'note',
       text: `朝堂黨爭 — ${plotter.name.zh}（${factionLabelZh(aFaction)}派） impeaches ${target.name.zh}（${factionLabelZh(bFaction)}派） in ${input.forces[forceId].name.zh}. Loyalty −5.`,
+      textZh: `朝堂黨爭 — ${plotter.name.zh}（${factionLabelZh(aFaction)}派）於${input.forces[forceId].name.zh}彈劾${target.name.zh}（${factionLabelZh(bFaction)}派）。忠誠 −5。`,
     });
   }
 
@@ -208,6 +210,7 @@ export function rollPlagueOutbreak(input: PlagueInput): PlagueOutput {
       cityId: c.id,
       kind: 'plague',
       text: `瘟疫蔓延 ${c.name.zh}. −${popLost.toLocaleString()} 民, −${troopLost.toLocaleString()} 兵, 民心 −4.`,
+      textZh: `瘟疫蔓延於${c.name.zh}。民 −${popLost.toLocaleString()}、兵 −${troopLost.toLocaleString()}、民心 −4。`,
     });
   }
 
@@ -234,6 +237,7 @@ export function rollPlagueOutbreak(input: PlagueInput): PlagueOutput {
         cityId: o.locationCityId,
         kind: 'death',
         text: `病亡 — ${o.name.zh}（${o.name.en}） died of plague at age ${age}.${poemTail}`,
+        textZh: `病亡 — ${o.name.zh}染疫而卒，享年 ${age} 歲。${poemTail}`,
       });
     }
   }

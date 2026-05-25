@@ -116,7 +116,7 @@ export type OfficerFormationId =
   | 'fish-scale'   // 魚鱗 — dense infantry
   | 'arrow-tip'    // 鋒矢 — wedge charge
   | 'square'       // 方圓 — defensive square
-  | 'wild-geese'   // 雁行 — ranged echelon
+  | 'wild-goose'   // 雁行 — ranged echelon
   | 'yoke'         // 衡軛 — anti-cavalry pikes
   | 'crescent'     // 偃月 — siege crescent
   | 'long-snake';  // 長蛇 — line march
@@ -126,7 +126,7 @@ export const FORMATION_DEFS: Record<OfficerFormationId, { zh: string; en: string
   'fish-scale': { zh: '魚鱗', en: 'Fish-Scale' },
   'arrow-tip':  { zh: '鋒矢', en: 'Arrow-Tip' },
   'square':     { zh: '方圓', en: 'Square' },
-  'wild-geese': { zh: '雁行', en: 'Wild-Geese' },
+  'wild-goose': { zh: '雁行', en: 'Wild-Goose' },
   'yoke':       { zh: '衡軛', en: 'Yoke' },
   'crescent':   { zh: '偃月', en: 'Crescent' },
   'long-snake': { zh: '長蛇', en: 'Long-Snake' },
@@ -134,25 +134,25 @@ export const FORMATION_DEFS: Record<OfficerFormationId, { zh: string; en: string
 
 /** Explicit formation pools for famous officers. */
 export const OFFICER_FORMATIONS: Record<string, OfficerFormationId[]> = {
-  'cao-cao':      ['arrow-tip', 'fish-scale', 'crane-wing', 'wild-geese'],
-  'zhuge-liang':  ['crane-wing', 'square', 'wild-geese', 'long-snake'],
+  'cao-cao':      ['arrow-tip', 'fish-scale', 'crane-wing', 'wild-goose'],
+  'zhuge-liang':  ['crane-wing', 'square', 'wild-goose', 'long-snake'],
   'sima-yi':      ['fish-scale', 'square', 'yoke', 'crane-wing'],
   'lu-bu':        ['arrow-tip', 'long-snake'],
   'guan-yu':      ['arrow-tip', 'crescent', 'long-snake'],
   'zhang-fei':    ['arrow-tip', 'long-snake'],
   'zhao-yun':     ['arrow-tip', 'crane-wing', 'long-snake'],
   'ma-chao':      ['arrow-tip', 'long-snake'],
-  'huang-zhong':  ['wild-geese', 'crescent'],
+  'huang-zhong':  ['wild-goose', 'crescent'],
   'wei-yan':      ['arrow-tip', 'fish-scale'],
   'zhang-liao':   ['arrow-tip', 'fish-scale', 'long-snake'],
   'xu-chu':       ['arrow-tip', 'fish-scale'],
   'xiahou-dun':   ['arrow-tip', 'fish-scale', 'long-snake'],
   'xiahou-yuan':  ['arrow-tip', 'crescent', 'long-snake'],
-  'zhou-yu':      ['crane-wing', 'fish-scale', 'wild-geese'],
+  'zhou-yu':      ['crane-wing', 'fish-scale', 'wild-goose'],
   'lu-meng':      ['fish-scale', 'crane-wing', 'square'],
-  'lu-xun':       ['crane-wing', 'fish-scale', 'square', 'wild-geese'],
+  'lu-xun':       ['crane-wing', 'fish-scale', 'square', 'wild-goose'],
   'gan-ning':     ['arrow-tip', 'long-snake'],
-  'tai-shi-ci':   ['arrow-tip', 'wild-geese'],
+  'tai-shi-ci':   ['arrow-tip', 'wild-goose'],
   'sun-ce':       ['arrow-tip', 'long-snake'],
   'sun-jian':     ['arrow-tip', 'long-snake'],
   'jiang-wei':    ['crane-wing', 'fish-scale', 'long-snake', 'square'],
@@ -166,7 +166,7 @@ export const OFFICER_FORMATIONS: Record<string, OfficerFormationId[]> = {
   'jia-xu':       ['fish-scale', 'square'],
   'cao-ren':      ['square', 'fish-scale', 'long-snake'],
   'hao-zhao':     ['square', 'fish-scale'],
-  'tian-yu':      ['wild-geese', 'long-snake'],
+  'tian-yu':      ['wild-goose', 'long-snake'],
 };
 
 export function deriveFormations(stats: OfficerStats, id?: string): OfficerFormationId[] {
@@ -179,7 +179,7 @@ export function deriveFormations(stats: OfficerStats, id?: string): OfficerForma
   if (leadership >= 75) list.push('fish-scale');
   if (intelligence >= 75) list.push('crane-wing');
   if (leadership >= 80 && intelligence >= 70) list.push('square');
-  if (intelligence >= 80) list.push('wild-geese');
+  if (intelligence >= 80) list.push('wild-goose');
   if (leadership >= 85 && war >= 75) list.push('crescent');
   if (leadership >= 70 && war < 65) list.push('yoke');
   return Array.from(new Set(list)).slice(0, 4);
@@ -1872,6 +1872,71 @@ export const POLICY_DEFS: Record<PolicyId, { zh: string; en: string }> = {
   'wuhuan-buffer':     { zh: '烏桓緩衝', en: 'Wuhuan Buffer' },
   'jiao-pacification': { zh: '交州安撫', en: 'Jiao Pacification' },
   'liaodong-buffer':   { zh: '遼東緩衝', en: 'Liaodong Buffer' },
+};
+
+/**
+ * Policy prerequisites — RTK 14-style research tree.
+ *
+ * Each entry's policy only takes effect in a city if ALL prerequisites are
+ * also held by some officer stationed there. Lets us model "advanced civic
+ * art that builds on basics" — e.g. you need 屯田 (agriculture basics) in
+ * the city before 大農政 (mass farming) does anything.
+ *
+ * Policies not in this map have no prereqs (unlocked from the start).
+ * UI: see PoliciesModal — locked policies render with a 🔒 chip and the
+ * prereq listed in the tooltip.
+ */
+export const POLICY_PREREQ: Partial<Record<PolicyId, PolicyId[]>> = {
+  // ── Agriculture tree ──
+  'ox-plowing':          ['tuntian'],
+  'iron-tools':          ['tuntian', 'smithing'],
+  'water-mill':          ['hydraulics'],
+  'community-granary':   ['tuntian'],
+  // ── Commerce tree ──
+  'silk-trade':          ['commerce'],
+  'tea-trade':           ['commerce'],
+  'maritime-trade':      ['commerce', 'naval-academy'],
+  'pearl-trade':         ['maritime-trade'],
+  'jade-trade':          ['silk-trade'],
+  'river-customs':       ['commerce'],
+  // ── Monopoly / industry tree ──
+  'iron-monopoly':       ['iron-tools'],
+  'salt-monopoly':       ['legalism'],
+  'coinage':             ['commerce', 'legalism'],
+  'gold-mining':         ['engineering'],
+  'silver-mining':       ['engineering'],
+  'copper-mining':       ['engineering'],
+  // ── Military tree ──
+  'crossbow-corps':      ['military-theory'],
+  'archery-school':      ['military-theory'],
+  'military-academy':    ['military-theory', 'scholarship'],
+  'camp-discipline':     ['recruitment'],
+  'horse-armor':         ['smithing', 'horse-stewardship'],
+  'horse-breeding':      ['horse-stewardship'],
+  'shield-wall':         ['smithing'],
+  'elite-guards':        ['recruitment', 'camp-discipline'],
+  'imperial-guard':      ['rites', 'elite-guards'],
+  // ── Defense tree ──
+  'moat-construction':   ['engineering'],
+  'watch-towers':        ['engineering'],
+  'fortifications':      ['engineering', 'corvee'],
+  'mountain-passes':     ['fortifications'],
+  'coastal-fortress':    ['fortifications', 'naval-academy'],
+  // ── Naval tree ──
+  // 'naval-academy' is a base policy
+  // ── Social / loyalty tree ──
+  'poor-relief':         ['rites'],
+  'charity-house':       ['poor-relief'],
+  'mediation':           ['rites'],
+  'tax-light':           ['legalism'],
+  'frontier-pacification':['rites'],
+  // ── Frontier / tribal tree ──
+  'xianbei-buffer':      ['frontier-pacification'],
+  'xiongnu-tribute':     ['frontier-pacification'],
+  'qiang-pacification':  ['frontier-pacification'],
+  'wuhuan-buffer':       ['frontier-pacification'],
+  'jiao-pacification':   ['frontier-pacification'],
+  'liaodong-buffer':     ['frontier-pacification'],
 };
 
 export const OFFICER_POLICIES: Record<string, PolicyId[]> = {

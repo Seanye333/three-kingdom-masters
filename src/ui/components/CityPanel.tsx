@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
-import { cityPolicyEffects } from '../../game/systems/policyEffects';
+import { cityPolicyEffects, lockedPolicies } from '../../game/systems/policyEffects';
+import { POLICY_DEFS } from '../../game/data/officerAttributes';
 import { citySize, nextTierPop } from '../../game/systems/citySize';
 import type { EntityId, Officer } from '../../game/types';
 import { CityMapScreen } from '../screens/CityMapScreen';
@@ -453,8 +454,9 @@ function PolicyEffectsSection({
   city, cityOfficers,
 }: { city: import('../../game/types').City; cityOfficers: Officer[] }) {
   const eff = cityPolicyEffects(city, cityOfficers);
+  const locked = lockedPolicies(cityOfficers);
   const t = useT();
-  if (eff.badges.length === 0) return null;
+  if (eff.badges.length === 0 && locked.length === 0) return null;
   return (
     <section className={styles.section}>
       <h3 className={styles.sectionTitle}>★ {t('政策效果', 'Policy Effects')}</h3>
@@ -478,12 +480,35 @@ function PolicyEffectsSection({
             {b}
           </span>
         ))}
+        {locked.map(({ id, missing }) => {
+          const me = POLICY_DEFS[id];
+          const missLabel = missing.map((m) => POLICY_DEFS[m]?.zh ?? m).join('、');
+          return (
+            <span
+              key={`locked-${id}`}
+              title={`${me?.zh ?? id} ${t('需要', 'requires')}: ${missLabel}`}
+              style={{
+                padding: '0.18rem 0.45rem',
+                background: 'rgba(90, 70, 60, 0.4)',
+                border: '1px dashed rgba(138, 112, 80, 0.6)',
+                color: '#8a7050',
+                borderRadius: '2px',
+                letterSpacing: '0.05rem',
+                fontFamily: 'var(--tkm-font-zh)',
+                textDecoration: 'line-through',
+              }}
+            >
+              🔒 {me?.zh ?? id}
+            </span>
+          );
+        })}
       </div>
       <div style={{
         marginTop: '0.4rem', fontSize: '0.65rem', color: '#8a7050',
         letterSpacing: '0.1rem',
       }}>
         {cityOfficers.length} {t('武將在城 · 政策由其個人專業聚合而成', 'officers stationed · policies emerge from their personal specialties')}
+        {locked.length > 0 && ` · ${locked.length} ${t('政策待解鎖', 'policies need prereqs')}`}
       </div>
     </section>
   );

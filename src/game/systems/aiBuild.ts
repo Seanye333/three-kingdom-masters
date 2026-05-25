@@ -78,6 +78,7 @@ export function planAIBuildOrders(ctx: AIBuildContext): AIBuildOutput {
         cityId: city.id,
         kind: 'note',
         text: `${force?.name.en ?? 'AI'} begins building a ${def.name.en} at ${city.name.en}.`,
+        textZh: `${force?.name.zh ?? '電腦'}於${city.name.zh}興建${def.name.zh}。`,
       });
       break;
     }

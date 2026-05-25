@@ -107,6 +107,7 @@ export function rollReligiousRebellion(input: ReligionInput): ReligionOutput {
     cityId: target.id,
     kind: 'rebellion',
     text: `${label.zh}起義 — ${target.name.zh} falls to the ${label.zh}（${label.en}）movement. The faithful rally; ${cities[target.id].troops.toLocaleString()} soldiers under arms.`,
+    textZh: `${label.zh}起義 — ${target.name.zh}為${label.zh}所據，信眾雲集，揭竿者${cities[target.id].troops.toLocaleString()}人。`,
   });
 
   return { cities, forces, officers, entries };

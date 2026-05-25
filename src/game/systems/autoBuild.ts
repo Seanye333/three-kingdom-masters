@@ -72,6 +72,7 @@ export function applyAutoBuild(ctx: AutoBuildContext): AutoBuildOutput {
       cityId,
       kind: 'command-success',
       text: `Auto-build queue at ${city.name.en}: started ${def.name.en}.`,
+      textZh: `${city.name.zh}自動建造：始興${def.name.zh}。`,
     });
   }
   return { cities, buildings, queues, entries };

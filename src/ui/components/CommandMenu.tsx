@@ -4,6 +4,8 @@ import { COMMAND_DEFS, meetsMinSize } from '../../game/systems/commands';
 import { citySize, CITY_SIZES_BY_ID } from '../../game/systems/citySize';
 import type { EntityId, InternalAffairsType } from '../../game/types';
 import { MarchPicker } from './MarchPicker';
+import { TrainingPicker } from './TrainingPicker';
+import { cityHasAcademy } from '../../game/systems/training';
 import { OfficerPicker } from './OfficerPicker';
 import styles from './CommandMenu.module.css';
 import { useT, useLanguage, useDesc } from '../i18n';
@@ -33,7 +35,8 @@ const INTERNAL_ORDER: InternalAffairsType[] = [
 type ModalState =
   | { kind: 'closed' }
   | { kind: 'internal'; type: InternalAffairsType }
-  | { kind: 'march' };
+  | { kind: 'march' }
+  | { kind: 'training' };
 
 export function CommandMenu({ cityId, onOpenCityMap }: Props) {
   const [modal, setModal] = useState<ModalState>({ kind: 'closed' });
@@ -48,6 +51,7 @@ export function CommandMenu({ cityId, onOpenCityMap }: Props) {
   const officersMap = useGameStore((s) => s.officers);
   const citiesMap = useGameStore((s) => s.cities);
   const cancelCommand = useGameStore((s) => s.cancelCommand);
+  const buildings = useGameStore((s) => s.buildings);
   const t = useT();
   const lang = useLanguage();
   const desc = useDesc();
@@ -145,6 +149,18 @@ export function CommandMenu({ cityId, onOpenCityMap }: Props) {
           {lang === 'both' && <span className={styles.cmdLabelEn}>{marchDef.label.en}</span>}
           <span className={styles.cmdCost}>{marchDef.goldCost}g</span>
         </button>
+        {cityHasAcademy(city, buildings) && (
+          <button
+            className={styles.cmdButton}
+            onClick={() => setModal({ kind: 'training' })}
+            title={t('書院培訓 — 武將學一個新政策(1 季,基礎 200 金)', 'Academy training — train an officer in a new policy (1 season, 200g base)')}
+            style={{ borderColor: '#88b7e8' }}
+          >
+            <span className={styles.cmdLabelZh}>{t('書院培訓', 'Academy Training')}</span>
+            {lang === 'both' && <span className={styles.cmdLabelEn}>Academy</span>}
+            <span className={styles.cmdCost}>{t('政', 'policy')}</span>
+          </button>
+        )}
         {onOpenCityMap && (
           <button
             className={styles.cmdButton}
@@ -168,6 +184,12 @@ export function CommandMenu({ cityId, onOpenCityMap }: Props) {
       )}
       {modal.kind === 'march' && (
         <MarchPicker
+          cityId={cityId}
+          onClose={() => setModal({ kind: 'closed' })}
+        />
+      )}
+      {modal.kind === 'training' && (
+        <TrainingPicker
           cityId={cityId}
           onClose={() => setModal({ kind: 'closed' })}
         />

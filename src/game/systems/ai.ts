@@ -157,6 +157,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
           cityId: city.id,
           kind: 'note',
           text: `${target.name.en} enters service under ${force.name.en} at ${city.name.en}.`,
+          textZh: `${target.name.zh}於${city.name.zh}投效${force.name.zh}。`,
         });
       }
     }
@@ -225,6 +226,9 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         text: outcome.accepted
           ? `${force.name.en} sues for peace with ${targetForce.name.en} — non-aggression pact signed.`
           : `${force.name.en} sought peace with ${targetForce.name.en}, but was rebuffed.`,
+        textZh: outcome.accepted
+          ? `${force.name.zh}向${targetForce.name.zh}求和，互不侵犯之盟既立。`
+          : `${force.name.zh}遣使向${targetForce.name.zh}議和，遭其婉拒。`,
       });
     }
   }
@@ -293,6 +297,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         cityId: null,
         kind: 'note',
         text: `Marriage forged: ${aPick.name.en} (${force.name.en}) ⚭ ${bPick.name.en} (${other.name.en}). Relations deepen.`,
+        textZh: `聯姻既成：${aPick.name.zh}（${force.name.zh}）⚭ ${bPick.name.zh}（${other.name.zh}），兩家情誼日深。`,
       });
       break; // only one marriage per force per season
     }

@@ -52,6 +52,7 @@ export function processAging(input: AgingInput): AgingOutput {
       cityId: officer.locationCityId,
       kind: 'death',
       text: `${officer.name.en} (${officer.name.zh}) has died, aged ${age}.${poemTail}`,
+      textZh: `${officer.name.zh}卒，享年 ${age} 歲。${poemTail}`,
     });
 
     // Was this officer the ruler of any force?
@@ -118,6 +119,7 @@ function succeedRuler(
       cityId: null,
       kind: 'succession',
       text: `${successor.name.en} succeeds as ruler of ${force.name.en}. The force is now known as ${newName.en}.`,
+      textZh: `${successor.name.zh}繼${force.name.zh}之主位，自此號為${newName.zh}。`,
     });
     return {
       cities: citiesIn,
@@ -150,6 +152,7 @@ function succeedRuler(
     cityId: null,
     kind: 'dissolution',
     text: `${force.name.en} (${force.name.zh}) has dissolved — no successor remains.`,
+    textZh: `${force.name.zh}既無後嗣可繼，遂分崩離析。`,
   });
   return {
     cities: newCities,

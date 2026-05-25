@@ -96,6 +96,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       cityId: city.id,
       kind: result.success ? 'command-success' : 'command-failure',
       text: result.message,
+      textZh: result.messageZh,
     });
   }
 
@@ -123,6 +124,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         cityId: city.id,
         kind: tick.populationDelta > 0 ? 'income' : 'desertion',
         text: `${city.name.en}: 人口 ${tick.populationDelta > 0 ? '+' : ''}${tick.populationDelta.toLocaleString()}.`,
+        textZh: `${city.name.zh}：人口 ${tick.populationDelta > 0 ? '+' : ''}${tick.populationDelta.toLocaleString()}。`,
       });
     }
 
@@ -133,6 +135,9 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         text: `${city.name.en}: +${tick.goldIncome} gold${
           tick.foodIncome ? `, +${tick.foodIncome} food (harvest)` : ''
         }${tick.policyBadges.length ? ` · ${tick.policyBadges.slice(0, 2).join(' · ')}` : ''}.`,
+        textZh: `${city.name.zh}：金 +${tick.goldIncome}${
+          tick.foodIncome ? `、糧 +${tick.foodIncome}（秋收）` : ''
+        }${tick.policyBadges.length ? ` · ${tick.policyBadges.slice(0, 2).join(' · ')}` : ''}。`,
       });
     }
     if (tick.loyaltyDelta !== 0) {
@@ -140,6 +145,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         cityId: city.id,
         kind: tick.loyaltyDelta > 0 ? 'income' : 'desertion',
         text: `${city.name.en}: 民忠 ${tick.loyaltyDelta > 0 ? '+' : ''}${tick.loyaltyDelta} (policy effect).`,
+        textZh: `${city.name.zh}：民忠 ${tick.loyaltyDelta > 0 ? '+' : ''}${tick.loyaltyDelta}（政令之效）。`,
       });
     }
     if (tick.foodUpkeep > 0) {
@@ -147,6 +153,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         cityId: city.id,
         kind: 'upkeep',
         text: `${city.name.en}: −${tick.foodUpkeep} food (troop upkeep).`,
+        textZh: `${city.name.zh}：糧 −${tick.foodUpkeep}（兵糧支用）。`,
       });
     }
     if (tick.desertion > 0) {
@@ -154,6 +161,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         cityId: city.id,
         kind: 'desertion',
         text: `${city.name.en}: ${tick.desertion} troops deserted from starvation.`,
+        textZh: `${city.name.zh}：因缺糧，逃兵 ${tick.desertion} 名。`,
       });
     }
   }
@@ -236,6 +244,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
           cityId: o.locationCityId,
           kind: 'note',
           text: `${o.name.en} (${o.name.zh}) abandons ${formerForce?.name.en ?? 'their lord'} and walks away a free agent.`,
+          textZh: `${o.name.zh}背棄${formerForce?.name.zh ?? '主公'}，飄然而去，自此為一介游俠。`,
         });
       }
     }

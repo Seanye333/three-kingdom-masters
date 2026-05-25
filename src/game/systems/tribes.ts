@@ -74,6 +74,7 @@ export function resolveTribeRaids(ctx: TribeContext): TribeOutput {
         cityId: target,
         kind: 'tribe-raid',
         text: `${tribe.name.en} raiders attacked ${c.name.en} but were repulsed. ${defLoss.toLocaleString()} defenders lost.`,
+        textZh: `${tribe.name.zh}入寇${c.name.zh}，為守軍所卻。折守兵 ${defLoss.toLocaleString()}。`,
       });
     } else {
       const goldLoot = Math.floor(c.gold * (0.2 + ctx.rng() * 0.3));
@@ -89,6 +90,7 @@ export function resolveTribeRaids(ctx: TribeContext): TribeOutput {
         cityId: target,
         kind: 'tribe-raid',
         text: `${tribe.name.en} raiders sacked ${c.name.en}! ${defLoss.toLocaleString()} troops, ${goldLoot} gold, ${foodLoot.toLocaleString()} food lost.`,
+        textZh: `${tribe.name.zh}襲掠${c.name.zh}，城破！折兵 ${defLoss.toLocaleString()}、失金 ${goldLoot}、糧 ${foodLoot.toLocaleString()}。`,
       });
     }
 

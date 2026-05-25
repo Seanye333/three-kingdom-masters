@@ -73,6 +73,7 @@ export function evaluateCoalition(ctx: CoalitionContext): CoalitionOutput {
         cityId: null,
         kind: 'note',
         text: `${fA?.name.en ?? a} and ${fB?.name.en ?? b} sign a non-aggression pact, fearing ${ctx.forces[hegemonId]?.name.en ?? hegemonId}.`,
+        textZh: `${fA?.name.zh ?? a}與${fB?.name.zh ?? b}畏${ctx.forces[hegemonId]?.name.zh ?? hegemonId}之勢，遂結互不侵犯之盟。`,
       });
     }
   }

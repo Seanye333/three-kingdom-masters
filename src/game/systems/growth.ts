@@ -1,6 +1,14 @@
 import type { EntityId, Officer, OfficerStats, ReportEntry } from '../types';
 import { SKILLS, SKILLS_BY_ID } from '../data/skills';
 
+const STAT_NAME_ZH: Record<keyof OfficerStats, string> = {
+  leadership: '統率',
+  war: '武力',
+  intelligence: '知力',
+  politics: '政治',
+  charisma: '魅力',
+};
+
 /**
  * Officer leveling: officers gain XP from battles and (slowly) from being
  * stationed in a city with an academy. At XP thresholds they roll one
@@ -64,6 +72,7 @@ export function grantXp(
       cityId: officer.locationCityId,
       kind: 'note',
       text: `${officer.name.en} grew in ${String(chosen)} (+${inc}) reaching level ${i + 1}.`,
+      textZh: `${officer.name.zh}之${STAT_NAME_ZH[chosen]}增益（+${inc}），晉升至 ${i + 1} 級。`,
     });
 
     // Skill learning: at every odd level (1, 3, 5), there's a chance to learn
@@ -77,6 +86,7 @@ export function grantXp(
           cityId: officer.locationCityId,
           kind: 'note',
           text: `${officer.name.en} has learned the ${candidates.name.en} (${candidates.name.zh}) skill!`,
+          textZh: `${officer.name.zh}習得「${candidates.name.zh}」之技！`,
         });
       }
     }

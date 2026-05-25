@@ -31,6 +31,7 @@ import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
 import { planAITurn } from '../systems/ai';
 import { COMMAND_DEFS } from '../systems/commands';
+import { canTrain, trainingCost, tickTrainings } from '../systems/training';
 import {
   ALLIANCE_PROPOSAL_COST,
   NAP_PROPOSAL_COST,
@@ -135,6 +136,14 @@ interface GameStore extends GameState {
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
   cancelCommand: (cityId: EntityId) => void;
+  /** Start training an officer in a new policy at an Academy city. */
+  startTraining: (
+    officerId: EntityId,
+    cityId: EntityId,
+    policyId: import('../data/officerAttributes').PolicyId,
+  ) => { ok: boolean; reason?: string };
+  /** Cancel an in-flight training and refund 50% of the gold spent. */
+  cancelTraining: (officerId: EntityId) => void;
   /** Build or upgrade a defense structure at a city's perimeter slot. */
   buildDefenseStructure: (
     cityId: EntityId,
@@ -486,6 +495,45 @@ export const useGameStore = create<GameStore>()(
             : state.cities,
           officers: officersUpdate,
           pendingCommands: next,
+        });
+      },
+
+      startTraining: (officerId, cityId, policyId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        const city = state.cities[cityId];
+        if (!officer || !city) return { ok: false, reason: 'invalid' };
+        if (city.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'not your city' };
+        const check = canTrain(officer, city, policyId, state.buildings, state.pendingTrainings);
+        if (!check.ok) return { ok: false, reason: check.reasonZh };
+        const cost = trainingCost(officer);
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - cost },
+          },
+          pendingTrainings: [
+            ...state.pendingTrainings,
+            { officerId, cityId, policyId, seasonsLeft: 1, goldSpent: cost },
+          ],
+        });
+        return { ok: true };
+      },
+
+      cancelTraining: (officerId) => {
+        const state = get();
+        const idx = state.pendingTrainings.findIndex((t) => t.officerId === officerId);
+        if (idx < 0) return;
+        const t = state.pendingTrainings[idx];
+        const city = state.cities[t.cityId];
+        const refund = Math.floor(t.goldSpent / 2);
+        const next = state.pendingTrainings.filter((x) => x.officerId !== officerId);
+        set({
+          pendingTrainings: next,
+          cities: city
+            ? { ...state.cities, [t.cityId]: { ...city, gold: city.gold + refund } }
+            : state.cities,
         });
       },
 
@@ -1070,6 +1118,31 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
         }
 
+        // ── Academy training tick ──
+        // Trainings only count down on season boundaries (every 9 periods).
+        // When a training completes, push the policy onto the officer.
+        let nextTrainings = state.pendingTrainings;
+        if (seasonBoundary && state.pendingTrainings.length > 0) {
+          const ticked = tickTrainings(state.pendingTrainings);
+          nextTrainings = ticked.remaining;
+          if (ticked.completed.length > 0) {
+            const officersUpd = { ...postOfficers };
+            for (const t of ticked.completed) {
+              const o = officersUpd[t.officerId];
+              if (!o || o.status === 'dead') continue;
+              const have = o.policies ?? [];
+              if (have.includes(t.policyId)) continue;
+              officersUpd[t.officerId] = { ...o, policies: [...have, t.policyId] };
+              result.report.entries.push({
+                cityId: t.cityId,
+                kind: 'talent',
+                text: `${o.name.en} completed academy training and learned ${t.policyId}.`,
+              });
+            }
+            postOfficers = officersUpd;
+          }
+        }
+
         set({
           date: result.date,
           cities: postCities,
@@ -1077,6 +1150,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           forces: postForces,
           runtimeBonds: planned.runtimeBonds,
           pendingCommands: {},
+          pendingTrainings: nextTrainings,
           lastReport: result.report,
           selectedCityId: stillOwned ? state.selectedCityId : fallback,
           victoryStatus: endVS,

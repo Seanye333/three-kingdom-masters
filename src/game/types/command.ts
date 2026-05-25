@@ -107,6 +107,8 @@ export interface ReportEntry {
   cityId: EntityId | null;
   kind: ReportEntryKind;
   text: string;
+  /** Optional Chinese variant — preferred when language === 'zh'. */
+  textZh?: string;
   battle?: BattleDetail;
 }
 

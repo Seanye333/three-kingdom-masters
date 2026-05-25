@@ -9,6 +9,7 @@
  * stacking 3-5 makes a clear difference without breaking the game.
  */
 import type { City, Officer, PolicyId } from '../types';
+import { POLICY_PREREQ } from '../data/officerAttributes';
 
 export interface CityPolicyEffects {
   /** Multiplier applied to gold income (1.0 = unchanged). */
@@ -45,13 +46,48 @@ export interface CombatPolicyEffects {
 /**
  * Gather a list of all PolicyIds active in a given officer pool.
  * Each policy counts once per officer who carries it.
+ *
+ * RTK 14-style tech tree: a policy's effect only counts if all its
+ * prerequisites (`POLICY_PREREQ`) are ALSO present in the pool. This lets
+ * us model "advanced civic art that builds on basics" — e.g. 大農政 only
+ * fires if 屯田 is also held by someone in the same city.
  */
 function aggregatePolicies(officers: Officer[]): Set<PolicyId> {
-  const set = new Set<PolicyId>();
+  // First pass — collect every raw policy.
+  const raw = new Set<PolicyId>();
   for (const o of officers) {
-    for (const p of o.policies ?? []) set.add(p);
+    for (const p of o.policies ?? []) raw.add(p);
   }
-  return set;
+  // Second pass — drop any policy whose prereqs are not met.
+  // Iterate to a fixed point so chains (A → B → C) resolve correctly.
+  let active = new Set(raw);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const p of [...active]) {
+      const prereqs = POLICY_PREREQ[p];
+      if (!prereqs) continue;
+      if (!prereqs.every((req) => active.has(req))) {
+        active.delete(p);
+        changed = true;
+      }
+    }
+  }
+  return active;
+}
+
+/** Public helper — which policies in a pool are gated by unmet prereqs? */
+export function lockedPolicies(officers: Officer[]): Array<{ id: PolicyId; missing: PolicyId[] }> {
+  const raw = new Set<PolicyId>();
+  for (const o of officers) for (const p of o.policies ?? []) raw.add(p);
+  const active = aggregatePolicies(officers);
+  const locked: Array<{ id: PolicyId; missing: PolicyId[] }> = [];
+  for (const p of raw) {
+    if (active.has(p)) continue;
+    const prereqs = POLICY_PREREQ[p] ?? [];
+    locked.push({ id: p, missing: prereqs.filter((req) => !raw.has(req)) });
+  }
+  return locked;
 }
 
 /**

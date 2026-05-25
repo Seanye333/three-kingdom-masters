@@ -85,6 +85,7 @@ export function tickFamily(ctx: FamilyTickContext): FamilyTickOutput {
       cityId: parent.locationCityId,
       kind: 'talent',
       text: `${h.name.en} (${h.name.zh}), child of ${officers[h.parentAId]?.name.en ?? '?'}, has come of age and enters service.`,
+      textZh: `${officers[h.parentAId]?.name.zh ?? '?'}之子嗣${h.name.zh}已及冠，今入仕效力。`,
     });
     return false;
   });
@@ -137,6 +138,7 @@ export function tickFamily(ctx: FamilyTickContext): FamilyTickOutput {
           cityId: mother.locationCityId,
           kind: 'talent',
           text: `${a.name.en} and ${b.name.en} welcome a child, ${surnameEn} ${firstEn}.`,
+          textZh: `${a.name.zh}與${b.name.zh}喜得子嗣${surname}${firstZh}。`,
         });
       }
     }

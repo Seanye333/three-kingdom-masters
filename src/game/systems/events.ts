@@ -44,6 +44,7 @@ export function rollEvents(input: EventsInput): EventsOutput {
         cityId: c.id,
         kind: 'rebellion',
         text: `${c.name.en} rises in revolt! The city throws off its ruler and becomes independent.`,
+        textZh: `${c.name.zh}揭竿而起，民眾驅逐其主，城遂自立。`,
       });
       continue; // skip other events this turn
     }
@@ -60,6 +61,7 @@ export function rollEvents(input: EventsInput): EventsOutput {
         cityId: c.id,
         kind: 'harvest',
         text: `Bumper harvest at ${c.name.en}! +${bonus} bonus food.`,
+        textZh: `${c.name.zh}大豐收！額外糧食 +${bonus}。`,
       });
       continue;
     }
@@ -76,6 +78,7 @@ export function rollEvents(input: EventsInput): EventsOutput {
         cityId: c.id,
         kind: 'famine',
         text: `Famine strikes ${c.name.en}. ${lost.toLocaleString()} food lost; loyalty −5.`,
+        textZh: `${c.name.zh}饑荒肆虐，損失糧食 ${lost.toLocaleString()}，民忠 −5。`,
       });
       continue;
     }
@@ -94,6 +97,7 @@ export function rollEvents(input: EventsInput): EventsOutput {
         cityId: c.id,
         kind: 'plague',
         text: `Plague at ${c.name.en}. −${popLost.toLocaleString()} population, −${troopLost.toLocaleString()} troops.`,
+        textZh: `${c.name.zh}瘟疫橫行，人口 −${popLost.toLocaleString()}，兵員 −${troopLost.toLocaleString()}。`,
       });
     }
   }
@@ -120,10 +124,12 @@ export function rollEvents(input: EventsInput): EventsOutput {
           loyalty: 0,
         },
       };
+      const encounter = rollInnEncounter(officer, city, input.rng);
       entries.push({
         cityId: city.id,
         kind: 'talent',
-        text: rollInnEncounter(officer, city, input.rng),
+        text: encounter.en,
+        textZh: encounter.zh,
       });
     }
   }
@@ -138,7 +144,7 @@ function rollInnEncounter(
   officer: Officer,
   city: City,
   rng: () => number,
-): string {
+): { en: string; zh: string } {
   const w = officer.stats.war;
   const i = officer.stats.intelligence;
   const c = officer.stats.charisma;
@@ -151,25 +157,58 @@ function rollInnEncounter(
   const oZh = officer.name.zh;
   const oEn = officer.name.en;
 
-  const variants: Record<typeof profile, string[]> = {
+  const variants: Record<typeof profile, Array<{ en: string; zh: string }>> = {
     warrior: [
-      `酒家相鬥 — A brawl at a ${cityZh} tavern catches your eye; ${oZh}（${oEn}） stands over three felled bandits. He's now waiting in the city for a patron.`,
-      `市井遊俠 — A masked sword-stranger ${oZh}（${oEn}） has appeared in ${cityZh}'s market, looking for service.`,
-      `校場試武 — Word reaches ${cityZh} that a wandering swordsman ${oZh}（${oEn}） has bested every challenger at the parade ground. He awaits a recruiter.`,
+      {
+        en: `酒家相鬥 — A brawl at a ${cityZh} tavern catches your eye; ${oZh}（${oEn}） stands over three felled bandits. He's now waiting in the city for a patron.`,
+        zh: `酒家相鬥 — ${cityZh}酒肆之中起一場群鬥，${oZh}獨立於三名倒地賊寇之上，現於城中靜候明主。`,
+      },
+      {
+        en: `市井遊俠 — A masked sword-stranger ${oZh}（${oEn}） has appeared in ${cityZh}'s market, looking for service.`,
+        zh: `市井遊俠 — 蒙面劍客${oZh}現身${cityZh}市集，欲尋主效命。`,
+      },
+      {
+        en: `校場試武 — Word reaches ${cityZh} that a wandering swordsman ${oZh}（${oEn}） has bested every challenger at the parade ground. He awaits a recruiter.`,
+        zh: `校場試武 — ${cityZh}傳來消息，遊俠${oZh}於校場連敗群雄，正待人延攬。`,
+      },
     ],
     strategist: [
-      `茶肆論策 — At a quiet teahouse in ${cityZh}, a young scholar ${oZh}（${oEn}） debates the classics. His arguments draw a crowd.`,
-      `客棧夜談 — A traveler ${oZh}（${oEn}） staying at a ${cityZh} inn shares uncanny insight on border affairs.`,
-      `書院偶遇 — At the ${cityZh} academy, a recluse ${oZh}（${oEn}） has been quietly tutoring students. He may be persuaded to serve.`,
+      {
+        en: `茶肆論策 — At a quiet teahouse in ${cityZh}, a young scholar ${oZh}（${oEn}） debates the classics. His arguments draw a crowd.`,
+        zh: `茶肆論策 — ${cityZh}靜謐茶肆之內，少年儒生${oZh}縱論經史，引眾人駐足。`,
+      },
+      {
+        en: `客棧夜談 — A traveler ${oZh}（${oEn}） staying at a ${cityZh} inn shares uncanny insight on border affairs.`,
+        zh: `客棧夜談 — 旅人${oZh}夜宿${cityZh}客棧，論及邊事見解非凡。`,
+      },
+      {
+        en: `書院偶遇 — At the ${cityZh} academy, a recluse ${oZh}（${oEn}） has been quietly tutoring students. He may be persuaded to serve.`,
+        zh: `書院偶遇 — ${cityZh}書院之中，隱士${oZh}默授生徒，或可勸其出仕。`,
+      },
     ],
     gentry: [
-      `名士來訪 — Local elders introduce ${oZh}（${oEn}） — a young man of refinement and family — now lodging in ${cityZh}.`,
-      `酒席投帖 — At a ${cityZh} banquet, ${oZh}（${oEn}） presents his card. The host is impressed.`,
+      {
+        en: `名士來訪 — Local elders introduce ${oZh}（${oEn}） — a young man of refinement and family — now lodging in ${cityZh}.`,
+        zh: `名士來訪 — 鄉中父老引見${oZh}，乃名門之後、風雅之士，現寓居${cityZh}。`,
+      },
+      {
+        en: `酒席投帖 — At a ${cityZh} banquet, ${oZh}（${oEn}） presents his card. The host is impressed.`,
+        zh: `酒席投帖 — ${cityZh}宴席之上，${oZh}遞上名帖，主人甚為傾倒。`,
+      },
     ],
     wanderer: [
-      `客棧偶遇 — A traveler ${oZh}（${oEn}） has put up at an inn in ${cityZh}, seeking employment.`,
-      `渡頭逢人 — At the ${cityZh} ferry-landing, you meet ${oZh}（${oEn}）, a wanderer of curious bearing.`,
-      `市集打聽 — Rumors in the ${cityZh} market speak of a stranger ${oZh}（${oEn}） looking for a lord.`,
+      {
+        en: `客棧偶遇 — A traveler ${oZh}（${oEn}） has put up at an inn in ${cityZh}, seeking employment.`,
+        zh: `客棧偶遇 — 旅人${oZh}投宿${cityZh}客棧，欲謀一職。`,
+      },
+      {
+        en: `渡頭逢人 — At the ${cityZh} ferry-landing, you meet ${oZh}（${oEn}）, a wanderer of curious bearing.`,
+        zh: `渡頭逢人 — ${cityZh}渡口之畔，偶遇${oZh}，行止不凡。`,
+      },
+      {
+        en: `市集打聽 — Rumors in the ${cityZh} market speak of a stranger ${oZh}（${oEn}） looking for a lord.`,
+        zh: `市集打聽 — ${cityZh}市集傳言，異客${oZh}正尋訪明主。`,
+      },
     ],
   };
   const pool = variants[profile];

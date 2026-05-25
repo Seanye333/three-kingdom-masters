@@ -187,7 +187,7 @@ const POLICY_CATEGORY: Record<string, string> = {
   'liaodong-buffer':   'diplomacy',
 };
 
-const POLICY_DESC: Record<string, string> = {
+export const POLICY_DESC: Record<string, string> = {
   // ── economy ──
   tuntian:             '屯田 — 兵農合一，駐軍墾荒。糧食產量 +25%，募兵 +10%。',
   hydraulics:          '治水 — 修堤築壩，灌溉農田。農業上限 +15，水攻防 +20%。',
