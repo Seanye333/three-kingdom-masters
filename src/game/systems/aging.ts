@@ -6,6 +6,8 @@ import type {
   ReportEntry,
 } from '../types';
 import { getDeathPoem } from '../data/deathPoems';
+import { deathChanceMultiplier, rollAgeDrift } from './traitEffects';
+import { TRAIT_DEFS_BY_ID } from '../data/personality';
 
 export interface AgingInput {
   year: number;
@@ -32,7 +34,44 @@ export function processAging(input: AgingInput): AgingOutput {
   for (const officer of Object.values(officers)) {
     if (officer.status === 'dead' || officer.status === 'unsearched') continue;
     const age = input.year - officer.birthYear;
-    const chance = deathChance(officer, input.year, age);
+    // G — Age-driven trait drift: 60+ officers may shed hot traits or
+    // gain sage ones. Independent of death roll.
+    const drift = rollAgeDrift(officer, age, input.rng);
+    if (drift) {
+      const cur = (officer.traits ?? []) as string[];
+      let next = cur;
+      if (drift.remove) next = next.filter((t) => t !== drift.remove);
+      if (drift.add && !next.includes(drift.add)) next = [...next, drift.add];
+      if (next !== cur) {
+        officers = {
+          ...officers,
+          [officer.id]: { ...officer, traits: next as Officer['traits'] },
+        };
+        const isPlayer = officer.forceId !== null;
+        if (isPlayer) {
+          if (drift.remove) {
+            const def = TRAIT_DEFS_BY_ID[drift.remove];
+            entries.push({
+              cityId: officer.locationCityId,
+              kind: 'note',
+              text: `${officer.name.en} mellowed with age — lost ${def?.name.en ?? drift.remove}.`,
+              textZh: `${officer.name.zh}年歲漸長,棄「${def?.name.zh ?? drift.remove}」之性。`,
+            });
+          }
+          if (drift.add) {
+            const def = TRAIT_DEFS_BY_ID[drift.add];
+            entries.push({
+              cityId: officer.locationCityId,
+              kind: 'note',
+              text: `${officer.name.en} grew sage with age — gained ${def?.name.en ?? drift.add}.`,
+              textZh: `${officer.name.zh}飽經滄桑,習得「${def?.name.zh ?? drift.add}」之性。`,
+            });
+          }
+        }
+      }
+    }
+    // T8 — trait-based hardiness / fragility
+    const chance = deathChance(officer, input.year, age) * deathChanceMultiplier(officer);
     if (input.rng() >= chance) continue;
 
     // Officer dies.

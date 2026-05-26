@@ -7,6 +7,7 @@ import type {
   ReportEntry,
 } from '../types';
 import { ESPIONAGE_DEFS_BY_KIND } from '../data/espionage';
+import { espionageBonus, counterEspionageResist } from './traitEffects';
 
 export interface EspionageContext {
   ops: EspionageOp[];
@@ -53,10 +54,23 @@ export function resolveEspionage(ctx: EspionageContext): EspionageOutput {
 
     let chance = def.baseSuccess * (agent.stats.intelligence / 100);
     chance += (agent.stats.intelligence - targetAvgInt) * 0.005;
+    // T7 — agent traits: cunning/stealthy/strategist boost; target-side
+    // counter-intel traits reduce success (averaged across target officers).
+    chance += espionageBonus(agent);
+    const counterResist =
+      targetForceOfficers.length > 0
+        ? targetForceOfficers.reduce((s, o) => s + counterEspionageResist(o), 0) /
+          targetForceOfficers.length
+        : 0;
+    chance -= counterResist;
 
     if (op.kind === 'defect' && op.targetOfficerId) {
       const t = officers[op.targetOfficerId];
-      if (t) chance += ((100 - t.loyalty) / 50) - 0.2;
+      if (t) {
+        chance += ((100 - t.loyalty) / 50) - 0.2;
+        // T7 — loyal/honor-bound officers resist defection HARD
+        chance -= counterEspionageResist(t) * 3;
+      }
     }
 
     chance = Math.max(0.02, Math.min(0.95, chance));

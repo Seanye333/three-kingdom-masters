@@ -20,6 +20,8 @@ import type {
 import { NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../data/namedMaps';
 import { pickVoiceLine } from '../data/voiceLines';
 import { generateTerrain, type TerrainHint } from './battlefieldTerrain';
+import { effectiveStats } from './traitEffects';
+import { SIGNATURE_OVERRIDES } from './personalTactics';
 
 /**
  * Unit-type counter matrix. counterBonus[attacker][defender] = multiplier on
@@ -403,8 +405,8 @@ export function attackUnits(
 
   const ao = officers[attacker.officerId];
   const To = officers[target.officerId];
-  const aWar = ao?.stats.war ?? 50;
-  const dLead = To?.stats.leadership ?? 50;
+  const aWar = ao ? effectiveStats(ao).war : 50;
+  const dLead = To ? effectiveStats(To).leadership : 50;
 
   // Defending status halves incoming damage.
   const targetDefending = target.effects.some((e) => e.kind === 'defending');
@@ -453,8 +455,8 @@ export function attackUnits(
   let counterTroops = attacker.troops;
   let counterDamage = 0;
   if (newTroops > 0) {
-    const dWar = To?.stats.war ?? 50;
-    const aLead = ao?.stats.leadership ?? 50;
+    const dWar = To ? effectiveStats(To).war : 50;
+    const aLead = ao ? effectiveStats(ao).leadership : 50;
     const counterBase = Math.floor(
       (target.troops * (dWar + 30) * (0.85 + rng() * 0.3) * 0.4) / (aLead + 50),
     );
@@ -1291,18 +1293,153 @@ export function resolveBattleEnd(
   };
 }
 
+/**
+ * N1 — AI stratagem heuristic. Returns the battle after using a stratagem,
+ * or null if none was applicable. Higher-INT officers get to attempt this
+ * with a higher probability.
+ */
+function aiTryStratagem(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  officers: Record<EntityId, Officer>,
+  rng: () => number,
+): TacticalBattle | null {
+  if (unit.ap < 1) return null;
+  const off = officers[unit.officerId];
+  if (!off) return null;
+  // Probability to attempt a stratagem at all (high INT casts more).
+  const baseChance = 0.20 + Math.max(0, (off.stats.intelligence - 60)) / 200;
+  if (rng() > baseChance) return null;
+
+  const enemies = b.units.filter((u) => u.side !== unit.side);
+  const friends = b.units.filter((u) => u.side === unit.side);
+  if (enemies.length === 0) return null;
+
+  // Candidate stratagems in priority order, with target picker for each.
+  type Cand = { id: StratagemId; target: HexCoord };
+  const candidates: Cand[] = [];
+
+  // 1. defend self if our troops are low
+  if (unit.troops / Math.max(1, unit.maxTroops) < 0.4) {
+    candidates.push({ id: 'defend', target: unit.coord });
+  }
+  // 2. rally a wounded friend within 2
+  if (off.stats.intelligence >= 60) {
+    const wounded = friends
+      .filter((f) => f.id !== unit.id && f.troops / Math.max(1, f.maxTroops) < 0.5)
+      .sort((a, b1) => hexDistance(unit.coord, a.coord) - hexDistance(unit.coord, b1.coord))
+      .filter((f) => hexDistance(unit.coord, f.coord) <= 2);
+    if (wounded.length > 0) candidates.push({ id: 'rally', target: wounded[0].coord });
+  }
+  // 3. fire-attack the nearest enemy in range 3
+  if (off.stats.intelligence >= 70) {
+    const inRange = enemies
+      .filter((e) => hexDistance(unit.coord, e.coord) <= 3)
+      .sort((a, b1) => b1.troops - a.troops); // hit strongest first
+    if (inRange.length > 0) candidates.push({ id: 'fire-attack', target: inRange[0].coord });
+  }
+  // 4. confusion on the nearest enemy in range 4
+  if (off.stats.intelligence >= 75) {
+    const inRange = enemies
+      .filter((e) => hexDistance(unit.coord, e.coord) <= 4)
+      .sort((a, b1) => hexDistance(unit.coord, a.coord) - hexDistance(unit.coord, b1.coord));
+    if (inRange.length > 0) candidates.push({ id: 'confusion', target: inRange[0].coord });
+  }
+  // 5. lightning on the nearest enemy in range 4 (very high INT)
+  if (off.stats.intelligence >= 90) {
+    const inRange = enemies
+      .filter((e) => hexDistance(unit.coord, e.coord) <= 4)
+      .sort((a, b1) => b1.troops - a.troops);
+    if (inRange.length > 0) candidates.push({ id: 'lightning', target: inRange[0].coord });
+  }
+  // 6. dragon-veil if multiple adjacent enemies
+  const adjEnemies = enemies.filter((e) => hexDistance(unit.coord, e.coord) === 1);
+  if (adjEnemies.length >= 2 && off.stats.war >= 80) {
+    candidates.push({ id: 'dragon-veil', target: unit.coord });
+  }
+  // 7. charge an adjacent enemy
+  if (adjEnemies.length > 0) {
+    candidates.push({ id: 'charge', target: adjEnemies[0].coord });
+  }
+  // 8. rain-of-arrows for archers/siege/navy
+  if (['archers', 'siege', 'navy'].includes(unit.unitType) && off.stats.intelligence >= 60) {
+    const inRange = enemies
+      .filter((e) => hexDistance(unit.coord, e.coord) <= 4)
+      .sort((a, b1) => b1.troops - a.troops);
+    if (inRange.length > 0) candidates.push({ id: 'rain-of-arrows', target: inRange[0].coord });
+  }
+  // 9. gallop for cavalry
+  if (unit.unitType === 'cavalry' && off.stats.war >= 70) {
+    const inRange = enemies
+      .filter((e) => hexDistance(unit.coord, e.coord) <= 3)
+      .sort((a, b1) => hexDistance(unit.coord, a.coord) - hexDistance(unit.coord, b1.coord));
+    if (inRange.length > 0) candidates.push({ id: 'gallop', target: inRange[0].coord });
+  }
+
+  for (const c of candidates) {
+    const r = applyStratagem(b, unit.id, c.id, c.target, officers);
+    if (r.ok) return r.battle;
+  }
+  return null;
+}
+
+export interface AITurnResult {
+  battle: TacticalBattle;
+  /** Each entry: a stratagem an AI unit used this turn. For signature
+   *  tactics the officer owns, `tacticId` resolves to the named tactic. */
+  signatures: Array<{ tacticId: string; coord: HexCoord; unitId: EntityId; stratagemId: StratagemId }>;
+}
+
+/** Reverse-lookup: for a stratagem id, find the most signature-worthy
+ *  tactic in the officer's list that maps to that underlying stratagem. */
+function inferSignatureTactic(
+  officer: Officer | undefined,
+  stratagemId: StratagemId,
+): string {
+  if (!officer) return stratagemId;
+  const owned = ((officer as Officer & { tactics?: string[] }).tactics) ?? [];
+  // Try exact tactics owned by officer that map to this underlying.
+  for (const tid of owned) {
+    const ov = SIGNATURE_OVERRIDES[tid];
+    if (ov && ov.underlying === stratagemId) return tid;
+  }
+  return stratagemId;
+}
+
 export function aiTakeTurn(
   b: TacticalBattle,
   officers: Record<EntityId, Officer>,
   rng: () => number,
-): TacticalBattle {
+): AITurnResult {
   let cur = b;
+  const signatures: AITurnResult['signatures'] = [];
   let safety = 30;
   while (safety-- > 0) {
     const myUnits = cur.units.filter((u) => u.side === cur.activeSide && u.ap > 0);
     if (myUnits.length === 0) break;
     let acted = false;
     for (const unit of myUnits) {
+      // N1 — Try a stratagem first.
+      const stratResult = aiTryStratagem(cur, unit, officers, rng);
+      if (stratResult) {
+        // Detect which stratagem was actually used by diffing cooldowns.
+        for (const [key, val] of Object.entries(stratResult.stratagemCooldowns)) {
+          if ((cur.stratagemCooldowns[key] ?? -1) >= val) continue;
+          const dash = key.indexOf('-');
+          if (dash < 0) continue;
+          const unitId = key.slice(0, dash);
+          if (unitId !== unit.id) continue;
+          const stratagemId = key.slice(dash + 1) as StratagemId;
+          const after = stratResult.units.find((u) => u.id === unit.id);
+          if (!after) continue;
+          const off = officers[after.officerId];
+          const tacticId = inferSignatureTactic(off, stratagemId);
+          signatures.push({ tacticId, coord: after.coord, unitId: after.id, stratagemId });
+        }
+        cur = stratResult;
+        acted = true;
+        break;
+      }
       // Find nearest enemy.
       const enemies = cur.units.filter((u) => u.side !== unit.side);
       if (enemies.length === 0) break;
@@ -1328,5 +1465,5 @@ export function aiTakeTurn(
     }
     if (!acted) break;
   }
-  return endTurn(cur);
+  return { battle: endTurn(cur), signatures };
 }

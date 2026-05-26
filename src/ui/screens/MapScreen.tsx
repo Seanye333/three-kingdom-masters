@@ -106,6 +106,12 @@ export function MapScreen() {
   const pendingCount = useGameStore(
     (s) => Object.keys(s.pendingCommands).length,
   );
+  const trainingCount = useGameStore((s) =>
+    s.pendingTrainings.filter((t) => {
+      const o = s.officers[t.officerId];
+      return o?.forceId === s.playerForceId;
+    }).length,
+  );
   const endSeason = useGameStore((s) => s.endSeason);
   const reset = useGameStore((s) => s.reset);
   const weather = useGameStore((s) => s.weather);
@@ -162,6 +168,14 @@ export function MapScreen() {
         </div>
         <div className={styles.orderBlock}>
           {t('指令', 'Orders')}: <strong>{pendingCount}/{playerCityCount}</strong>
+          {trainingCount > 0 && (
+            <span
+              title={t(`書院/師徒培訓中:${trainingCount} 人`, `Training (academy + mentor): ${trainingCount} officer${trainingCount > 1 ? 's' : ''}`)}
+              style={{ marginLeft: 12, color: '#88b7e8', fontSize: '0.85em' }}
+            >
+              📚 <strong>{trainingCount}</strong>
+            </span>
+          )}
         </div>
         {/* Top-tier (always visible — most clicked) */}
         <button

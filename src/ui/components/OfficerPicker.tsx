@@ -5,6 +5,7 @@ import type { EntityId, InternalAffairsType } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import styles from './OfficerPicker.module.css';
 import { useT, useLanguage, useDesc } from '../i18n';
+import { commandFitMultiplier } from '../../game/systems/traitEffects';
 
 interface Props {
   cityId: EntityId;
@@ -17,9 +18,14 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
   const issueCommand = useGameStore((s) => s.issueCommand);
   const city = useGameStore((s) => s.cities[cityId]);
   const officersMap = useGameStore((s) => s.officers);
+  const pendingTrainings = useGameStore((s) => s.pendingTrainings);
   const t = useT();
   const lang = useLanguage();
   const desc = useDesc();
+  const trainingIds = useMemo(
+    () => new Set(pendingTrainings.map((tr) => tr.officerId)),
+    [pendingTrainings],
+  );
   const officers = useMemo(
     () =>
       Object.values(officersMap)
@@ -30,11 +36,20 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
             o.status === 'idle' &&
             !o.task,
         )
-        .sort((a, b) => b.stats[def.stat] - a.stats[def.stat]),
-    [officersMap, cityId, city?.ownerForceId, def.stat],
+        .sort((a, b) => {
+          // Push training officers to the end so the live picks are first.
+          const aT = trainingIds.has(a.id) ? 1 : 0;
+          const bT = trainingIds.has(b.id) ? 1 : 0;
+          if (aT !== bT) return aT - bT;
+          // Trait-aware sort: stat × fit multiplier
+          return (b.stats[def.stat] * commandFitMultiplier(b, commandType)) -
+                 (a.stats[def.stat] * commandFitMultiplier(a, commandType));
+        }),
+    [officersMap, cityId, city?.ownerForceId, def.stat, trainingIds],
   );
 
   const handlePick = (officerId: EntityId) => {
+    if (trainingIds.has(officerId)) return;
     const result = issueCommand(cityId, commandType, officerId);
     if (result.ok) onClose();
   };
@@ -70,23 +85,45 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
           </div>
         ) : (
           <ul className={styles.officerList}>
-            {officers.map((o) => (
-              <li key={o.id}>
-                <OfficerHoverCard officer={o}>
-                  <button
-                    className={styles.officerButton}
-                    onClick={() => handlePick(o.id)}
-                  >
-                    <span className={styles.officerNameZh}>{o.name.zh}</span>
-                    <span className={styles.officerNameEn}>{o.name.en}</span>
-                    <span className={styles.officerStat}>
-                      {def.stat.toUpperCase().slice(0, 3)}{' '}
-                      <strong>{o.stats[def.stat]}</strong>
-                    </span>
-                  </button>
-                </OfficerHoverCard>
-              </li>
-            ))}
+            {officers.map((o) => {
+              const isTraining = trainingIds.has(o.id);
+              const fit = commandFitMultiplier(o, commandType);
+              const recommended = fit >= 1.15;
+              const liability = fit <= 0.85;
+              return (
+                <li key={o.id}>
+                  <OfficerHoverCard officer={o}>
+                    <button
+                      className={styles.officerButton}
+                      onClick={() => handlePick(o.id)}
+                      disabled={isTraining}
+                      title={
+                        isTraining
+                          ? t('武將正在書院培訓中,無法指派。', 'Officer is training at the academy — unavailable.')
+                          : recommended
+                            ? t('個性與此命令相宜 — 效果加成', 'Personality fits this command — bonus effect')
+                            : liability
+                              ? t('個性與此命令相剋 — 效果折扣', 'Personality clashes with this command — reduced effect')
+                              : undefined
+                      }
+                      style={isTraining ? { opacity: 0.45, cursor: 'not-allowed', filter: 'grayscale(0.4)' } : undefined}
+                    >
+                      <span className={styles.officerNameZh}>
+                        {recommended && <span style={{ color: '#d4a84a', marginRight: 4 }}>⭐</span>}
+                        {liability && <span style={{ color: '#b8442e', marginRight: 4 }}>⚠</span>}
+                        {o.name.zh}
+                        {isTraining && <span style={{ marginLeft: '0.4rem', fontSize: '0.7rem', color: '#88b7e8', fontStyle: 'italic' }}>⏳ {t('培訓中', 'training')}</span>}
+                      </span>
+                      <span className={styles.officerNameEn}>{o.name.en}</span>
+                      <span className={styles.officerStat}>
+                        {def.stat.toUpperCase().slice(0, 3)}{' '}
+                        <strong>{o.stats[def.stat]}</strong>
+                      </span>
+                    </button>
+                  </OfficerHoverCard>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

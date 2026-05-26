@@ -632,6 +632,14 @@ button:not(:disabled):active {
   100% { opacity: 0; transform: translate(-50%, -10px); }
 }
 
+/* ── N7 — Signature tactic banner overlay ─────────────────────────── */
+@keyframes tkmSignatureBanner {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotateX(60deg); filter: blur(8px); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15) rotateX(0deg); filter: blur(0px); }
+  60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotateX(0deg); }
+  100% { opacity: 0; transform: translate(-50%, -55%) scale(1.05) rotateX(-15deg); }
+}
+
 /* ── Isometric tilt for hex battlefield (3D feel) ───────────────────── */
 .tkm-iso-stage {
   perspective: 1200px;

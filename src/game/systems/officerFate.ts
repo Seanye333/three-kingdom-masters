@@ -1,4 +1,5 @@
 import type { City, Force, Officer } from '../types';
+import { recruiterBonus } from './traitEffects';
 
 export const RECRUIT_COST = 200;
 export const FREE_AGENT_COST = 100;
@@ -160,6 +161,8 @@ export function attemptFreeAgentRecruit(
   chance += traitBonus(officer.traits as string[] | undefined);
   chance += hometownBonus(officer, city);
   chance += reputationBonus(recruiterReputation);
+  // T9 — recruiter's own personality (charming/noble/imperial-blood)
+  chance += recruiterBonus(recruiterRuler);
   // 'noble' free agent: harder, won't accept just because you're rich.
   if ((officer.traits ?? []).includes('noble')) chance -= 0.10;
   chance = clamp01(chance);

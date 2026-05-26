@@ -4,10 +4,12 @@ import type {
   EntityId,
   Force,
   GameDate,
+  Officer,
   Relation,
   ReportEntry,
 } from '../types';
 import { getRelation, pairKey } from '../types';
+import { diplomacyProposalBonus, diplomacyResistance } from './traitEffects';
 
 export const NAP_DURATION_SEASONS = 8;
 export const ALLIANCE_PROPOSAL_COST = 500;
@@ -29,7 +31,12 @@ export interface DiplomaticOutcome {
 export interface DiplomaticContext {
   player: Force;
   playerRulerCharisma: number;
+  /** Optional — when provided, ruler's personality traits modify proposal odds. */
+  playerRuler?: Officer;
   target: Force;
+  /** Optional — when provided, target ruler's suspicious/paranoid traits
+   *  resist player proposals (T6/P1). */
+  targetRuler?: Officer;
   targetTotalTroops: number;
   playerTotalTroops: number;
   diplomacy: DiplomaticState;
@@ -53,12 +60,16 @@ export function proposeAlliance(ctx: DiplomaticContext): DiplomaticOutcome {
     ctx.targetTotalTroops > 0
       ? (ctx.playerTotalTroops - ctx.targetTotalTroops) / Math.max(ctx.targetTotalTroops, 1)
       : 0.5;
+  const traitBonus = ctx.playerRuler ? diplomacyProposalBonus(ctx.playerRuler) : 0;
+  const targetResist = ctx.targetRuler ? diplomacyResistance(ctx.targetRuler) : 0;
   const chance = clamp(
     0.05,
     0.95,
     current.score / 200 +
       ctx.playerRulerCharisma / 400 +
-      Math.max(-0.3, Math.min(0.3, strengthFactor * 0.2)),
+      Math.max(-0.3, Math.min(0.3, strengthFactor * 0.2)) +
+      traitBonus -
+      targetResist,
   );
   const roll = rng();
 
@@ -107,7 +118,9 @@ export function proposeNonAggression(
     };
   }
 
-  const chance = clamp(0.1, 0.95, current.score / 150 + 0.55);
+  const napTraitBonus = ctx.playerRuler ? diplomacyProposalBonus(ctx.playerRuler) : 0;
+  const napTargetResist = ctx.targetRuler ? diplomacyResistance(ctx.targetRuler) : 0;
+  const chance = clamp(0.1, 0.95, current.score / 150 + 0.55 + napTraitBonus - napTargetResist);
   const roll = rng();
   if (roll < chance) {
     const next = setRelation(ctx.diplomacy, ctx.player.id, ctx.target.id, (r) => ({

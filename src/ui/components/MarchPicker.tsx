@@ -24,6 +24,11 @@ export function MarchPicker({ cityId, onClose }: Props) {
   const officersMap = useGameStore((s) => s.officers);
   const [showPrep, setShowPrep] = useState(false);
 
+  const pendingTrainings = useGameStore((s) => s.pendingTrainings);
+  const trainingIds = useMemo(
+    () => new Set(pendingTrainings.map((tr) => tr.officerId)),
+    [pendingTrainings],
+  );
   const officers = useMemo(
     () =>
       Object.values(officersMap)
@@ -32,10 +37,11 @@ export function MarchPicker({ cityId, onClose }: Props) {
             o.locationCityId === cityId &&
             o.forceId === source?.ownerForceId &&
             o.status === 'idle' &&
-            !o.task,
+            !o.task &&
+            !trainingIds.has(o.id),
         )
         .sort((a, b) => b.stats.leadership - a.stats.leadership),
-    [officersMap, cityId, source?.ownerForceId],
+    [officersMap, cityId, source?.ownerForceId, trainingIds],
   );
 
   const ports = useGameStore((s) => s.ports);

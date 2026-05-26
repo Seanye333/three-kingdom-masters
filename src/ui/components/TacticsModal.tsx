@@ -1,4 +1,4 @@
-import { TACTIC_DEFS, tacticBonus, isTacticSignature } from '../../game/data/officerAttributes';
+import { TACTIC_DEFS, tacticBonus, isTacticSignature, TACTIC_PREREQ, TACTIC_COMBOS } from '../../game/data/officerAttributes';
 import { CatalogModal, type CatalogItem, type CatalogCategory } from './CatalogModal';
 
 function bonusBadge(id: string): string {
@@ -957,14 +957,32 @@ const CATEGORIES: CatalogCategory[] = [
 interface Props { onClose: () => void; }
 
 export function TacticsModal({ onClose }: Props) {
-  const items: CatalogItem[] = Object.entries(TACTIC_DEFS).map(([id, def]) => ({
-    id,
-    zh: def.zh,
-    en: def.en,
-    description: TACTIC_DESC[id] ?? '',
-    category: TACTIC_CATEGORY[id] ?? 'melee',
-    badge: bonusBadge(id),
-  }));
+  const items: CatalogItem[] = Object.entries(TACTIC_DEFS).map(([id, def]) => {
+    const baseDesc = TACTIC_DESC[id] ?? '';
+    // T10 — enrich description with prereqs and combo membership
+    const lines: string[] = [];
+    if (baseDesc) lines.push(baseDesc);
+    const prereqs = (TACTIC_PREREQ as Record<string, string[] | undefined>)[id] ?? [];
+    if (prereqs.length > 0) {
+      const zhList = prereqs.map((p) => TACTIC_DEFS[p as keyof typeof TACTIC_DEFS]?.zh ?? p).join('、');
+      lines.push(`【前置】需先學:${zhList}`);
+    }
+    const memberOf = TACTIC_COMBOS.filter((c) => c.tactics.includes(id));
+    if (memberOf.length > 0) {
+      const comboList = memberOf
+        .map((c) => `「${c.nameZh}」(${c.tactics.map((t) => TACTIC_DEFS[t as keyof typeof TACTIC_DEFS]?.zh ?? t).join(' + ')} → 戰力 ×${c.powerMul.toFixed(2)})`)
+        .join(';');
+      lines.push(`【連環戰法】屬於:${comboList}`);
+    }
+    return {
+      id,
+      zh: def.zh,
+      en: def.en,
+      description: lines.join('\n'),
+      category: TACTIC_CATEGORY[id] ?? 'melee',
+      badge: bonusBadge(id),
+    };
+  });
   return (
     <CatalogModal
       onClose={onClose}

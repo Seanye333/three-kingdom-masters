@@ -14,14 +14,36 @@ import { personalTacticsForUnit } from '../../game/systems/personalTactics';
 import { FORMATIONS_BY_ID, STRATAGEMS } from '../../game/data';
 import { BattleResultsModal } from '../components/BattleResultsModal';
 import { DuelModal } from '../components/DuelModal';
-import { useT, useDesc } from '../i18n';
+import { useT, useDesc, useLanguage } from '../i18n';
 
 type ActionMode =
   | { kind: 'none' }
   | { kind: 'move' }
   | { kind: 'attack' }
   | { kind: 'duel' }
-  | { kind: 'stratagem'; id: StratagemId };
+  | { kind: 'stratagem'; id: StratagemId; tacticId?: string };
+
+/** N6 — Signature-tactic flavor lines for the battle log. Keyed by tacticId. */
+const SIGNATURE_FLAVOR: Record<string, { zh: string; en: string }> = {
+  'borrow-wind':    { zh: '今夜東風大作 — 諸葛祭壇神算!', en: 'A great east wind rises by night — divined by stratagem!' },
+  'borrow-arrow':   { zh: '草船借箭,十萬箭歸我軍!', en: '100,000 arrows seized from the river mist!' },
+  'eight-gates':    { zh: '八門遁甲開,敵入死門!', en: 'Eight Gates of Heaven open — the foe is trapped!' },
+  'empty-fort':     { zh: '城門大開,撫琴退兵!', en: 'Gates flung wide, lute played — the enemy retreats in doubt!' },
+  'seven-lamp':     { zh: '七星燈祈壽,延命七日!', en: 'Seven Star Lamps lit — borrowed days from heaven!' },
+  'star-prayer':    { zh: '北斗祭七星,卜知吉凶!', en: 'Big Dipper prayer — fortune foretold!' },
+  'burn-bowang':    { zh: '火燒博望坡,夏侯軍潰!', en: 'Fire at Bowang Slope — the enemy column shatters!' },
+  'burn-yiling':    { zh: '火燒連營七百里,蜀軍崩潰!', en: '700 li of camps ablaze — Shu lines collapse!' },
+  'burn-chibi':     { zh: '赤壁火起,曹軍北逃!', en: 'Red Cliffs ablaze — Cao retreats north!' },
+  'chain-ship':     { zh: '連環船陣大成 — 浪靜如鏡!', en: 'Chained Fleet formed — waters still as glass!' },
+  'seven-grab':     { zh: '七擒孟獲,南中心服!', en: 'Seven captures, seven releases — Nanman pacified!' },
+  'changban':       { zh: '長坂坡前,七進七出!', en: 'At Changban Slope — seven charges, seven returns!' },
+  'tongue-war':     { zh: '舌戰群儒,辭鋒如雷!', en: 'Tongue-battle with the Wu court — words like thunder!' },
+  'white-robe':     { zh: '白衣渡江,荊州陷落!', en: 'White Robe crossing — Jingzhou falls!' },
+  'beauty':         { zh: '美人計奏效,呂奉先誅董卓!', en: 'The beauty stratagem — Lü Bu slays Dong Zhuo!' },
+  'self-injury':    { zh: '苦肉計成 — 黃蓋投江!', en: 'Self-injury accepted — Huang Gai feigns defection!' },
+  'caocao-poetry':  { zh: '橫槊賦詩,英雄氣概!', en: 'Cao Cao recites verse atop his spear!' },
+  'thunder':        { zh: '五雷正法 — 天威震軍!', en: 'Five Thunder method — heaven\'s wrath strikes!' },
+};
 
 const UNIT_TYPE_LABEL: Record<UnitType, string> = {
   infantry: 'Infantry', spearmen: 'Spearmen', cavalry: 'Cavalry',
@@ -40,6 +62,31 @@ const TOD_LABEL: Record<TimeOfDay, string> = {
 const R = 1;
 const COL_STEP = 1.5 * R;
 const ROW_STEP = Math.sqrt(3) * R;
+
+/** N4 — Target-type indicator per stratagem. Lets the UI show whether
+ *  the player should click an enemy, an ally, or just themselves. */
+function stratagemTargetType(id: StratagemId): 'enemy' | 'ally' | 'self' | 'aoe' {
+  switch (id) {
+    case 'rally':                                       return 'ally';
+    case 'defend': case 'precognition': case 'dragon-veil': case 'false-retreat':
+      return 'self';
+    case 'fire-attack': case 'confusion': case 'charge': case 'rain-of-arrows':
+    case 'chain-ships': case 'lightning': case 'supply-strike': case 'gallop':
+      return 'enemy';
+    default:                                            return 'aoe';
+  }
+}
+
+/** N4 — Short bilingual label for the target type, shown on tactic buttons. */
+function targetTypeBadge(type: 'enemy' | 'ally' | 'self' | 'aoe', langZh: boolean): { label: string; color: string } {
+  switch (type) {
+    case 'enemy': return { label: langZh ? '敵' : 'enm', color: '#b8442e' };
+    case 'ally':  return { label: langZh ? '友' : 'ally', color: '#7ed68a' };
+    case 'self':  return { label: langZh ? '己' : 'self', color: '#88b7e8' };
+    case 'aoe':   return { label: langZh ? '範' : 'aoe', color: '#d4a84a' };
+  }
+}
+
 function hexWorld(col: number, row: number): [number, number] {
   const x = col * COL_STEP;
   const z = row * ROW_STEP + (col & 1 ? ROW_STEP / 2 : 0);
@@ -746,6 +793,219 @@ function AttackArc({ from, to, kind, spawnedAt }: {
   );
 }
 
+/* ─── Stratagem visual effects — fire / lightning / aura / swirl / etc ── */
+
+/** Map each StratagemId → FX kind. */
+function stratagemFxKind(id: StratagemId):
+  | 'fire' | 'lightning' | 'arrows' | 'aura' | 'swirl' | 'shockwave' | 'shield' | 'chain' | null {
+  switch (id) {
+    case 'fire-attack':      return 'fire';
+    case 'lightning':        return 'lightning';
+    case 'rain-of-arrows':   return 'arrows';
+    case 'rally':            return 'aura';
+    case 'precognition':     return 'aura';
+    case 'confusion':        return 'swirl';
+    case 'dragon-veil':      return 'shockwave';
+    case 'defend':           return 'shield';
+    case 'chain-ships':      return 'chain';
+    case 'charge':           return 'shockwave';
+    case 'gallop':           return 'shockwave';
+    case 'supply-strike':    return 'fire';
+    case 'false-retreat':    return 'swirl';
+    default:                 return null;
+  }
+}
+
+const FX_COLOR: Record<string, string> = {
+  fire:      '#ff6020',
+  lightning: '#a8d4ff',
+  arrows:    '#d8c898',
+  aura:      '#ffd060',
+  swirl:     '#c178e8',
+  shockwave: '#ff8040',
+  shield:    '#ffd060',
+  chain:     '#888888',
+};
+
+/** Per-FX duration in seconds. */
+const FX_DURATION: Record<string, number> = {
+  fire: 2.0, lightning: 0.6, arrows: 1.2, aura: 1.6,
+  swirl: 1.6, shockwave: 1.0, shield: 1.6, chain: 1.2,
+};
+
+function StratagemFXNode({ coord, kind, spawnedAt }: {
+  coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number;
+}) {
+  const [x, z] = hexWorld(coord.col, coord.row);
+  const color = FX_COLOR[kind];
+  const dur = FX_DURATION[kind];
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    const age = (Date.now() - spawnedAt) / 1000;
+    const t = Math.min(1, age / dur);
+    const g = groupRef.current;
+    // Per-FX animation logic
+    switch (kind) {
+      case 'fire': {
+        // Rising particles — group climbs and shrinks
+        g.position.y = t * 2.5;
+        g.scale.setScalar(1 + t * 0.6);
+        break;
+      }
+      case 'lightning': {
+        // Quick descend + flash
+        g.position.y = (1 - t) * 6;
+        g.scale.setScalar(1 + (1 - t) * 0.4);
+        break;
+      }
+      case 'arrows': {
+        // Falling group
+        g.position.y = (1 - t) * 5;
+        break;
+      }
+      case 'aura': {
+        // Slow rise + rotation
+        g.rotation.y = t * Math.PI * 2;
+        g.position.y = t * 0.8;
+        break;
+      }
+      case 'swirl': {
+        g.rotation.y = t * Math.PI * 4;
+        g.position.y = 0.8 + Math.sin(t * Math.PI * 3) * 0.2;
+        break;
+      }
+      case 'shockwave': {
+        g.scale.setScalar(0.3 + t * 4);
+        break;
+      }
+      case 'shield': {
+        g.rotation.y = t * Math.PI;
+        g.position.y = 0.5 + Math.sin(t * Math.PI * 2) * 0.1;
+        break;
+      }
+      case 'chain': {
+        g.rotation.y = t * Math.PI;
+        break;
+      }
+    }
+    // Fade out
+    const fade = 1 - t;
+    g.traverse((obj) => {
+      const m = (obj as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined;
+      if (m && 'opacity' in m) m.opacity = fade;
+    });
+  });
+
+  // Geometry per kind
+  const visuals = (() => {
+    switch (kind) {
+      case 'fire':
+        return Array.from({ length: 12 }).map((_, i) => {
+          const ang = (i / 12) * Math.PI * 2;
+          const r = 0.4 + (i % 3) * 0.2;
+          return (
+            <mesh key={i} position={[Math.cos(ang) * r, i * 0.15, Math.sin(ang) * r]}>
+              <sphereGeometry args={[0.15 + (i % 3) * 0.03, 6, 6]} />
+              <meshBasicMaterial color={color} transparent opacity={1} />
+            </mesh>
+          );
+        });
+      case 'lightning':
+        return (
+          <>
+            <mesh position={[0, 3, 0]}>
+              <cylinderGeometry args={[0.04, 0.08, 6, 6]} />
+              <meshBasicMaterial color={color} transparent opacity={1} />
+            </mesh>
+            <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[0.5, 0.8, 16]} />
+              <meshBasicMaterial color={color} transparent opacity={1} side={THREE.DoubleSide} />
+            </mesh>
+          </>
+        );
+      case 'arrows':
+        return Array.from({ length: 8 }).map((_, i) => {
+          const ang = (i / 8) * Math.PI * 2;
+          const r = 0.6;
+          return (
+            <mesh
+              key={i}
+              position={[Math.cos(ang) * r, i * 0.3, Math.sin(ang) * r]}
+              rotation={[Math.PI / 3, 0, 0]}
+            >
+              <cylinderGeometry args={[0.02, 0.02, 0.6, 4]} />
+              <meshBasicMaterial color={color} transparent opacity={1} />
+            </mesh>
+          );
+        });
+      case 'aura':
+        return (
+          <>
+            <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[0.7, 1.1, 24]} />
+              <meshBasicMaterial color={color} transparent opacity={1} side={THREE.DoubleSide} />
+            </mesh>
+            {Array.from({ length: 6 }).map((_, i) => {
+              const ang = (i / 6) * Math.PI * 2;
+              return (
+                <mesh key={i} position={[Math.cos(ang) * 0.6, 0.5, Math.sin(ang) * 0.6]}>
+                  <sphereGeometry args={[0.08, 6, 6]} />
+                  <meshBasicMaterial color={color} transparent opacity={1} />
+                </mesh>
+              );
+            })}
+          </>
+        );
+      case 'swirl':
+        return Array.from({ length: 10 }).map((_, i) => {
+          const ang = (i / 10) * Math.PI * 2;
+          const r = 0.5 + (i % 2) * 0.2;
+          return (
+            <mesh key={i} position={[Math.cos(ang) * r, 0.2 + i * 0.05, Math.sin(ang) * r]}>
+              <sphereGeometry args={[0.07, 5, 5]} />
+              <meshBasicMaterial color={color} transparent opacity={1} />
+            </mesh>
+          );
+        });
+      case 'shockwave':
+        return (
+          <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.5, 0.7, 32]} />
+            <meshBasicMaterial color={color} transparent opacity={1} side={THREE.DoubleSide} />
+          </mesh>
+        );
+      case 'shield':
+        return (
+          <>
+            <mesh position={[0, 0.4, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[0.85, 1.0, 24]} />
+              <meshBasicMaterial color={color} transparent opacity={1} side={THREE.DoubleSide} />
+            </mesh>
+            <mesh position={[0, 0.7, 0]}>
+              <sphereGeometry args={[0.9, 16, 8]} />
+              <meshBasicMaterial color={color} transparent opacity={0.18} wireframe />
+            </mesh>
+          </>
+        );
+      case 'chain':
+        return Array.from({ length: 5 }).map((_, i) => (
+          <mesh key={i} position={[i * 0.25 - 0.5, 0.5, 0]}>
+            <torusGeometry args={[0.12, 0.04, 6, 12]} />
+            <meshBasicMaterial color={color} transparent opacity={1} />
+          </mesh>
+        ));
+    }
+  })();
+
+  return (
+    <group ref={groupRef} position={[x, 0, z]}>
+      {visuals}
+    </group>
+  );
+}
+
 /* ─── Formation visualizer — colored ring on the ground + zh label ──
  *  Coloring by "category" (defensive/offensive/mobile/mystic) gives a quick
  *  visual cue without needing 23 distinct shapes. */
@@ -845,7 +1105,7 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
 function BattleScene({
   battle, playerSide, actionMode,
   selectedId, hovered, setHovered, onTileClick,
-  attackArcs,
+  attackArcs, stratagemFx,
 }: {
   battle: TacticalBattle;
   playerSide: 'attacker' | 'defender' | null;
@@ -855,6 +1115,7 @@ function BattleScene({
   setHovered: (c: HexCoord | null) => void;
   onTileClick: (c: HexCoord) => void;
   attackArcs: { id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }[];
+  stratagemFx: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }>;
 }) {
   const { tiles, units } = battle;
   const tileByCoord = useMemo(() => {
@@ -1034,6 +1295,15 @@ function BattleScene({
           from={a.from} to={a.to} kind={a.kind} spawnedAt={a.spawnedAt}
         />
       ))}
+      {/* Stratagem FX particles */}
+      {stratagemFx.map((f) => (
+        <StratagemFXNode
+          key={f.id}
+          coord={f.coord}
+          kind={f.kind}
+          spawnedAt={f.spawnedAt}
+        />
+      ))}
     </>
   );
 }
@@ -1054,7 +1324,17 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
   const [showResults, setShowResults] = useState(false);
   const [duelResult, setDuelResult] = useState<DuelResult | null>(null);
   const [voiceLine, setVoiceLine] = useState<{ text: string; key: number } | null>(null);
+  // N7 — signature-tactic banner overlay state
+  const [signatureBanner, setSignatureBanner] = useState<{ zh: string; en: string; key: number } | null>(null);
+  // Stratagem FX particles
+  const [stratagemFx, setStratagemFx] = useState<Array<{
+    id: number;
+    coord: HexCoord;
+    kind: NonNullable<ReturnType<typeof stratagemFxKind>>;
+    spawnedAt: number;
+  }>>([]);
   const t = useT();
+  const lang = useLanguage();
 
   const playerSide: 'attacker' | 'defender' | null = useMemo(() => {
     if (!battle) return null;
@@ -1069,7 +1349,49 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
     if (playerSide && battle.activeSide !== playerSide) {
       const delay = Math.max(150, 700 / Math.max(1, battleSpeed));
       const id = setTimeout(() => {
-        start(aiTakeTurn(battle, officers, Math.random));
+        const result = aiTakeTurn(battle, officers, Math.random);
+        const next = result.battle;
+        // For each AI signature usage, spawn FX + banner + flavor log entry.
+        const fxToAdd: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }> = [];
+        let fxCounter = Date.now();
+        let bannerToShow: { zh: string; en: string } | null = null;
+        let battleAfterLogs = next;
+        for (const sig of result.signatures) {
+          const fxKind = stratagemFxKind(sig.stratagemId);
+          if (fxKind) {
+            fxToAdd.push({
+              id: fxCounter++,
+              coord: sig.coord,
+              kind: fxKind,
+              spawnedAt: Date.now(),
+            });
+          }
+          // Signature flavor for AI famous-tactic usage
+          const flavor = SIGNATURE_FLAVOR[sig.tacticId];
+          if (flavor) {
+            battleAfterLogs = {
+              ...battleAfterLogs,
+              log: [
+                ...(battleAfterLogs.log ?? []),
+                { turn: battleAfterLogs.turn, text: flavor.en, kind: 'event' as const },
+              ],
+            };
+            // Only show one banner per turn (the last one) so they don't queue up forever
+            bannerToShow = { zh: flavor.zh, en: flavor.en };
+          }
+        }
+        if (fxToAdd.length > 0) {
+          setStratagemFx((arr) => [...arr, ...fxToAdd]);
+          for (const f of fxToAdd) {
+            const life = (FX_DURATION[f.kind] ?? 1.5) * 1000 + 200;
+            setTimeout(() => setStratagemFx((arr) => arr.filter((x) => x.id !== f.id)), life);
+          }
+        }
+        if (bannerToShow) {
+          setSignatureBanner({ zh: bannerToShow.zh, en: bannerToShow.en, key: Date.now() });
+          setTimeout(() => setSignatureBanner(null), 2400);
+        }
+        start(battleAfterLogs);
       }, delay);
       return () => clearTimeout(id);
     }
@@ -1108,8 +1430,9 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
   const onTileClick = (c: HexCoord) => {
     if (!myTurn) return;
     const u = unitAt(battle, c);
-    // Click own unit → select & enter move mode
-    if (u && u.side === playerSide) {
+    // Click own unit → select & enter move mode UNLESS we're aiming a
+    // stratagem (then a friendly click is the target of a buff like rally).
+    if (u && u.side === playerSide && actionMode.kind !== 'stratagem') {
       setSelectedId(u.id);
       setActionMode({ kind: 'move' });
       return;
@@ -1167,7 +1490,35 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
     if (actionMode.kind === 'stratagem') {
       const r = applyStratagem(battle, selectedUnit.id, actionMode.id, c, officers);
       if (r.ok) {
-        start(r.battle);
+        // Spawn FX at the target hex.
+        const fxKind = stratagemFxKind(actionMode.id);
+        if (fxKind) {
+          const fxId = Date.now();
+          // For self-targeted (defend / precognition / dragon-veil), origin = caster
+          const isSelf = ['defend', 'precognition', 'dragon-veil'].includes(actionMode.id);
+          const fxCoord = isSelf ? selectedUnit.coord : c;
+          setStratagemFx((arr) => [...arr, { id: fxId, coord: fxCoord, kind: fxKind, spawnedAt: fxId }]);
+          const lifeMs = (FX_DURATION[fxKind] ?? 1.5) * 1000 + 200;
+          setTimeout(() => setStratagemFx((arr) => arr.filter((f) => f.id !== fxId)), lifeMs);
+        }
+        // N6 — append a signature flavor line to the battle log if the
+        // tactic invoked has a famous historical moment associated.
+        const tactId = actionMode.tacticId;
+        const flavor = tactId ? SIGNATURE_FLAVOR[tactId] : undefined;
+        let next = r.battle;
+        if (flavor) {
+          next = {
+            ...next,
+            log: [
+              ...(next.log ?? []),
+              { turn: next.turn, text: flavor.en, kind: 'event' as const },
+            ],
+          };
+          // N7 — show a transient on-screen banner for signature tactics
+          setSignatureBanner({ zh: flavor.zh, en: flavor.en, key: Date.now() });
+          setTimeout(() => setSignatureBanner(null), 2400);
+        }
+        start(next);
         setActionMode({ kind: 'none' });
       } else if (r.reason) {
         alert(r.reason);
@@ -1261,6 +1612,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
               setHovered={setHovered}
               onTileClick={onTileClick}
               attackArcs={attackArcs}
+              stratagemFx={stratagemFx}
             />
             <OrbitControls
               target={target}
@@ -1328,6 +1680,43 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
             }}
           >
             「{voiceLine.text}」
+          </div>
+        )}
+
+        {/* N7 — Signature tactic banner overlay */}
+        {signatureBanner && (
+          <div
+            key={signatureBanner.key}
+            style={{
+              position: 'absolute', top: '38%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+              animation: 'tkmSignatureBanner 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              textAlign: 'center',
+              zIndex: 50,
+            }}
+          >
+            <div style={{
+              fontFamily: 'Songti SC, serif',
+              fontSize: '3.4rem',
+              color: '#ffd47a',
+              letterSpacing: '0.5rem',
+              textShadow: '0 0 22px #d4a84a, 0 0 44px rgba(212,168,74,0.6), 0 4px 0 #2a1f15',
+              fontWeight: 700,
+              filter: 'drop-shadow(0 0 10px rgba(212,168,74,0.8))',
+            }}>
+              {lang === 'en' ? signatureBanner.en : signatureBanner.zh}
+            </div>
+            <div style={{
+              marginTop: '0.4rem',
+              fontFamily: 'Songti SC, serif',
+              fontSize: '0.9rem',
+              color: '#e8c878',
+              letterSpacing: '0.2rem',
+              opacity: 0.7,
+            }}>
+              {lang === 'zh' ? '★ 簽名戰法 ★' : '★ Signature Stratagem ★'}
+            </div>
           </div>
         )}
 
@@ -1405,6 +1794,7 @@ function UnitPanel3D({
   canAct: boolean;
 }) {
   const t = useT();
+  const lang = useLanguage();
   const desc = useDesc();
   const personalTactics = personalTacticsForUnit(officer, unit);
   const availableStratagems = STRATAGEMS.filter((s) => {
@@ -1512,6 +1902,12 @@ function UnitPanel3D({
             const onCd = cd > 0;
             const active = actionMode.kind === 'stratagem' && actionMode.id === s.id;
             const isSig = !!s.signatureOf;
+            const targetType = stratagemTargetType(s.id);
+            const badge = targetTypeBadge(targetType, lang !== 'en');
+            const targetHint = targetType === 'ally' ? t('點擊我方單位', 'Click a friendly unit')
+              : targetType === 'self' ? t('施放於自身', 'Cast on self')
+              : targetType === 'enemy' ? t('點擊敵方單位', 'Click an enemy unit')
+              : t('範圍效果', 'Area effect');
             return (
               <button
                 key={s.id}
@@ -1522,10 +1918,11 @@ function UnitPanel3D({
                   opacity: apDisabled || onCd ? 0.4 : 1,
                 }}
                 disabled={apDisabled || onCd}
-                title={desc(s)}
+                title={`${desc(s)}\n\n${t('目標', 'Target')}: ${targetHint}\n${t('範圍', 'Range')}: ${s.range}${onCd ? `\n${t('冷卻', 'CD')}: ${cd}t` : ''}`}
                 onClick={() => setActionMode(active ? { kind: 'none' } : { kind: 'stratagem', id: s.id })}
               >
                 {isSig && <span style={{ color: '#d4a84a' }}>★ </span>}
+                <span style={{ color: badge.color, fontSize: '0.6rem', marginRight: 3 }}>[{badge.label}]</span>
                 {s.name.zh}
                 <span style={{ float: 'right', color: '#8a7050', fontSize: '0.66rem' }}>
                   {onCd ? `CD ${cd}t` : `r${s.range}`}
@@ -1539,28 +1936,35 @@ function UnitPanel3D({
       {personalTactics.length > 0 && (
         <div style={{ marginTop: '0.6rem', borderTop: '1px dotted #3a2818', paddingTop: '0.4rem' }}>
           <div style={{ fontSize: '0.62rem', color: '#d4a84a', letterSpacing: '0.15rem', marginBottom: '0.3rem' }}>★ {t('個人戰法', 'PERSONAL')}</div>
-          {personalTactics.map((t) => {
-            const cdKey = `${unit.id}-${t.underlying}`;
+          {personalTactics.map((pt) => {
+            const cdKey = `${unit.id}-${pt.underlying}`;
             const cd = (battle.stratagemCooldowns[cdKey] ?? 0) - battle.turn;
             const onCd = cd > 0;
-            const active = actionMode.kind === 'stratagem' && actionMode.id === t.underlying;
+            const active = actionMode.kind === 'stratagem' && actionMode.id === pt.underlying;
+            const targetType = stratagemTargetType(pt.underlying);
+            const badge = targetTypeBadge(targetType, lang !== 'en');
+            const targetHint = targetType === 'ally' ? t('點擊我方單位', 'Click a friendly unit')
+              : targetType === 'self' ? t('施放於自身', 'Cast on self')
+              : targetType === 'enemy' ? t('點擊敵方單位', 'Click an enemy unit')
+              : t('範圍效果', 'Area effect');
             return (
               <button
-                key={t.id}
+                key={pt.id}
                 style={{
                   ...btnBase,
                   ...(active ? btnActive : {}),
-                  ...(t.isSignature ? { borderColor: '#d4a84a' } : { borderColor: '#5a4530' }),
+                  ...(pt.isSignature ? { borderColor: '#d4a84a' } : { borderColor: '#5a4530' }),
                   opacity: apDisabled || onCd ? 0.4 : 1,
                 }}
                 disabled={apDisabled || onCd}
-                title={t.description}
-                onClick={() => setActionMode(active ? { kind: 'none' } : { kind: 'stratagem', id: t.underlying })}
+                title={`${pt.description}\n\n${t('目標', 'Target')}: ${targetHint}\n${t('範圍', 'Range')}: ${pt.range}${onCd ? `\n${t('冷卻', 'CD')}: ${cd}t` : ''}`}
+                onClick={() => setActionMode(active ? { kind: 'none' } : { kind: 'stratagem', id: pt.underlying, tacticId: pt.tacticId })}
               >
-                {t.isSignature && <span style={{ color: '#d4a84a' }}>★ </span>}
-                {t.nameZh}
+                {pt.isSignature && <span style={{ color: '#d4a84a' }}>★ </span>}
+                <span style={{ color: badge.color, fontSize: '0.6rem', marginRight: 3 }}>[{badge.label}]</span>
+                {pt.nameZh}
                 <span style={{ float: 'right', color: '#8a7050', fontSize: '0.66rem' }}>
-                  {onCd ? `CD ${cd}t` : `r${t.range}`}
+                  {onCd ? `CD ${cd}t` : `r${pt.range}`}
                 </span>
               </button>
             );

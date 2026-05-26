@@ -1502,7 +1502,16 @@ export function isTacticSignature(id: string): boolean {
   return id in TACTIC_SIGNATURE;
 }
 
-/** Sum bonuses across all tactics an officer knows. */
+/** T7 — Mastery multiplier from total tactic count: officers who've
+ *  amassed a deep repertoire wield each one more effectively. */
+function masteryMultiplier(n: number): number {
+  if (n >= 12) return 1.10; // grandmaster
+  if (n >= 8) return 1.06;  // veteran
+  if (n >= 4) return 1.03;  // adept
+  return 1.0;               // novice
+}
+
+/** Sum bonuses across all tactics an officer knows, scaled by mastery. */
 export function tacticsTotalBonus(ids: ReadonlyArray<string>): TacticBonus {
   const sum = { ...ZERO_BONUS };
   for (const id of ids) {
@@ -1513,7 +1522,109 @@ export function tacticsTotalBonus(ids: ReadonlyArray<string>): TacticBonus {
     sum.politics += b.politics;
     sum.charisma += b.charisma;
   }
-  return sum;
+  const m = masteryMultiplier(ids.length);
+  return {
+    war: Math.round(sum.war * m),
+    leadership: Math.round(sum.leadership * m),
+    intelligence: Math.round(sum.intelligence * m),
+    politics: Math.round(sum.politics * m),
+    charisma: Math.round(sum.charisma * m),
+  };
+}
+
+/**
+ * T8 — Famous tactic combos. When a side's collected tactic pool contains
+ * every member of a combo, that side's battle power gets the combo bonus.
+ */
+export interface TacticCombo {
+  id: string;
+  nameZh: string;
+  nameEn: string;
+  tactics: string[];      // all must be present in pool
+  powerMul: number;       // multiplier on side's combat power
+  textZh: string;         // report flavor when triggered (player-side only)
+  textEn: string;
+}
+
+export const TACTIC_COMBOS: TacticCombo[] = [
+  {
+    id: 'chibi',
+    nameZh: '赤壁火攻',
+    nameEn: 'Red Cliffs Fire-Chain',
+    tactics: ['fire-attack', 'borrow-wind', 'chain-ship'],
+    powerMul: 1.40,
+    textZh: '赤壁火攻陣陣相連 — 戰力 +40%!',
+    textEn: 'Red Cliffs fire-chain ignited — power +40%!',
+  },
+  {
+    id: 'yiling',
+    nameZh: '火燒連營',
+    nameEn: 'Yiling Fire-Camp',
+    tactics: ['fire-attack', 'burn-yiling'],
+    powerMul: 1.25,
+    textZh: '火燒連營,蜀軍崩潰 — 戰力 +25%!',
+    textEn: 'Yiling fire-camp — power +25%!',
+  },
+  {
+    id: 'eight-gates-trap',
+    nameZh: '八門奇陣',
+    nameEn: 'Eight Gates Trap',
+    tactics: ['eight-gates', 'ruse'],
+    powerMul: 1.20,
+    textZh: '八門奇陣困敵 — 戰力 +20%!',
+    textEn: 'Eight Gates trap — power +20%!',
+  },
+  {
+    id: 'cao-discipline',
+    nameZh: '挾天子以令諸侯',
+    nameEn: "Hold the Emperor",
+    tactics: ['borrow-knife', 'hide-knife', 'kill-king'],
+    powerMul: 1.30,
+    textZh: '借勢殺君 — 戰力 +30%!',
+    textEn: 'Three-step regicide combo — power +30%!',
+  },
+  {
+    id: 'sun-tzu-trinity',
+    nameZh: '兵聖三訣',
+    nameEn: 'Sun Tzu Trinity',
+    tactics: ['know-self', 'fast-strike', 'deception'],
+    powerMul: 1.25,
+    textZh: '知己知彼 · 兵貴神速 · 兵不厭詐 — 戰力 +25%!',
+    textEn: 'Sun Tzu trinity — power +25%!',
+  },
+  {
+    id: 'border-stratagem',
+    nameZh: '緩兵之計',
+    nameEn: 'Stalling Strategy',
+    tactics: ['wait-tired', 'iron-wall'],
+    powerMul: 1.18,
+    textZh: '以逸待勞,鐵壁固守 — 戰力 +18%!',
+    textEn: 'Wait-tired + iron-wall — power +18%!',
+  },
+];
+
+/** Find all combos that fire for a given pool of tactics. */
+export function findActiveCombos(pool: ReadonlyArray<string>): TacticCombo[] {
+  const set = new Set(pool);
+  return TACTIC_COMBOS.filter((c) => c.tactics.every((t) => set.has(t)));
+}
+
+/** Multiplier from all active combos (stacks multiplicatively, compressed). */
+export function combosPowerMultiplier(pool: ReadonlyArray<string>): number {
+  const active = findActiveCombos(pool);
+  if (active.length === 0) return 1.0;
+  let mul = 1.0;
+  for (const c of active) mul *= c.powerMul;
+  // Compress so multiple combos don't compound to absurd numbers.
+  return 1 + (mul - 1) * 0.8;
+}
+
+/** Public helper to get an officer's mastery tier (1-4). */
+export function tacticMasteryTier(tacticCount: number): { tier: 1 | 2 | 3 | 4; multiplier: number; labelZh: string; labelEn: string } {
+  if (tacticCount >= 12) return { tier: 4, multiplier: 1.10, labelZh: '宗師', labelEn: 'Grandmaster' };
+  if (tacticCount >= 8) return { tier: 3, multiplier: 1.06, labelZh: '老練', labelEn: 'Veteran' };
+  if (tacticCount >= 4) return { tier: 2, multiplier: 1.03, labelZh: '熟練', labelEn: 'Adept' };
+  return { tier: 1, multiplier: 1.0, labelZh: '初窺', labelEn: 'Novice' };
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -1886,6 +1997,81 @@ export const POLICY_DEFS: Record<PolicyId, { zh: string; en: string }> = {
  * UI: see PoliciesModal — locked policies render with a 🔒 chip and the
  * prereq listed in the tooltip.
  */
+/**
+ * Tactic prerequisites — advanced/signature tactics require an officer
+ * to first know foundational tactics. Mirrors POLICY_PREREQ but for the
+ * battle-tactics tree. Most basic tactics (charge, volley, fire-attack
+ * etc.) have NO prereq — they're entry-level. Famous named tactics
+ * (借東風, 八門遁甲) gate on the underlying ideas.
+ */
+export const TACTIC_PREREQ: Partial<Record<TacticId, TacticId[]>> = {
+  // Fire chain
+  'borrow-wind':  ['fire-attack'],
+  'burn-bowang':  ['fire-attack', 'borrow-wind'],
+  'burn-xinye':   ['burn-bowang'],
+  'burn-chibi':   ['fire-attack', 'borrow-wind'],
+  'burn-yiling':  ['fire-attack'],
+  'luxun-fire':   ['fire-attack'],
+  'loot-fire':    ['fire-attack'],
+  'watch-fire':   ['fire-attack'],
+  // Water chain
+  'water-attack': [],
+  'chain-ship':   ['water-attack'],
+  // Mystic / Daoist
+  'thunder':      ['fire-attack'],
+  'eight-gates':  ['ruse', 'disorder'],
+  'star-prayer':  ['eight-gates'],
+  'seven-lamp':   ['star-prayer'],
+  // Stratagem chain (deception)
+  'ruse':         [],
+  'deception':    ['ruse'],
+  'feint':        ['ruse'],
+  'hide-knife':   ['ruse', 'deception'],
+  'beauty':       ['ruse', 'disorder'],
+  'self-injury':  ['ruse'],
+  'borrow-arrow': ['ruse'],
+  'feign-mad':    ['ruse'],
+  'chain':        ['ruse', 'disorder'],
+  // Cavalry surge
+  'rush':         ['charge'],
+  'changban':     ['charge', 'rush'],
+  // Archery
+  'zhuge-bow':    ['crossbow', 'volley'],
+  'fire-arrow':   ['volley', 'fire-attack'],
+  // Defense / endurance
+  'iron-wall':    [],
+  'last-stand':   [],
+  'wait-tired':   ['iron-wall'],
+  // Ambush / surprise
+  'ambush':       [],
+  'white-robe':   ['ambush'],
+  'sneak-cross':  ['ambush', 'feint'],
+  // Logistics
+  'cut-supply':   ['ambush'],
+  'wooden-ox':    [],
+  // Diplomacy / verbal
+  'curse':        [],
+  'tongue-war':   ['curse'],
+  'chu-songs':    ['curse', 'disorder'],
+  // Signature high-tier
+  'seven-grab':   ['eight-gates'],
+  'six-expeditions': ['seven-grab'],
+  'longzhong':    ['eight-gates', 'wait-tired'],
+  'kill-king':    ['ambush', 'feint'],
+  'borrow-knife': ['ruse', 'hide-knife'],
+  'borrow-corpse': ['ruse'],
+  'borrow-road':  ['ruse', 'feint'],
+  'switch-beam':  ['ruse', 'deception'],
+  'pull-ladder':  ['ruse'],
+  'door-thief':   ['ambush'],
+  'lure-tiger':   ['ruse', 'feint'],
+  'loose-catch':  ['ruse'],
+  'muddy-fish':   ['disorder'],
+  'cicada':       ['ruse', 'deception'],
+  'tree-flower':  ['deception', 'feint'],
+  'guest-host':   ['ruse', 'feign-mad'],
+};
+
 export const POLICY_PREREQ: Partial<Record<PolicyId, PolicyId[]>> = {
   // ── Agriculture tree ──
   'ox-plowing':          ['tuntian'],

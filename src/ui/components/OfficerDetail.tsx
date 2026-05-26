@@ -1,5 +1,7 @@
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
+import { durationBreakdown, isParentMentor } from '../../game/systems/training';
+import { effectiveStats, traitMechanicalEffects } from '../../game/systems/traitEffects';
 import {
   CIVIC_TITLES_BY_ID,
   ITEMS_BY_ID,
@@ -16,6 +18,7 @@ import {
   POLICY_DEFS,
   tacticBonus,
   isTacticSignature,
+  TACTIC_COMBOS,
 } from '../../game/data/officerAttributes';
 import { WEAPON_TYPE_DEFS, deriveWeaponType } from '../../game/data/weaponTypes';
 import type { City, Force, Officer, Skill } from '../../game/types';
@@ -53,6 +56,7 @@ function effectiveStatBonuses(o: Officer): {
   charisma: number;
 } {
   const bonus = { leadership: 0, war: 0, intelligence: 0, politics: 0, charisma: 0 };
+  // Item bonuses
   for (const itemId of o.equipment) {
     const item = ITEMS_BY_ID[itemId];
     if (!item) continue;
@@ -62,6 +66,13 @@ function effectiveStatBonuses(o: Officer): {
     bonus.politics += item.effects.politics ?? 0;
     bonus.charisma += item.effects.charisma ?? 0;
   }
+  // T2 — trait bonuses (delta from base stats)
+  const eff = effectiveStats(o);
+  bonus.leadership += eff.leadership - o.stats.leadership;
+  bonus.war += eff.war - o.stats.war;
+  bonus.intelligence += eff.intelligence - o.stats.intelligence;
+  bonus.politics += eff.politics - o.stats.politics;
+  bonus.charisma += eff.charisma - o.stats.charisma;
   return bonus;
 }
 
@@ -104,6 +115,10 @@ export function OfficerDetail({
   const playerForceId = useGameStore((s) => s.playerForceId);
   const appointments = useGameStore((s) => s.appointments);
   const pendingTrainings = useGameStore((s) => s.pendingTrainings);
+  const cancelTrainingFn = useGameStore((s) => s.cancelTraining);
+  const allOfficers = useGameStore((s) => s.officers);
+  const buildings = useGameStore((s) => s.buildings);
+  const family = useGameStore((s) => s.family);
   const activeTraining = pendingTrainings.find((tr) => tr.officerId === officer.id);
 
   const forces = forcesOverride ?? storeForces;
@@ -377,6 +392,43 @@ export function OfficerDetail({
                 );
               })}
             </div>
+            {/* N2 — Combo progress: which combos this officer has fully / partially completed */}
+            {(() => {
+              const ownTactics = new Set((officer.tactics ?? []) as string[]);
+              const combos = TACTIC_COMBOS
+                .map((c) => ({
+                  combo: c,
+                  have: c.tactics.filter((t) => ownTactics.has(t)),
+                  miss: c.tactics.filter((t) => !ownTactics.has(t)),
+                }))
+                .filter((r) => r.have.length > 0);
+              if (combos.length === 0) return null;
+              return (
+                <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: '#8a7050' }}>
+                  <div style={{ color: '#d4a84a', marginBottom: '0.2rem', letterSpacing: '0.15rem' }}>
+                    {t('連環戰法進度', 'Combo Progress')}
+                  </div>
+                  {combos.map(({ combo, have, miss }) => (
+                    <div key={combo.id} style={{ marginBottom: '0.2rem' }}>
+                      <span style={{ color: miss.length === 0 ? '#7ed68a' : '#c0a878' }}>
+                        {miss.length === 0 ? '✓' : '◐'} {lang === 'en' ? combo.nameEn : combo.nameZh}
+                        {' '}({have.length}/{combo.tactics.length})
+                      </span>
+                      {miss.length > 0 && (
+                        <span style={{ color: '#8a7050', marginLeft: '0.4rem' }}>
+                          {t('缺', 'need')}: {miss.map((m) => TACTIC_DEFS[m as keyof typeof TACTIC_DEFS]?.zh ?? m).join('、')}
+                        </span>
+                      )}
+                      {miss.length === 0 && (
+                        <span style={{ color: '#7ed68a', marginLeft: '0.4rem' }}>
+                          {t(`戰力 ×${combo.powerMul.toFixed(2)}`, `power ×${combo.powerMul.toFixed(2)}`)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </section>
         )}
 
@@ -403,20 +455,88 @@ export function OfficerDetail({
               })}
               {activeTraining && (() => {
                 const p = POLICY_DEFS[activeTraining.policyId];
+                const handleCancel = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  if (!isMine) return;
+                  const refund = Math.floor(activeTraining.goldSpent / 2);
+                  const ok = window.confirm(
+                    t(
+                      `取消「${p?.zh ?? activeTraining.policyId}」培訓?\n退還 ${refund} 金 (原費 ${activeTraining.goldSpent} 金的一半)。`,
+                      `Cancel training of ${p?.en ?? activeTraining.policyId}?\nRefund ${refund} gold (half of ${activeTraining.goldSpent} spent).`,
+                    ),
+                  );
+                  if (ok) cancelTrainingFn(officer.id);
+                };
+                const trainCity = activeTraining ? storeCities[activeTraining.cityId] : null;
+                const mentor = activeTraining.mentorOfficerId
+                  ? allOfficers[activeTraining.mentorOfficerId]
+                  : null;
+                const bd = trainCity
+                  ? durationBreakdown(officer, trainCity, activeTraining.policyId, buildings)
+                  : null;
+                const formulaLines: string[] = [];
+                if (bd) {
+                  const tierZh = bd.tier === 1 ? '基礎' : bd.tier === 2 ? '進階' : '高階';
+                  const tierEn = bd.tier === 1 ? 'Base' : bd.tier === 2 ? 'Adv' : 'High';
+                  if (mentor) {
+                    formulaLines.push(t(
+                      `師徒制 — 由 ${mentor.name.zh} 傳授`,
+                      `Mentor mode — taught by ${mentor.name.en}`,
+                    ));
+                  }
+                  const parts: string[] = [];
+                  parts.push(t(`${tierZh}(${bd.tier})`, `${tierEn}(${bd.tier})`));
+                  if (bd.academyModifier) parts.push(t(`書院 lv${bd.academyLevel}(+1)`, `Acad lv${bd.academyLevel}(+1)`));
+                  if (bd.intelligenceBonus) parts.push(t('知力≥80(−1)', 'Int≥80(−1)'));
+                  if (bd.studiousBonus) parts.push(t('博學(−1)', 'Scholar(−1)'));
+                  if (bd.lazyPenalty) parts.push(t('懶惰(+1)', 'Lazy(+1)'));
+                  if (bd.bookSpeedup > 0) parts.push(t(`兵書(−${bd.bookSpeedup})`, `Books(−${bd.bookSpeedup})`));
+                  if (mentor) parts.push(t('師徒(+1)', 'Mentor(+1)'));
+                  if (mentor && isParentMentor(mentor, officer, family)) parts.push(t('親屬(−1)', 'Family(−1)'));
+                  formulaLines.push(t(
+                    `公式:${parts.join(' ')} = ${activeTraining.seasonsLeft} 季 (起算)`,
+                    `Formula: ${parts.join(' ')} = ${activeTraining.seasonsLeft} season(s) (orig)`,
+                  ));
+                }
+                const tooltipBody = [
+                  t(
+                    `培訓中:${p?.zh ?? activeTraining.policyId} — 剩餘 ${activeTraining.seasonsLeft} 季`,
+                    `Training: ${p?.en ?? activeTraining.policyId} — ${activeTraining.seasonsLeft} season(s) left`,
+                  ),
+                  ...formulaLines,
+                  isMine ? t('按 × 退訂 (退還一半金錢)', 'Click × to cancel (50% refund)') : '',
+                ].filter(Boolean).join('\n');
                 return (
                   <span
-                    title={t(
-                      `培訓中:${p?.zh ?? activeTraining.policyId} — 剩餘 ${activeTraining.seasonsLeft} 季`,
-                      `Training: ${p?.en ?? activeTraining.policyId} — ${activeTraining.seasonsLeft} season(s) left`,
-                    )}
+                    title={tooltipBody}
                     style={{
                       background: 'rgba(136, 183, 232, 0.12)',
                       border: '1px dashed #88b7e8', color: '#88b7e8',
                       padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                       fontStyle: 'italic',
+                      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                     }}
                   >
                     ⏳ {lang === 'en' ? p?.en : p?.zh} ({activeTraining.seasonsLeft})
+                    {isMine && (
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        title={t('取消培訓 (退還一半金錢)', 'Cancel training (50% refund)')}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#88b7e8',
+                          cursor: 'pointer',
+                          padding: '0 0.15rem',
+                          fontSize: '0.95rem',
+                          lineHeight: 1,
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
                   </span>
                 );
               })()}
@@ -459,10 +579,15 @@ export function OfficerDetail({
                 .filter((tr): tr is import('../../game/types').PersonalityTraitDef => !!tr)
                 .map((tr) => {
                   const desc = lang === 'zh' && tr.descriptionZh ? tr.descriptionZh : tr.description;
+                  // P5 — append actual mechanical effects to the tooltip
+                  const effects = traitMechanicalEffects(tr.id);
+                  const effectLines = effects.length > 0
+                    ? '\n\n' + effects.map((e) => `• ${lang === 'en' ? e.en : e.zh}`).join('\n')
+                    : '';
                   return (
                     <span
                       key={`trait-${tr.id}`}
-                      title={desc}
+                      title={desc + effectLines}
                       style={{
                         background: '#1a1410', border: `1px solid ${tr.color}`, color: tr.color,
                         padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',

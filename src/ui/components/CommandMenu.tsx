@@ -5,7 +5,7 @@ import { citySize, CITY_SIZES_BY_ID } from '../../game/systems/citySize';
 import type { EntityId, InternalAffairsType } from '../../game/types';
 import { MarchPicker } from './MarchPicker';
 import { TrainingPicker } from './TrainingPicker';
-import { cityHasAcademy } from '../../game/systems/training';
+import { cityHasAcademy, cityHasMentors } from '../../game/systems/training';
 import { OfficerPicker } from './OfficerPicker';
 import styles from './CommandMenu.module.css';
 import { useT, useLanguage, useDesc } from '../i18n';
@@ -52,6 +52,7 @@ export function CommandMenu({ cityId, onOpenCityMap }: Props) {
   const citiesMap = useGameStore((s) => s.cities);
   const cancelCommand = useGameStore((s) => s.cancelCommand);
   const buildings = useGameStore((s) => s.buildings);
+  const pendingTrainings = useGameStore((s) => s.pendingTrainings);
   const t = useT();
   const lang = useLanguage();
   const desc = useDesc();
@@ -149,18 +150,26 @@ export function CommandMenu({ cityId, onOpenCityMap }: Props) {
           {lang === 'both' && <span className={styles.cmdLabelEn}>{marchDef.label.en}</span>}
           <span className={styles.cmdCost}>{marchDef.goldCost}g</span>
         </button>
-        {cityHasAcademy(city, buildings) && (
-          <button
-            className={styles.cmdButton}
-            onClick={() => setModal({ kind: 'training' })}
-            title={t('書院培訓 — 武將學一個新政策(1 季,基礎 200 金)', 'Academy training — train an officer in a new policy (1 season, 200g base)')}
-            style={{ borderColor: '#88b7e8' }}
-          >
-            <span className={styles.cmdLabelZh}>{t('書院培訓', 'Academy Training')}</span>
-            {lang === 'both' && <span className={styles.cmdLabelEn}>Academy</span>}
-            <span className={styles.cmdCost}>{t('政', 'policy')}</span>
-          </button>
-        )}
+        {(cityHasAcademy(city, buildings) || cityHasMentors(city, officersMap, pendingTrainings)) && (() => {
+          const hasAcad = cityHasAcademy(city, buildings);
+          const label = hasAcad ? t('書院培訓', 'Academy Training') : t('師徒傳授', 'Mentor Teaching');
+          const labelEn = hasAcad ? 'Academy' : 'Mentor';
+          const tip = hasAcad
+            ? t('書院培訓 — 武將學一個新政策(費用視政策難度而定)', 'Academy training — train an officer in a new policy (cost varies by tier)')
+            : t('師徒傳授 — 同城武將傳授其已通政策,無需書院,免費但較慢', 'Mentor teaching — a senior officer teaches a policy they know, no academy needed, free but slower');
+          return (
+            <button
+              className={styles.cmdButton}
+              onClick={() => setModal({ kind: 'training' })}
+              title={tip}
+              style={{ borderColor: hasAcad ? '#88b7e8' : '#7ed68a' }}
+            >
+              <span className={styles.cmdLabelZh}>{lang === 'en' ? labelEn : label}</span>
+              {lang === 'both' && <span className={styles.cmdLabelEn}>{labelEn}</span>}
+              <span className={styles.cmdCost}>{t('政', 'policy')}</span>
+            </button>
+          );
+        })()}
         {onOpenCityMap && (
           <button
             className={styles.cmdButton}

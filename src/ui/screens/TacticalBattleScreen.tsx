@@ -154,8 +154,8 @@ export function TacticalBattleScreen() {
     if (battle.activeSide !== playerSide) {
       const delay = Math.max(150, 700 / Math.max(1, battleSpeed));
       const id = setTimeout(() => {
-        const next = aiTakeTurn(battle, officers, Math.random);
-        start(next);
+        const result = aiTakeTurn(battle, officers, Math.random);
+        start(result.battle);
       }, delay);
       return () => clearTimeout(id);
     }

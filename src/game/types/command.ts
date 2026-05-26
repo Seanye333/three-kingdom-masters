@@ -115,4 +115,11 @@ export interface ReportEntry {
 export interface SeasonReport {
   date: { year: number; season: string };
   entries: ReportEntry[];
+  /**
+   * Snapshot of the player's queued commands at the moment endSeason fired,
+   * captured BEFORE resolution clears `pendingCommands`. Surfaced in the
+   * season report so the player can see what their officers did this turn
+   * without scanning the per-city income/upkeep noise.
+   */
+  executedCommands?: Command[];
 }

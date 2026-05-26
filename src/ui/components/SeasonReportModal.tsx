@@ -5,18 +5,37 @@ import type { BattleDetail, Season } from '../../game/types';
 import { BattleDetailModal } from './BattleDetailModal';
 import styles from './SeasonReportModal.module.css';
 import { useT, useLanguage } from '../i18n';
+import { POLICY_DEFS } from '../../game/data/officerAttributes';
+import { BUILDING_DEFS_BY_ID } from '../../game/data/buildings';
+import { COMMAND_DEFS } from '../../game/systems/commands';
 
 export function SeasonReportModal() {
   const report = useGameStore((s) => s.lastReport);
   const dismiss = useGameStore((s) => s.dismissReport);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const cities = useGameStore((s) => s.cities);
+  const officers = useGameStore((s) => s.officers);
+  const pendingTrainings = useGameStore((s) => s.pendingTrainings);
+  const buildings = useGameStore((s) => s.buildings);
   const [selectedBattle, setSelectedBattle] = useState<BattleDetail | null>(null);
   const t = useT();
   const lang = useLanguage();
 
   if (!report) return null;
   const season = SEASON_LABEL[report.date.season as Season];
+
+  // ── 進行中 (In-Progress) — multi-season tasks still in flight ──
+  const trainingsInProgress = pendingTrainings.filter((tr) => {
+    const o = officers[tr.officerId];
+    return o && o.forceId === playerForceId;
+  });
+  const buildingsInProgress = buildings.filter((b) => {
+    const def = BUILDING_DEFS_BY_ID[b.id];
+    if (!def || b.level >= def.maxLevel) return false;
+    const city = cities[b.cityId];
+    return city?.ownerForceId === playerForceId;
+  });
+  const hasInProgress = trainingsInProgress.length > 0 || buildingsInProgress.length > 0;
 
   // Show entries for player-owned cities, plus newsworthy events anywhere
   // (battles, conquests, defeats, deaths, talent appearances, etc.).
@@ -53,6 +72,48 @@ export function SeasonReportModal() {
           </div>
         </header>
 
+        {report.executedCommands && report.executedCommands.length > 0 && (
+          <div className={styles.executedBlock}>
+            <div className={styles.sectionDivider}>
+              {t('本季令', 'Orders This Turn')}
+            </div>
+            <ul className={styles.entries}>
+              {report.executedCommands.map((cmd) => {
+                const o = officers[cmd.officerId];
+                const fromCity = cities[cmd.cityId];
+                const def = COMMAND_DEFS[cmd.type];
+                const oName = o ? (lang === 'en' ? o.name.en : o.name.zh) : '?';
+                const cName = fromCity ? (lang === 'en' ? fromCity.name.en : fromCity.name.zh) : '?';
+                const actName = lang === 'en' ? def.label.en : def.label.zh;
+                let body: string;
+                if (cmd.type === 'march') {
+                  const target = cities[cmd.targetCityId];
+                  const tName = target ? (lang === 'en' ? target.name.en : target.name.zh) : '?';
+                  body = lang === 'zh'
+                    ? `${oName} 自 ${cName} 出陣 ${tName} (率 ${cmd.troops.toLocaleString()} 兵)`
+                    : lang === 'both'
+                      ? `${oName}: ${cName} → ${tName} · ${actName} · ${cmd.troops.toLocaleString()} ${'troops'}`
+                      : `${oName} marched from ${cName} to ${tName} (${cmd.troops.toLocaleString()} troops)`;
+                } else {
+                  body = lang === 'zh'
+                    ? `${oName} 於 ${cName} 執行「${actName}」`
+                    : lang === 'both'
+                      ? `${oName} @ ${cName} · ${actName}`
+                      : `${oName} at ${cName} — ${actName}`;
+                }
+                return (
+                  <li key={`cmd-${cmd.officerId}`} className={`${styles.entry} ${styles.kind_executed}`}>
+                    <span className={styles.kindTag}>
+                      {lang === 'zh' ? '令' : lang === 'both' ? '令 · CMD' : 'CMD'}
+                    </span>
+                    <span className={styles.text}>{body}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
         {playerEntries.length === 0 ? (
           <div className={styles.empty}>
             {t('季內無事,境內安寧。', 'A quiet season. Nothing of note in your domain.')}
@@ -79,6 +140,57 @@ export function SeasonReportModal() {
               );
             })}
           </ul>
+        )}
+
+        {hasInProgress && (
+          <div className={styles.inProgressBlock}>
+            <div className={styles.sectionDivider}>
+              {t('進行中', 'In Progress')}
+            </div>
+            <ul className={styles.entries}>
+              {trainingsInProgress.map((tr) => {
+                const o = officers[tr.officerId];
+                const city = cities[tr.cityId];
+                const pol = POLICY_DEFS[tr.policyId];
+                const oName = o ? (lang === 'en' ? o.name.en : o.name.zh) : '?';
+                const cName = city ? (lang === 'en' ? city.name.en : city.name.zh) : '?';
+                const pName = pol ? (lang === 'en' ? pol.en : pol.zh) : tr.policyId;
+                const body = lang === 'zh'
+                  ? `${oName} 於 ${cName} 學「${pName}」,剩 ${tr.seasonsLeft} 季`
+                  : lang === 'both'
+                    ? `${oName} @ ${cName} · 學「${pName}」· ${tr.seasonsLeft} season(s) left`
+                    : `${oName} at ${cName} — learning ${pName} · ${tr.seasonsLeft} season(s) left`;
+                return (
+                  <li key={`tr-${tr.officerId}`} className={`${styles.entry} ${styles.kind_in_progress}`}>
+                    <span className={styles.kindTag}>
+                      {lang === 'zh' ? '書院' : lang === 'both' ? '書院 · ACADEMY' : 'ACADEMY'}
+                    </span>
+                    <span className={styles.text}>{body}</span>
+                  </li>
+                );
+              })}
+              {buildingsInProgress.map((b) => {
+                const def = BUILDING_DEFS_BY_ID[b.id]!;
+                const city = cities[b.cityId];
+                const cName = city ? (lang === 'en' ? city.name.en : city.name.zh) : '?';
+                const bName = lang === 'en' ? def.name.en : def.name.zh;
+                const nextLevel = b.level + 1;
+                const body = lang === 'zh'
+                  ? `${cName} · ${b.level === 0 ? '興建' : '升級至'} ${bName}${b.level === 0 ? '' : ` ${nextLevel} 級`} · ${b.progress}/${def.seasonsPerLevel} 季`
+                  : lang === 'both'
+                    ? `${cName} · ${b.level === 0 ? 'Building' : `Upgrading to lv ${nextLevel}`}: ${bName} · ${b.progress}/${def.seasonsPerLevel}`
+                    : `${cName}: ${b.level === 0 ? 'building' : `upgrading to lv ${nextLevel}`} ${bName} · ${b.progress}/${def.seasonsPerLevel} seasons`;
+                return (
+                  <li key={`bd-${b.cityId}-${b.id}`} className={`${styles.entry} ${styles.kind_in_progress}`}>
+                    <span className={styles.kindTag}>
+                      {lang === 'zh' ? '建造' : lang === 'both' ? '建造 · BUILD' : 'BUILD'}
+                    </span>
+                    <span className={styles.text}>{body}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
 
         <footer className={styles.footer}>

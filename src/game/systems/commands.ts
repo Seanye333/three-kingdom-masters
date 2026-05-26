@@ -8,6 +8,7 @@ import type {
 } from '../types';
 import { ITEMS_BY_ID } from '../data/items';
 import { cityStatCap, citySize, CITY_SIZES, type CitySize } from './citySize';
+import { internalAffairsMultiplier } from './traitEffects';
 
 export interface CommandDef {
   type: CommandType;
@@ -154,7 +155,10 @@ export function resolveInternalAffairs(
   rng: () => number,
 ): CommandResult {
   const def = COMMAND_DEFS[type];
-  const statValue = officer.stats[def.stat];
+  // Trait multiplier (diligent +20%, lazy −20%, specialist +20% for matching
+  // category, etc.) scales the effective stat so the output gain reflects it.
+  const traitMul = internalAffairsMultiplier(officer, type);
+  const statValue = Math.round(officer.stats[def.stat] * traitMul);
 
   const size = citySize(city);
   const cap = cityStatCap(city);

@@ -101,6 +101,35 @@
 .kind_famine      { border-left-color: #b8442e; }
 .kind_plague      { border-left-color: #6b4a8a; }
 .kind_talent      { border-left-color: #3a7dd9; background: #2a1f15; }
+.kind_in_progress {
+  border-left: 3px dashed #8a7050;
+  background: rgba(26, 20, 16, 0.6);
+  opacity: 0.92;
+}
+
+.kind_executed {
+  border-left: 3px solid #d4a84a;
+  background: rgba(58, 45, 32, 0.4);
+}
+
+.executedBlock {
+  margin-bottom: 0.75rem;
+}
+
+.inProgressBlock {
+  margin-top: 0.75rem;
+}
+
+.sectionDivider {
+  font-size: 0.7rem;
+  color: #8a7050;
+  letter-spacing: 0.3rem;
+  text-transform: uppercase;
+  padding: 0.4rem 0;
+  border-top: 1px dashed #4a3520;
+  margin-bottom: 0.4rem;
+  text-align: center;
+}
 
 .footer {
   display: flex;

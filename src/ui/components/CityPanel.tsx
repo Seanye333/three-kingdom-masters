@@ -6,6 +6,7 @@ import { POLICY_DEFS } from '../../game/data/officerAttributes';
 import { citySize, nextTierPop } from '../../game/systems/citySize';
 import type { EntityId, Officer } from '../../game/types';
 import { CityMapScreen } from '../screens/CityMapScreen';
+import { CityMapScreen3D } from '../screens/CityMapScreen3D';
 import { BuildingsPanel } from './BuildingsPanel';
 import { CaptivesSection } from './CaptivesSection';
 import { CommandMenu } from './CommandMenu';
@@ -39,6 +40,8 @@ export function CityPanel() {
   );
 
   const [showCityMap, setShowCityMap] = useState(false);
+  // Default to 3D city map; user can switch to 2D inside the modal.
+  const [use3DCityMap, setUse3DCityMap] = useState(true);
   const t = useT();
   const lang = useLanguage();
 
@@ -159,9 +162,15 @@ export function CityPanel() {
           </ul>
         )}
       </section>
-      {showCityMap && (
+      {showCityMap && (use3DCityMap ? (
+        <CityMapScreen3D
+          cityId={city.id}
+          onClose={() => setShowCityMap(false)}
+          onSwitch2D={() => setUse3DCityMap(false)}
+        />
+      ) : (
         <CityMapScreen cityId={city.id} onClose={() => setShowCityMap(false)} />
-      )}
+      ))}
     </aside>
   );
 }

@@ -41,7 +41,8 @@ export type WishKind =
   | 'reinforce'        // wants more troops in their city
   | 'item'             // wants a specific item
   | 'promote'          // wants a higher rank
-  | 'dismiss-rival';   // wants a rival officer dismissed
+  | 'dismiss-rival'    // wants a rival officer dismissed
+  | 'learn-policy';    // wants to be trained in a specific policy
 
 export interface OfficerWish {
   id: EntityId;

@@ -25,6 +25,24 @@ import {
   FREE_AGENT_COST,
   attemptFreeAgentRecruit,
 } from './officerFate';
+import type { Building, PolicyId } from '../types';
+import {
+  academyCapacity,
+  academyLevel,
+  cityHasAcademy,
+  eligiblePolicies,
+  policyTier,
+  trainingCost,
+  trainingDurationSeasons,
+  trainingsInCity,
+  type PendingTraining,
+  eligibleTactics,
+  tacticTier,
+  tacticTrainingCost,
+  tacticDurationSeasons,
+} from './training';
+import { TACTIC_DEFS, type TacticId } from '../data/officerAttributes';
+import { commandFitMultiplier, isCombatLiability } from './traitEffects';
 
 export interface AIPlanInput {
   cities: Record<EntityId, City>;
@@ -32,6 +50,8 @@ export interface AIPlanInput {
   forces: Record<EntityId, Force>;
   playerForceId: EntityId | null;
   pendingCommands: Record<EntityId, Command>;
+  pendingTrainings: PendingTraining[];
+  buildings: Building[];
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
   date: GameDate;
@@ -43,6 +63,8 @@ export interface AIPlanOutput {
   cities: Record<EntityId, City>;
   officers: Record<EntityId, Officer>;
   pendingCommands: Record<EntityId, Command>;
+  /** Trainings the AI started this turn (to be merged into state.pendingTrainings). */
+  newTrainings: PendingTraining[];
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
   entries: ReportEntry[];
@@ -59,6 +81,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
   const cities = { ...input.cities };
   const officers = { ...input.officers };
   const pendingCommands = { ...input.pendingCommands };
+  const newTrainings: PendingTraining[] = [];
   let diplomacy = input.diplomacy;
   const runtimeBonds = [...input.runtimeBonds];
   const entries: ReportEntry[] = [];
@@ -303,7 +326,131 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
     }
   }
 
-  return { cities, officers, pendingCommands, diplomacy, runtimeBonds, entries };
+  // ── AI academy training ─────────────────────────────────────────
+  // For each AI force: cap concurrent trainings at ceil(numCities/3),
+  // clamped 1–5. Bigger empires train more policies in parallel; tiny
+  // ones stay restrained so they don't blow the war chest.
+  // Same per-turn capacity per academy still applies via the city-side
+  // capacity check below.
+  for (const [forceId, forceCities] of citiesByForce) {
+    const inFlightCount = input.pendingTrainings.reduce((n, t) => {
+      const o = officers[t.officerId];
+      return o?.forceId === forceId ? n + 1 : n;
+    }, 0);
+    const concurrentCap = Math.max(1, Math.min(5, Math.ceil(forceCities.length / 3)));
+    if (inFlightCount >= concurrentCap) continue;
+    let trainedThisTurn = 0;
+    const slotsOpen = concurrentCap - inFlightCount;
+
+    for (const city of forceCities) {
+      if (trainedThisTurn >= slotsOpen) break;
+      const updated = cities[city.id];
+      if (!updated) continue;
+      if (!cityHasAcademy(updated, input.buildings)) continue;
+
+      const aLvl = academyLevel(updated, input.buildings);
+      const cap = academyCapacity(aLvl);
+      const inUse =
+        trainingsInCity(updated.id, input.pendingTrainings) +
+        trainingsInCity(updated.id, newTrainings);
+      // For lv3 (instant) capacity is Infinity, so this is safe.
+      if (aLvl < 3 && inUse >= cap) continue;
+
+      const officersHere = Object.values(officers).filter(
+        (o) =>
+          o.locationCityId === updated.id &&
+          o.forceId === forceId &&
+          o.status === 'idle' &&
+          !o.task &&
+          !pendingCommands[o.id] &&
+          (o.policies?.length ?? 0) < 5 && // AI restraint: stops at 5 to leave gold for war
+          !newTrainings.some((nt) => nt.officerId === o.id),
+      );
+      if (officersHere.length === 0) continue;
+
+      // Pick the officer with the highest intelligence (best ROI).
+      const officer = [...officersHere].sort(
+        (a, b) => b.stats.intelligence - a.stats.intelligence,
+      )[0];
+
+      // N3 — 33% chance the AI trains a TACTIC instead of a policy this turn.
+      // Only when the officer has tactics to learn + enough gold.
+      const wantsTactic = rng() < 0.33;
+      const { available: avTac } = wantsTactic ? eligibleTactics(officer) : { available: [] as TacticId[] };
+      if (wantsTactic && avTac.length > 0) {
+        const tacticCost = tacticTrainingCost(officer);
+        if (updated.gold >= tacticCost + 300) {
+          // Prefer tier-1/2 tactics to keep AI growing broadly.
+          const filteredTac = avTac.filter((tt) => tacticTier(tt) <= 2);
+          const tacPool = filteredTac.length > 0 ? filteredTac : avTac;
+          const tacticId = tacPool[Math.floor(rng() * tacPool.length)];
+          const tacDur = tacticDurationSeasons(officer, updated, tacticId, input.buildings);
+          cities[updated.id] = { ...updated, gold: updated.gold - tacticCost };
+          if (tacDur <= 0) {
+            const haveT = officer.tactics ?? [];
+            if (!haveT.includes(tacticId)) {
+              officers[officer.id] = { ...officer, tactics: [...haveT, tacticId] };
+            }
+          } else {
+            newTrainings.push({
+              officerId: officer.id,
+              cityId: updated.id,
+              kind: 'tactic',
+              policyId: 'tuntian' as never,
+              tacticId,
+              seasonsLeft: tacDur,
+              goldSpent: tacticCost,
+            });
+          }
+          trainedThisTurn += 1;
+          void TACTIC_DEFS; // suppress unused-import warning if no entry triggers
+          continue; // move to next city
+        }
+      }
+
+      const cost = trainingCost(officer);
+      if (updated.gold < cost + 300) continue; // keep 300g buffer for ops
+
+      const { available } = eligiblePolicies(officer);
+      // Prefer base/advanced policies to keep AI building broad foundations.
+      const filtered = available.filter((p) => policyTier(p) <= 2);
+      const pool = filtered.length > 0 ? filtered : available;
+      if (pool.length === 0) continue;
+
+      const policyId: PolicyId = pool[Math.floor(rng() * pool.length)];
+      const duration = trainingDurationSeasons(
+        officer,
+        updated,
+        policyId,
+        input.buildings,
+      );
+
+      // Debit gold.
+      cities[updated.id] = { ...updated, gold: updated.gold - cost };
+
+      if (duration <= 0) {
+        // Imperial Academy — apply policy immediately, no queue entry.
+        const have = officer.policies ?? [];
+        if (!have.includes(policyId)) {
+          officers[officer.id] = {
+            ...officer,
+            policies: [...have, policyId],
+          };
+        }
+      } else {
+        newTrainings.push({
+          officerId: officer.id,
+          cityId: updated.id,
+          policyId,
+          seasonsLeft: duration,
+          goldSpent: cost,
+        });
+      }
+      trainedThisTurn += 1;
+    }
+  }
+
+  return { cities, officers, pendingCommands, newTrainings, diplomacy, runtimeBonds, entries };
 }
 
 interface Decision {
@@ -331,7 +478,7 @@ function decideCommand(
 ): Decision | null {
   // 1. Food crisis — develop agriculture
   if (city.food < city.troops * 0.6) {
-    const o = bestBy(officersHere, 'politics');
+    const o = bestForCommand(officersHere, 'politics', 'develop-agriculture');
     if (o && canAfford(city, 'develop-agriculture')) {
       return internalDecision('develop-agriculture', city, o);
     }
@@ -339,7 +486,7 @@ function decideCommand(
 
   // 2. Troop crisis — recruit
   if (city.troops < 3000) {
-    const o = bestBy(officersHere, 'charisma');
+    const o = bestForCommand(officersHere, 'charisma', 'recruit-troops');
     if (o && canAfford(city, 'recruit-troops') && city.population > 50_000) {
       return internalDecision('recruit-troops', city, o);
     }
@@ -347,7 +494,7 @@ function decideCommand(
 
   // 3. Loyalty crisis — pacify
   if (city.loyalty < 40) {
-    const o = bestBy(officersHere, 'charisma');
+    const o = bestForCommand(officersHere, 'charisma', 'improve-loyalty');
     if (o && canAfford(city, 'improve-loyalty')) {
       return internalDecision('improve-loyalty', city, o);
     }
@@ -375,7 +522,9 @@ function decideCommand(
       const effectiveDefenderTroops = target.troops * defenseMultiplier;
       const ratio = effectiveDefenderTroops / Math.max(1, city.troops);
       if (ratio > attackThreshold) continue;
-      const o = bestBy(officersHere, 'war');
+      // P4 — exclude cowardly/frail officers from leading marches.
+      const marchPool = officersHere.filter((c) => !isCombatLiability(c));
+      const o = bestForCommand(marchPool, 'war', 'march');
       if (!o || o.stats.war < 60) continue;
       const sendTroops = Math.floor(city.troops * 0.7);
       if (sendTroops < 1000) continue;
@@ -394,7 +543,7 @@ function decideCommand(
         );
         return blended + cmdBond + peerBonds;
       };
-      const companionPool = officersHere.filter((c) => c.id !== o.id);
+      const companionPool = officersHere.filter((c) => c.id !== o.id && !isCombatLiability(c));
       const picked: Officer[] = [];
       while (picked.length < 2 && companionPool.length > picked.length) {
         const remaining = companionPool.filter(
@@ -463,6 +612,21 @@ function bestBy(
 ): Officer | null {
   if (officers.length === 0) return null;
   return [...officers].sort((a, b) => b.stats[stat] - a.stats[stat])[0];
+}
+
+/** P3 — fit-aware picker. Score = stat × trait fit multiplier. Higher
+ *  is better. Falls back to base stat when no fit modifier applies. */
+function bestForCommand(
+  officers: Officer[],
+  stat: keyof OfficerStats,
+  type: InternalAffairsType | 'march',
+): Officer | null {
+  if (officers.length === 0) return null;
+  return [...officers].sort(
+    (a, b) =>
+      b.stats[stat] * commandFitMultiplier(b, type) -
+      a.stats[stat] * commandFitMultiplier(a, type),
+  )[0];
 }
 
 function lowestDevCommand(

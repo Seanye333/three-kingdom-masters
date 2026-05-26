@@ -1,5 +1,7 @@
 import type { EntityId, Officer, OfficerStats, ReportEntry } from '../types';
 import { SKILLS, SKILLS_BY_ID } from '../data/skills';
+import { rollLevelUpTrait } from './traitEffects';
+import { TRAIT_DEFS_BY_ID } from '../data/personality';
 
 const STAT_NAME_ZH: Record<keyof OfficerStats, string> = {
   leadership: '統率',
@@ -49,6 +51,7 @@ export function grantXp(
   const entries: ReportEntry[] = [];
   let stats = { ...officer.stats };
   let skills = officer.skills;
+  let traits = officer.traits ?? [];
   const latent = officer.latentStats ?? defaultLatent(officer.stats);
   for (let i = oldLevel; i < newLevel; i++) {
     // Pick the stat with the largest gap from its latent cap and grow it.
@@ -90,9 +93,25 @@ export function grantXp(
         });
       }
     }
+
+    // A — Trait milestone: at lv3, lv5, lv6 there's a chance to earn a
+    // new personality trait drawn from a stat-weighted pool.
+    const targetLevel = i + 1;
+    const probeOfficer: Officer = { ...officer, stats, traits };
+    const gained = rollLevelUpTrait(probeOfficer, targetLevel, rng);
+    if (gained) {
+      traits = [...traits, gained as Officer['traits'] extends (infer U)[] | undefined ? U : never];
+      const def = TRAIT_DEFS_BY_ID[gained];
+      entries.push({
+        cityId: officer.locationCityId,
+        kind: 'talent',
+        text: `${officer.name.en} grew into the ${def?.name.en ?? gained} trait through experience.`,
+        textZh: `${officer.name.zh}閱歷漸深,習得「${def?.name.zh ?? gained}」之性。`,
+      });
+    }
   }
   return {
-    officer: { ...officer, xp: newXp, stats, latentStats: latent, skills },
+    officer: { ...officer, xp: newXp, stats, latentStats: latent, skills, traits },
     leveled: newLevel > oldLevel,
     entries,
   };

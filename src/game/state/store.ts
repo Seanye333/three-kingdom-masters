@@ -11,6 +11,7 @@ import type {
   ImperialRank,
   InternalAffairsType,
   MilitaryRankId,
+  Officer,
   ProvinceId,
   Scenario,
   ShipClass,
@@ -23,6 +24,7 @@ import { FORGE_RECIPES_BY_ID } from '../data/forging';
 import { EDICTS_BY_KIND, IMPERIAL_RANKS_BY_ID } from '../data/imperial';
 import { ESPIONAGE_DEFS_BY_KIND } from '../data/espionage';
 import { ITEMS_BY_ID } from '../data/items';
+import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
 import {
   applyEventEffects,
   findFiringEvent,
@@ -31,7 +33,9 @@ import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
 import { planAITurn } from '../systems/ai';
 import { COMMAND_DEFS } from '../systems/commands';
-import { canTrain, trainingCost, tickTrainings } from '../systems/training';
+import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
+import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
+import { TRAIT_DEFS_BY_ID } from '../data/personality';
 import {
   ALLIANCE_PROPOSAL_COST,
   NAP_PROPOSAL_COST,
@@ -136,11 +140,22 @@ interface GameStore extends GameState {
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
   cancelCommand: (cityId: EntityId) => void;
-  /** Start training an officer in a new policy at an Academy city. */
+  /** Start training an officer in a new policy. If `mentorOfficerId` is
+   *  provided, runs in mentor mode (no academy needed, 0 gold, +1 season).
+   *  Otherwise uses the city's academy. */
   startTraining: (
     officerId: EntityId,
     cityId: EntityId,
     policyId: import('../data/officerAttributes').PolicyId,
+    mentorOfficerId?: EntityId,
+  ) => { ok: boolean; reason?: string };
+  /** Start training an officer in a new battle tactic. Same modes as
+   *  startTraining (academy / mentor). */
+  startTacticTraining: (
+    officerId: EntityId,
+    cityId: EntityId,
+    tacticId: import('../data/officerAttributes').TacticId,
+    mentorOfficerId?: EntityId,
   ) => { ok: boolean; reason?: string };
   /** Cancel an in-flight training and refund 50% of the gold spent. */
   cancelTraining: (officerId: EntityId) => void;
@@ -359,6 +374,8 @@ export const useGameStore = create<GameStore>()(
         // pendingCommands keyed by officerId — one task per officer, many per city.
         if (state.pendingCommands[officerId])
           return { ok: false, reason: 'officer already has a pending command' };
+        if (state.pendingTrainings.some((t) => t.officerId === officerId))
+          return { ok: false, reason: 'officer is training at the academy' };
         if (city.gold < def.goldCost)
           return { ok: false, reason: 'not enough gold' };
 
@@ -397,6 +414,8 @@ export const useGameStore = create<GameStore>()(
           return { ok: false, reason: 'officer already assigned' };
         if (state.pendingCommands[officerId])
           return { ok: false, reason: 'officer already has a pending command' };
+        if (state.pendingTrainings.some((t) => t.officerId === officerId))
+          return { ok: false, reason: 'officer is training at the academy' };
         if (troops <= 0 || troops > source.troops)
           return { ok: false, reason: 'invalid troop count' };
         if (source.gold < def.goldCost)
@@ -424,6 +443,8 @@ export const useGameStore = create<GameStore>()(
             return { ok: false, reason: 'accompany not in this city' };
           if (extra.task)
             return { ok: false, reason: 'accompany already assigned' };
+          if (state.pendingTrainings.some((t) => t.officerId === extraId))
+            return { ok: false, reason: 'accompany is training at the academy' };
           if (extra.id === officerId)
             return { ok: false, reason: 'duplicate officer' };
         }
@@ -498,16 +519,63 @@ export const useGameStore = create<GameStore>()(
         });
       },
 
-      startTraining: (officerId, cityId, policyId) => {
+      startTraining: (officerId, cityId, policyId, mentorOfficerId) => {
         const state = get();
         const officer = state.officers[officerId];
         const city = state.cities[cityId];
+        const mentor = mentorOfficerId ? state.officers[mentorOfficerId] : undefined;
         if (!officer || !city) return { ok: false, reason: 'invalid' };
         if (city.ownerForceId !== state.playerForceId)
           return { ok: false, reason: 'not your city' };
-        const check = canTrain(officer, city, policyId, state.buildings, state.pendingTrainings);
+        if (mentorOfficerId && !mentor) return { ok: false, reason: 'invalid mentor' };
+        const check = canTrain(officer, city, policyId, state.buildings, state.pendingTrainings, mentor);
         if (!check.ok) return { ok: false, reason: check.reasonZh };
-        const cost = trainingCost(officer);
+
+        // X2 — if the officer has a wish to learn this exact policy, they
+        // get a 50% tuition discount; the loyalty bonus is granted on
+        // completion (handled in the training tick).
+        const matchingWish = state.officerWishes.find(
+          (w) => w.officerId === officerId && w.kind === 'learn-policy' && w.targetId === policyId,
+        );
+
+        // Mentor mode — no academy, no gold, +1 season vs academy equivalent.
+        if (mentor) {
+          const duration = mentorDurationSeasons(officer, city, policyId, mentor, state.family);
+          set({
+            pendingTrainings: [
+              ...state.pendingTrainings,
+              { officerId, cityId, policyId, seasonsLeft: duration, goldSpent: 0, mentorOfficerId: mentor.id },
+            ],
+          });
+          return { ok: true };
+        }
+
+        const baseCost = trainingCost(officer);
+        const cost = matchingWish ? Math.floor(baseCost / 2) : baseCost;
+        const duration = trainingDurationSeasons(officer, city, policyId, state.buildings);
+        // Imperial Academy (lv3) — instant learning. Apply the policy now,
+        // no pendingTraining entry, so the player sees immediate effect.
+        if (duration <= 0) {
+          const have = officer.policies ?? [];
+          if (have.includes(policyId)) return { ok: false, reason: '已通此政策' };
+          const newLoyalty = matchingWish
+            ? Math.min(100, officer.loyalty + matchingWish.grantBonus)
+            : officer.loyalty;
+          set({
+            cities: {
+              ...state.cities,
+              [cityId]: { ...city, gold: city.gold - cost },
+            },
+            officers: {
+              ...state.officers,
+              [officerId]: { ...officer, policies: [...have, policyId], loyalty: newLoyalty },
+            },
+            officerWishes: matchingWish
+              ? state.officerWishes.filter((w) => w.id !== matchingWish.id)
+              : state.officerWishes,
+          });
+          return { ok: true };
+        }
         set({
           cities: {
             ...state.cities,
@@ -515,7 +583,51 @@ export const useGameStore = create<GameStore>()(
           },
           pendingTrainings: [
             ...state.pendingTrainings,
-            { officerId, cityId, policyId, seasonsLeft: 1, goldSpent: cost },
+            { officerId, cityId, policyId, seasonsLeft: duration, goldSpent: cost },
+          ],
+        });
+        return { ok: true };
+      },
+
+      startTacticTraining: (officerId, cityId, tacticId, mentorOfficerId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        const city = state.cities[cityId];
+        const mentor = mentorOfficerId ? state.officers[mentorOfficerId] : undefined;
+        if (!officer || !city) return { ok: false, reason: 'invalid' };
+        if (city.ownerForceId !== state.playerForceId) return { ok: false, reason: 'not your city' };
+        if (mentorOfficerId && !mentor) return { ok: false, reason: 'invalid mentor' };
+        const check = canTrainTactic(officer, city, tacticId, state.buildings, state.pendingTrainings, mentor);
+        if (!check.ok) return { ok: false, reason: check.reasonZh };
+
+        if (mentor) {
+          const duration = tacticMentorDurationSeasons(officer, city, tacticId, mentor, state.family);
+          set({
+            pendingTrainings: [
+              ...state.pendingTrainings,
+              { officerId, cityId, kind: 'tactic', policyId: 'tuntian' as never, tacticId, seasonsLeft: duration, goldSpent: 0, mentorOfficerId: mentor.id },
+            ],
+          });
+          return { ok: true };
+        }
+
+        const cost = tacticTrainingCost(officer);
+        const duration = tacticDurationSeasons(officer, city, tacticId, state.buildings);
+        if (duration <= 0) {
+          // Imperial Academy — instant
+          const have = officer.tactics ?? [];
+          if (have.includes(tacticId)) return { ok: false, reason: '已通此戰法' };
+          set({
+            cities: { ...state.cities, [cityId]: { ...city, gold: city.gold - cost } },
+            officers: { ...state.officers, [officerId]: { ...officer, tactics: [...have, tacticId] } },
+          });
+          return { ok: true };
+        }
+        set({
+          cities: { ...state.cities, [cityId]: { ...city, gold: city.gold - cost } },
+          pendingTrainings: [
+            ...state.pendingTrainings,
+            { officerId, cityId, kind: 'tactic', policyId: 'tuntian' as never, tacticId, seasonsLeft: duration, goldSpent: cost },
           ],
         });
         return { ok: true };
@@ -619,6 +731,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           forces: state.forces,
           playerForceId: state.playerForceId,
           pendingCommands: state.pendingCommands,
+          pendingTrainings: state.pendingTrainings,
+          buildings: state.buildings,
           difficulty: state.difficulty,
           diplomacy: state.diplomacy,
           runtimeBonds: state.runtimeBonds,
@@ -648,6 +762,20 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // Prepend AI diplomatic announcements to the report.
         if (planned.entries.length > 0) {
           result.report.entries.unshift(...planned.entries);
+        }
+
+        // Snapshot the player's queued commands (captured pre-resolution,
+        // since pendingCommands gets cleared at the end of this tick). The
+        // SeasonReportModal renders these as a "本季令" summary so the
+        // player can see what their officers did this period at a glance.
+        const playerCmds = state.playerForceId
+          ? Object.values(state.pendingCommands).filter((c) => {
+              const o = state.officers[c.officerId];
+              return o?.forceId === state.playerForceId;
+            })
+          : [];
+        if (playerCmds.length > 0) {
+          result.report.executedCommands = playerCmds;
         }
 
         // Re-select capital if previously selected city changed hands.
@@ -1004,6 +1132,286 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           if (religion.entries.length > 0) result.report.entries.push(...religion.entries);
         }
 
+        // ── T3 — Per-season loyalty drift from personality traits ──
+        // Loyal officers slowly regenerate loyalty; ambitious/oath-breakers
+        // drift down. Runs every period (small per-tick effect).
+        {
+          const driftedOfficers: Record<EntityId, Officer> = { ...postOfficers };
+          let anyChange = false;
+          for (const o of Object.values(postOfficers)) {
+            if (o.status === 'dead' || !o.forceId) continue;
+            const drift = loyaltyDriftPerSeason(o);
+            if (drift === 0) continue;
+            const next = Math.max(0, Math.min(100, o.loyalty + drift));
+            if (next !== o.loyalty) {
+              driftedOfficers[o.id] = { ...o, loyalty: next };
+              anyChange = true;
+            }
+          }
+          if (anyChange) postOfficers = driftedOfficers;
+        }
+
+        // ── P2 — Defection roll (season boundary only) ──
+        // Low-loyalty, non-unshakeable officers can defect to a neighbor or
+        // become free agents. Loyal/honor-bound/ironhearted/pious immune.
+        if (seasonBoundary) {
+          const defectedOfficers: Record<EntityId, Officer> = { ...postOfficers };
+          let anyDefect = false;
+          for (const o of Object.values(postOfficers)) {
+            if (o.status === 'dead' || !o.forceId) continue;
+            const chance = defectionChance(o);
+            if (chance === 0 || Math.random() >= chance) continue;
+            // Defect — become a free agent in the current city.
+            defectedOfficers[o.id] = {
+              ...o,
+              forceId: null,
+              task: null,
+              status: 'idle',
+              loyalty: 30, // reset for next recruiter
+            };
+            anyDefect = true;
+            const wasPlayer = o.forceId === state.playerForceId;
+            result.report.entries.push({
+              cityId: o.locationCityId,
+              kind: wasPlayer ? 'desertion' : 'note',
+              text: `${o.name.en} has deserted! (loyalty too low.)`,
+              textZh: `${o.name.zh}棄職而去!(忠誠過低)`,
+            });
+          }
+          if (anyDefect) postOfficers = defectedOfficers;
+        }
+
+        // ── T10 — Personality flavor events (season boundary only) ──
+        // Mystical / poetic / drunkard / troublemaker officers occasionally
+        // trigger a small event (loyalty + tiny stat tweak).
+        if (seasonBoundary) {
+          const evolved: Record<EntityId, Officer> = { ...postOfficers };
+          let anyEvolve = false;
+          for (const o of Object.values(postOfficers)) {
+            if (o.status === 'dead' || !o.forceId) continue;
+            const ev = rollFlavorEvent(o, Math.random);
+            if (!ev) continue;
+            const newLoyalty = Math.max(0, Math.min(100, o.loyalty + ev.loyaltyDelta));
+            const nextStats = { ...o.stats };
+            if (ev.statDelta) {
+              for (const [k, v] of Object.entries(ev.statDelta)) {
+                const key = k as keyof typeof nextStats;
+                nextStats[key] = Math.max(1, Math.min(120, nextStats[key] + (v ?? 0)));
+              }
+            }
+            evolved[o.id] = { ...o, loyalty: newLoyalty, stats: nextStats };
+            anyEvolve = true;
+            if (o.forceId === state.playerForceId) {
+              result.report.entries.push({
+                cityId: o.locationCityId,
+                kind: 'note',
+                text: ev.textEn,
+                textZh: ev.textZh,
+              });
+            }
+          }
+          if (anyEvolve) postOfficers = evolved;
+        }
+
+        // ── C + H — Item / policy resonance (season boundary, rare) ──
+        // Officers holding a book of strategy for long enough may pick up
+        // `strategist`; officers practicing 法家 may pick up `stern`, etc.
+        if (seasonBoundary) {
+          const resonated: Record<EntityId, Officer> = { ...postOfficers };
+          let anyResonance = false;
+          for (const o of Object.values(postOfficers)) {
+            if (o.status === 'dead' || !o.forceId) continue;
+            // C — item resonance ~1.5% per season per held resonant item
+            const itemTrait = itemResonanceCandidate(o);
+            if (itemTrait && Math.random() < 0.015) {
+              const cur = (resonated[o.id].traits ?? []) as string[];
+              if (!cur.includes(itemTrait)) {
+                resonated[o.id] = {
+                  ...resonated[o.id],
+                  traits: [...cur, itemTrait] as Officer['traits'],
+                };
+                anyResonance = true;
+                if (o.forceId === state.playerForceId) {
+                  const def = TRAIT_DEFS_BY_ID[itemTrait];
+                  result.report.entries.push({
+                    cityId: o.locationCityId,
+                    kind: 'talent',
+                    text: `${o.name.en} attuned to a treasured item — gained ${def?.name.en ?? itemTrait}.`,
+                    textZh: `${o.name.zh}日夜把玩寶物,習得「${def?.name.zh ?? itemTrait}」之性。`,
+                  });
+                }
+                continue; // one resonance per officer per season
+              }
+            }
+            // T9 — item tactic grant ~0.8% per season per held tactic-item
+            const itemTactic = itemTacticCandidate(o);
+            if (itemTactic && Math.random() < 0.008) {
+              const curT = (resonated[o.id].tactics ?? []) as string[];
+              if (!curT.includes(itemTactic)) {
+                resonated[o.id] = {
+                  ...resonated[o.id],
+                  tactics: [...curT, itemTactic] as Officer['tactics'],
+                };
+                anyResonance = true;
+                if (o.forceId === state.playerForceId) {
+                  const def = TACTIC_DEFS[itemTactic as keyof typeof TACTIC_DEFS];
+                  result.report.entries.push({
+                    cityId: o.locationCityId,
+                    kind: 'talent',
+                    text: `${o.name.en} divined a battle tactic from their treasured item: ${def?.en ?? itemTactic}.`,
+                    textZh: `${o.name.zh}由寶物中悟出戰法「${def?.zh ?? itemTactic}」。`,
+                  });
+                }
+                continue;
+              }
+            }
+            // H — policy resonance ~1% per season per known resonant policy
+            const polTrait = policyResonanceCandidate(o);
+            if (polTrait && Math.random() < 0.01) {
+              const cur = (resonated[o.id].traits ?? []) as string[];
+              if (!cur.includes(polTrait)) {
+                resonated[o.id] = {
+                  ...resonated[o.id],
+                  traits: [...cur, polTrait] as Officer['traits'],
+                };
+                anyResonance = true;
+                if (o.forceId === state.playerForceId) {
+                  const def = TRAIT_DEFS_BY_ID[polTrait];
+                  result.report.entries.push({
+                    cityId: o.locationCityId,
+                    kind: 'talent',
+                    text: `${o.name.en} embodied their policies — gained ${def?.name.en ?? polTrait}.`,
+                    textZh: `${o.name.zh}久行其政,習得「${def?.name.zh ?? polTrait}」之性。`,
+                  });
+                }
+              }
+            }
+          }
+          if (anyResonance) postOfficers = resonated;
+        }
+
+        // ── P12 — Marriage compatibility events (season boundary, rare) ──
+        // Spouses with conflicting traits occasionally quarrel (loyalty −2);
+        // harmonious spouses occasionally celebrate (loyalty +3).
+        if (seasonBoundary) {
+          const couples = state.family.filter((rel) => rel.kind === 'spouse');
+          const updated: Record<EntityId, Officer> = { ...postOfficers };
+          let anyCouple = false;
+          for (const rel of couples) {
+            const a = updated[rel.officerA];
+            const b = updated[rel.officerB];
+            if (!a || !b || a.status === 'dead' || b.status === 'dead') continue;
+            const comp = maritalCompatibility(a, b);
+            if (comp === 'neutral') continue;
+            if (Math.random() > 0.04) continue; // 4% per season per couple
+            anyCouple = true;
+            if (comp === 'discordant') {
+              updated[a.id] = { ...a, loyalty: Math.max(0, a.loyalty - 2) };
+              updated[b.id] = { ...b, loyalty: Math.max(0, b.loyalty - 2) };
+              const isPlayer = a.forceId === state.playerForceId || b.forceId === state.playerForceId;
+              if (isPlayer) {
+                result.report.entries.push({
+                  cityId: a.locationCityId,
+                  kind: 'note',
+                  text: `${a.name.en} and ${b.name.en} quarreled — loyalty −2 each.`,
+                  textZh: `${a.name.zh}與${b.name.zh}夫妻反目,兩人忠誠 −2。`,
+                });
+              }
+            } else {
+              updated[a.id] = { ...a, loyalty: Math.min(100, a.loyalty + 3) };
+              updated[b.id] = { ...b, loyalty: Math.min(100, b.loyalty + 3) };
+              const isPlayer = a.forceId === state.playerForceId || b.forceId === state.playerForceId;
+              if (isPlayer) {
+                result.report.entries.push({
+                  cityId: a.locationCityId,
+                  kind: 'note',
+                  text: `${a.name.en} and ${b.name.en} found joy in shared spirit — loyalty +3.`,
+                  textZh: `${a.name.zh}與${b.name.zh}志趣相投,夫妻和睦,忠誠 +3。`,
+                });
+              }
+              // E — marriage assimilation: small chance one spouse absorbs
+              // a bondable trait from the other.
+              const assim = rollMarriageAssimilation(updated[a.id], updated[b.id], Math.random);
+              if (assim) {
+                const target = assim.recipient === 'a' ? updated[a.id] : updated[b.id];
+                const cur = (target.traits ?? []) as string[];
+                if (!cur.includes(assim.trait)) {
+                  const updatedTarget = {
+                    ...target,
+                    traits: [...cur, assim.trait] as Officer['traits'],
+                  };
+                  if (assim.recipient === 'a') updated[a.id] = updatedTarget;
+                  else updated[b.id] = updatedTarget;
+                  const isPlayer2 = target.forceId === state.playerForceId;
+                  if (isPlayer2) {
+                    const def = TRAIT_DEFS_BY_ID[assim.trait];
+                    result.report.entries.push({
+                      cityId: target.locationCityId,
+                      kind: 'talent',
+                      text: `${target.name.en} absorbed their spouse's ${def?.name.en ?? assim.trait} nature.`,
+                      textZh: `${target.name.zh}受配偶薰陶,習得「${def?.name.zh ?? assim.trait}」之性。`,
+                    });
+                  }
+                }
+              }
+            }
+          }
+          if (anyCouple) postOfficers = updated;
+        }
+
+        // ── P11 — Same-trait bond formation (season boundary, rare) ──
+        // Two officers in the same force/city sharing an idealistic trait
+        // (chivalrous, scholar, mystical, etc.) occasionally form an oath
+        // bond. Adds to runtimeBonds with a moderate loyalty floor.
+        let bondsAfterTraits = planned.runtimeBonds;
+        if (seasonBoundary) {
+          const byCity = new Map<EntityId, Officer[]>();
+          for (const o of Object.values(postOfficers)) {
+            if (o.status === 'dead' || !o.forceId || !o.locationCityId) continue;
+            const key = `${o.forceId}::${o.locationCityId}`;
+            const arr = byCity.get(key) ?? [];
+            arr.push(o);
+            byCity.set(key, arr);
+          }
+          const existingBondKey = (a: EntityId, b: EntityId) =>
+            a < b ? `${a}|${b}` : `${b}|${a}`;
+          const existing = new Set(
+            bondsAfterTraits.map((b) => existingBondKey(b.officerA, b.officerB)),
+          );
+          const newBonds: typeof bondsAfterTraits = [];
+          for (const officers of byCity.values()) {
+            for (let i = 0; i < officers.length; i++) {
+              for (let j = i + 1; j < officers.length; j++) {
+                const a = officers[i], b = officers[j];
+                const key = existingBondKey(a.id, b.id);
+                if (existing.has(key)) continue;
+                const shared = sharedBondableTrait(a, b);
+                if (!shared) continue;
+                if (Math.random() > 0.02) continue; // 2% per season per shared pair
+                newBonds.push({
+                  officerA: a.id,
+                  officerB: b.id,
+                  floor: 80,
+                  kind: 'oath',
+                  label: `${shared}-kin`,
+                });
+                existing.add(key);
+                if (a.forceId === state.playerForceId) {
+                  result.report.entries.push({
+                    cityId: a.locationCityId,
+                    kind: 'note',
+                    text: `${a.name.en} and ${b.name.en} bonded over shared ${shared} — sworn friends.`,
+                    textZh: `${a.name.zh}與${b.name.zh}因同有「${shared}」之性而結為知交。`,
+                  });
+                }
+              }
+            }
+          }
+          if (newBonds.length > 0) {
+            bondsAfterTraits = [...bondsAfterTraits, ...newBonds];
+          }
+        }
+
         // ── Burning-city decay (animation lifetime) ──
         // Newly fallen cities ignite for 2 seasons; existing ones tick down.
         const conqueredThisTurn = result.report.entries
@@ -1118,26 +1526,121 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
         }
 
-        // ── Academy training tick ──
+        // Wishes consumed by training completions this tick — filtered out
+        // of officerWishes when state is set below.
+        const consumedWishIds = new Set<string>();
+        // ── Academy training: merge AI's new trainings, sweep stale, then tick ──
+        // AI may have started new trainings this turn — merge them in first
+        // so they get the same lifecycle treatment as player trainings.
+        let nextTrainings: typeof state.pendingTrainings = planned.newTrainings.length > 0
+          ? [...state.pendingTrainings, ...planned.newTrainings]
+          : state.pendingTrainings;
+        // Sweep so trainings whose officer died / whose city was lost
+        // this turn get cleaned up before the tick runs. No refund.
+        if (nextTrainings.length > 0) {
+          const swept = sweepStaleTrainings(nextTrainings, postOfficers, postCities);
+          nextTrainings = swept.remaining;
+          for (const dropped of swept.dropped) {
+            // Only surface player-side cancellations to the report — AI's
+            // own interrupted trainings would be noise.
+            const o = state.officers[dropped.officerId];
+            if (o?.forceId !== state.playerForceId) continue;
+            const polDef = POLICY_DEFS[dropped.policyId];
+            result.report.entries.push({
+              cityId: dropped.cityId,
+              kind: 'command-failure',
+              text: `Academy training of ${polDef?.en ?? dropped.policyId} was interrupted.`,
+              textZh: `「${polDef?.zh ?? dropped.policyId}」書院培訓中斷。`,
+            });
+          }
+        }
         // Trainings only count down on season boundaries (every 9 periods).
         // When a training completes, push the policy onto the officer.
-        let nextTrainings = state.pendingTrainings;
-        if (seasonBoundary && state.pendingTrainings.length > 0) {
-          const ticked = tickTrainings(state.pendingTrainings);
+        if (seasonBoundary && nextTrainings.length > 0) {
+          // Cities that saw combat this period — siege / battle disrupts study.
+          const besiegedCityIds = new Set<EntityId>();
+          for (const e of result.report.entries) {
+            if ((e.kind === 'battle' || e.kind === 'defeat' || e.kind === 'conquest') && e.cityId) {
+              besiegedCityIds.add(e.cityId);
+            }
+          }
+          const ticked = tickTrainings(nextTrainings, besiegedCityIds);
           nextTrainings = ticked.remaining;
+          // Surface paused trainings to player so they know why nothing progressed.
+          for (const p of ticked.paused) {
+            const o = state.officers[p.officerId];
+            if (o?.forceId !== state.playerForceId) continue;
+            const polDef = POLICY_DEFS[p.policyId];
+            result.report.entries.push({
+              cityId: p.cityId,
+              kind: 'note',
+              text: `Training of ${polDef?.en ?? p.policyId} paused (city under attack).`,
+              textZh: `「${polDef?.zh ?? p.policyId}」培訓暫停 (城遭兵燹)。`,
+            });
+          }
           if (ticked.completed.length > 0) {
             const officersUpd = { ...postOfficers };
             for (const t of ticked.completed) {
               const o = officersUpd[t.officerId];
               if (!o || o.status === 'dead') continue;
+              // Tactic completion path
+              if (t.kind === 'tactic' && t.tacticId) {
+                const haveT = o.tactics ?? [];
+                if (haveT.includes(t.tacticId)) continue;
+                officersUpd[t.officerId] = { ...o, tactics: [...haveT, t.tacticId] };
+                const tacDef = TACTIC_DEFS[t.tacticId];
+                result.report.entries.push({
+                  cityId: t.cityId,
+                  kind: 'talent',
+                  text: `${o.name.en} mastered the ${tacDef?.en ?? t.tacticId} tactic.`,
+                  textZh: `${o.name.zh}習得戰法「${tacDef?.zh ?? t.tacticId}」。`,
+                });
+                continue;
+              }
               const have = o.policies ?? [];
               if (have.includes(t.policyId)) continue;
-              officersUpd[t.officerId] = { ...o, policies: [...have, t.policyId] };
+              // X2 — wish bonus on completion (loyalty + report note)
+              const wish = state.officerWishes.find(
+                (w) =>
+                  w.officerId === t.officerId &&
+                  w.kind === 'learn-policy' &&
+                  w.targetId === t.policyId &&
+                  !consumedWishIds.has(w.id),
+              );
+              const newLoyalty = wish
+                ? Math.min(100, o.loyalty + wish.grantBonus)
+                : o.loyalty;
+              officersUpd[t.officerId] = { ...o, policies: [...have, t.policyId], loyalty: newLoyalty };
+              if (wish) consumedWishIds.add(wish.id);
+              const polDef = POLICY_DEFS[t.policyId];
               result.report.entries.push({
                 cityId: t.cityId,
                 kind: 'talent',
-                text: `${o.name.en} completed academy training and learned ${t.policyId}.`,
+                text: `${o.name.en} completed academy training and learned ${polDef?.en ?? t.policyId}.${wish ? ` (Wish granted, loyalty +${wish.grantBonus}.)` : ''}`,
+                textZh: `${o.name.zh}書院培訓畢業,習得「${polDef?.zh ?? t.policyId}」。${wish ? `(夙願得償,忠誠 +${wish.grantBonus}。)` : ''}`,
               });
+              // X1 — Parent mentor: ~15% chance the parent gains 'erudite'
+              // trait from teaching their child (only if they don't have it).
+              if (t.mentorOfficerId) {
+                const mentor = officersUpd[t.mentorOfficerId];
+                if (mentor && mentor.status !== 'dead' && isParentMentor(mentor, o, state.family)) {
+                  const mTraits = mentor.traits ?? [];
+                  if (!mTraits.includes('erudite') && Math.random() < 0.15) {
+                    officersUpd[t.mentorOfficerId] = {
+                      ...mentor,
+                      traits: [...mTraits, 'erudite'],
+                    };
+                    if (mentor.forceId === state.playerForceId) {
+                      result.report.entries.push({
+                        cityId: t.cityId,
+                        kind: 'talent',
+                        text: `${mentor.name.en} grew in wisdom from teaching ${o.name.en} — gained the Erudite trait.`,
+                        textZh: `${mentor.name.zh}教導${o.name.zh}有成,自身亦增博學,習得「博學」之性。`,
+                      });
+                    }
+                  }
+                }
+              }
             }
             postOfficers = officersUpd;
           }
@@ -1148,7 +1651,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           cities: postCities,
           officers: postOfficers,
           forces: postForces,
-          runtimeBonds: planned.runtimeBonds,
+          runtimeBonds: bondsAfterTraits,
           pendingCommands: {},
           pendingTrainings: nextTrainings,
           lastReport: result.report,
@@ -1166,7 +1669,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           buildings: bld.buildings,
           family: fam.family,
           pendingHeirs: fam.pendingHeirs,
-          officerWishes: newWishes,
+          officerWishes: consumedWishIds.size > 0
+            ? newWishes.filter((w) => !consumedWishIds.has(w.id))
+            : newWishes,
           shipOrders: remainingOrders,
           fleets: updatedFleets,
           ports: nextPorts,
@@ -1342,7 +1847,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const outcome = proposeAlliance({
           player,
           playerRulerCharisma: ruler.stats.charisma,
+          playerRuler: ruler,
           target,
+          targetRuler: state.officers[target.rulerOfficerId],
           targetTotalTroops: computeTotalTroops(target.id, state.cities),
           playerTotalTroops: computeTotalTroops(player.id, state.cities),
           diplomacy: state.diplomacy,
@@ -1387,7 +1894,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const outcome = proposeNonAggression({
           player,
           playerRulerCharisma: ruler.stats.charisma,
+          playerRuler: ruler,
           target,
+          targetRuler: state.officers[target.rulerOfficerId],
           targetTotalTroops: computeTotalTroops(target.id, state.cities),
           playerTotalTroops: computeTotalTroops(player.id, state.cities),
           diplomacy: state.diplomacy,
@@ -1481,7 +1990,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const outcome = proposeHostage({
           player,
           playerRulerCharisma: ruler.stats.charisma,
+          playerRuler: ruler,
           target,
+          targetRuler: state.officers[target.rulerOfficerId],
           targetTotalTroops: computeTotalTroops(target.id, state.cities),
           playerTotalTroops: computeTotalTroops(player.id, state.cities),
           diplomacy: state.diplomacy,
@@ -2935,6 +3446,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         forces: state.forces,
         officers: state.officers,
         pendingCommands: state.pendingCommands,
+        pendingTrainings: state.pendingTrainings,
         lastReport: state.lastReport,
         victoryStatus: state.victoryStatus,
         difficulty: state.difficulty,

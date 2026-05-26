@@ -59,16 +59,19 @@ const CATEGORY_TEMPLATE: Record<TacticCategory, { underlying: StratagemId; range
  * rain-of-arrows, 神算 to precognition, etc.). Anything not listed here
  * still gets a personal action — just routed via the category template.
  */
-const SIGNATURE_OVERRIDES: Record<string, { underlying: StratagemId; range: number; cooldown: number }> = {
-  'borrow-wind':     { underlying: 'fire-attack',    range: 4, cooldown: 0 },
-  'borrow-arrow':    { underlying: 'rain-of-arrows', range: 5, cooldown: 0 },
-  'eight-gates':     { underlying: 'precognition',   range: 0, cooldown: 0 },
-  'empty-fort':      { underlying: 'precognition',   range: 0, cooldown: 0 },
-  'qimen-dunjia':    { underlying: 'precognition',   range: 0, cooldown: 0 },
-  'seven-lamp':      { underlying: 'precognition',   range: 0, cooldown: 0 },
-  'star-prayer':     { underlying: 'precognition',   range: 0, cooldown: 0 },
-  'burn-bowang':     { underlying: 'fire-attack',    range: 4, cooldown: 0 },
-  'burn-yiling':     { underlying: 'fire-attack',    range: 4, cooldown: 0 },
+// T4 — Signature/legendary tactics have HIGHER cooldowns than basic ones.
+// Trading rarity for impact: a legendary tactic should fire once or twice
+// per battle, not be spammed.
+export const SIGNATURE_OVERRIDES: Record<string, { underlying: StratagemId; range: number; cooldown: number }> = {
+  'borrow-wind':     { underlying: 'fire-attack',    range: 4, cooldown: 5 }, // 借東風 — legendary
+  'borrow-arrow':    { underlying: 'rain-of-arrows', range: 5, cooldown: 3 }, // 草船借箭
+  'eight-gates':     { underlying: 'precognition',   range: 0, cooldown: 4 }, // 八門遁甲
+  'empty-fort':      { underlying: 'precognition',   range: 0, cooldown: 8 }, // 空城計 — once
+  'qimen-dunjia':    { underlying: 'precognition',   range: 0, cooldown: 5 },
+  'seven-lamp':      { underlying: 'precognition',   range: 0, cooldown: 6 }, // 七星燈
+  'star-prayer':     { underlying: 'precognition',   range: 0, cooldown: 5 },
+  'burn-bowang':     { underlying: 'fire-attack',    range: 4, cooldown: 4 }, // 火燒博望
+  'burn-yiling':     { underlying: 'fire-attack',    range: 4, cooldown: 5 }, // 火燒連營
   'fire-attack':     { underlying: 'fire-attack',    range: 3, cooldown: 0 },
   'water-attack':    { underlying: 'fire-attack',    range: 3, cooldown: 0 }, // visually burning but lore = drowning
   'thunder':         { underlying: 'lightning',      range: 4, cooldown: 0 },
@@ -78,7 +81,7 @@ const SIGNATURE_OVERRIDES: Record<string, { underlying: StratagemId; range: numb
   'crossbow':        { underlying: 'rain-of-arrows', range: 4, cooldown: 1 },
   'fire-arrow':      { underlying: 'rain-of-arrows', range: 4, cooldown: 1 },
   'volley':          { underlying: 'rain-of-arrows', range: 4, cooldown: 1 },
-  'zhuge-bow':       { underlying: 'rain-of-arrows', range: 5, cooldown: 0 },
+  'zhuge-bow':       { underlying: 'rain-of-arrows', range: 5, cooldown: 2 }, // 諸葛弩
   'charge':          { underlying: 'charge',         range: 1, cooldown: 2 },
   'rush':            { underlying: 'charge',         range: 1, cooldown: 2 },
   'changban':        { underlying: 'gallop',         range: 3, cooldown: 3 },
@@ -88,7 +91,7 @@ const SIGNATURE_OVERRIDES: Record<string, { underlying: StratagemId; range: numb
   'iron-wall':       { underlying: 'defend',         range: 0, cooldown: 0 },
   'last-stand':      { underlying: 'defend',         range: 0, cooldown: 0 },
   'rouse':           { underlying: 'rally',          range: 2, cooldown: 2 },
-  'seven-grab':      { underlying: 'rally',          range: 3, cooldown: 2 },
+  'seven-grab':      { underlying: 'rally',          range: 3, cooldown: 5 }, // 七擒孟獲
   'ruse':            { underlying: 'confusion',      range: 4, cooldown: 0 },
   'beauty':          { underlying: 'confusion',      range: 3, cooldown: 0 },
   'chain':           { underlying: 'chain-ships',    range: 3, cooldown: 0 },

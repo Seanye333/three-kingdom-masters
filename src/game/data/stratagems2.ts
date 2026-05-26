@@ -346,8 +346,24 @@ export function pickAutoStratagem(
     (s) => ctx.attackerIntelligence >= s.minIntelligence && s.isApplicable(ctx),
   );
   if (candidates.length === 0) return null;
-  // Highest min-INT requirement = generally more powerful effect → pick it
-  candidates.sort((a, b) => b.minIntelligence - a.minIntelligence);
+  // T6 — Score each candidate by:
+  //  - minIntelligence (more powerful)
+  //  - Whether the attacker actually KNOWS a matching tactic (specialist bonus)
+  //  - Trait synergies (fire-tactician + fire-attack, etc.)
+  const attackerTactics = new Set(((ctx.attacker as { tactics?: string[] }).tactics) ?? []);
+  const attackerTraits = new Set(((ctx.attacker as { traits?: string[] }).traits) ?? []);
+  const score = (s: typeof candidates[number]): number => {
+    let v = s.minIntelligence;
+    if (attackerTactics.has(s.id)) v += 30; // they know it!
+    const label = s.id + (s.name?.zh ?? '');
+    if (attackerTraits.has('fire-tactician') && /fire|火|燒/i.test(label)) v += 15;
+    if (attackerTraits.has('water-tactician') && /water|水|船/i.test(label)) v += 15;
+    if (attackerTraits.has('ambush-master') && /ambush|伏|奇襲/i.test(label)) v += 15;
+    if (attackerTraits.has('strategist')) v += 5;
+    if (attackerTraits.has('cunning')) v += 5;
+    return v;
+  };
+  candidates.sort((a, b) => score(b) - score(a));
   return candidates[0].id;
 }
 
@@ -362,5 +378,36 @@ export function rollStratagemSuccess(
 ): boolean {
   const base = 0.55 + (ctx.attackerIntelligence - strat.minIntelligence) * 0.015;
   const contest = ctx.defenderIntelligence > 80 ? 0.10 : 0;
-  return rng() < Math.max(0.25, Math.min(0.92, base - contest));
+  // P10 — stratagem-type specialist trait bonuses on the attacker.
+  const traits = (ctx.attacker.traits ?? []) as string[];
+  let traitBonus = 0;
+  if (traits.includes('strategist') || traits.includes('cunning')) traitBonus += 0.08;
+  // Element-themed stratagems: fire / water / ambush specialists get +12%.
+  const stratLabel = strat.id + (strat.name?.zh ?? '');
+  // Element / theme specialists
+  if (traits.includes('fire-tactician') && /fire|火|燒|燎/i.test(stratLabel)) traitBonus += 0.12;
+  if (traits.includes('water-tactician') && /water|water-attack|水|淹|潰|船|渡/i.test(stratLabel)) traitBonus += 0.12;
+  if (traits.includes('ambush-master') && /ambush|伏|奇襲|偷|渡/i.test(stratLabel)) traitBonus += 0.12;
+  // T5 — broader trait/tactic synergies
+  // Poetic / verbal types boost cultural/word-war stratagems
+  if ((traits.includes('poetic-genius') || traits.includes('eloquent'))
+      && /tongue|chu-songs|verse|empty-fort|罵|舌戰|楚歌|詠|空城|聲/i.test(stratLabel)) traitBonus += 0.10;
+  // Mystical/Daoist boosts spiritual stratagems
+  if (traits.includes('mystical')
+      && /thunder|seven-lamp|star|eight-gates|qimen|precognition|雷|星|神|燈|遁甲|占/i.test(stratLabel)) traitBonus += 0.12;
+  // Composed/defensive types boost holding/feinting stratagems
+  if (traits.includes('composed')
+      && /empty-fort|iron-wall|wait-tired|feign|defend|hold|空城|鐵壁|以逸|假|守/i.test(stratLabel)) traitBonus += 0.08;
+  // Martial-valor types boost charge/duel stratagems
+  if ((traits.includes('martial-valor') || traits.includes('matchless'))
+      && /charge|gallop|rush|changban|突|衝|奔|騎/i.test(stratLabel)) traitBonus += 0.08;
+  // Cunning types boost deception / ruse-style stratagems
+  if (traits.includes('cunning')
+      && /ruse|hide|deception|feign|borrow|switch|偽|騙|詐|借|易/i.test(stratLabel)) traitBonus += 0.08;
+  // Veterans get small bonus to all (experience)
+  if (traits.includes('veteran')) traitBonus += 0.05;
+  // Defender precognitive sees through plots — extra contest.
+  const defenderTraits = ((ctx.defender?.traits ?? []) as string[]);
+  const defenderResist = defenderTraits.includes('precognitive') ? 0.15 : 0;
+  return rng() < Math.max(0.25, Math.min(0.95, base - contest + traitBonus - defenderResist));
 }

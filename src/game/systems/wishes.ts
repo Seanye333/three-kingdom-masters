@@ -7,6 +7,7 @@ import type {
   ReportEntry,
   WishKind,
 } from '../types';
+import { POLICY_DEFS, POLICY_PREREQ, type PolicyId } from '../data/officerAttributes';
 
 /**
  * Officer wishes: a small chance each season that an active officer in the
@@ -47,8 +48,37 @@ export function rollWishes(ctx: WishContext): OfficerWish[] {
 }
 
 function generateWish(o: Officer, ctx: WishContext): OfficerWish {
+  // Officers with int >= 70 and < 8 policies sometimes wish to learn one.
+  const have = new Set(o.policies ?? []);
+  const learnable: PolicyId[] = [];
+  if (o.stats.intelligence >= 70 && have.size < 8) {
+    for (const id of Object.keys(POLICY_DEFS) as PolicyId[]) {
+      if (have.has(id)) continue;
+      const prereqs = POLICY_PREREQ[id] ?? [];
+      if (prereqs.every((p) => have.has(p))) learnable.push(id);
+    }
+  }
   const kinds: WishKind[] = ['transfer', 'reinforce', 'promote'];
+  if (learnable.length > 0) kinds.push('learn-policy');
   const kind = kinds[Math.floor(ctx.rng() * kinds.length)];
+  if (kind === 'learn-policy') {
+    const wantId = learnable[Math.floor(ctx.rng() * learnable.length)];
+    const want = POLICY_DEFS[wantId];
+    return {
+      id: `wish-${o.id}-${ctx.date.year}-${ctx.date.season}`,
+      officerId: o.id,
+      kind: 'learn-policy',
+      text: {
+        zh: `${o.name.zh}求學「${want?.zh ?? wantId}」之政。`,
+        en: `${o.name.en} wishes to study the policy ${want?.en ?? wantId}.`,
+      },
+      targetId: wantId,
+      issuedYear: ctx.date.year,
+      issuedSeason: ctx.date.season,
+      rejectPenalty: 4,
+      grantBonus: 14,
+    };
+  }
   if (kind === 'transfer') {
     const otherCities = Object.values(ctx.cities).filter(
       (c) => c.ownerForceId === ctx.playerForceId && c.id !== o.locationCityId,

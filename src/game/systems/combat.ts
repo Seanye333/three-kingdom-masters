@@ -12,7 +12,8 @@ import { ITEMS_BY_ID } from '../data/items';
 import { OFFICER_RELATIONSHIPS } from '../data/relationships';
 import { SKILLS_BY_ID } from '../data/skills';
 import { getEliteTroop } from '../data/eliteTroops';
-import { deriveTactics, tacticsTotalBonus } from '../data/officerAttributes';
+import { deriveTactics, tacticsTotalBonus, combosPowerMultiplier, findActiveCombos } from '../data/officerAttributes';
+import { combatModifiers, conquestLoyaltyMod, type CombatMods } from './traitEffects';
 import { selectSiegeEngine } from '../data/siegeEngines';
 import {
   STRATAGEM_DEFS,
@@ -300,9 +301,53 @@ export function resolveBattle(
   // ── Policy effects (per side) — military-theory, horse-armor, etc.
   const aPolicy = computePolicyCombat(attackerPool, ctx);
   const dPolicy = computePolicyCombat(defenderPool, ctx);
+  // ── T4 — Trait combat modifiers (averaged across each side's pool) ──
+  const isSiegeBattle = !!ctx?.city;
+  const aOutnumbered = attacker.troops < defender.troops * 0.75;
+  const dOutnumbered = defender.troops < attacker.troops * 0.75;
+  const weatherBad = ctx?.weather ? ctx.weather.kind !== 'clear' : false;
+  const aggregateMods = (pool: Officer[], isAtk: boolean, outnum: boolean): CombatMods => {
+    if (pool.length === 0) return { attackMul: 1, defenseMul: 1, moraleResist: 0, routResist: 0, lossMul: 1 };
+    const accum: CombatMods = { attackMul: 1, defenseMul: 1, moraleResist: 0, routResist: 0, lossMul: 1 };
+    for (const o of pool) {
+      const m = combatModifiers(o, {
+        isAttacker: isAtk,
+        isSiege: isSiegeBattle,
+        isDefendingHomeCity: !isAtk && isSiegeBattle,
+        outnumbered: outnum,
+        weatherBad,
+      });
+      accum.attackMul *= m.attackMul;
+      accum.defenseMul *= m.defenseMul;
+      accum.moraleResist += m.moraleResist;
+      accum.routResist += m.routResist;
+      accum.lossMul *= m.lossMul;
+    }
+    // Compress multiplicative stacks so 4 ironhearted officers don't push numbers to insanity.
+    const compress = (v: number) => 1 + (v - 1) * 0.7;
+    accum.attackMul = compress(accum.attackMul);
+    accum.defenseMul = compress(accum.defenseMul);
+    accum.lossMul = compress(accum.lossMul);
+    return accum;
+  };
+  const aTraitMods = aggregateMods(attackerPool, true, aOutnumbered);
+  const dTraitMods = aggregateMods(defenderPool, false, dOutnumbered);
+
+  // ── T8 — Tactic combos: collect each side's pooled tactics ──
+  const aPooledTactics: string[] = [];
+  for (const o of attackerPool) {
+    aPooledTactics.push(...(((o as Officer & { tactics?: string[] }).tactics) ?? deriveTactics(o.stats, o.id)));
+  }
+  const dPooledTactics: string[] = [];
+  for (const o of defenderPool) {
+    dPooledTactics.push(...(((o as Officer & { tactics?: string[] }).tactics) ?? deriveTactics(o.stats, o.id)));
+  }
+  const aComboMul = combosPowerMultiplier(aPooledTactics);
+  const dComboMul = combosPowerMultiplier(dPooledTactics);
+
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
-    (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul;
+    (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -329,7 +374,7 @@ export function resolveBattle(
   const siegeEngine = ctx ? selectSiegeEngine(attacker, wallTier) : null;
   const siegeMul = siegeEngine?.defenseMultiplier ?? 1;
   const defenseFactor =
-    (1 + cityDefense / 150) * dSkillEffects.defenseMultiplier * wallMul * siegeMul;
+    (1 + cityDefense / 150) * dSkillEffects.defenseMultiplier * wallMul * siegeMul * dTraitMods.defenseMul;
   const dPower =
     dBlended *
     Math.sqrt(defender.troops + 1) *
@@ -337,7 +382,7 @@ export function resolveBattle(
     dSkillEffects.powerMultiplier *
     dElitePower *
     (stratEffect.defenderPowerMul ?? 1) *
-    dPolicy.attackMul / Math.max(0.5, dPolicy.defenseMul);
+    dPolicy.attackMul * dTraitMods.attackMul * dComboMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;
@@ -356,14 +401,16 @@ export function resolveBattle(
       dSkillEffects.enemyLossMultiplier *
       aEliteOwnLoss *
       (stratEffect.ownLossMul ?? 1) *
-      structureAttackerLossBoost,
+      structureAttackerLossBoost *
+      aTraitMods.lossMul,
   );
   const dLossRate = clamp01(
     (aRatio - variance) *
       dSkillEffects.ownLossMultiplier *
       aSkillEffects.enemyLossMultiplier *
       dEliteOwnLoss *
-      (stratEffect.enemyLossMul ?? 1),
+      (stratEffect.enemyLossMul ?? 1) *
+      dTraitMods.lossMul,
   );
 
   const attackerLosses = Math.floor(attacker.troops * aLossRate);
@@ -780,6 +827,81 @@ export function handleMarch(
     target.troops - result.defenderLosses,
   );
 
+  // ── T8 — Tactic combo announcements ──
+  // Recompute the pooled tactics here (resolveBattle has its own copies).
+  const atkPool: string[] = [];
+  for (const o of [commander, ...companions]) {
+    atkPool.push(...(((o as Officer & { tactics?: string[] }).tactics) ?? deriveTactics(o.stats, o.id)));
+  }
+  const defPool: string[] = [];
+  for (const o of defenderOfficers) {
+    defPool.push(...(((o as Officer & { tactics?: string[] }).tactics) ?? deriveTactics(o.stats, o.id)));
+  }
+  const atkCombos = findActiveCombos(atkPool);
+  for (const c of atkCombos) {
+    entries.push({
+      cityId: target.id,
+      kind: 'battle',
+      text: `[Combo] ${c.nameEn}: ${c.textEn}`,
+      textZh: `【連環戰法】${c.nameZh}:${c.textZh}`,
+    });
+  }
+  const defCombos = findActiveCombos(defPool);
+  for (const c of defCombos) {
+    entries.push({
+      cityId: target.id,
+      kind: 'battle',
+      text: `[Defender Combo] ${c.nameEn}: ${c.textEn}`,
+      textZh: `【守方連環】${c.nameZh}:${c.textZh}`,
+    });
+  }
+
+  // ── P8 — Battle-derived traits ─────────────────────────────────
+  // Winners of decisive battles may earn `veteran` (if they don't have
+  // it). Losers of catastrophic battles may gain `cowardly`. Roll once
+  // per battle for the commander only (companions don't earn).
+  const aLossPct = result.attackerLosses / Math.max(1, sentTroops);
+  const dLossPct = result.defenderLosses / Math.max(1, target.troops);
+  const tryGainTrait = (off: Officer, traitId: 'veteran' | 'cowardly', chance: number) => {
+    if (!off || off.status === 'dead') return;
+    const ts = (off.traits ?? []) as string[];
+    if (ts.includes(traitId)) return;
+    // Conflicts: veteran ↮ cowardly; can't have both
+    if (traitId === 'veteran' && ts.includes('cowardly')) return;
+    if (traitId === 'cowardly' && (ts.includes('martial-valor') || ts.includes('ironhearted'))) return;
+    if (ctx.rng() < chance) {
+      officers[off.id] = {
+        ...officers[off.id],
+        traits: [...ts, traitId] as Officer['traits'],
+      };
+      entries.push({
+        cityId: target.id,
+        kind: traitId === 'veteran' ? 'note' : 'desertion',
+        text: traitId === 'veteran'
+          ? `${off.name.en} earned the Veteran trait through hard battle.`
+          : `${off.name.en} grew Cowardly after a devastating defeat.`,
+        textZh: traitId === 'veteran'
+          ? `${off.name.zh}經此一役,習得「老兵」之性。`
+          : `${off.name.zh}大敗之餘,染上「怯懦」之性。`,
+      });
+    }
+  };
+  // Decisive attacker victory: heavy defender losses + light own losses.
+  if (result.attackerWins && dLossPct > 0.5 && aLossPct < 0.25) {
+    tryGainTrait(commander, 'veteran', 0.10);
+  }
+  // Decisive defender victory: drove off attacker with light losses.
+  if (!result.attackerWins && aLossPct > 0.5 && dLossPct < 0.25) {
+    tryGainTrait(defenderCommander, 'veteran', 0.10);
+  }
+  // Catastrophic loss for the loser.
+  if (result.attackerWins && dLossPct > 0.7) {
+    tryGainTrait(defenderCommander, 'cowardly', 0.05);
+  }
+  if (!result.attackerWins && aLossPct > 0.7) {
+    tryGainTrait(commander, 'cowardly', 0.05);
+  }
+
   const attackerNames = [commander, ...companions]
     .map((o) => o.name.en)
     .join(' + ');
@@ -877,11 +999,15 @@ export function handleMarch(
 
   if (result.cityFalls) {
     // Conquest. Commander + companions all move to target.
+    // T5 — commander's traits affect post-conquest city loyalty: merciful
+    // commanders earn higher loyalty; brutal ones cause unrest.
+    const traitLoyaltyMod = conquestLoyaltyMod(commander);
+    const baseLoyalty = Math.max(20, Math.floor(target.loyalty * 0.5));
     cities[target.id] = {
       ...cities[target.id],
       ownerForceId: source.ownerForceId,
       troops: attackerSurvivors,
-      loyalty: Math.max(20, Math.floor(target.loyalty * 0.5)),
+      loyalty: Math.max(10, Math.min(80, baseLoyalty + traitLoyaltyMod)),
     };
     officers[commander.id] = {
       ...commander,
