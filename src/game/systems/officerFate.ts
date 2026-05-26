@@ -1,5 +1,7 @@
 import type { City, Force, Officer } from '../types';
+import type { FamilyRelation } from '../types/family';
 import { recruiterBonus } from './traitEffects';
+import { recruitRefusalPenalty, recruitKinshipBonus } from './relationshipEffects';
 
 export const RECRUIT_COST = 200;
 export const FREE_AGENT_COST = 100;
@@ -140,6 +142,8 @@ export interface FreeAgentRecruitInput {
   recruiterForce: Force;
   recruiterRuler: Officer;
   recruiterReputation?: { citiesOwned: number };
+  /** Runtime family for kinship recruit bonus (R1). */
+  family?: FamilyRelation[];
   rng?: () => number;
 }
 
@@ -147,7 +151,7 @@ export function attemptFreeAgentRecruit(
   input: FreeAgentRecruitInput,
 ): RecruitOutput {
   const rng = input.rng ?? Math.random;
-  const { officer, city, recruiterForce, recruiterRuler, recruiterReputation } = input;
+  const { officer, city, recruiterForce, recruiterRuler, recruiterReputation, family } = input;
 
   if (officer.status !== 'idle' || officer.forceId !== null) {
     return { ok: false, message: 'Officer is not a free agent.' };
@@ -163,6 +167,9 @@ export function attemptFreeAgentRecruit(
   chance += reputationBonus(recruiterReputation);
   // T9 — recruiter's own personality (charming/noble/imperial-blood)
   chance += recruiterBonus(recruiterRuler);
+  // R1 — relationship-based: personal enemy refuses, sworn brother / family eager
+  chance += recruitRefusalPenalty(officer.id, recruiterRuler.id);
+  chance += recruitKinshipBonus(officer.id, recruiterRuler.id, family ?? []);
   // 'noble' free agent: harder, won't accept just because you're rich.
   if ((officer.traits ?? []).includes('noble')) chance -= 0.10;
   chance = clamp01(chance);

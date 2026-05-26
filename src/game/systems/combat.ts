@@ -14,6 +14,7 @@ import { SKILLS_BY_ID } from '../data/skills';
 import { getEliteTroop } from '../data/eliteTroops';
 import { deriveTactics, tacticsTotalBonus, combosPowerMultiplier, findActiveCombos } from '../data/officerAttributes';
 import { combatModifiers, conquestLoyaltyMod, type CombatMods } from './traitEffects';
+import { sidePoolRelationshipBonus, rivalShowdownMultiplier } from './relationshipEffects';
 import { selectSiegeEngine } from '../data/siegeEngines';
 import {
   STRATAGEM_DEFS,
@@ -148,6 +149,8 @@ export interface BattleContext {
   allowPursuit?: boolean;
   /** Multiplier on attacker damage from city defensive structures (烽火台 etc.). <1 = attacker hits softer. */
   attackerDamageMul?: number;
+  /** Runtime family relations — used for relationship combat bonuses. */
+  family?: import('../types/family').FamilyRelation[];
 }
 
 export function resolveBattle(
@@ -345,9 +348,17 @@ export function resolveBattle(
   const aComboMul = combosPowerMultiplier(aPooledTactics);
   const dComboMul = combosPowerMultiplier(dPooledTactics);
 
+  // R1 — Relationship bonuses
+  const family = ctx?.family ?? [];
+  const aRelBonus = sidePoolRelationshipBonus(attackerPool, family);
+  const dRelBonus = sidePoolRelationshipBonus(defenderPool, family);
+  // Rival showdown (commanders are rivals) — both sides get an attack boost
+  const rivalMul = rivalShowdownMultiplier(attacker.commander, defender.commander);
+
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
-    (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul;
+    (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul *
+    aRelBonus.powerMul * rivalMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -382,7 +393,7 @@ export function resolveBattle(
     dSkillEffects.powerMultiplier *
     dElitePower *
     (stratEffect.defenderPowerMul ?? 1) *
-    dPolicy.attackMul * dTraitMods.attackMul * dComboMul / Math.max(0.5, dPolicy.defenseMul);
+    dPolicy.attackMul * dTraitMods.attackMul * dComboMul * dRelBonus.powerMul * rivalMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;
@@ -644,6 +655,8 @@ export interface MarchContext {
   weather?: Weather;
   /** Delayed effects accumulator (e.g. 截糧 troop drains). */
   delayedEffectsOut?: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }>;
+  /** Runtime family relations — used for relationship combat bonuses. */
+  family?: import('../types/family').FamilyRelation[];
 }
 
 export interface MarchOutcome {
@@ -745,6 +758,7 @@ export function handleMarch(
       weather: ctx.weather,
       allowPursuit: true,
       attackerDamageMul: slotEffects.attackerDamageMul,
+      family: ctx.family,
     },
   );
   // Account for the prestrike in the casualty report.
@@ -826,6 +840,23 @@ export function handleMarch(
     0,
     target.troops - result.defenderLosses,
   );
+
+  // ── R3 — Comradeship after fighting together ──
+  // After a victorious battle, the commander has a chance to forge a
+  // sworn-comrade bond with one of their companions (if not already bonded).
+  // Bonds emit a flavor entry only — they're tracked via runtimeBonds
+  // (the caller in resolveSeason picks them up).
+  // To keep this simple we just signal via the entries log; the store can
+  // optionally lift these into runtimeBonds.
+  if (result.attackerWins && companions.length > 0 && ctx.rng() < 0.08) {
+    const buddy = companions[Math.floor(ctx.rng() * companions.length)];
+    entries.push({
+      cityId: target.id,
+      kind: 'note',
+      text: `[Comrades] ${commander.name.en} and ${buddy.name.en} sealed a sworn-comrade bond after this campaign.`,
+      textZh: `【結為同袍】${commander.name.zh}與${buddy.name.zh}在此役後結為生死之交。`,
+    });
+  }
 
   // ── T8 — Tactic combo announcements ──
   // Recompute the pooled tactics here (resolveBattle has its own copies).

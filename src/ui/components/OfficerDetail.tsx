@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { durationBreakdown, isParentMentor } from '../../game/systems/training';
@@ -679,10 +680,20 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
   const family = useGameStore((s) => s.family);
   const t = useT();
   const lang = useLanguage();
+  // R2 — local state for drill-down: clicking a related officer chip
+  // opens THEIR detail in a stacked modal.
+  const [drillOfficerId, setDrillOfficerId] = useState<string | null>(null);
+  // R5 — local collapse state per category. Default expanded.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const toggleCollapse = (k: string) => {
+    setCollapsed((s) => {
+      const next = new Set(s);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  };
   const rels = OFFICER_RELATIONSHIPS.filter((r) => r.a === officerId || r.b === officerId);
-  // Pull in family relations from both runtime state AND the static
-  // FAMILY_LINEAGE — merge + dedup so the section works regardless of
-  // whether the persist hydrate migration has applied yet.
   type FamilyDisplay = { otherId: string; kind: 'spouse' | 'parent' | 'child' | 'sibling'; note: { zh: string; en: string } };
   const seenFamilyKeys = new Set<string>();
   const familyPool = [
@@ -715,78 +726,141 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
       return { otherId, kind, note };
     });
   if (rels.length === 0 && familyRels.length === 0) return null;
+
+  // R5 — Group entries by category for collapsible display.
+  type Entry = {
+    key: string;
+    otherId: string;
+    kind: string;
+    noteZh: string;
+    noteEn: string;
+  };
+  const groups: Record<string, Entry[]> = {};
+  // Order priority — family kinds first, then bond kinds
+  const CATEGORY_ORDER = [
+    'spouse', 'parent', 'child', 'sibling',
+    'sworn-brothers', 'master-servant', 'mentor-student',
+    'romantic', 'rival', 'enemy',
+  ];
+  const addEntry = (kind: string, e: Entry) => {
+    if (!groups[kind]) groups[kind] = [];
+    groups[kind].push(e);
+  };
+  for (const fr of familyRels) {
+    addEntry(fr.kind, {
+      key: `fam-${fr.otherId}-${fr.kind}`,
+      otherId: fr.otherId,
+      kind: fr.kind,
+      noteZh: fr.note.zh,
+      noteEn: fr.note.en,
+    });
+  }
+  for (const r of rels) {
+    const otherId = r.a === officerId ? r.b : r.a;
+    addEntry(r.kind, {
+      key: `${r.a}-${r.b}-${r.kind}`,
+      otherId,
+      kind: r.kind,
+      noteZh: r.note.zh,
+      noteEn: r.note.en,
+    });
+  }
+  const totalCount = Object.values(groups).reduce((n, arr) => n + arr.length, 0);
+
+  const renderEntry = (entry: Entry) => {
+    const other = officers[entry.otherId];
+    const meta = REL_KIND_LABEL[entry.kind];
+    if (!other || !meta) return null;
+    return (
+      <div
+        key={entry.key}
+        onClick={() => setDrillOfficerId(entry.otherId)}
+        title={lang === 'en' ? `Open ${other.name.en}` : `查看 ${other.name.zh}`}
+        style={{
+          background: '#1a1410',
+          borderLeft: `3px solid ${meta.color}`,
+          padding: '0.4rem 0.6rem',
+          fontSize: '0.8rem',
+          cursor: 'pointer',
+          transition: 'background 0.1s',
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#2a1f15'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#1a1410'; }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span>
+            <span style={{ color: '#d4a84a' }}>{lang === 'en' ? other.name.en : other.name.zh}</span>
+            {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>{other.name.en}</span></>}
+          </span>
+          <span style={{
+            fontSize: '0.65rem', letterSpacing: '0.15rem', textTransform: 'uppercase',
+            color: meta.color,
+          }}>
+            {lang === 'en' ? meta.en : lang === 'both' ? `${meta.zh} ${meta.en}` : meta.zh}
+          </span>
+        </div>
+        <div style={{ fontSize: '0.72rem', color: '#c0a878', fontStyle: 'italic', marginTop: '0.2rem' }}>
+          {lang === 'en' ? entry.noteEn : lang === 'both' ? `${entry.noteZh} · ${entry.noteEn}` : entry.noteZh}
+        </div>
+      </div>
+    );
+  };
+
+  const drillOfficer = drillOfficerId ? officers[drillOfficerId] : null;
+
   return (
     <section className={styles.statsSection}>
-      <h3 className={styles.sectionTitle}>{t('因緣', 'Relationships')}</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-        {/* Family first (most important) */}
-        {familyRels.map((fr) => {
-          const other = officers[fr.otherId];
-          const meta = REL_KIND_LABEL[fr.kind];
-          if (!other || !meta) return null;
+      <h3 className={styles.sectionTitle}>
+        {t('因緣', 'Relationships')}
+        <span style={{ marginLeft: '0.6rem', fontSize: '0.7rem', color: '#8a7050' }}>
+          {totalCount}
+        </span>
+      </h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {CATEGORY_ORDER.map((cat) => {
+          const arr = groups[cat];
+          if (!arr || arr.length === 0) return null;
+          const meta = REL_KIND_LABEL[cat];
+          if (!meta) return null;
+          const isCollapsed = collapsed.has(cat);
           return (
-            <div
-              key={`fam-${fr.otherId}-${fr.kind}`}
-              style={{
-                background: '#1a1410',
-                borderLeft: `3px solid ${meta.color}`,
-                padding: '0.4rem 0.6rem',
-                fontSize: '0.8rem',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span>
-                  <span style={{ color: '#d4a84a' }}>{lang === 'en' ? other.name.en : other.name.zh}</span>
-                  {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>{other.name.en}</span></>}
-                </span>
+            <div key={cat}>
+              <div
+                onClick={() => toggleCollapse(cat)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  cursor: 'pointer',
+                  padding: '0.15rem 0.3rem',
+                  borderBottom: `1px dashed ${meta.color}`,
+                  marginBottom: '0.25rem',
+                }}
+              >
                 <span style={{
-                  fontSize: '0.65rem', letterSpacing: '0.15rem', textTransform: 'uppercase',
                   color: meta.color,
+                  fontSize: '0.72rem',
+                  letterSpacing: '0.2rem',
                 }}>
-                  {lang === 'en' ? meta.en : lang === 'both' ? `${meta.zh} ${meta.en}` : meta.zh}
+                  {isCollapsed ? '▸' : '▾'} {lang === 'en' ? meta.en : meta.zh}
+                  <span style={{ marginLeft: 4, fontSize: '0.62rem', opacity: 0.7 }}>({arr.length})</span>
                 </span>
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#c0a878', fontStyle: 'italic', marginTop: '0.2rem' }}>
-                {lang === 'en' ? fr.note.en : lang === 'both' ? `${fr.note.zh} · ${fr.note.en}` : fr.note.zh}
-              </div>
-            </div>
-          );
-        })}
-        {/* Then non-family bonds (sworn brothers, rivals, etc) */}
-        {rels.map((r) => {
-          const otherId = r.a === officerId ? r.b : r.a;
-          const other = officers[otherId];
-          const meta = REL_KIND_LABEL[r.kind];
-          if (!other || !meta) return null;
-          return (
-            <div
-              key={`${r.a}-${r.b}-${r.kind}`}
-              style={{
-                background: '#1a1410',
-                borderLeft: `3px solid ${meta.color}`,
-                padding: '0.4rem 0.6rem',
-                fontSize: '0.8rem',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span>
-                  <span style={{ color: '#d4a84a' }}>{lang === 'en' ? other.name.en : other.name.zh}</span>
-                  {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>{other.name.en}</span></>}
-                </span>
-                <span style={{
-                  fontSize: '0.65rem', letterSpacing: '0.15rem', textTransform: 'uppercase',
-                  color: meta.color,
-                }}>
-                  {lang === 'en' ? meta.en : lang === 'both' ? `${meta.zh} ${meta.en}` : meta.zh}
-                </span>
-              </div>
-              <div style={{ fontSize: '0.72rem', color: '#c0a878', fontStyle: 'italic', marginTop: '0.2rem' }}>
-                {lang === 'en' ? r.note.en : lang === 'both' ? `${r.note.zh} · ${r.note.en}` : r.note.zh}
-              </div>
+              {!isCollapsed && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  {arr.map(renderEntry)}
+                </div>
+              )}
             </div>
           );
         })}
       </div>
+      {/* R2 — Drill-down: clicking a chip opens that officer's full detail */}
+      {drillOfficer && (
+        <OfficerDetail
+          officer={drillOfficer}
+          onClose={() => setDrillOfficerId(null)}
+          officersOverride={officersOverride}
+        />
+      )}
     </section>
   );
 }

@@ -54,6 +54,8 @@ export interface AIPlanInput {
   buildings: Building[];
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
+  /** Runtime family — flows into recruiting for kinship bonus (R1). */
+  family?: import('../types/family').FamilyRelation[];
   date: GameDate;
   difficulty?: Difficulty;
   rng?: () => number;
@@ -168,6 +170,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         city: updatedCity,
         recruiterForce: force,
         recruiterRuler: ruler,
+        family: input.family,
         rng,
       });
       cities[city.id] = {

@@ -36,6 +36,7 @@ import { planAITurn } from '../systems/ai';
 import { COMMAND_DEFS } from '../systems/commands';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
+import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
 import { TRAIT_DEFS_BY_ID } from '../data/personality';
 import {
   ALLIANCE_PROPOSAL_COST,
@@ -737,6 +738,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           difficulty: state.difficulty,
           diplomacy: state.diplomacy,
           runtimeBonds: state.runtimeBonds,
+          family: state.family,
           date: state.date,
         });
         // Compute whether this period transition crosses a season boundary.
@@ -757,6 +759,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           diplomacy: planned.diplomacy,
           runtimeBonds: planned.runtimeBonds,
           lostItems: state.lostItems,
+          family: state.family,
           weather: state.weather,
           seasonBoundary,
         });
@@ -1142,8 +1145,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           for (const o of Object.values(postOfficers)) {
             if (o.status === 'dead' || !o.forceId) continue;
             const drift = loyaltyDriftPerSeason(o);
-            if (drift === 0) continue;
-            const next = Math.max(0, Math.min(100, o.loyalty + drift));
+            // R1 — Master-servant loyalty floor (server can't drop below 80 if master is alive in same force)
+            const floor = loyaltyFloor(o, postOfficers);
+            const next = Math.max(floor, Math.max(0, Math.min(100, o.loyalty + drift)));
             if (next !== o.loyalty) {
               driftedOfficers[o.id] = { ...o, loyalty: next };
               anyChange = true;
@@ -1212,6 +1216,43 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             }
           }
           if (anyEvolve) postOfficers = evolved;
+        }
+
+        // ── R1 — Mentor passive policy transfer (season boundary) ──
+        // A student in the same city + force as their mentor occasionally
+        // absorbs one of the mentor's policies through exposure.
+        if (seasonBoundary) {
+          const learned: Record<EntityId, Officer> = { ...postOfficers };
+          let anyLearn = false;
+          for (const o of Object.values(postOfficers)) {
+            if (o.status === 'dead' || !o.forceId) continue;
+            for (const mentorId of mentorsOf(o.id)) {
+              const m = postOfficers[mentorId];
+              if (!m) continue;
+              const transferred = rollMentorPolicyTransfer(o, m, Math.random);
+              if (transferred) {
+                const cur = learned[o.id].policies ?? [];
+                if (!cur.includes(transferred)) {
+                  learned[o.id] = {
+                    ...learned[o.id],
+                    policies: [...cur, transferred],
+                  };
+                  anyLearn = true;
+                  if (o.forceId === state.playerForceId) {
+                    const polDef = POLICY_DEFS[transferred];
+                    result.report.entries.push({
+                      cityId: o.locationCityId,
+                      kind: 'talent',
+                      text: `${o.name.en} learned ${polDef?.en ?? transferred} by following ${m.name.en}.`,
+                      textZh: `${o.name.zh}從${m.name.zh}習得「${polDef?.zh ?? transferred}」。`,
+                    });
+                  }
+                  break; // one transfer per officer per season
+                }
+              }
+            }
+          }
+          if (anyLearn) postOfficers = learned;
         }
 
         // ── C + H — Item / policy resonance (season boundary, rare) ──

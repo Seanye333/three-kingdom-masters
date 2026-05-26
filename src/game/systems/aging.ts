@@ -8,6 +8,8 @@ import type {
 import { getDeathPoem } from '../data/deathPoems';
 import { deathChanceMultiplier, rollAgeDrift } from './traitEffects';
 import { TRAIT_DEFS_BY_ID } from '../data/personality';
+import { griefOnDeath } from './relationshipEffects';
+import type { FamilyRelation } from '../types/family';
 
 export interface AgingInput {
   year: number;
@@ -15,6 +17,7 @@ export interface AgingInput {
   officers: Record<EntityId, Officer>;
   forces: Record<EntityId, Force>;
   rng: () => number;
+  family?: FamilyRelation[];
 }
 
 export interface AgingOutput {
@@ -93,6 +96,23 @@ export function processAging(input: AgingInput): AgingOutput {
       text: `${officer.name.en} (${officer.name.zh}) has died, aged ${age}.${poemTail}`,
       textZh: `${officer.name.zh}卒，享年 ${age} 歲。${poemTail}`,
     });
+
+    // R10 — Grief: apply loyalty hits to bonded officers + report
+    const grief = griefOnDeath(officer.id, officer.name.zh, officer.name.en, input.family ?? []);
+    for (const g of grief) {
+      const target = officers[g.targetId];
+      if (!target || target.status === 'dead' || !target.forceId) continue;
+      officers = {
+        ...officers,
+        [g.targetId]: { ...target, loyalty: Math.max(0, target.loyalty + g.delta) },
+      };
+      entries.push({
+        cityId: target.locationCityId,
+        kind: 'note',
+        text: `${target.name.en}: ${g.reasonEn} (loyalty ${g.delta}).`,
+        textZh: `${target.name.zh}:${g.reasonZh} (忠誠 ${g.delta})。`,
+      });
+    }
 
     // Was this officer the ruler of any force?
     const ruledForce = Object.values(forces).find(

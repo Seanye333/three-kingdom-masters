@@ -27,6 +27,8 @@ export interface ResolutionInput {
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
   lostItems: LostItemRef[];
+  /** Runtime family relations — flow through into combat for kinship bonuses. */
+  family?: import('../types/family').FamilyRelation[];
   rng?: () => number;
   weather?: import('./weather').Weather;
   /**
@@ -72,6 +74,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       rng,
       weather: input.weather,
       delayedEffectsOut: delayedEffects,
+      family: input.family,
     });
     cities = outcome.cities;
     officers = outcome.officers;
@@ -271,6 +274,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       officers,
       forces,
       rng,
+      family: input.family,
     });
     cities = aging.cities;
     officers = aging.officers;
