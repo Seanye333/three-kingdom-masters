@@ -663,18 +663,82 @@ const REL_KIND_LABEL: Record<string, { zh: string; en: string; color: string }> 
   'master-servant': { zh: '主従',   en: 'Master / Servant', color: '#c19a3b' },
   'romantic':       { zh: '恋人',   en: 'Romantic',         color: '#c178c7' },
   'enemy':          { zh: '私仇',   en: 'Personal Enemy',   color: '#5a2025' },
+  // Family kinds (from FamilyRelation type)
+  'spouse':         { zh: '配偶',   en: 'Spouse',          color: '#e8a8c8' },
+  'parent':         { zh: '父母',   en: 'Parent',          color: '#88b7e8' },
+  'child':          { zh: '子嗣',   en: 'Child',           color: '#7ed68a' },
+  'sibling':        { zh: '兄弟',   en: 'Sibling',         color: '#c19a3b' },
 };
 
 function RelationshipsSection({ officerId }: { officerId: string }) {
   const officers = useGameStore((s) => s.officers);
+  const family = useGameStore((s) => s.family);
   const t = useT();
   const lang = useLanguage();
   const rels = OFFICER_RELATIONSHIPS.filter((r) => r.a === officerId || r.b === officerId);
-  if (rels.length === 0) return null;
+  // Pull in family relations from runtime state. parent-child has direction
+  // (A is parent), so we split into 'parent' or 'child' based on which side
+  // this officer is on.
+  type FamilyDisplay = { otherId: string; kind: 'spouse' | 'parent' | 'child' | 'sibling'; note: { zh: string; en: string } };
+  const familyRels: FamilyDisplay[] = family
+    .filter((f) => f.officerA === officerId || f.officerB === officerId)
+    .map((f) => {
+      const isA = f.officerA === officerId;
+      const otherId = isA ? f.officerB : f.officerA;
+      let kind: FamilyDisplay['kind'];
+      if (f.kind === 'spouse') kind = 'spouse';
+      else if (f.kind === 'sibling') kind = 'sibling';
+      else kind = isA ? 'child' : 'parent';
+      const otherName = officers[otherId]?.name.zh ?? otherId;
+      const note = (() => {
+        switch (kind) {
+          case 'spouse':  return { zh: `結髮 · ${otherName}`,     en: `Spouse of ${otherName}` };
+          case 'parent':  return { zh: `${otherName}之父母`,      en: `Parent of ${otherName}` };
+          case 'child':   return { zh: `${otherName}之子嗣`,      en: `Child of ${otherName}` };
+          case 'sibling': return { zh: `與${otherName}兄弟`,      en: `Sibling of ${otherName}` };
+        }
+      })();
+      return { otherId, kind, note };
+    });
+  if (rels.length === 0 && familyRels.length === 0) return null;
   return (
     <section className={styles.statsSection}>
       <h3 className={styles.sectionTitle}>{t('因緣', 'Relationships')}</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+        {/* Family first (most important) */}
+        {familyRels.map((fr) => {
+          const other = officers[fr.otherId];
+          const meta = REL_KIND_LABEL[fr.kind];
+          if (!other || !meta) return null;
+          return (
+            <div
+              key={`fam-${fr.otherId}-${fr.kind}`}
+              style={{
+                background: '#1a1410',
+                borderLeft: `3px solid ${meta.color}`,
+                padding: '0.4rem 0.6rem',
+                fontSize: '0.8rem',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span>
+                  <span style={{ color: '#d4a84a' }}>{lang === 'en' ? other.name.en : other.name.zh}</span>
+                  {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>{other.name.en}</span></>}
+                </span>
+                <span style={{
+                  fontSize: '0.65rem', letterSpacing: '0.15rem', textTransform: 'uppercase',
+                  color: meta.color,
+                }}>
+                  {lang === 'en' ? meta.en : lang === 'both' ? `${meta.zh} ${meta.en}` : meta.zh}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#c0a878', fontStyle: 'italic', marginTop: '0.2rem' }}>
+                {lang === 'en' ? fr.note.en : lang === 'both' ? `${fr.note.zh} · ${fr.note.en}` : fr.note.zh}
+              </div>
+            </div>
+          );
+        })}
+        {/* Then non-family bonds (sworn brothers, rivals, etc) */}
         {rels.map((r) => {
           const otherId = r.a === officerId ? r.b : r.a;
           const other = officers[otherId];

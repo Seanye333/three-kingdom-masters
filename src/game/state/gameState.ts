@@ -36,6 +36,7 @@ import { createInitialMandate, type MandateState } from '../systems/mandate';
 import { ITEMS } from '../data/items';
 import { buildInitialPorts } from '../data/ports';
 import { buildInitialForts } from '../data/forts';
+import { FAMILY_LINEAGE } from '../data/familyLineage';
 
 export type VictoryStatus = 'playing' | 'victory' | 'defeat' | 'observing';
 export type Difficulty = 'easy' | 'normal' | 'hard';
@@ -382,7 +383,12 @@ export function loadScenario(
     forts: buildInitialForts(
       Object.fromEntries(scaledCities.map((c) => [c.id, c.ownerForceId])),
     ),
-    family: [],
+    // Pre-populate canonical Three Kingdoms family lineages — filtered
+    // to entries where BOTH officers are in the loaded roster.
+    family: (() => {
+      const idSet = new Set(officers.map((o) => o.id));
+      return FAMILY_LINEAGE.filter((r) => idSet.has(r.officerA) && idSet.has(r.officerB));
+    })(),
     pendingHeirs: [],
     officerWishes: [],
     endingsAchieved: state.endingsAchieved,
