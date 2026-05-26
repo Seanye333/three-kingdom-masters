@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { playSfx } from '../../game/systems/sound';
 import { useGameStore } from '../../game/state/store';
+import { DEED_TITLES_BY_ID } from '../../game/systems/deedTitles';
 import { SEASON_LABEL, MONTH_PHASE_LABEL, firstMonthOfSeason } from '../../game/types';
 import { WEATHER_LABEL, WIND_LABEL } from '../../game/systems/weather';
 import { MANDATE_LABEL } from '../../game/systems/mandate';
@@ -81,6 +82,9 @@ export function MapScreen() {
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
   const acknowledgeAchievements = useGameStore((s) => s.acknowledgeAchievements);
+  const recentDeedTitles = useGameStore((s) => s.recentDeedTitles);
+  const acknowledgeDeedTitles = useGameStore((s) => s.acknowledgeDeedTitles);
+  const officersForToast = useGameStore((s) => s.officers);
   const currentSeasonKey = useGameStore((s) => s.date.season);
   const fogOfWar = useGameStore((s) => s.fogOfWar);
   const setFogOfWar = useGameStore((s) => s.setFogOfWar);
@@ -406,6 +410,49 @@ export function MapScreen() {
             {recentAchievementUnlocks.length} new achievement{recentAchievementUnlocks.length > 1 ? 's' : ''}
           </div>
           <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>
+            click to dismiss
+          </div>
+        </div>
+      )}
+      {/* Deed-title toast — sits above the achievement toast when both present */}
+      {recentDeedTitles.length > 0 && (
+        <div
+          onClick={acknowledgeDeedTitles}
+          style={{
+            position: 'fixed',
+            bottom: recentAchievementUnlocks.length > 0 ? 130 : 20,
+            right: 20,
+            background: 'linear-gradient(160deg, #2a1f15, #1a1410)',
+            border: '2px solid #c19a3b',
+            padding: '0.7rem 1rem',
+            color: '#d4a84a',
+            fontFamily: '"Songti SC", serif',
+            cursor: 'pointer',
+            zIndex: 980,
+            boxShadow: '0 0 14px rgba(193, 154, 59, 0.4)',
+            animation: 'tkmFadeIn 0.4s ease-out',
+            maxWidth: 280,
+          }}
+        >
+          <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#c19a3b' }}>
+            稱號 EARNED
+          </div>
+          {recentDeedTitles.slice(-3).map((g, i) => {
+            const o = officersForToast[g.officerId];
+            const titleDef = DEED_TITLES_BY_ID[g.titleId];
+            if (!o || !titleDef) return null;
+            return (
+              <div key={i} style={{ fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                {o.name.zh} — <span style={{ color: '#c19a3b' }}>「{titleDef.name.zh}」</span>
+              </div>
+            );
+          })}
+          {recentDeedTitles.length > 3 && (
+            <div style={{ fontSize: '0.7rem', color: '#8a7050', marginTop: '0.15rem' }}>
+              {t(`還有 ${recentDeedTitles.length - 3} 例`, `+${recentDeedTitles.length - 3} more`)}
+            </div>
+          )}
+          <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic', marginTop: '0.2rem' }}>
             click to dismiss
           </div>
         </div>

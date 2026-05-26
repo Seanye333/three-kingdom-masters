@@ -62,17 +62,27 @@ export const DEED_TITLES_BY_ID: Record<string, DeedTitle> = Object.fromEntries(
  * the updated deeds + officers (loyalty bumps) + report entries for each
  * grant. Idempotent: titles already in deeds.titles are skipped.
  */
+export interface GrantDeedTitlesOpts {
+  /** When true, skip loyalty bumps + report entries (used for rehydrate
+   *  backfill so loading an old save doesn't gift retroactive loyalty). */
+  silent?: boolean;
+}
+
 export function grantDeedTitles(
   deeds: Record<EntityId, HeroicDeeds>,
   officers: Record<EntityId, Officer>,
+  opts: GrantDeedTitlesOpts = {},
 ): {
   deeds: Record<EntityId, HeroicDeeds>;
   officers: Record<EntityId, Officer>;
   entries: ReportEntry[];
+  /** Officers who just earned at least one title this call. */
+  grants: Array<{ officerId: EntityId; titleId: string }>;
 } {
   const nextDeeds = { ...deeds };
   const nextOfficers = { ...officers };
   const entries: ReportEntry[] = [];
+  const grants: Array<{ officerId: EntityId; titleId: string }> = [];
 
   for (const d of Object.values(deeds)) {
     const o = officers[d.officerId];
@@ -85,13 +95,16 @@ export function grantDeedTitles(
       if ((d[title.stat] ?? 0) < title.threshold) continue;
       if (!earned) earned = [...(d.titles ?? [])];
       earned.push(title.id);
-      loyaltyBump += title.loyaltyOnGrant ?? 0;
-      entries.push({
-        cityId: o.locationCityId,
-        kind: 'talent',
-        text: `${o.name.en} earns the epithet "${title.name.en}".`,
-        textZh: `${o.name.zh}得號「${title.name.zh}」。`,
-      });
+      grants.push({ officerId: d.officerId, titleId: title.id });
+      if (!opts.silent) {
+        loyaltyBump += title.loyaltyOnGrant ?? 0;
+        entries.push({
+          cityId: o.locationCityId,
+          kind: 'talent',
+          text: `${o.name.en} earns the epithet "${title.name.en}".`,
+          textZh: `${o.name.zh}得號「${title.name.zh}」。`,
+        });
+      }
     }
     if (earned) {
       nextDeeds[d.officerId] = { ...d, titles: earned };
@@ -104,5 +117,5 @@ export function grantDeedTitles(
     }
   }
 
-  return { deeds: nextDeeds, officers: nextOfficers, entries };
+  return { deeds: nextDeeds, officers: nextOfficers, entries, grants };
 }

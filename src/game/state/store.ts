@@ -281,6 +281,7 @@ interface GameStore extends GameState {
     recipeId: EntityId,
   ) => { ok: boolean; reason?: string };
   acknowledgeAchievements: () => void;
+  acknowledgeDeedTitles: () => void;
   // ─── Port (港) actions ────────────────────────────────────────────
   /** Queue a ship build at the given port. Player pays gold from capital
    *  immediately; ship is added to dockedShips when seasonsLeft hits 0. */
@@ -1736,6 +1737,17 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           bumpDeed(heir.parentAId, { childrenSired: 1 });
           bumpDeed(heir.parentBId, { childrenSired: 1 });
         }
+        // Fold transient battlefield deltas into the per-officer season
+        // map so 殲敵/生擒/攻陷 also get MVPs.
+        for (const [id, b] of Object.entries(state.seasonBattleDeltas)) {
+          const prev = seasonDeltas[id] ?? {};
+          seasonDeltas[id] = {
+            ...prev,
+            killsTroops: ((prev.killsTroops as number) ?? 0) + b.killsTroops,
+            captured:    ((prev.captured as number) ?? 0)    + b.captured,
+            citiesTaken: ((prev.citiesTaken as number) ?? 0) + b.citiesTaken,
+          };
+        }
         // Season-MVP highlights: for each category that saw activity this
         // tick, name the top officer. Surfaces in the season report.
         if (seasonBoundary) {
@@ -1743,6 +1755,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             key: keyof import('../types').HeroicDeeds;
             labelZh: string; labelEn: string; min: number;
           }> = [
+            { key: 'killsTroops',        labelZh: '殲敵之最', labelEn: 'Kills MVP',    min: 500 },
+            { key: 'captured',           labelZh: '生擒之最', labelEn: 'Captures MVP', min: 1 },
+            { key: 'citiesTaken',        labelZh: '攻陷之最', labelEn: 'Sieges MVP',   min: 1 },
             { key: 'duelsWon',           labelZh: '一騎之最', labelEn: 'Duel MVP',     min: 1 },
             { key: 'civicWorks',         labelZh: '内政之最', labelEn: 'Civic MVP',    min: 2 },
             { key: 'espionageSuccess',   labelZh: '謀略之最', labelEn: 'Plot MVP',     min: 1 },
@@ -1785,6 +1800,11 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           pendingTrainings: nextTrainings,
           lastReport: result.report,
           deeds: nextDeeds,
+          recentDeedTitles: [...state.recentDeedTitles, ...titleGrant.grants],
+          // Battle deltas only feed MVPs at season boundaries — reset
+          // then so the next season starts fresh; otherwise keep them
+          // accumulating across mid-season ticks.
+          seasonBattleDeltas: seasonBoundary ? {} : state.seasonBattleDeltas,
           selectedCityId: stillOwned ? state.selectedCityId : fallback,
           victoryStatus: endVS,
           battleHistory: [...state.battleHistory, ...newBattles],
@@ -2436,11 +2456,31 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
 
         // Heroic deeds tracking.
         const deeds = { ...state.deeds };
+        // Also accumulate the battlefield deltas into a transient
+        // per-season tracker so endSeason can compute MVPs for these
+        // columns (which don't pass through resolveSeason's deedDeltas).
+        const nextSeasonBattle: Record<EntityId, { killsTroops: number; captured: number; citiesTaken: number }> =
+          { ...state.seasonBattleDeltas };
+        const bumpSeasonBattle = (id: string, patch: { killsTroops?: number; captured?: number; citiesTaken?: number }) => {
+          const cur = nextSeasonBattle[id] ?? { killsTroops: 0, captured: 0, citiesTaken: 0 };
+          nextSeasonBattle[id] = {
+            killsTroops: cur.killsTroops + (patch.killsTroops ?? 0),
+            captured:    cur.captured    + (patch.captured ?? 0),
+            citiesTaken: cur.citiesTaken + (patch.citiesTaken ?? 0),
+          };
+        };
         const bumpDeeds = (id: string, patch: Partial<import('../types').HeroicDeeds>) => {
           const cur = deeds[id] ?? createDeeds(id);
           deeds[id] = { ...cur, ...Object.fromEntries(
             Object.entries(patch).map(([k, v]) => [k, ((cur[k as keyof typeof cur] as number) ?? 0) + (v as number)]),
           ) } as import('../types').HeroicDeeds;
+          if (patch.killsTroops || patch.captured || patch.citiesTaken) {
+            bumpSeasonBattle(id, {
+              killsTroops: patch.killsTroops,
+              captured: patch.captured,
+              citiesTaken: patch.citiesTaken,
+            });
+          }
         };
         const enemyLosses = winner === 'attacker' ? tb.defenderLosses : winner === 'defender' ? tb.attackerLosses : 0;
         for (const id of victorIds) {
@@ -2646,6 +2686,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           careerMode,
           campaignStats: newStats,
           recentAchievementUnlocks: [...state.recentAchievementUnlocks, ...newlyAch],
+          recentDeedTitles: [...state.recentDeedTitles, ...titleGrant.grants],
+          seasonBattleDeltas: nextSeasonBattle,
         });
       },
 
@@ -3025,6 +3067,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       },
 
       acknowledgeAchievements: () => set({ recentAchievementUnlocks: [] }),
+      acknowledgeDeedTitles: () => set({ recentDeedTitles: [] }),
 
       attackPort: (portId, attackerOfficerId, troops) => {
         const state = get();
@@ -3646,6 +3689,13 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         );
         if (additions.length > 0) {
           state.family = [...(state.family ?? []), ...additions];
+        }
+        // Backfill deed-titles for officers whose accumulated stats already
+        // cross thresholds — silent mode so loading an old save doesn't
+        // retroactively gift loyalty bonuses.
+        if (state.deeds && state.officers) {
+          const grant = grantDeedTitles(state.deeds, state.officers, { silent: true });
+          state.deeds = grant.deeds;
         }
       },
     },

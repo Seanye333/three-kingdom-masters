@@ -169,6 +169,11 @@ export interface GameState {
   campaignStats: import('../types').CampaignStats;
   /** Achievements unlocked this session (toast queue). */
   recentAchievementUnlocks: string[];
+  /** Deed-titles newly earned since last acknowledgement (toast queue). */
+  recentDeedTitles: Array<{ officerId: EntityId; titleId: string }>;
+  /** Per-officer battle-source deed deltas accumulated during the current
+   *  season (殲敵/生擒/攻陷). Reset at season-end after MVP computation. */
+  seasonBattleDeltas: Record<EntityId, { killsTroops: number; captured: number; citiesTaken: number }>;
   /** Current-season weather (wind direction + kind). Rolled at season-end. */
   weather: Weather;
   /** Court factions per force — who plots against whom. Keyed by forceId. */
@@ -248,6 +253,8 @@ export const EMPTY_STATE: GameState = {
   roguelikeMode: false,
   campaignStats: { seasonsPlayed: 0, totalBattles: 0 },
   recentAchievementUnlocks: [],
+  recentDeedTitles: [],
+  seasonBattleDeltas: {},
   weather: { kind: 'clear', wind: 'calm', windPower: 1 },
   courtFactions: {},
   burningCities: [],
@@ -411,6 +418,8 @@ export function loadScenario(
     roguelikeMode: state.roguelikeMode,
     campaignStats: { seasonsPlayed: 0, totalBattles: 0 },
     recentAchievementUnlocks: [],
+    recentDeedTitles: [],
+    seasonBattleDeltas: {},
     weather: rollWeather(scenario.startDate.season, Math.random),
     courtFactions: {},
     burningCities: [],
