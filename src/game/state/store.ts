@@ -24,6 +24,7 @@ import { FORGE_RECIPES_BY_ID } from '../data/forging';
 import { EDICTS_BY_KIND, IMPERIAL_RANKS_BY_ID } from '../data/imperial';
 import { ESPIONAGE_DEFS_BY_KIND } from '../data/espionage';
 import { ITEMS_BY_ID } from '../data/items';
+import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
 import {
   applyEventEffects,
@@ -3501,6 +3502,22 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         );
         state.ports = migratePorts(state.ports, cityOwnerByCityId);
         state.forts = migrateForts(state.forts, cityOwnerByCityId);
+        // Backfill historical family lineage into pre-existing saves that
+        // were created before FAMILY_LINEAGE existed (family was empty).
+        // Filter to entries where both officers are in the loaded roster.
+        const officersMap = state.officers ?? {};
+        const existing = new Set(
+          (state.family ?? []).map((r) => `${r.officerA}|${r.officerB}|${r.kind}`),
+        );
+        const additions = FAMILY_LINEAGE.filter(
+          (r) =>
+            officersMap[r.officerA] &&
+            officersMap[r.officerB] &&
+            !existing.has(`${r.officerA}|${r.officerB}|${r.kind}`),
+        );
+        if (additions.length > 0) {
+          state.family = [...(state.family ?? []), ...additions];
+        }
       },
     },
   ),
