@@ -134,6 +134,10 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
     () => Object.fromEntries(scenario.cities.map((c) => [c.id, c])),
     [scenario],
   );
+  const officersById = useMemo(
+    () => Object.fromEntries(scenario.officers.map((o) => [o.id, o])),
+    [scenario],
+  );
 
   const total = scenario.officers.filter((o) => o.status !== 'dead').length;
   const unsearched = scenario.officers.filter(
@@ -328,6 +332,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
             onClose={() => setSelectedOfficer(null)}
             forcesOverride={forcesById}
             citiesOverride={citiesById}
+            officersOverride={officersById}
             yearOverride={scenario.startDate.year}
           />
         )}

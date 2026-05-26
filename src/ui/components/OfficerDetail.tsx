@@ -99,6 +99,7 @@ interface Props {
   forcesOverride?: Record<string, Force>;
   citiesOverride?: Record<string, City>;
   yearOverride?: number;
+  officersOverride?: Record<string, Officer>;
 }
 
 export function OfficerDetail({
@@ -107,6 +108,7 @@ export function OfficerDetail({
   forcesOverride,
   citiesOverride,
   yearOverride,
+  officersOverride,
 }: Props) {
   const storeForces = useGameStore((s) => s.forces);
   const storeCities = useGameStore((s) => s.cities);
@@ -603,7 +605,7 @@ export function OfficerDetail({
           </section>
         )}
 
-        <RelationshipsSection officerId={officer.id} />
+        <RelationshipsSection officerId={officer.id} officersOverride={officersOverride} />
 
         {officer.equipment.length > 0 && (
           <section className={styles.statsSection}>
@@ -671,8 +673,9 @@ const REL_KIND_LABEL: Record<string, { zh: string; en: string; color: string }> 
   'sibling':        { zh: '兄弟',   en: 'Sibling',         color: '#c19a3b' },
 };
 
-function RelationshipsSection({ officerId }: { officerId: string }) {
-  const officers = useGameStore((s) => s.officers);
+function RelationshipsSection({ officerId, officersOverride }: { officerId: string; officersOverride?: Record<string, Officer> }) {
+  const storeOfficers = useGameStore((s) => s.officers);
+  const officers = officersOverride ?? storeOfficers;
   const family = useGameStore((s) => s.family);
   const t = useT();
   const lang = useLanguage();
