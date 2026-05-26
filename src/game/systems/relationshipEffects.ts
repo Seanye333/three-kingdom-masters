@@ -335,6 +335,74 @@ export function recruitKinshipBonus(
 // Mentor-student passive transfer
 // ─────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────
+// X1 — AI awareness: deter from kin-led forces, prefer to recruit kin
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Returns an attack deterrence factor against a target force based on
+ * relationships between the attacker's ruler and the target's ruler.
+ *  - 1.0  = no deterrence (attack normally)
+ *  - 0.5  = strong hesitation (sworn brothers, family ties)
+ *  - 0.2  = nearly forbidden (parent/child or close family)
+ *  - 1.2  = aggression boost (personal enemy / blood feud)
+ *
+ * The caller multiplies their attack-readiness by this — values < 1
+ * make AI hesitate, > 1 make them eager.
+ */
+export function attackDeterrence(
+  attackerRulerId: EntityId | undefined,
+  defenderRulerId: EntityId | undefined,
+  family: FamilyRelation[],
+): number {
+  if (!attackerRulerId || !defenderRulerId) return 1.0;
+  if (attackerRulerId === defenderRulerId) return 1.0;
+  // Parent / child / spouse — extreme hesitation
+  const directFamily = [...family, ...FAMILY_LINEAGE].some(
+    (f) =>
+      (f.officerA === attackerRulerId && f.officerB === defenderRulerId) ||
+      (f.officerA === defenderRulerId && f.officerB === attackerRulerId),
+  );
+  if (directFamily) return 0.2;
+  // Sworn brothers — strong hesitation
+  if (areSwornBrothers(attackerRulerId, defenderRulerId)) return 0.35;
+  // Mentor-student bond
+  const mentorBond = OFFICER_RELATIONSHIPS.some(
+    (r) =>
+      r.kind === 'mentor-student' &&
+      ((r.a === attackerRulerId && r.b === defenderRulerId) ||
+       (r.b === attackerRulerId && r.a === defenderRulerId)),
+  );
+  if (mentorBond) return 0.5;
+  // Personal enemies — extra aggression
+  if (arePersonalEnemies(attackerRulerId, defenderRulerId)) return 1.30;
+  // Rivals — slight aggression (they want to fight)
+  if (areRivals(attackerRulerId, defenderRulerId)) return 1.10;
+  return 1.0;
+}
+
+/**
+ * Per-officer preference score for AI recruiting. Higher = AI will
+ * prioritize trying to recruit this officer for the given recruiter.
+ *  - +50 if sworn brothers / family / former master of recruiter
+ *  - +30 if mentor of recruiter
+ *  - −9999 if personal enemy (skip entirely)
+ */
+export function recruitPreferenceScore(
+  prospectId: EntityId,
+  recruiterRulerId: EntityId,
+  family: FamilyRelation[],
+): number {
+  if (arePersonalEnemies(prospectId, recruiterRulerId)) return -9999;
+  let score = 0;
+  if (areSwornBrothers(prospectId, recruiterRulerId)) score += 50;
+  if (areFamily(prospectId, recruiterRulerId, family)) score += 50;
+  if (mastersOf(prospectId).includes(recruiterRulerId)) score += 40;
+  if (mentorsOf(prospectId).includes(recruiterRulerId)) score += 30;
+  if (studentsOf(prospectId).includes(recruiterRulerId)) score += 30;
+  return score;
+}
+
 /** Each season, a student in the same city/force as their mentor has a
  *  small chance to pick up one of the mentor's policies. Returns the
  *  policy to add (or null). */

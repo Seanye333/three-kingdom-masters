@@ -43,6 +43,7 @@ import {
 } from './training';
 import { TACTIC_DEFS, type TacticId } from '../data/officerAttributes';
 import { commandFitMultiplier, isCombatLiability } from './traitEffects';
+import { attackDeterrence, recruitPreferenceScore } from './relationshipEffects';
 
 export interface AIPlanInput {
   cities: Record<EntityId, City>;
@@ -118,6 +119,8 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         difficulty,
         input.diplomacy,
         rng,
+        input.forces,
+        input.family ?? [],
       );
       if (!decision) continue;
 
@@ -159,12 +162,21 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
           o.forceId === null,
       );
       if (agents.length === 0) continue;
-      // Prefer highest-total free agent.
-      const target = [...agents].sort(
-        (a, b) =>
-          b.stats.leadership + b.stats.war + b.stats.intelligence + b.stats.politics + b.stats.charisma -
-          (a.stats.leadership + a.stats.war + a.stats.intelligence + a.stats.politics + a.stats.charisma),
-      )[0];
+      // X1b — Prefer free agents by RELATIONSHIP (sworn brothers / family /
+      // former masters of the ruler) first, then by total stats. Personal
+      // enemies are excluded entirely (-9999 score).
+      const scoreFor = (o: Officer) => {
+        const rel = recruitPreferenceScore(o.id, ruler.id, input.family ?? []);
+        if (rel < 0) return rel; // skip enemies
+        const stats = o.stats.leadership + o.stats.war + o.stats.intelligence + o.stats.politics + o.stats.charisma;
+        return rel + stats;
+      };
+      const candidates = [...agents]
+        .map((o) => ({ o, score: scoreFor(o) }))
+        .filter(({ score }) => score >= 0)
+        .sort((a, b) => b.score - a.score);
+      if (candidates.length === 0) continue;
+      const target = candidates[0].o;
       const result = attemptFreeAgentRecruit({
         officer: target,
         city: updatedCity,
@@ -478,7 +490,10 @@ function decideCommand(
   difficulty: Difficulty,
   diplomacy: DiplomaticState,
   rng: () => number,
+  forces: Record<EntityId, Force>,
+  family: import('../types/family').FamilyRelation[],
 ): Decision | null {
+  const ownRulerId = forces[forceId]?.rulerOfficerId;
   // 1. Food crisis — develop agriculture
   if (city.food < city.troops * 0.6) {
     const o = bestForCommand(officersHere, 'politics', 'develop-agriculture');
@@ -516,9 +531,18 @@ function decideCommand(
       )
       .sort((a, b) => a.troops - b.troops);
 
-    const attackThreshold =
+    const baseThreshold =
       difficulty === 'easy' ? 0.4 : difficulty === 'hard' ? 0.8 : 0.6;
     for (const target of targets) {
+      // X1a — relationship-based deterrence between rulers.
+      // 0.2 = parent/child/spouse, 0.35 = sworn brothers, 0.5 = mentor,
+      // 1.0 = neutral, 1.10 = rival, 1.30 = personal enemy.
+      const targetRulerId = target.ownerForceId
+        ? forces[target.ownerForceId]?.rulerOfficerId
+        : undefined;
+      const deterrence = attackDeterrence(ownRulerId, targetRulerId, family);
+      const attackThreshold = baseThreshold * deterrence;
+
       // Effective defender strength factors in city defense: a fortress at
       // defense 88 (Tongguan) counts as if the garrison were ~60% larger.
       const defenseMultiplier = 1 + target.defense / 200;
