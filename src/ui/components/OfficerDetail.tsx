@@ -2,6 +2,7 @@ import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { durationBreakdown, isParentMentor } from '../../game/systems/training';
 import { effectiveStats, traitMechanicalEffects } from '../../game/systems/traitEffects';
+import { FAMILY_LINEAGE } from '../../game/data/familyLineage';
 import {
   CIVIC_TITLES_BY_ID,
   ITEMS_BY_ID,
@@ -676,11 +677,21 @@ function RelationshipsSection({ officerId }: { officerId: string }) {
   const t = useT();
   const lang = useLanguage();
   const rels = OFFICER_RELATIONSHIPS.filter((r) => r.a === officerId || r.b === officerId);
-  // Pull in family relations from runtime state. parent-child has direction
-  // (A is parent), so we split into 'parent' or 'child' based on which side
-  // this officer is on.
+  // Pull in family relations from both runtime state AND the static
+  // FAMILY_LINEAGE — merge + dedup so the section works regardless of
+  // whether the persist hydrate migration has applied yet.
   type FamilyDisplay = { otherId: string; kind: 'spouse' | 'parent' | 'child' | 'sibling'; note: { zh: string; en: string } };
-  const familyRels: FamilyDisplay[] = family
+  const seenFamilyKeys = new Set<string>();
+  const familyPool = [
+    ...family,
+    ...FAMILY_LINEAGE.filter((f) => f.officerA === officerId || f.officerB === officerId),
+  ].filter((f) => {
+    const key = `${f.officerA}|${f.officerB}|${f.kind}`;
+    if (seenFamilyKeys.has(key)) return false;
+    seenFamilyKeys.add(key);
+    return true;
+  });
+  const familyRels: FamilyDisplay[] = familyPool
     .filter((f) => f.officerA === officerId || f.officerB === officerId)
     .map((f) => {
       const isA = f.officerA === officerId;
