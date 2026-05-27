@@ -156,7 +156,12 @@ export function TacticalBattleScreen() {
   // Hide cinematic after 3.6s.
   useEffect(() => {
     if (!battle) return;
-    const id = setTimeout(() => setShowCinematic(false), 3600);
+    // Curtains slide for 1.8s, title reveals through 2.8s, seal stamps at 2.9s.
+    // Hold the full sequence + breath for the player to read.
+    const id = setTimeout(() => setShowCinematic(false), 4500);
+    // Drum + horn flourish on battle open.
+    playSfx('horn');
+    setTimeout(() => playSfx('sword'), 2400); // seal-stamp thunk
     return () => clearTimeout(id);
   }, [battle?.id]);
 
@@ -344,12 +349,17 @@ export function TacticalBattleScreen() {
     <div className={styles.root}>
       {showCinematic && (
         <div className={styles.cinematic}>
+          {/* Sliding curtain panels reveal the title. */}
+          <div className={styles.cinCurtainL} />
+          <div className={styles.cinCurtainR} />
           <div className={styles.cinematicTitle}>
             <div className={styles.cinematicTitleZh}>{battleTitleZh}</div>
             <div className={styles.cinematicTitleEn}>{battleTitleEn}</div>
             {namedMap && (
               <div className={styles.cinematicDesc}>{desc(namedMap)}</div>
             )}
+            {/* Vermilion seal stamps in last — classic Chinese chop look. */}
+            <div className={styles.cinSeal}>戰</div>
           </div>
         </div>
       )}
@@ -476,8 +486,16 @@ export function TacticalBattleScreen() {
       <div className={`${styles.battlefield} tkm-iso-stage`}>
         <div className={`${styles.gridWrap} tkm-iso-svg`} style={{ position: 'relative' }}>
           {/* Weather overlay */}
-          {battle.weather === 'rain' && <div className={`${styles.weatherOverlay} ${styles.weatherRain}`} />}
+          {battle.weather === 'rain' && (
+            <>
+              <div className={`${styles.weatherOverlay} ${styles.weatherRain}`} />
+              {/* Lightning flash overlay — sporadic during storms. */}
+              <div className={styles.weatherLightning} />
+            </>
+          )}
           {battle.weather === 'snow' && <div className={`${styles.weatherOverlay} ${styles.weatherSnow}`} />}
+          {battle.weather === 'wind' && <div className={`${styles.weatherOverlay} ${styles.weatherWind}`} />}
+          {battle.weather === 'fog' && <div className={`${styles.weatherOverlay} ${styles.weatherFogDrift}`} />}
           {/* Time-of-day tint — non-intrusive color wash over the battlefield. */}
           <div style={{
             position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5,

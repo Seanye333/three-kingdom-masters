@@ -71,9 +71,40 @@
   display: grid;
   place-items: center;
   overflow: auto;
-  background: #1a1410;
+  /* Layered background: distant mountain silhouettes + warm earth gradient
+   * so the area outside the hex grid feels like a battlefield, not a void. */
+  background:
+    /* Foreground vignette ring */
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.55) 100%),
+    /* Mid-distance mountain silhouette (south) */
+    linear-gradient(180deg, rgba(0,0,0,0) 70%, rgba(30,22,16,0.7) 85%, rgba(20,16,12,0.95) 100%),
+    /* Distant ridge silhouette (north) */
+    linear-gradient(0deg, rgba(0,0,0,0) 85%, rgba(40,30,22,0.65) 95%, rgba(28,22,16,0.9) 100%),
+    /* Warm sky gradient */
+    linear-gradient(180deg, #2a1f15 0%, #1a1410 60%, #100a06 100%);
   border: 1px solid #4a3520;
 }
+
+/* Two decorative banners on either edge — flank the battlefield. */
+.gridWrap::before,
+.gridWrap::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 100px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, #d4a84a 0%, #c19a3b 50%, #8a6028 100%);
+  border: 1px solid #5a4530;
+  border-radius: 2px;
+  opacity: 0.45;
+  box-shadow: 0 0 16px rgba(212, 168, 74, 0.25);
+}
+.gridWrap::before { left: 8px; }
+.gridWrap::after  { right: 8px; }
 
 .svgGrid {
   display: block;
@@ -302,6 +333,49 @@
   to { background-position: 0 220px, 11px 231px; }
 }
 
+/* Lightning flash — fires sporadically during storms. */
+.weatherLightning {
+  position: absolute; inset: 0; pointer-events: none;
+  background: rgba(255, 255, 255, 0);
+  animation: lightningFlash 7s ease-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes lightningFlash {
+  0%, 92%, 96%, 100% { background: rgba(255, 255, 255, 0); }
+  93%      { background: rgba(255, 255, 255, 0.45); }
+  94%      { background: rgba(180, 200, 255, 0.20); }
+  95%      { background: rgba(255, 255, 255, 0.55); }
+}
+
+/* Wind streak — horizontal motion blur during wind weather. */
+.weatherWind {
+  background:
+    repeating-linear-gradient(
+      80deg,
+      rgba(200, 210, 200, 0.0) 0,
+      rgba(200, 210, 200, 0.12) 1px,
+      rgba(200, 210, 200, 0.0) 8px
+    );
+  animation: windDrift 1.6s linear infinite;
+}
+@keyframes windDrift {
+  from { background-position: 0 0; }
+  to { background-position: 40px 6px; }
+}
+
+/* Fog wash — drifting clouds of mist. */
+.weatherFogDrift {
+  background:
+    radial-gradient(ellipse at 25% 35%, rgba(220, 220, 220, 0.22) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 65%, rgba(220, 220, 220, 0.28) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(200, 210, 220, 0.15) 0%, transparent 65%);
+  animation: fogDrift 18s ease-in-out infinite alternate;
+}
+@keyframes fogDrift {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to   { background-position: 30px 10px, -30px -10px, 15px -5px; }
+}
+
 .weatherWind {
   background: linear-gradient(45deg, rgba(212, 168, 74, 0.05), transparent 40%);
 }
@@ -437,13 +511,14 @@
   z-index: 990;
   display: grid;
   place-items: center;
-  animation: cinFade 4s ease-out forwards;
+  animation: cinFade 4.6s ease-out forwards;
+  overflow: hidden;
 }
 
 @keyframes cinFade {
   0%   { opacity: 0; }
-  20%  { opacity: 1; }
-  80%  { opacity: 1; }
+  10%  { opacity: 1; }
+  88%  { opacity: 1; }
   100% { opacity: 0; pointer-events: none; }
 }
 
@@ -457,6 +532,13 @@
   font-size: 4rem;
   letter-spacing: 0.6rem;
   text-shadow: 0 0 20px rgba(212, 168, 74, 0.5);
+  animation: cinTitleZh 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+@keyframes cinTitleZh {
+  0%   { opacity: 0; letter-spacing: 2rem; filter: blur(20px); transform: scale(1.4); }
+  60%  { opacity: 1; letter-spacing: 0.6rem; filter: blur(0); transform: scale(1); }
+  100% { opacity: 1; letter-spacing: 0.6rem; filter: blur(0); transform: scale(1); }
 }
 
 .cinematicTitleEn {
@@ -465,6 +547,12 @@
   font-style: italic;
   margin-top: 1rem;
   letter-spacing: 0.2rem;
+  animation: cinFadeUp 1.4s ease-out 0.8s forwards;
+  opacity: 0;
+}
+@keyframes cinFadeUp {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .cinematicDesc {
@@ -475,4 +563,59 @@
   max-width: 640px;
   line-height: 1.6;
   text-align: center;
+  animation: cinFadeUp 1.6s ease-out 1.4s forwards;
+  opacity: 0;
+}
+
+/* Cinematic curtain split: two black panels slide apart revealing the title. */
+.cinCurtainL,
+.cinCurtainR {
+  position: absolute; top: 0; bottom: 0;
+  width: 50%;
+  background: linear-gradient(90deg, #0a0805 0%, #1a1208 100%);
+  pointer-events: none;
+}
+.cinCurtainL {
+  left: 0;
+  border-right: 1px solid #3a2818;
+  animation: curtainSlideL 1.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+.cinCurtainR {
+  right: 0;
+  border-left: 1px solid #3a2818;
+  animation: curtainSlideR 1.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+@keyframes curtainSlideL {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+@keyframes curtainSlideR {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+/* Decorative seal / chop appearing under the title. */
+.cinSeal {
+  display: inline-block;
+  margin-top: 1.5rem;
+  width: 56px; height: 56px;
+  border: 2px solid #b8442e;
+  background: rgba(184, 68, 46, 0.15);
+  color: #d4a84a;
+  font-family: 'Songti SC', serif;
+  font-size: 1.7rem;
+  font-weight: bold;
+  line-height: 52px;
+  text-align: center;
+  letter-spacing: 0;
+  border-radius: 4px;
+  transform: rotate(-3deg);
+  box-shadow: 0 0 18px rgba(184, 68, 46, 0.5);
+  animation: cinSealStamp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 2.4s forwards;
+  opacity: 0;
+}
+@keyframes cinSealStamp {
+  0%   { opacity: 0; transform: rotate(-30deg) scale(3); }
+  60%  { opacity: 1; transform: rotate(-3deg) scale(1.2); }
+  100% { opacity: 1; transform: rotate(-3deg) scale(1); }
 }
