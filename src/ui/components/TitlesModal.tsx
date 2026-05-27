@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CIVIC_TITLES, MILITARY_RANKS } from '../../game/data';
+import { CIVIC_TITLES, CIVIC_TITLES_BY_ID, MILITARY_RANKS } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { Appointment, CivicTitleId, EntityId, MilitaryRankId, Officer } from '../../game/types';
 import styles from './TitlesModal.module.css';
@@ -23,16 +23,19 @@ interface Props {
   onClose: () => void;
 }
 
-type Tab = 'civic' | 'military';
+type Tab = 'civic' | 'military' | 'history';
 
 export function TitlesModal({ onClose }: Props) {
   const officers = useGameStore((s) => s.officers);
   const cities = useGameStore((s) => s.cities);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const appointments = useGameStore((s) => s.appointments);
+  const appointmentHistory = useGameStore((s) => s.appointmentHistory);
   const appointTitle = useGameStore((s) => s.appointTitle);
   const revokeTitle = useGameStore((s) => s.revokeTitle);
   const promoteOfficer = useGameStore((s) => s.promoteOfficer);
+  const currentYear = useGameStore((s) => s.date.year);
+  const allForces = useGameStore((s) => s.forces);
 
   const [tab, setTab] = useState<Tab>('civic');
   const [pickingTitle, setPickingTitle] = useState<CivicTitleId | null>(null);
@@ -72,6 +75,18 @@ export function TitlesModal({ onClose }: Props) {
     }
     return map;
   }, [appointments, officers, playerForceId]);
+
+  const titleHolderAppts = useMemo(() => {
+    // Same keying as titleHolders but stores the appointment row (for
+    // tenure year display).
+    const map: Record<string, Appointment> = {};
+    for (const a of appointments) {
+      if (a.forceId !== playerForceId) continue;
+      const key = a.titleId === 'prefect' ? `prefect-${a.cityId}` : a.titleId;
+      map[key] = a;
+    }
+    return map;
+  }, [appointments, playerForceId]);
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -139,14 +154,23 @@ export function TitlesModal({ onClose }: Props) {
           >
             武官 Military Ranks
           </button>
+          <button
+            className={`${styles.tab} ${tab === 'history' ? styles.tabActive : ''}`}
+            onClick={() => setTab('history')}
+          >
+            歷任 History
+          </button>
         </div>
 
         <div className={styles.body}>
-          {tab === 'civic' ? (
+          {tab === 'civic' && (
             <CivicTab
               titleHolders={titleHolders}
+              titleHolderAppts={titleHolderAppts}
               ownOfficers={ownOfficers}
               ownCities={ownCities}
+              appointments={appointments}
+              currentYear={currentYear}
               pickingTitle={pickingTitle}
               setPickingTitle={setPickingTitle}
               prefectCityId={prefectCityId}
@@ -162,13 +186,22 @@ export function TitlesModal({ onClose }: Props) {
               }}
               onRevoke={(officerId) => revokeTitle(officerId)}
             />
-          ) : (
+          )}
+          {tab === 'military' && (
             <MilitaryTab
               ownOfficers={ownOfficers}
               onPromote={(officerId, rankId) => {
                 const r = promoteOfficer(officerId, rankId);
                 if (!r.ok) alert(r.reason ?? 'Failed');
               }}
+            />
+          )}
+          {tab === 'history' && (
+            <HistoryTab
+              history={appointmentHistory}
+              officers={officers}
+              forces={allForces}
+              playerForceId={playerForceId}
             />
           )}
         </div>
@@ -179,8 +212,11 @@ export function TitlesModal({ onClose }: Props) {
 
 function CivicTab({
   titleHolders,
+  titleHolderAppts,
   ownOfficers,
   ownCities,
+  appointments,
+  currentYear,
   pickingTitle,
   setPickingTitle,
   prefectCityId,
@@ -189,8 +225,11 @@ function CivicTab({
   onRevoke,
 }: {
   titleHolders: Record<string, Officer>;
+  titleHolderAppts: Record<string, Appointment>;
   ownOfficers: Officer[];
   ownCities: Array<{ id: EntityId; name: { en: string; zh: string } }>;
+  appointments: Appointment[];
+  currentYear: number;
   pickingTitle: CivicTitleId | null;
   setPickingTitle: (t: CivicTitleId | null) => void;
   prefectCityId: EntityId | null;
@@ -199,6 +238,20 @@ function CivicTab({
   onRevoke: (officerId: EntityId) => void;
 }) {
   const desc = useDesc();
+  /** Sort ownOfficers by stat fit desc with recommendation flag for top fit. */
+  const officersSortedFor = (stat: 'leadership' | 'war' | 'intelligence' | 'politics' | 'charisma'): Array<{ o: Officer; recommended: boolean }> => {
+    const heldIds = new Set(appointments.map((a) => a.officerId));
+    const sorted = [...ownOfficers]
+      .filter((o) => !heldIds.has(o.id))
+      .sort((a, b) => b.stats[stat] - a.stats[stat]);
+    return sorted.map((o, i) => ({ o, recommended: i === 0 }));
+  };
+  const tenureLabel = (a: Appointment) => {
+    const years = currentYear - a.appointedYear;
+    return years <= 0
+      ? `自 ${a.appointedYear}`
+      : `自 ${a.appointedYear} (${years} 年)`;
+  };
   return (
     <div className={styles.titleGrid}>
       {CIVIC_TITLES.map((t) => {
@@ -225,7 +278,14 @@ function CivicTab({
                         <span className={styles.officerStats}>{c.name.en}</span>
                         {' — '}
                         {holder ? (
-                          <span>{holder.name.zh} {holder.name.en}</span>
+                          <span>
+                            {holder.name.zh} {holder.name.en}
+                            {titleHolderAppts[`prefect-${c.id}`] && (
+                              <span className={styles.officerStats} style={{ marginLeft: '0.5rem' }}>
+                                {tenureLabel(titleHolderAppts[`prefect-${c.id}`])}
+                              </span>
+                            )}
+                          </span>
                         ) : (
                           <span className={styles.holderNone}>(vacant)</span>
                         )}
@@ -250,13 +310,16 @@ function CivicTab({
                     {picking && (
                       <div className={styles.picker}>
                         <div className={styles.pickerLabel}>Choose officer</div>
-                        {ownOfficers.map((o) => (
+                        {officersSortedFor('politics').map(({ o, recommended }) => (
                           <button
                             key={o.id}
                             className={styles.officerOption}
                             onClick={() => onAppoint(o.id, 'prefect', c.id)}
                           >
-                            <span>{o.name.zh} {o.name.en}</span>
+                            <span>
+                              {recommended && <span style={{ color: '#d4a84a' }}>★ </span>}
+                              {o.name.zh} {o.name.en}
+                            </span>
                             <span className={styles.officerStats}>
                               POL {o.stats.politics} · INT {o.stats.intelligence}
                             </span>
@@ -288,7 +351,15 @@ function CivicTab({
             <div className={styles.holderRow}>
               <span className={styles.holder}>
                 {holder ? (
-                  <>{holder.name.zh} <span className={styles.officerStats}>{holder.name.en}</span></>
+                  <>
+                    {holder.name.zh}{' '}
+                    <span className={styles.officerStats}>{holder.name.en}</span>
+                    {titleHolderAppts[t.id] && (
+                      <span className={styles.officerStats} style={{ marginLeft: '0.5rem' }}>
+                        {tenureLabel(titleHolderAppts[t.id])}
+                      </span>
+                    )}
+                  </>
                 ) : (
                   <span className={styles.holderNone}>(vacant)</span>
                 )}
@@ -307,13 +378,16 @@ function CivicTab({
             {picking && !holder && (
               <div className={styles.picker}>
                 <div className={styles.pickerLabel}>Choose officer</div>
-                {ownOfficers.map((o) => (
+                {officersSortedFor(t.primaryStat).map(({ o, recommended }) => (
                   <button
                     key={o.id}
                     className={styles.officerOption}
                     onClick={() => onAppoint(o.id, t.id)}
                   >
-                    <span>{o.name.zh} {o.name.en}</span>
+                    <span>
+                      {recommended && <span style={{ color: '#d4a84a' }}>★ </span>}
+                      {o.name.zh} {o.name.en}
+                    </span>
                     <span className={styles.officerStats}>
                       {t.primaryStat.slice(0, 3).toUpperCase()} {o.stats[t.primaryStat]}
                     </span>
@@ -397,6 +471,86 @@ function MilitaryTab({
       )}
       {!selected && (
         <div className={styles.empty}>Pick an officer to promote.</div>
+      )}
+    </div>
+  );
+}
+
+function HistoryTab({
+  history,
+  officers,
+  forces,
+  playerForceId,
+}: {
+  history: import('../../game/types').AppointmentHistoryEntry[];
+  officers: Record<EntityId, Officer>;
+  forces: Record<EntityId, { id: EntityId; name: { en: string; zh: string } }>;
+  playerForceId: EntityId | null;
+}) {
+  const [filter, setFilter] = useState<'mine' | 'all'>('mine');
+  const rows = useMemo(() => {
+    const filtered = filter === 'mine'
+      ? history.filter((h) => h.forceId === playerForceId)
+      : history;
+    return [...filtered].sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      const order = { spring: 0, summer: 1, autumn: 2, winter: 3 } as const;
+      return order[b.season] - order[a.season];
+    });
+  }, [history, filter, playerForceId]);
+  const SEASON_ZH = { spring: '春', summer: '夏', autumn: '秋', winter: '冬' } as const;
+  const REASON_ZH: Record<NonNullable<import('../../game/types').AppointmentHistoryEntry['reason']>, string> = {
+    'dead': '薨', 'imprisoned': '被擒', 'defected': '叛去',
+    'lost-city': '失城', 'missing': '不知所終', 'replaced': '罷免',
+    'manual': '罷免',
+  };
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <button
+          className={`${styles.tab} ${filter === 'mine' ? styles.tabActive : ''}`}
+          onClick={() => setFilter('mine')}
+        >我軍 Mine</button>
+        <button
+          className={`${styles.tab} ${filter === 'all' ? styles.tabActive : ''}`}
+          onClick={() => setFilter('all')}
+        >全部 All</button>
+      </div>
+      {rows.length === 0 ? (
+        <div className={styles.empty}>尚無任官紀錄。</div>
+      ) : (
+        <div>
+          {rows.map((h, i) => {
+            const o = officers[h.officerId];
+            const f = forces[h.forceId];
+            const def = CIVIC_TITLES_BY_ID[h.titleId];
+            if (!o || !def) return null;
+            const yearLabel = `${h.year} 年${SEASON_ZH[h.season]}`;
+            return (
+              <div key={i} className={styles.holderRow}
+                style={{ borderBottom: '1px solid #2a1f15', padding: '0.35rem 0' }}>
+                <span className={styles.holder}>
+                  <span className={styles.officerStats} style={{ marginRight: '0.6rem' }}>{yearLabel}</span>
+                  {filter === 'all' && f && (
+                    <span style={{ marginRight: '0.5rem' }}>
+                      {f.name.zh}
+                    </span>
+                  )}
+                  {h.kind === 'appoint' ? '拜' : '罷'}{' '}
+                  <strong>{o.name.zh}</strong>{' '}
+                  <span className={styles.officerStats}>{o.name.en}</span>
+                  {' 為 '}
+                  <span style={{ color: '#d4a84a' }}>{def.name.zh}</span>
+                  {h.reason && h.kind === 'revoke' && (
+                    <span className={styles.officerStats} style={{ marginLeft: '0.5rem' }}>
+                      ({REASON_ZH[h.reason]})
+                    </span>
+                  )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

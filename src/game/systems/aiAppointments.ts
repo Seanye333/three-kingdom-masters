@@ -8,7 +8,8 @@ import type {
   MilitaryRankId,
   Officer,
 } from '../types';
-import { CIVIC_TITLES, MILITARY_RANKS, MILITARY_RANKS_BY_ID } from '../data/titles';
+import { CIVIC_TITLES, CIVIC_TITLES_BY_ID, MILITARY_RANKS, MILITARY_RANKS_BY_ID } from '../data/titles';
+import { traitRefusal } from './appointmentEffects';
 
 export interface AIAppointmentsContext {
   forces: Record<EntityId, Force>;
@@ -87,7 +88,20 @@ export function planAIAppointments(ctx: AIAppointmentsContext): AIAppointmentsOu
         continue;
       }
       if (heldTitles.has(titleDef.id)) continue;
-      const candidate = pickBestOfficer(forceOfficers, titleDef.primaryStat, heldByOfficer);
+      // Skip if another existing appointment for this force excludes this title
+      // (e.g. an existing 丞相 supersedes 太尉/司徒/大鴻臚).
+      const excludedByExisting = appointments.some((a) => {
+        if (a.forceId !== force.id) return false;
+        const existingDef = CIVIC_TITLES_BY_ID[a.titleId];
+        return existingDef?.excludes?.includes(titleDef.id) ?? false;
+      });
+      if (excludedByExisting) continue;
+      // Find a candidate, skipping those who'd refuse on personality grounds.
+      const candidates = forceOfficers
+        .filter((o) => !heldByOfficer.has(o.id))
+        .filter((o) => !traitRefusal(o, titleDef))
+        .sort((a, b) => b.stats[titleDef.primaryStat] - a.stats[titleDef.primaryStat]);
+      const candidate = candidates[0];
       if (!candidate) continue;
       // Sanity: only appoint someone with at least 60 in the primary stat.
       if (candidate.stats[titleDef.primaryStat] < 60) continue;

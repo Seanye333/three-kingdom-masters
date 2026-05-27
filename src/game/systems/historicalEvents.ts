@@ -86,6 +86,12 @@ export interface EventApplyOutput {
   officers: Record<EntityId, Officer>;
   forces: Record<EntityId, Force>;
   eventFlags: Record<string, boolean>;
+  /** Civic-title grants emitted by 'grant-title' effects this event. */
+  appointmentGrants?: Array<{
+    officerId: EntityId;
+    titleId: import('../types').CivicTitleId;
+    cityId?: EntityId;
+  }>;
 }
 
 /**
@@ -100,11 +106,12 @@ export function applyEventEffects(
   const officers = { ...ctx.officers };
   const forces = { ...ctx.forces };
   const eventFlags = { ...ctx.eventFlags };
+  const appointmentGrants: NonNullable<EventApplyOutput['appointmentGrants']> = [];
 
   for (const e of evt.effects) {
-    applySingleEffect(e, { cities, officers, forces, eventFlags });
+    applySingleEffect(e, { cities, officers, forces, eventFlags, appointmentGrants });
   }
-  return { cities, officers, forces, eventFlags };
+  return { cities, officers, forces, eventFlags, appointmentGrants };
 }
 
 function applySingleEffect(
@@ -200,6 +207,13 @@ function applySingleEffect(
     }
     case 'flag':
       mut.eventFlags[e.key] = true;
+      break;
+    case 'grant-title':
+      mut.appointmentGrants?.push({
+        officerId: e.officerId,
+        titleId: e.titleId,
+        cityId: e.cityId,
+      });
       break;
   }
 }

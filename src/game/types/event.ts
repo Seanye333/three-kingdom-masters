@@ -13,6 +13,7 @@ export type EventEffect =
   | { kind: 'officer-status'; officerId: EntityId; status: 'dead' | 'idle' | 'imprisoned' }
   | { kind: 'officer-join'; officerId: EntityId; forceId: EntityId }
   | { kind: 'spawn-rebel-force'; cityId: EntityId; troops: number; label: BilingualName }
+  | { kind: 'grant-title'; officerId: EntityId; titleId: import('./title').CivicTitleId; cityId?: EntityId }
   | { kind: 'flag'; key: string }; // sets a flag in state.eventFlags
 
 export interface HistoricalEvent {

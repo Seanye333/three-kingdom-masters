@@ -96,12 +96,13 @@ export const CIVIC_TITLES: CivicTitle[] = [
     id: 'chancellor',
     name: { en: 'Chancellor', zh: '丞相' },
     description:
-      'Head of the civil and military government. All internal-affairs effects ×1.25 and +15% recruit chance.',
-    descriptionZh: "三公之首。內政效果 ×1.25,招募 +15%。",
+      'Head of the civil and military government. All internal-affairs effects ×1.25 and +15% recruit chance. Supersedes the three dukes (太尉/司徒) and 大鴻臚.',
+    descriptionZh: "三公之首。內政效果 ×1.25,招募 +15%。設丞相則 太尉/司徒/大鴻臚 罷。",
     uniquePerForce: true,
     primaryStat: 'politics',
     forceBonus: { internalMultiplier: 1.25, recruitBonus: 0.15 },
     loyaltyOnAppoint: 8,
+    excludes: ['minister', 'grand-marshal', 'foreign-affairs'],
   },
   {
     id: 'inspector',

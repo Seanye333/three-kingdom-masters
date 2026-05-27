@@ -36,7 +36,7 @@ import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
 import { planAITurn } from '../systems/ai';
 import { planAIAppointments } from '../systems/aiAppointments';
-import { appointmentBonusFor } from '../systems/appointmentEffects';
+import { appointmentBonusFor, pruneStaleAppointments, traitRefusal, isOnCooldown } from '../systems/appointmentEffects';
 import { COMMAND_DEFS } from '../systems/commands';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
@@ -749,7 +749,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           year: state.date.year,
         });
         const officersAfterAppts = aiAppts.officers;
-        const appointmentsAfterAI = aiAppts.appointments;
+        let appointmentsAfterAI = aiAppts.appointments;
 
         const planned = planAITurn({
           cities: state.cities,
@@ -794,7 +794,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           result.report.entries.unshift(...planned.entries);
         }
         // Surface AI appointment/promotion changes so the player can see
-        // what rival courts did this season.
+        // what rival courts did this season. Also log to appointmentHistory.
+        const aiHistoryAppends: import('../types').AppointmentHistoryEntry[] = [];
         for (const ch of aiAppts.changes) {
           const o = officersAfterAppts[ch.officerId];
           const force = state.forces[ch.forceId];
@@ -807,6 +808,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               kind: 'note',
               text: `${force.name.en} appointed ${o.name.en} as ${def.name.en}.`,
               textZh: `${force.name.zh}拜${o.name.zh}為${def.name.zh}。`,
+            });
+            aiHistoryAppends.push({
+              kind: 'appoint', year: state.date.year, season: state.date.season,
+              officerId: ch.officerId, forceId: ch.forceId, titleId: ch.titleId,
             });
           } else if (ch.kind === 'promote' && ch.rankId) {
             const rankDef = MILITARY_RANKS_BY_ID[ch.rankId];
@@ -947,6 +952,40 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           postFlags = after.eventFlags;
           postFiredIds = [...state.firedEventIds, eventCheck.id];
           firingEvent = eventCheck;
+          // Apply any 'grant-title' effects emitted by this event. These
+          // bypass cooldowns + trait refusals — scripted history wins.
+          for (const grant of after.appointmentGrants ?? []) {
+            const grantee = postOfficers[grant.officerId];
+            const titleDef = CIVIC_TITLES_BY_ID[grant.titleId];
+            if (!grantee || !titleDef || grantee.status === 'dead') continue;
+            // Drop conflicts: same titleId (if unique) or excludes list.
+            const ex = new Set<string>([grant.titleId, ...(titleDef.excludes ?? [])]);
+            appointmentsAfterAI = appointmentsAfterAI.filter((a) => {
+              if (a.officerId === grant.officerId) return false;
+              if (a.forceId === grantee.forceId && ex.has(a.titleId)) return false;
+              if (grant.titleId === 'prefect' && a.titleId === 'prefect' && a.cityId === grant.cityId) return false;
+              return true;
+            });
+            appointmentsAfterAI.push({
+              officerId: grant.officerId,
+              forceId: grantee.forceId!,
+              titleId: grant.titleId,
+              cityId: grant.cityId,
+              appointedYear: result.date.year,
+              appointedSeason: result.date.season,
+            });
+            aiHistoryAppends.push({
+              kind: 'appoint', year: result.date.year, season: result.date.season,
+              officerId: grant.officerId, forceId: grantee.forceId!,
+              titleId: grant.titleId, cityId: grant.cityId,
+            });
+            result.report.entries.push({
+              cityId: grantee.locationCityId,
+              kind: 'talent',
+              text: `By edict, ${grantee.name.en} is named ${titleDef.name.en}.`,
+              textZh: `奉詔拜${grantee.name.zh}為${titleDef.name.zh}。`,
+            });
+          }
         }
 
         // Player's auto-build queues — start any new projects.
@@ -1845,6 +1884,40 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           result.report.entries.push(...titleGrant.entries);
         }
 
+        // Prune appointments whose holders died / were captured / defected
+        // / lost their city this season. Emit a vacancy notice + history.
+        const prune = pruneStaleAppointments(appointmentsAfterAI, postOfficers, postCities);
+        const prunedAppointments = prune.appointments;
+        const pruneHistoryAppends: import('../types').AppointmentHistoryEntry[] = prune.dropped.map((d) => ({
+          kind: 'revoke',
+          year: state.date.year,
+          season: state.date.season,
+          officerId: d.appointment.officerId,
+          forceId: d.appointment.forceId,
+          titleId: d.appointment.titleId,
+          cityId: d.appointment.cityId,
+          reason: d.reason,
+        }));
+        for (const drop of prune.dropped) {
+          const def = CIVIC_TITLES_BY_ID[drop.appointment.titleId];
+          const oName = postOfficers[drop.appointment.officerId]?.name;
+          if (!def || !oName) continue;
+          const reasonZh: Record<typeof drop.reason, string> = {
+            'dead': '薨', 'imprisoned': '被擒', 'defected': '叛去',
+            'lost-city': '失城', 'missing': '不知所終',
+          };
+          const reasonEn: Record<typeof drop.reason, string> = {
+            'dead': 'died', 'imprisoned': 'captured', 'defected': 'defected',
+            'lost-city': 'lost city', 'missing': 'vanished',
+          };
+          result.report.entries.push({
+            cityId: drop.appointment.cityId ?? null,
+            kind: 'note',
+            text: `${oName.en} (${def.name.en}) ${reasonEn[drop.reason]} — post vacant.`,
+            textZh: `${oName.zh}（${def.name.zh}）${reasonZh[drop.reason]}，職位空缺。`,
+          });
+        }
+
         set({
           date: result.date,
           cities: postCities,
@@ -1903,7 +1976,12 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           burningCities: nextBurning,
           mandate: nextMandate,
           pendingDelayedEffects: remainingDelayed,
-          appointments: appointmentsAfterAI,
+          appointments: prunedAppointments,
+          appointmentHistory: [
+            ...state.appointmentHistory,
+            ...aiHistoryAppends,
+            ...pruneHistoryAppends,
+          ],
         });
       },
 
@@ -2418,10 +2496,33 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           if (!city || city.ownerForceId !== state.playerForceId)
             return { ok: false, reason: 'not your city' };
         }
+        // Personality refuses (proud/humble/lazy block certain posts).
+        const refusal = traitRefusal(officer, def);
+        if (refusal) return { ok: false, reason: refusal.zh };
+        // 4-season cooldown after a prior revoke of (officer, title).
+        const cd = isOnCooldown(state.appointmentHistory, officerId, titleId, state.date.year, state.date.season);
+        if (cd.onCooldown) {
+          return { ok: false, reason: `罷免未滿，餘 ${cd.seasonsLeft} 季方可復任。` };
+        }
+        // Apply title exclusions: appointing 丞相 also auto-revokes the
+        // superseded posts (太尉/司徒/大鴻臚). Pre-empted holders go into
+        // the history log as 'replaced'.
+        const excludes = new Set<string>([titleId, ...(def.excludes ?? [])]);
+        const replacedHistory: import('../types').AppointmentHistoryEntry[] = [];
         const filtered = state.appointments.filter((a) => {
           if (a.officerId === officerId) return false;
-          if (def.uniquePerForce && a.titleId === titleId && a.forceId === state.playerForceId)
+          if (a.forceId === state.playerForceId && excludes.has(a.titleId)) {
+            if (a.titleId !== titleId) {
+              replacedHistory.push({
+                kind: 'revoke', year: state.date.year, season: state.date.season,
+                officerId: a.officerId, forceId: a.forceId, titleId: a.titleId,
+                cityId: a.cityId, reason: 'replaced',
+              });
+            }
+            // Same-titled unique post conflict: same logic.
+            if (def.uniquePerForce && a.titleId === titleId) return false;
             return false;
+          }
           if (titleId === 'prefect' && a.titleId === 'prefect' && a.cityId === cityId)
             return false;
           return true;
@@ -2432,6 +2533,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           titleId,
           cityId,
           appointedYear: state.date.year,
+          appointedSeason: state.date.season,
         };
         // Apply loyalty bump on appointment; emit jealousy reactions for
         // higher-stat envious/jealous peers in the same force.
@@ -2459,6 +2561,19 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         set({
           appointments: [...filtered, appt],
           officers: nextOfficers,
+          appointmentHistory: [
+            ...state.appointmentHistory,
+            ...replacedHistory,
+            {
+              kind: 'appoint',
+              year: state.date.year,
+              season: state.date.season,
+              officerId,
+              forceId: state.playerForceId!,
+              titleId,
+              cityId,
+            },
+          ],
         });
         return { ok: true };
       },
@@ -2489,7 +2604,21 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             };
           }
         }
-        set({ appointments: after, officers: nextOfficers });
+        const newHistory: import('../types').AppointmentHistoryEntry[] = revokedAppts.map((a) => ({
+          kind: 'revoke',
+          year: state.date.year,
+          season: state.date.season,
+          officerId: a.officerId,
+          forceId: a.forceId,
+          titleId: a.titleId,
+          cityId: a.cityId,
+          reason: 'manual',
+        }));
+        set({
+          appointments: after,
+          officers: nextOfficers,
+          appointmentHistory: [...state.appointmentHistory, ...newHistory],
+        });
         return { ok: true };
       },
 
@@ -2961,6 +3090,36 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           updates.forces = forces;
           updates.officers = officers;
           updates.cities = cities;
+          // Auto-grant 丞相 to the new emperor's ruler if vacant. (帝即位
+          // 必有相輔。) Bypasses cooldowns / refusals — imperial fiat.
+          const ruler = officers[force.rulerOfficerId];
+          const hasChancellor = state.appointments.some(
+            (a) => a.forceId === playerId && a.titleId === 'chancellor',
+          );
+          if (ruler && !hasChancellor) {
+            const chancellorDef = CIVIC_TITLES_BY_ID['chancellor'];
+            const excludes = new Set<string>(['chancellor', ...(chancellorDef?.excludes ?? [])]);
+            const filteredAppts = state.appointments.filter(
+              (a) => !(a.forceId === playerId && (a.officerId === ruler.id || excludes.has(a.titleId))),
+            );
+            updates.appointments = [
+              ...filteredAppts,
+              {
+                officerId: ruler.id,
+                forceId: playerId,
+                titleId: 'chancellor',
+                appointedYear: state.date.year,
+                appointedSeason: state.date.season,
+              },
+            ];
+            updates.appointmentHistory = [
+              ...state.appointmentHistory,
+              {
+                kind: 'appoint', year: state.date.year, season: state.date.season,
+                officerId: ruler.id, forceId: playerId, titleId: 'chancellor',
+              },
+            ];
+          }
           message = 'You have proclaimed yourself Emperor. All non-vassal rivals lose 10 loyalty.';
         }
 
@@ -3703,6 +3862,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           edictHistory: loaded.edictHistory ?? [],
           edictCooldowns: loaded.edictCooldowns ?? {},
           appointments: loaded.appointments ?? [],
+          appointmentHistory: loaded.appointmentHistory ?? [],
           eventFlags: loaded.eventFlags ?? {},
           firedEventIds: loaded.firedEventIds ?? [],
           ports: migratePorts(
@@ -3747,6 +3907,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         runtimeBonds: state.runtimeBonds,
         battleHistory: state.battleHistory,
         appointments: state.appointments,
+        appointmentHistory: state.appointmentHistory,
         eventFlags: state.eventFlags,
         firedEventIds: state.firedEventIds,
         pendingEspionage: state.pendingEspionage,

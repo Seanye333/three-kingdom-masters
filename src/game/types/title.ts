@@ -70,6 +70,9 @@ export interface CivicTitle {
   };
   /** One-shot loyalty bump granted to the appointee on appointment. */
   loyaltyOnAppoint?: number;
+  /** Other civic titles in this force that get auto-vacated when this
+   *  one is appointed. 丞相 supersedes 太尉/司徒/大鴻臚 historically. */
+  excludes?: CivicTitleId[];
 }
 
 /**
@@ -83,4 +86,22 @@ export interface Appointment {
   /** Only set when titleId === 'prefect'. */
   cityId?: EntityId;
   appointedYear: number;
+  /** Optional season for finer-grained tenure tracking. */
+  appointedSeason?: 'spring' | 'summer' | 'autumn' | 'winter';
+}
+
+/**
+ * Audit log of appointments + revocations. Used for the 歷任 tab and for
+ * the 4-season re-appoint cooldown.
+ */
+export interface AppointmentHistoryEntry {
+  kind: 'appoint' | 'revoke';
+  year: number;
+  season: 'spring' | 'summer' | 'autumn' | 'winter';
+  officerId: EntityId;
+  forceId: EntityId;
+  titleId: CivicTitleId;
+  cityId?: EntityId;
+  /** For revokes/pruning: dead/imprisoned/defected/lost-city/missing/replaced. */
+  reason?: 'dead' | 'imprisoned' | 'defected' | 'lost-city' | 'missing' | 'replaced' | 'manual';
 }

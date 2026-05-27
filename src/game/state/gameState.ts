@@ -77,6 +77,8 @@ export interface GameState {
   battleHistory: HistoricBattle[];
   /** Civic title appointments — one entry per held post. */
   appointments: Appointment[];
+  /** Audit log of appointments + revocations, for tenure cooldowns and the 歷任 tab. */
+  appointmentHistory: import('../types').AppointmentHistoryEntry[];
   /** Generic event flags (e.g. "luoyang-burned", "emperor-with-cao"). */
   eventFlags: Record<string, boolean>;
   /** IDs of historical events that have already fired. */
@@ -212,6 +214,7 @@ export const EMPTY_STATE: GameState = {
   runtimeBonds: [],
   battleHistory: [],
   appointments: [],
+  appointmentHistory: [],
   eventFlags: {},
   firedEventIds: [],
   pendingEvent: null,
@@ -370,6 +373,7 @@ export function loadScenario(
     runtimeBonds: [],
     battleHistory: [],
     appointments: [],
+  appointmentHistory: [],
     eventFlags: {},
     firedEventIds: [],
     pendingEvent: null,
