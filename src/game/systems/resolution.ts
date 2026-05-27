@@ -33,6 +33,10 @@ export interface ResolutionInput {
   family?: import('../types/family').FamilyRelation[];
   /** Civic-title appointments — drive force-wide bonuses in commands + combat. */
   appointments?: import('../types').Appointment[];
+  /** Active 討伐令 marks — combat power +10% from issuer toward target. */
+  casusBelliMarks?: Array<{ byForceId: EntityId; targetForceId: EntityId; expiresYear: number; expiresSeason: 'spring' | 'summer' | 'autumn' | 'winter' }>;
+  /** Transient 求賢令 recruit multipliers — folded into recruit commands. */
+  recruitBonusSeasons?: Record<EntityId, { multiplier: number; seasonsLeft: number }>;
   rng?: () => number;
   weather?: import('./weather').Weather;
   /**
@@ -91,6 +95,8 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       delayedEffectsOut: delayedEffects,
       family: input.family,
       appointments: input.appointments,
+      casusBelliMarks: input.casusBelliMarks,
+      date: input.date,
     });
     cities = outcome.cities;
     officers = outcome.officers;
@@ -121,7 +127,14 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       officers,
       city.id,
     );
-    const result = resolveInternalAffairs(cmd.type, officer, city, rng, bonus);
+    // Fold 求賢令 transient recruit multiplier on top of civic title bonus.
+    const recruitBoost = city.ownerForceId && input.recruitBonusSeasons
+      ? input.recruitBonusSeasons[city.ownerForceId]
+      : undefined;
+    const finalBonus = recruitBoost
+      ? { ...bonus, recruitBonus: bonus.recruitBonus + (recruitBoost.multiplier - 1) }
+      : bonus;
+    const result = resolveInternalAffairs(cmd.type, officer, city, rng, finalBonus);
     cities[city.id] = applyDelta(city, result.delta);
     entries.push({
       cityId: city.id,
@@ -196,6 +209,24 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         text: `${city.name.en}: ${tick.desertion} troops deserted from starvation.`,
         textZh: `${city.name.zh}：因缺糧，逃兵 ${tick.desertion} 名。`,
       });
+    }
+  }
+
+  // 2a. Vassal tribute: each vassal force auto-pays 100g/season to its
+  // suzerain's capital. If the vassal can't pay, no penalty — they're
+  // already a vassal.
+  if (seasonBoundary) {
+    for (const vassal of Object.values(forces)) {
+      if (!vassal.vassalOfForceId) continue;
+      const suzerain = forces[vassal.vassalOfForceId];
+      if (!suzerain) continue;
+      const vCap = cities[vassal.capitalCityId];
+      const sCap = cities[suzerain.capitalCityId];
+      if (!vCap || !sCap) continue;
+      const tribute = Math.min(vCap.gold, 100);
+      if (tribute <= 0) continue;
+      cities[vCap.id] = { ...vCap, gold: vCap.gold - tribute };
+      cities[sCap.id] = { ...cities[sCap.id], gold: cities[sCap.id].gold + tribute };
     }
   }
 

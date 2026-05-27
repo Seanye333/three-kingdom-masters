@@ -14,6 +14,7 @@ export const IMPERIAL_RANKS: ImperialRankDef[] = [
     tier: 1,
     recruitBonus: 0.05,
     internalMultiplier: 1.05,
+    requirements: { minCities: 3 },
   },
   {
     id: 'duke',
@@ -21,6 +22,7 @@ export const IMPERIAL_RANKS: ImperialRankDef[] = [
     tier: 2,
     recruitBonus: 0.1,
     internalMultiplier: 1.1,
+    requirements: { minCities: 10, requiresChancellor: true },
   },
   {
     id: 'king',
@@ -28,6 +30,7 @@ export const IMPERIAL_RANKS: ImperialRankDef[] = [
     tier: 3,
     recruitBonus: 0.15,
     internalMultiplier: 1.2,
+    requirements: { minCities: 20, minYear: 215 },
   },
   {
     id: 'emperor',
@@ -35,6 +38,7 @@ export const IMPERIAL_RANKS: ImperialRankDef[] = [
     tier: 4,
     recruitBonus: 0.25,
     internalMultiplier: 1.35,
+    requirements: { requiresEnthronement: true },
   },
 ];
 
@@ -86,6 +90,42 @@ export const EDICTS: EdictDef[] = [
     minRank: 'king',
     goldCost: 5000,
     cooldownSeasons: 99,
+  },
+  {
+    kind: 'era-change',
+    name: { en: 'Change Era', zh: '改元' },
+    description: 'Proclaim a new era. +5 loyalty in every city you own and all edict cooldowns reset.',
+    descriptionZh: "宣告新元。所轄各城民心 +5，所有詔令冷卻清零。",
+    minRank: 'emperor',
+    goldCost: 2000,
+    cooldownSeasons: 16,
+  },
+  {
+    kind: 'reward-merit',
+    name: { en: 'Reward Merit', zh: '賞功' },
+    description: 'Honor the highest-deeds officer. They gain a court epithet and +15 loyalty.',
+    descriptionZh: "下詔嘉勉武功榜首之將。賜稱號並 +15 忠誠。",
+    minRank: 'duke',
+    goldCost: 800,
+    cooldownSeasons: 6,
+  },
+  {
+    kind: 'call-for-talent',
+    name: { en: 'Call for Talent', zh: '求賢令' },
+    description: 'Open the court to wandering sages. Next-season recruit chance ×1.5 for your force.',
+    descriptionZh: "廣納天下賢士。次季招攬機率 ×1.5。",
+    minRank: 'marquis',
+    goldCost: 600,
+    cooldownSeasons: 6,
+  },
+  {
+    kind: 'self-deprecation',
+    name: { en: 'Edict of Self-Reproach', zh: '罪己詔' },
+    description: 'Take public blame. Mandate −5; every city you own gains +15 loyalty.',
+    descriptionZh: "下詔自責。天命 −5，所轄各城民心 +15。",
+    minRank: 'duke',
+    goldCost: 0,
+    cooldownSeasons: 12,
   },
 ];
 

@@ -155,6 +155,10 @@ export interface BattleContext {
   /** Civic-title power multipliers per side (軍師/太尉/丞相 etc.). */
   attackerTitlePowerMul?: number;
   defenderTitlePowerMul?: number;
+  /** 討伐令 casus-belli combat bonus — attacker gets +10% when its force
+   *  has denounced the defender's force (within the 8-season window). */
+  attackerCasusBelliMul?: number;
+  defenderCasusBelliMul?: number;
 }
 
 export function resolveBattle(
@@ -361,10 +365,12 @@ export function resolveBattle(
 
   const aTitlePowerMul = ctx?.attackerTitlePowerMul ?? 1;
   const dTitlePowerMul = ctx?.defenderTitlePowerMul ?? 1;
+  const aCasusMul = ctx?.attackerCasusBelliMul ?? 1;
+  const dCasusMul = ctx?.defenderCasusBelliMul ?? 1;
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
     (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul *
-    aRelBonus.powerMul * rivalMul * aTitlePowerMul;
+    aRelBonus.powerMul * rivalMul * aTitlePowerMul * aCasusMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -400,7 +406,7 @@ export function resolveBattle(
     dElitePower *
     (stratEffect.defenderPowerMul ?? 1) *
     dPolicy.attackMul * dTraitMods.attackMul * dComboMul * dRelBonus.powerMul * rivalMul *
-    dTitlePowerMul / Math.max(0.5, dPolicy.defenseMul);
+    dTitlePowerMul * dCasusMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;
@@ -666,6 +672,10 @@ export interface MarchContext {
   family?: import('../types/family').FamilyRelation[];
   /** Civic-title appointments — derive per-force power multiplier per battle. */
   appointments?: import('../types').Appointment[];
+  /** Active casus-belli marks (from 討伐令). Attacker gets +10% vs target. */
+  casusBelliMarks?: Array<{ byForceId: EntityId; targetForceId: EntityId; expiresYear: number; expiresSeason: 'spring' | 'summer' | 'autumn' | 'winter' }>;
+  /** Current game date — needed to filter expired casus-belli marks. */
+  date?: { year: number; season: 'spring' | 'summer' | 'autumn' | 'winter' };
 }
 
 export interface MarchOutcome {
@@ -761,6 +771,23 @@ export function handleMarch(
   const defenderTitlePowerMul = ctx.appointments
     ? appointmentBonusFor(target.ownerForceId, ctx.appointments, officers).powerMultiplier
     : 1;
+  // Casus-belli combat bonus (討伐令): if A has denounced B and the mark
+  // is still valid, A gets +10% power when attacking B (and vice versa).
+  const seasonIdx = { spring: 0, summer: 1, autumn: 2, winter: 3 } as const;
+  const isMarkActive = (m: { expiresYear: number; expiresSeason: 'spring' | 'summer' | 'autumn' | 'winter' }) => {
+    if (!ctx.date) return true;
+    const nowAbs = ctx.date.year * 4 + seasonIdx[ctx.date.season];
+    const expAbs = m.expiresYear * 4 + seasonIdx[m.expiresSeason];
+    return nowAbs <= expAbs;
+  };
+  const hasMark = (byF: EntityId | null, targetF: EntityId | null) => {
+    if (!byF || !targetF || !ctx.casusBelliMarks) return false;
+    return ctx.casusBelliMarks.some(
+      (m) => m.byForceId === byF && m.targetForceId === targetF && isMarkActive(m),
+    );
+  };
+  const attackerCasusBelliMul = hasMark(source.ownerForceId, target.ownerForceId) ? 1.1 : 1;
+  const defenderCasusBelliMul = hasMark(target.ownerForceId, source.ownerForceId) ? 1.1 : 1;
   const result = resolveBattle(
     { troops: adjustedAttackerTroops, commander, companions },
     {
@@ -778,6 +805,8 @@ export function handleMarch(
       family: ctx.family,
       attackerTitlePowerMul,
       defenderTitlePowerMul,
+      attackerCasusBelliMul,
+      defenderCasusBelliMul,
     },
   );
   // Account for the prestrike in the casualty report.

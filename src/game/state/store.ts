@@ -37,6 +37,7 @@ import { resolveTribeRaids } from '../systems/tribes';
 import { planAITurn } from '../systems/ai';
 import { planAIAppointments } from '../systems/aiAppointments';
 import { appointmentBonusFor, pruneStaleAppointments, traitRefusal, isOnCooldown } from '../systems/appointmentEffects';
+import { canPromoteToRank } from '../systems/imperialEffects';
 import { COMMAND_DEFS } from '../systems/commands';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
@@ -786,6 +787,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           lostItems: state.lostItems,
           family: state.family,
           appointments: appointmentsAfterAI,
+          casusBelliMarks: state.casusBelliMarks,
+          recruitBonusSeasons: state.recruitBonusSeasons,
           weather: state.weather,
           seasonBoundary,
         });
@@ -1982,6 +1985,23 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             ...aiHistoryAppends,
             ...pruneHistoryAppends,
           ],
+          // 討伐令 marks expire by season — drop any past their date.
+          casusBelliMarks: seasonBoundary
+            ? state.casusBelliMarks.filter((m) => {
+                const seasonIdx = { spring: 0, summer: 1, autumn: 2, winter: 3 } as const;
+                const nextAbs = result.date.year * 4 + seasonIdx[result.date.season];
+                const expAbs = m.expiresYear * 4 + seasonIdx[m.expiresSeason];
+                return nextAbs <= expAbs;
+              })
+            : state.casusBelliMarks,
+          // 求賢令 recruit bonus tick: decrement seasonsLeft, drop expired.
+          recruitBonusSeasons: seasonBoundary
+            ? Object.fromEntries(
+                Object.entries(state.recruitBonusSeasons)
+                  .map(([k, v]) => [k, { ...v, seasonsLeft: v.seasonsLeft - 1 }] as const)
+                  .filter(([, v]) => v.seasonsLeft > 0),
+              )
+            : state.recruitBonusSeasons,
         });
       },
 
@@ -3044,8 +3064,88 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
           updates.cities = cities;
           updates.officers = officers;
+          // 桃园誓师式的「逆贼」标记：相对该势力作战 +10% power，持续 8 季。
+          const expiresAbs = state.date.year * 4 + ['spring', 'summer', 'autumn', 'winter'].indexOf(state.date.season) + 8;
+          const expiresYear = Math.floor(expiresAbs / 4);
+          const expiresSeason = (['spring', 'summer', 'autumn', 'winter'] as const)[expiresAbs % 4];
+          updates.casusBelliMarks = [
+            ...state.casusBelliMarks.filter(
+              (m) => !(m.byForceId === state.playerForceId && m.targetForceId === targetForceId),
+            ),
+            { byForceId: state.playerForceId!, targetForceId, expiresYear, expiresSeason },
+          ];
           const target = state.forces[targetForceId];
-          message = `${target?.name.en ?? 'Target'} denounced. Their officers lose 5 loyalty.`;
+          message = `${target?.name.en ?? 'Target'} denounced. Their officers lose 5 loyalty. Combat power +10% vs them for 8 seasons.`;
+        } else if (kind === 'era-change') {
+          // 改元：全国 +5 城忠诚 + 所有诏令冷却清零
+          const cities = { ...state.cities };
+          for (const c of Object.values(cities)) {
+            if (c.ownerForceId === state.playerForceId) {
+              cities[c.id] = { ...c, loyalty: Math.min(100, c.loyalty + 5) };
+            }
+          }
+          cities[capital.id] = { ...cities[capital.id], gold: cities[capital.id].gold - def.goldCost };
+          updates.cities = cities;
+          updates.edictCooldowns = {}; // wipe all cooldowns
+          message = 'A new era is proclaimed. Loyalty +5; all edict cooldowns reset.';
+        } else if (kind === 'reward-merit') {
+          // 賞功：选武功榜分最高的本国武将，+15 忠诚 + 一个特殊 deed-title
+          const cities = { ...state.cities };
+          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          updates.cities = cities;
+          let bestId: EntityId | null = null;
+          let bestScore = 0;
+          for (const o of Object.values(state.officers)) {
+            if (o.forceId !== state.playerForceId) continue;
+            if (o.status === 'dead' || o.status === 'imprisoned') continue;
+            const d = state.deeds[o.id];
+            if (!d) continue;
+            const score = d.killsTroops / 100 + d.duelsWon * 5 + d.captured * 8 +
+              d.citiesTaken * 15 + d.espionageSuccess * 4 + d.civicWorks * 1 + d.battlesWon * 3;
+            if (score > bestScore) { bestScore = score; bestId = o.id; }
+          }
+          if (!bestId) {
+            return { ok: false, reason: '尚無功業可賞。' };
+          }
+          const honored = state.officers[bestId];
+          const honoredDeed = state.deeds[bestId] ?? { titles: [] };
+          updates.officers = {
+            ...state.officers,
+            [bestId]: { ...honored, loyalty: Math.min(100, honored.loyalty + 15) },
+          };
+          updates.deeds = {
+            ...state.deeds,
+            [bestId]: { ...honoredDeed, officerId: bestId, titles: [...(honoredDeed.titles ?? []), 'royal-honor'] } as import('../types').HeroicDeeds,
+          };
+          message = `${honored.name.en} is honored at court — +15 loyalty.`;
+        } else if (kind === 'call-for-talent') {
+          // 求贤令：下一季 recruit ×1.5
+          const cities = { ...state.cities };
+          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          updates.cities = cities;
+          updates.recruitBonusSeasons = {
+            ...state.recruitBonusSeasons,
+            [state.playerForceId!]: { multiplier: 1.5, seasonsLeft: 1 },
+          };
+          message = 'A call for sages goes out. Next season recruit ×1.5.';
+        } else if (kind === 'self-deprecation') {
+          // 罪己诏：mandate −5 换全国 +15 忠诚
+          const cities = { ...state.cities };
+          for (const c of Object.values(cities)) {
+            if (c.ownerForceId === state.playerForceId) {
+              cities[c.id] = { ...c, loyalty: Math.min(100, c.loyalty + 15) };
+            }
+          }
+          updates.cities = cities;
+          const mandateForForce = state.mandate.byForce[state.playerForceId!] ?? 50;
+          updates.mandate = {
+            ...state.mandate,
+            byForce: {
+              ...state.mandate.byForce,
+              [state.playerForceId!]: Math.max(0, mandateForForce - 5),
+            },
+          };
+          message = 'You shoulder the blame. Mandate −5; loyalty +15 throughout the realm.';
         } else if (kind === 'declare-vassal' && targetForceId) {
           const forces = { ...state.forces };
           const target = forces[targetForceId];
@@ -3120,6 +3220,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               },
             ];
           }
+          updates.eventFlags = {
+            ...state.eventFlags,
+            ['enthroned-' + state.playerForceId]: true,
+          };
           message = 'You have proclaimed yourself Emperor. All non-vassal rivals lose 10 loyalty.';
         }
 
@@ -3131,14 +3235,25 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           issuedYear: state.date.year,
           issuedSeason: state.date.season,
         };
-        const nextSeason = nextSeasonAfter(state.date, def.cooldownSeasons);
+        // 天命 modifier on cooldown: low mandate (<30) adds +1 season,
+        // high mandate (>70) shaves 1 off (min 1). Era-change ignores
+        // since it already resets every cooldown.
+        const playerMandate = state.mandate.byForce[state.playerForceId] ?? 50;
+        let cooldownSeasons = def.cooldownSeasons;
+        if (kind !== 'era-change') {
+          if (playerMandate < 30) cooldownSeasons += 1;
+          else if (playerMandate > 70) cooldownSeasons = Math.max(1, cooldownSeasons - 1);
+        }
+        const nextSeason = nextSeasonAfter(state.date, cooldownSeasons);
         set({
           ...updates,
           edictHistory: [...state.edictHistory, issued],
-          edictCooldowns: {
-            ...state.edictCooldowns,
-            [kind]: nextSeason,
-          },
+          edictCooldowns: kind === 'era-change'
+            ? { [kind]: nextSeason }
+            : {
+                ...state.edictCooldowns,
+                [kind]: nextSeason,
+              },
         });
         return { ok: true, message };
       },
@@ -3147,6 +3262,15 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const state = get();
         const force = state.forces[forceId];
         if (!force) return { ok: false, reason: 'invalid force' };
+        const check = canPromoteToRank(
+          rank,
+          force,
+          state.cities,
+          state.appointments,
+          state.date.year,
+          state.eventFlags,
+        );
+        if (!check.ok) return { ok: false, reason: check.reason };
         set({
           forces: {
             ...state.forces,
@@ -3863,6 +3987,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           edictCooldowns: loaded.edictCooldowns ?? {},
           appointments: loaded.appointments ?? [],
           appointmentHistory: loaded.appointmentHistory ?? [],
+          casusBelliMarks: loaded.casusBelliMarks ?? [],
+          recruitBonusSeasons: loaded.recruitBonusSeasons ?? {},
           eventFlags: loaded.eventFlags ?? {},
           firedEventIds: loaded.firedEventIds ?? [],
           ports: migratePorts(
@@ -3908,6 +4034,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         battleHistory: state.battleHistory,
         appointments: state.appointments,
         appointmentHistory: state.appointmentHistory,
+        casusBelliMarks: state.casusBelliMarks,
+        recruitBonusSeasons: state.recruitBonusSeasons,
         eventFlags: state.eventFlags,
         firedEventIds: state.firedEventIds,
         pendingEspionage: state.pendingEspionage,

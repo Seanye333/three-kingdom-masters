@@ -79,6 +79,10 @@ export interface GameState {
   appointments: Appointment[];
   /** Audit log of appointments + revocations, for tenure cooldowns and the 歷任 tab. */
   appointmentHistory: import('../types').AppointmentHistoryEntry[];
+  /** Per-force casus-belli marks set by 討伐令 — combat power +10% vs targets while active. */
+  casusBelliMarks: Array<{ byForceId: EntityId; targetForceId: EntityId; expiresYear: number; expiresSeason: 'spring' | 'summer' | 'autumn' | 'winter' }>;
+  /** Transient recruit multipliers from 求賢令. Decrements each season. */
+  recruitBonusSeasons: Record<EntityId, { multiplier: number; seasonsLeft: number }>;
   /** Generic event flags (e.g. "luoyang-burned", "emperor-with-cao"). */
   eventFlags: Record<string, boolean>;
   /** IDs of historical events that have already fired. */
@@ -215,6 +219,8 @@ export const EMPTY_STATE: GameState = {
   battleHistory: [],
   appointments: [],
   appointmentHistory: [],
+  casusBelliMarks: [],
+  recruitBonusSeasons: {},
   eventFlags: {},
   firedEventIds: [],
   pendingEvent: null,
@@ -374,6 +380,8 @@ export function loadScenario(
     battleHistory: [],
     appointments: [],
   appointmentHistory: [],
+  casusBelliMarks: [],
+  recruitBonusSeasons: {},
     eventFlags: {},
     firedEventIds: [],
     pendingEvent: null,

@@ -51,6 +51,9 @@ export const DEED_TITLES: DeedTitle[] = [
   // Mentor / family
   { id: 'mentor',              name: { zh: '師者', en: 'Mentor' },                     stat: 'trainingsCompleted', threshold: 5,     loyaltyOnGrant: 2 },
   { id: 'father-of-many',      name: { zh: '多子多孫', en: 'Father of Many' },         stat: 'childrenSired',      threshold: 3,     loyaltyOnGrant: 2 },
+  // Court honors — only granted by the 賞功 edict, never by deed thresholds.
+  // The stat/threshold are set so they never auto-grant (threshold = Infinity).
+  { id: 'royal-honor',         name: { zh: '殊勳', en: 'Royal Honor' },                stat: 'battlesWon',         threshold: Number.MAX_SAFE_INTEGER },
 ];
 
 export const DEED_TITLES_BY_ID: Record<string, DeedTitle> = Object.fromEntries(

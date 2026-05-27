@@ -23,6 +23,15 @@ export interface ImperialRankDef {
   recruitBonus: number;
   /** Multiplier on internal-affairs effects in this force. */
   internalMultiplier: number;
+  /** Promotion gates — all must be satisfied to advance into this rank. */
+  requirements?: {
+    minCities?: number;
+    minYear?: number;
+    /** Optional: requires holding 丞相 (the chancellor civic title). */
+    requiresChancellor?: boolean;
+    /** Optional: must have issued the enthronement edict (帝 only). */
+    requiresEnthronement?: boolean;
+  };
 }
 
 /**
@@ -34,7 +43,11 @@ export type EdictKind =
   | 'tax-amnesty'      // 大赦 — +10 loyalty in every city you own, costs gold
   | 'levy-tribute'     // 朝貢 — demand tribute from a vassal/lesser force
   | 'declare-vassal'   // 冊封 — recognize a force as your vassal (mutual)
-  | 'enthronement';    // 即位 — declare yourself Emperor (huge stakes)
+  | 'enthronement'     // 即位 — declare yourself Emperor (huge stakes)
+  | 'era-change'       // 改元 — declare a new era; restores morale, resets edict cooldowns
+  | 'reward-merit'     // 賞功 — single out the highest-deeds officer for honors
+  | 'call-for-talent'  // 求賢令 — recruit multiplier for next season
+  | 'self-deprecation';// 罪己詔 — admit fault; mandate cost for loyalty gain
 
 export interface EdictDef {
   kind: EdictKind;

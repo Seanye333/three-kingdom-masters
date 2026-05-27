@@ -4,6 +4,8 @@ import { useGameStore } from '../../game/state/store';
 import type { EdictKind, EntityId } from '../../game/types';
 import styles from './CourtModal.module.css';
 import { useLanguage, useDesc } from '../i18n';
+import { canPromoteToRank, nextImperialRank } from '../../game/systems/imperialEffects';
+import { deriveCourtFactions, FACTION_LABEL } from '../../game/systems/courtFactions';
 
 interface Props {
   onClose: () => void;
@@ -17,6 +19,11 @@ export function CourtModal({ onClose }: Props) {
   const date = useGameStore((s) => s.date);
   const issueEdict = useGameStore((s) => s.issueEdict);
   const promoteImperialRank = useGameStore((s) => s.promoteImperialRank);
+  const allCities = useGameStore((s) => s.cities);
+  const allAppointments = useGameStore((s) => s.appointments);
+  const allOfficers = useGameStore((s) => s.officers);
+  const eventFlags = useGameStore((s) => s.eventFlags);
+  const mandate = useGameStore((s) => s.mandate);
   const lang = useLanguage();
   const desc = useDesc();
 
@@ -72,24 +79,76 @@ export function CourtModal({ onClose }: Props) {
             {currentRank === 'commoner' && ' Higher ranks unlock more edicts.'}
             {currentRank === 'emperor' && ' You are the Son of Heaven.'}
           </div>
-          {playerForceId && currentRank !== 'emperor' && (
-            <select
-              value={currentRank}
-              onChange={(e) => promoteImperialRank(playerForceId, e.target.value as typeof currentRank)}
-              style={{
-                background: '#1a1410',
-                border: '1px solid #4a3520',
-                color: '#d4a84a',
-                padding: '0.4rem',
-                fontFamily: 'inherit',
-              }}
-            >
-              {IMPERIAL_RANKS.filter((r) => r.id !== 'emperor').map((r) => (
-                <option key={r.id} value={r.id}>{r.name.zh} {r.name.en}</option>
-              ))}
-            </select>
-          )}
+          {playerForceId && currentRank !== 'emperor' && (() => {
+            const next = nextImperialRank(currentRank);
+            if (!next) return null;
+            const nextDef = IMPERIAL_RANKS_BY_ID[next];
+            const force = forces[playerForceId];
+            const check = force
+              ? canPromoteToRank(next, force, allCities, allAppointments, date.year, eventFlags)
+              : { ok: false, reason: 'invalid force' };
+            const isEmperorPath = next === 'emperor';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
+                <button
+                  disabled={!check.ok || isEmperorPath}
+                  title={isEmperorPath ? '需頒「即位」詔令' : check.ok ? '' : (!check.ok ? check.reason : '')}
+                  onClick={() => {
+                    const r = promoteImperialRank(playerForceId, next);
+                    if (!r.ok) alert(r.reason ?? 'Failed');
+                  }}
+                  style={{
+                    background: check.ok && !isEmperorPath ? '#3a2818' : '#1a1410',
+                    border: '1px solid #d4a84a',
+                    color: check.ok && !isEmperorPath ? '#d4a84a' : '#6a5238',
+                    padding: '0.5rem 0.9rem',
+                    fontFamily: 'inherit',
+                    cursor: check.ok && !isEmperorPath ? 'pointer' : 'not-allowed',
+                    letterSpacing: '0.2rem',
+                  }}
+                >
+                  進爵 → {nextDef.name.zh} {nextDef.name.en}
+                </button>
+                {!check.ok && !isEmperorPath && (
+                  <div style={{ fontSize: '0.7rem', color: '#8a7050' }}>{(check as { reason: string }).reason}</div>
+                )}
+                {isEmperorPath && (
+                  <div style={{ fontSize: '0.7rem', color: '#8a7050' }}>需頒「即位」詔令</div>
+                )}
+              </div>
+            );
+          })()}
         </div>
+        {/* Court factions snapshot (auto-derived from officer stats + traits). */}
+        {playerForceId && (() => {
+          const factions = deriveCourtFactions(allOfficers)[playerForceId] ?? [];
+          if (factions.length === 0) return null;
+          const counts: Record<string, number> = {};
+          for (const f of factions) counts[f.faction] = (counts[f.faction] ?? 0) + 1;
+          const total = factions.length;
+          return (
+            <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid #4a3520', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', fontSize: '0.78rem' }}>
+              <span style={{ color: '#8a7050', letterSpacing: '0.2rem' }}>朝堂派系：</span>
+              {(['military', 'gentry', 'reformer', 'eunuch'] as const).map((fid) => {
+                const n = counts[fid] ?? 0;
+                if (n === 0) return null;
+                const pct = Math.round((n / total) * 100);
+                return (
+                  <span key={fid} style={{ color: pct > 50 ? '#d4a84a' : '#c0a878' }}>
+                    {FACTION_LABEL[fid].zh} {n} ({pct}%)
+                  </span>
+                );
+              })}
+              {playerForceId && (() => {
+                const m = mandate.byForce[playerForceId] ?? 50;
+                const mNote = m < 30 ? '（天命衰）' : m > 70 ? '（天命昌）' : '';
+                return <span style={{ color: m < 30 ? '#b8442e' : m > 70 ? '#d4a84a' : '#8a7050' }}>
+                  · 天命 {m}{mNote}
+                </span>;
+              })()}
+            </div>
+          );
+        })()}
 
         <div className={styles.body}>
           {EDICTS.map((e) => {
@@ -138,9 +197,9 @@ export function CourtModal({ onClose }: Props) {
         </div>
 
         {edictHistory.length > 0 && (
-          <div className={styles.history}>
-            <div className={styles.historyTitle}>Edict History</div>
-            {edictHistory.slice(-10).reverse().map((h) => {
+          <div className={styles.history} style={{ maxHeight: 200, overflow: 'auto' }}>
+            <div className={styles.historyTitle}>詔令履歷 · Edict History ({edictHistory.length})</div>
+            {[...edictHistory].reverse().map((h) => {
               const def = EDICTS.find((d) => d.kind === h.kind);
               const target = h.targetForceId ? forces[h.targetForceId] : null;
               return (
@@ -149,8 +208,8 @@ export function CourtModal({ onClose }: Props) {
                     {h.issuedYear} {h.issuedSeason}
                   </span>
                   {' — '}
-                  {def?.name.en ?? h.kind}
-                  {target && ` → ${target.name.en}`}
+                  {def?.name.zh ?? h.kind}
+                  {target && ` → ${target.name.zh}`}
                 </div>
               );
             })}
