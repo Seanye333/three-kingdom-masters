@@ -111,6 +111,13 @@ export const TERRAIN_FILL_URL: Record<TerrainKind, string> = {
   mountain: 'url(#tkmMountainGrad)',
   river:    'url(#tkmRiverGrad)',
   road:     'url(#tkmRoadGrad)',
+  // New terrain kinds — reuse closest existing gradient as fallback.
+  hill:       'url(#tkmMountainGrad)',
+  marsh:      'url(#tkmRiverGrad)',
+  chokepoint: 'url(#tkmRoadGrad)',
+  bridge:     'url(#tkmRoadGrad)',
+  gate:       'url(#tkmMountainGrad)',
+  watchtower: 'url(#tkmPlainGrad)',
 };
 
 /** Rich per-terrain art: layered pines, shadowed mountains with snow caps,

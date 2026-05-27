@@ -103,6 +103,12 @@ export const TERRAIN_HEIGHT: Record<TerrainKind, number> = {
   plain:     0.10,
   forest:    0.14,
   mountain:  0.18,
+  hill:       0.16,
+  marsh:      -0.05,
+  chokepoint: 0.04,
+  bridge:     0.06,
+  gate:       0.20,
+  watchtower: 0.20,
 };
 export const TERRAIN_COLOR: Record<TerrainKind, string> = {
   river:    '#2c5882',
@@ -110,6 +116,12 @@ export const TERRAIN_COLOR: Record<TerrainKind, string> = {
   plain:    '#4a5e30',
   forest:   '#2a4220',
   mountain: '#5a4838',
+  hill:       '#6a5a3a',  // tawny earth
+  marsh:      '#3a4838',  // boggy green
+  chokepoint: '#5a4530',  // narrow defile (darker road)
+  bridge:     '#8a6840',  // timber
+  gate:       '#4a2820',  // dark masonry
+  watchtower: '#8a7050',  // stone platform
 };
 
 const UNIT_GLYPH: Record<UnitType, string> = {

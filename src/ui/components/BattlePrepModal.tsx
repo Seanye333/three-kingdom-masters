@@ -102,6 +102,7 @@ export function BattlePrepModal({
   const officers = useGameStore((s) => s.officers);
   const cities = useGameStore((s) => s.cities);
   const startTactical = useGameStore((s) => s.startTacticalBattle);
+  const currentWeather = useGameStore((s) => s.weather);
   const lang = useLanguage();
   const desc = useDesc();
 
@@ -177,6 +178,12 @@ export function BattlePrepModal({
           troops: i === 0 ? target.troops - dPerOfficer * (dCount - 1) : dPerOfficer,
         }));
 
+    // Strategic-layer weather snapshot → tactical battle weather.
+    // 'drought' maps to 'clear' (the existing tactical kinds don't include
+    // it). Everything else is 1:1.
+    const stratWeather = currentWeather?.kind ?? 'clear';
+    const tacticalWeather = stratWeather === 'drought' ? 'clear' : stratWeather;
+
     const battle = setupTacticalBattle({
       cityId: target.id,
       width: namedMap?.width ?? 14,
@@ -186,6 +193,7 @@ export function BattlePrepModal({
       attackers,
       defenders: defenderEntries,
       attackerFormation: formation,
+      weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
       // Carry the defender city's perimeter defense structures into the battle.
       buildSlots: target.buildSlots,
       // Geography hints — battlefield matches the defender city's real terrain.

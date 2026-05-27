@@ -134,12 +134,16 @@ export function generateTerrain(
       }
       let terrain: TerrainKind = 'plain';
 
-      // ── Pass: mountains line edges, road in middle ──
+      // ── Pass: mountains line edges, road + chokepoint in middle ──
       if (isPass) {
         if (row === 0 || row === height - 1) terrain = 'mountain';
-        else if (row === Math.floor(height / 2)) terrain = 'road';
+        else if (row === Math.floor(height / 2)) {
+          // Narrow it down — middle column of the road is a chokepoint.
+          terrain = col === Math.floor(width / 2) ? 'chokepoint' : 'road';
+        }
         else if (rng() < mix.mountain) terrain = 'mountain';
         else if (rng() < mix.forest) terrain = 'forest';
+        else if (rng() < 0.05) terrain = 'hill';
         tiles.push({ coord: { col, row }, terrain });
         continue;
       }
@@ -158,10 +162,15 @@ export function generateTerrain(
         continue;
       }
 
-      // ── Wetland: clusters of river hexes ──
+      // ── Wetland: clusters of river + marsh hexes ──
       if (isWetland && row >= Math.floor(height / 2) - 1 && row <= Math.floor(height / 2) + 1) {
-        if (rng() < 0.35) {
+        const wr = rng();
+        if (wr < 0.25) {
           terrain = 'river';
+        } else if (wr < 0.50) {
+          terrain = 'marsh';
+        }
+        if (terrain !== 'plain') {
           tiles.push({ coord: { col, row }, terrain });
           continue;
         }
@@ -173,6 +182,8 @@ export function generateTerrain(
       else if (r < mix.mountain + mix.forest) terrain = 'forest';
       else if (r < mix.mountain + mix.forest + mix.river) terrain = 'river';
       else if (row === Math.floor(height / 2) && rng() < mix.road) terrain = 'road';
+      // Sprinkle hills (~3%) on plains for tactical variety.
+      else if (terrain === 'plain' && rng() < 0.03) terrain = 'hill';
       tiles.push({ coord: { col, row }, terrain });
     }
   }

@@ -122,7 +122,14 @@ export interface HexCoord {
   row: number;
 }
 
-export type TerrainKind = 'plain' | 'forest' | 'mountain' | 'river' | 'road';
+export type TerrainKind =
+  | 'plain' | 'forest' | 'mountain' | 'river' | 'road'
+  | 'hill'        // 高地 — archers gain +1 range, melee gains charge bonus
+  | 'marsh'       // 沼澤 — movement halved, cavalry suffers
+  | 'chokepoint'  // 隘口 — only 1 unit can pass; defenders +30% defense
+  | 'bridge'      // 橋樑 — river-crossing bridge; allows non-navy over rivers
+  | 'gate'        // 城門 — siege-only; tougher than wall but a bottleneck
+  | 'watchtower'; // 瞭望台 — +1 range + reveals hidden adjacent units
 
 /**
  * Unit specialty types. Each has a counter / counter-by relationship:
@@ -164,6 +171,10 @@ export interface TacticalUnit {
   effects: TacticalStatus[];
   /** Unit type (combat arm). */
   unitType: UnitType;
+  /** Hidden ambushers — only revealed when an enemy steps adjacent or
+   *  the unit attacks. Set when starting in forest with the
+   *  ten-ambush formation. */
+  hidden?: boolean;
 }
 
 export type TacticalStatus =

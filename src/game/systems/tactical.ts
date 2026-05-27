@@ -42,16 +42,29 @@ export function counterMultiplier(a: UnitType, d: UnitType): number {
 
 /** Per-terrain multiplier on damage dealt by attacker. */
 const TERRAIN_DAMAGE_MOD: Record<UnitType, Partial<Record<TerrainKind, number>>> = {
-  cavalry: { forest: 0.6, mountain: 0.4, river: 0.5, road: 1.2, plain: 1.1 },
-  archers: { forest: 1.1, mountain: 1.15 },
-  navy: { river: 1.6, plain: 0.4, mountain: 0.2, forest: 0.5, road: 0.6 },
-  siege: { mountain: 0.5, forest: 0.7, river: 0.5 },
-  spearmen: {},
-  infantry: {},
+  cavalry: { forest: 0.6, mountain: 0.4, river: 0.5, road: 1.2, plain: 1.1, hill: 1.3, marsh: 0.4, chokepoint: 0.7, bridge: 0.8 },
+  archers: { forest: 1.1, mountain: 1.15, hill: 1.25, watchtower: 1.25 },
+  navy: { river: 1.6, plain: 0.4, mountain: 0.2, forest: 0.5, road: 0.6, bridge: 1.0 },
+  siege: { mountain: 0.5, forest: 0.7, river: 0.5, gate: 1.4, hill: 1.1 },
+  spearmen: { chokepoint: 1.25 },
+  infantry: { chokepoint: 1.1, hill: 1.1 },
 };
 
 export function terrainDamageMod(t: UnitType, terrain: TerrainKind): number {
   return TERRAIN_DAMAGE_MOD[t][terrain] ?? 1.0;
+}
+
+/** Defender's terrain shield — multiplier on damage TAKEN. <1 = harder to hurt. */
+export function defenderTerrainShield(terrain: TerrainKind): number {
+  switch (terrain) {
+    case 'chokepoint': return 0.7;  // narrow defile — only 1 file can engage
+    case 'watchtower': return 0.85; // elevated bowmen
+    case 'hill':       return 0.9;  // high ground
+    case 'mountain':   return 0.85;
+    case 'forest':     return 0.92;
+    case 'gate':       return 0.6;  // city gate is tough to crack
+    default:           return 1.0;
+  }
 }
 
 /**
@@ -263,6 +276,21 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     }
   }
 
+  // Ambush setup: units of a side using the ten-ambush formation that
+  // begin on forest tiles start hidden. Revealed when an enemy moves
+  // adjacent, or when the hidden unit itself attacks.
+  const ambushSides = new Set<'attacker' | 'defender'>();
+  if (p.attackerFormation === 'ten-ambush') ambushSides.add('attacker');
+  if (p.defenderFormation === 'ten-ambush') ambushSides.add('defender');
+  const finalUnits = ambushSides.size === 0
+    ? units
+    : units.map((u) => {
+        if (!ambushSides.has(u.side)) return u;
+        const tile = tiles.find((t) => t.coord.col === u.coord.col && t.coord.row === u.coord.row);
+        if (tile?.terrain !== 'forest') return u;
+        return { ...u, hidden: true };
+      });
+
   return {
     id: `tac-${p.cityId}-${Date.now()}`,
     cityId: p.cityId,
@@ -271,7 +299,7 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     width,
     height,
     tiles,
-    units,
+    units: finalUnits,
     turn: 1,
     activeSide: 'attacker',
     stratagemCooldowns: {},
@@ -326,6 +354,12 @@ const TERRAIN_MOVE_COST: Record<TerrainKind, number> = {
   forest: 2,
   mountain: 3,
   river: 3,
+  hill: 2,
+  marsh: 3,       // boggy ground
+  chokepoint: 1,  // narrow but flat
+  bridge: 1,      // crosses river cheaply
+  gate: 99,       // impassable until siege breaks it (handled elsewhere)
+  watchtower: 2,  // climbable
 };
 
 export function tileAt(b: TacticalBattle, c: HexCoord): TacticalTile | undefined {
@@ -369,11 +403,20 @@ export function moveUnit(
   const unit = b.units.find((u) => u.id === unitId);
   if (!unit || !canMove(b, unit, to)) return b;
   const cost = moveCost(b, to);
+  // Reveal any hidden enemy that just became adjacent to the moved unit
+  // (and any hidden unit adjacent to a watchtower the moved unit reveals).
+  const adj = hexNeighbours(to);
   return {
     ...b,
-    units: b.units.map((u) =>
-      u.id === unitId ? { ...u, coord: to, ap: u.ap - cost } : u,
-    ),
+    units: b.units.map((u) => {
+      if (u.id === unitId) return { ...u, coord: to, ap: u.ap - cost };
+      // Hidden enemy of the moving unit, now adjacent? Reveal.
+      if (u.hidden && u.side !== unit.side &&
+          adj.some((n) => n.col === u.coord.col && n.row === u.coord.row)) {
+        return { ...u, hidden: false };
+      }
+      return u;
+    }),
   };
 }
 
@@ -402,6 +445,12 @@ export function attackUnits(
   const target = b.units.find((u) => u.id === targetId);
   if (!attacker || !target) return b;
   if (!canAttack(b, attacker, target)) return b;
+  // Ambush bonus + reveal: hidden attacker striking from concealment
+  // gets +30% damage this hit, then is revealed.
+  const ambushBonus = attacker.hidden ? 1.3 : 1.0;
+  if (attacker.hidden) {
+    b = { ...b, units: b.units.map((u) => u.id === attackerId ? { ...u, hidden: false } : u) };
+  }
 
   const ao = officers[attacker.officerId];
   const To = officers[target.officerId];
@@ -435,10 +484,15 @@ export function attackUnits(
   // Weather effects.
   const weatherMul = weatherDamageMul(b.weather, attacker.unitType);
 
+  // Defender's terrain shield (chokepoint, watchtower, hill, mountain,
+  // forest, gate) reduces incoming damage.
+  const dTerrainTile = tileAt(b, target.coord);
+  const dShield = dTerrainTile ? defenderTerrainShield(dTerrainTile.terrain) : 1.0;
+
   const base =
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
-    base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul,
+    base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul * dShield * ambushBonus,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
@@ -995,7 +1049,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     (side === 'attacker' ? b.attackerFormation : b.defenderFormation) === 'eight-trigrams';
 
   // Apply ongoing effects (burning), tick durations, then flip side.
-  const tickedUnits = b.units.map((u) => {
+  let tickedUnits = b.units.map((u) => {
     let troops = u.troops;
     const newEffects: TacticalStatus[] = [];
     // Rattan-armor doubles fire damage (oil-cured rattan ignites).
@@ -1016,6 +1070,59 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     }
     return { ...u, troops, effects: newEffects, ap: u.maxAp };
   });
+
+  // ── Fire spread: each burning unit may set an adjacent unit alight.
+  // Rain blocks spread entirely; wind doubles the chance. Forest hexes
+  // and rattan-armor units catch fire most readily.
+  if (b.weather !== 'rain') {
+    const baseSpreadChance = b.weather === 'wind' ? 0.45 : 0.22;
+    const burningIds = tickedUnits
+      .filter((u) => u.effects.some((e) => e.kind === 'burning'))
+      .map((u) => u.id);
+    for (const bid of burningIds) {
+      const src = tickedUnits.find((u) => u.id === bid);
+      if (!src) continue;
+      const neighbours = hexNeighbours(src.coord);
+      const adjUnit = tickedUnits.find(
+        (u) => neighbours.some((n) => n.col === u.coord.col && n.row === u.coord.row),
+      );
+      if (!adjUnit) continue;
+      if (adjUnit.effects.some((e) => e.kind === 'burning')) continue;
+      const tile = b.tiles.find(
+        (t) => t.coord.col === adjUnit.coord.col && t.coord.row === adjUnit.coord.row,
+      );
+      const adjFormation = adjUnit.side === 'attacker' ? b.attackerFormation : b.defenderFormation;
+      let chance = baseSpreadChance;
+      if (tile?.terrain === 'forest') chance *= 1.6;
+      if (adjFormation === 'rattan-armor') chance *= 2.0;
+      if (Math.random() < chance) {
+        tickedUnits = tickedUnits.map((u) =>
+          u.id === adjUnit.id
+            ? { ...u, effects: [...u.effects, { kind: 'burning', turnsLeft: 2 }] }
+            : u,
+        );
+      }
+    }
+  }
+
+  // ── Morale chain: any unit whose troops just dropped to 0 (routing this
+  // turn) drags adjacent ALLY morale down by 15 — panic spreads.
+  const justRouted = tickedUnits.filter(
+    (u) => u.troops <= 0 && b.units.find((x) => x.id === u.id)!.troops > 0,
+  );
+  if (justRouted.length > 0) {
+    tickedUnits = tickedUnits.map((u) => {
+      if (u.troops <= 0) return u;
+      let drop = 0;
+      for (const r of justRouted) {
+        if (r.side !== u.side) continue;
+        const adj = hexNeighbours(r.coord).some((n) => n.col === u.coord.col && n.row === u.coord.row);
+        if (adj) drop += 15;
+      }
+      if (drop === 0) return u;
+      return { ...u, morale: Math.max(0, u.morale - drop) };
+    });
+  }
 
   // Spawn reinforcements scheduled for this turn.
   const arrivedUnits: TacticalUnit[] = [];
@@ -1440,12 +1547,24 @@ export function aiTakeTurn(
         acted = true;
         break;
       }
-      // Find nearest enemy.
-      const enemies = cur.units.filter((u) => u.side !== unit.side);
+      // Find target: prefer enemies we counter, avoid those who counter us.
+      // Hidden enemies are invisible to the AI.
+      const enemies = cur.units.filter((u) => u.side !== unit.side && !u.hidden);
       if (enemies.length === 0) break;
-      enemies.sort(
-        (a, b1) => hexDistance(unit.coord, a.coord) - hexDistance(unit.coord, b1.coord),
-      );
+      const targetScore = (e: TacticalUnit): number => {
+        const counter = counterMultiplier(unit.unitType, e.unitType);
+        const dist = hexDistance(unit.coord, e.coord);
+        // Lower score = better target. Prefer commanders (×0.5), high counter (×/1.5),
+        // wounded (×troops%), and closer.
+        let s = dist;
+        if (e.isCommander) s *= 0.5;
+        if (counter >= 1.4) s *= 0.6;       // we counter them — pursue
+        if (counter <= 0.8) s *= 1.8;       // they counter us — avoid
+        const woundedRatio = e.troops / Math.max(1, e.maxTroops);
+        s *= (0.5 + woundedRatio);          // wounded = juicier
+        return s;
+      };
+      enemies.sort((a, b1) => targetScore(a) - targetScore(b1));
       const target = enemies[0];
       const dist = hexDistance(unit.coord, target.coord);
       if (dist === 1) {

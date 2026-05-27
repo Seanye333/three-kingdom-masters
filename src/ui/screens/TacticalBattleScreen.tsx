@@ -97,6 +97,12 @@ const TERRAIN_FILL: Record<TerrainKind, string> = {
   mountain: 'url(#tkmMountainGrad)',
   river:    'url(#tkmRiverGrad)',
   road:     'url(#tkmRoadGrad)',
+  hill:       'url(#tkmMountainGrad)',
+  marsh:      'url(#tkmRiverGrad)',
+  chokepoint: 'url(#tkmRoadGrad)',
+  bridge:     'url(#tkmRoadGrad)',
+  gate:       'url(#tkmMountainGrad)',
+  watchtower: 'url(#tkmPlainGrad)',
 };
 
 
