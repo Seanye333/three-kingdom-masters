@@ -688,6 +688,43 @@ button:not(:disabled):active {
   animation: tkmGlint 1.8s ease-in-out infinite;
 }
 
+/* Fire flicker for burning units — quick wobble + alpha. */
+@keyframes tkmFireFlicker {
+  0%   { transform: translateY(0) scaleX(1);    opacity: 0.85; }
+  25%  { transform: translateY(-0.6px) scaleX(1.06); opacity: 0.95; }
+  50%  { transform: translateY(0.3px)  scaleX(0.94); opacity: 0.80; }
+  75%  { transform: translateY(-0.4px) scaleX(1.08); opacity: 0.92; }
+  100% { transform: translateY(0)      scaleX(1);    opacity: 0.85; }
+}
+.tkm-fire-flicker {
+  animation: tkmFireFlicker 0.45s ease-in-out infinite;
+  transform-origin: center bottom;
+  transform-box: fill-box;
+}
+
+/* Watchtower flag ripple. */
+@keyframes tkmFlagRipple {
+  0%, 100% { transform: skewX(0deg); }
+  50%      { transform: skewX(-8deg); }
+}
+.tkm-flag-ripple {
+  animation: tkmFlagRipple 1.6s ease-in-out infinite;
+  transform-origin: left center;
+  transform-box: fill-box;
+}
+
+/* Casualty smoke column — drifts upward and fades. */
+@keyframes tkmSmokeRise {
+  0%   { transform: translateY(0) scale(1);   opacity: 0.8; }
+  50%  { transform: translateY(-6px) scale(1.2); opacity: 0.5; }
+  100% { transform: translateY(-14px) scale(1.6); opacity: 0; }
+}
+.tkm-smoke {
+  animation: tkmSmokeRise 2.4s ease-out infinite;
+  transform-origin: center bottom;
+  transform-box: fill-box;
+}
+
 /* Hover glow on interactive hex polygons. */
 .tkm-hex-interactive {
   cursor: pointer;

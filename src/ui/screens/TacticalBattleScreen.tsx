@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FORMATIONS_BY_ID, NAMED_MAPS_BY_ID, STRATAGEMS } from '../../game/data';
 import {
   aiTakeTurn,
@@ -97,12 +97,12 @@ const TERRAIN_FILL: Record<TerrainKind, string> = {
   mountain: 'url(#tkmMountainGrad)',
   river:    'url(#tkmRiverGrad)',
   road:     'url(#tkmRoadGrad)',
-  hill:       'url(#tkmMountainGrad)',
-  marsh:      'url(#tkmRiverGrad)',
-  chokepoint: 'url(#tkmRoadGrad)',
-  bridge:     'url(#tkmRoadGrad)',
-  gate:       'url(#tkmMountainGrad)',
-  watchtower: 'url(#tkmPlainGrad)',
+  hill:       'url(#tkmHillGrad)',
+  marsh:      'url(#tkmMarshGrad)',
+  chokepoint: 'url(#tkmChokepointGrad)',
+  bridge:     'url(#tkmBridgeGrad)',
+  gate:       'url(#tkmGateGrad)',
+  watchtower: 'url(#tkmWatchtowerGrad)',
 };
 
 
@@ -141,6 +141,9 @@ export function TacticalBattleScreen() {
   // Visual effects: trails for recent moves, arcs for recent attacks.
   const [moveTrails, setMoveTrails] = useState<{ id: number; from: HexCoord; to: HexCoord }[]>([]);
   const [attackArcs, setAttackArcs] = useState<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged' }[]>([]);
+  // Casualty markers: smoke columns at recently-routed unit positions.
+  const [casualties, setCasualties] = useState<{ id: number; coord: HexCoord; side: 'attacker' | 'defender' }[]>([]);
+  const prevUnitsRef = useRef<Array<{ id: string; coord: HexCoord; side: 'attacker' | 'defender' }>>([]);
 
   // Identify which side the player is on.
   const playerSide: 'attacker' | 'defender' | null = useMemo(() => {
@@ -178,6 +181,28 @@ export function TacticalBattleScreen() {
       setVoiceLine({ text: last.text, key: Date.now() });
     }
   }, [battle?.log?.length]);
+
+  // Track unit roster to spawn casualty smoke when units disappear.
+  useEffect(() => {
+    if (!battle) return;
+    const currentIds = new Set(battle.units.map((u) => u.id));
+    const lost: typeof casualties = [];
+    for (const prev of prevUnitsRef.current) {
+      if (!currentIds.has(prev.id)) {
+        lost.push({
+          id: Date.now() + Math.random(),
+          coord: prev.coord,
+          side: prev.side,
+        });
+      }
+    }
+    prevUnitsRef.current = battle.units.map((u) => ({ id: u.id, coord: u.coord, side: u.side }));
+    if (lost.length > 0) {
+      setCasualties((c) => [...c, ...lost]);
+      const ids = lost.map((l) => l.id);
+      setTimeout(() => setCasualties((c) => c.filter((x) => !ids.includes(x.id))), 3500);
+    }
+  }, [battle?.units]);
 
   // Sound effects on damage popup spawn.
   useEffect(() => {
@@ -223,7 +248,8 @@ export function TacticalBattleScreen() {
       start(moveUnit(battle, selected.id, c));
       const tid = Date.now();
       setMoveTrails((t) => [...t, { id: tid, from: fromCoord, to: c }]);
-      setTimeout(() => setMoveTrails((t) => t.filter((x) => x.id !== tid)), 900);
+      // Linger longer so the player can see who's been where this turn.
+      setTimeout(() => setMoveTrails((t) => t.filter((x) => x.id !== tid)), 5000);
       setActionMode({ kind: 'none' });
       return;
     }
@@ -452,6 +478,19 @@ export function TacticalBattleScreen() {
           {/* Weather overlay */}
           {battle.weather === 'rain' && <div className={`${styles.weatherOverlay} ${styles.weatherRain}`} />}
           {battle.weather === 'snow' && <div className={`${styles.weatherOverlay} ${styles.weatherSnow}`} />}
+          {/* Time-of-day tint — non-intrusive color wash over the battlefield. */}
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5,
+            mixBlendMode: 'multiply',
+            background:
+              battle.timeOfDay === 'dawn'
+                ? 'linear-gradient(180deg, rgba(255,200,150,0.18), rgba(220,170,110,0.08))'
+                : battle.timeOfDay === 'dusk'
+                  ? 'linear-gradient(180deg, rgba(255,130,90,0.16), rgba(200,80,60,0.10))'
+                  : battle.timeOfDay === 'night'
+                    ? 'linear-gradient(180deg, rgba(40,40,80,0.30), rgba(20,20,50,0.40))'
+                    : 'transparent',
+          }} />
 
           {/* Terrain legend — collapsible chip at bottom-left of battlefield. */}
           <div style={{
@@ -787,6 +826,57 @@ export function TacticalBattleScreen() {
                 />
               );
             })}
+            {/* Casualty smoke columns at recently-routed positions. */}
+            {casualties.map((c) => {
+              const { x, y } = hexCenter(c.coord.col, c.coord.row);
+              const color = c.side === 'attacker' ? '#b8442e' : '#3a7dd9';
+              return (
+                <g key={`cas-${c.id}`} pointerEvents="none">
+                  {/* Fallen banner — toppled pole. */}
+                  <line x1={x - 4} y1={y + 3} x2={x + 5} y2={y - 3}
+                    stroke="#3a2818" strokeWidth="1" opacity="0.6" />
+                  <path d={`M ${x + 5} ${y - 3} L ${x + 9} ${y - 1} L ${x + 5} ${y + 1} Z`}
+                    fill={color} opacity="0.5" />
+                  {/* Smoke wisps */}
+                  <g className="tkm-smoke">
+                    <ellipse cx={x} cy={y - 3} rx="3" ry="2" fill="#5a5040" opacity="0.7" />
+                    <ellipse cx={x - 1} cy={y - 6} rx="2.5" ry="1.8" fill="#7a7060" opacity="0.5" />
+                    <ellipse cx={x + 1} cy={y - 9} rx="2" ry="1.5" fill="#8a8070" opacity="0.4" />
+                  </g>
+                </g>
+              );
+            })}
+            {/* Formation adjacency lines — gold filaments between same-side
+                allies when a strict-adjacency formation is active. */}
+            {(() => {
+              const showFor: Array<'attacker' | 'defender'> = [];
+              const adjacencyFormations = new Set(['fish-scale', 'eight-trigrams', 'square', 'wheel', 'mandarin-duck']);
+              if (battle.attackerFormation && adjacencyFormations.has(battle.attackerFormation)) showFor.push('attacker');
+              if (battle.defenderFormation && adjacencyFormations.has(battle.defenderFormation)) showFor.push('defender');
+              if (showFor.length === 0) return null;
+              const lines: React.ReactElement[] = [];
+              for (const side of showFor) {
+                const teamUnits = battle.units.filter((u) => u.side === side && !u.hidden);
+                for (let i = 0; i < teamUnits.length; i++) {
+                  for (let j = i + 1; j < teamUnits.length; j++) {
+                    if (hexDistance(teamUnits[i].coord, teamUnits[j].coord) === 1) {
+                      const a = hexCenter(teamUnits[i].coord.col, teamUnits[i].coord.row);
+                      const b = hexCenter(teamUnits[j].coord.col, teamUnits[j].coord.row);
+                      lines.push(
+                        <line key={`form-${side}-${i}-${j}`}
+                          x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                          stroke="#d4a84a" strokeWidth="0.8" opacity="0.4"
+                          strokeDasharray="3 3"
+                          pointerEvents="none">
+                          <animate attributeName="opacity" values="0.3;0.55;0.3" dur="3s" repeatCount="indefinite" />
+                        </line>,
+                      );
+                    }
+                  }
+                }
+              }
+              return <g>{lines}</g>;
+            })()}
             {battle.units
               // Hidden enemy units: invisible to the player until revealed.
               // Hidden own units: shown semi-transparently so player can plan.
@@ -808,6 +898,32 @@ export function TacticalBattleScreen() {
                     <text x={x} y={y + HEX_SIZE * 1.2} textAnchor="middle"
                       fontSize="9" fill="#d4a84a" fontFamily="Songti SC, serif"
                       pointerEvents="none">伏</text>
+                  )}
+                  {/* Commander emblem — larger gold ring + 主 ideogram. */}
+                  {u.isCommander && (
+                    <>
+                      <circle cx={x} cy={y} r={HEX_SIZE * 0.95}
+                        fill="none" stroke="#d4a84a" strokeWidth="1"
+                        opacity="0.4" strokeDasharray="2 2" />
+                      <text x={x} y={y + HEX_SIZE * 1.45} textAnchor="middle"
+                        fontSize="7" fill="#d4a84a" fontFamily="Songti SC, serif"
+                        fontWeight="bold" pointerEvents="none"
+                        stroke="#1a1208" strokeWidth="0.3">主</text>
+                    </>
+                  )}
+                  {/* Burning fire animation — flickering flames on burning units. */}
+                  {u.effects.some((e) => e.kind === 'burning') && (
+                    <g pointerEvents="none" className="tkm-fire-flicker">
+                      <path d={`M ${x - 4} ${y - HEX_SIZE * 0.7}
+                        Q ${x - 2} ${y - HEX_SIZE * 1.1} ${x} ${y - HEX_SIZE * 0.9}
+                        Q ${x + 2} ${y - HEX_SIZE * 1.3} ${x + 4} ${y - HEX_SIZE * 0.8}
+                        Q ${x + 2} ${y - HEX_SIZE * 0.6} ${x} ${y - HEX_SIZE * 0.7}
+                        Q ${x - 2} ${y - HEX_SIZE * 0.5} ${x - 4} ${y - HEX_SIZE * 0.7} Z`}
+                        fill="#f55a20" opacity="0.85" />
+                      <path d={`M ${x - 2} ${y - HEX_SIZE * 0.75}
+                        Q ${x} ${y - HEX_SIZE * 1.0} ${x + 2} ${y - HEX_SIZE * 0.8} Z`}
+                        fill="#ffd060" opacity="0.9" />
+                    </g>
                   )}
                   {/* Selection glow */}
                   {isSel && (
@@ -915,6 +1031,21 @@ export function TacticalBattleScreen() {
                       ★
                     </text>
                   )}
+                  {/* HP bar (above unit) + morale bar (thinner below). */}
+                  <g pointerEvents="none">
+                    {/* HP bar background */}
+                    <rect x={x - HEX_SIZE * 0.65} y={y - HEX_SIZE * 1.25}
+                      width={HEX_SIZE * 1.3} height="2.5"
+                      fill="#1a1208" stroke="#3a2818" strokeWidth="0.3" />
+                    {/* HP bar fill */}
+                    <rect x={x - HEX_SIZE * 0.65} y={y - HEX_SIZE * 1.25}
+                      width={HEX_SIZE * 1.3 * trooppct} height="2.5"
+                      fill={trooppct > 0.6 ? '#7ed68a' : trooppct > 0.3 ? '#d4a84a' : '#b8442e'} />
+                    {/* Morale bar (thinner) */}
+                    <rect x={x - HEX_SIZE * 0.65} y={y - HEX_SIZE * 1.05}
+                      width={HEX_SIZE * 1.3 * (u.morale / 100)} height="1.2"
+                      fill="#88b7e8" opacity="0.7" />
+                  </g>
                 </g>
               );
             })}
