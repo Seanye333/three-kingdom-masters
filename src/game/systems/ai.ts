@@ -57,6 +57,9 @@ export interface AIPlanInput {
   runtimeBonds: OathBond[];
   /** Runtime family — flows into recruiting for kinship bonus (R1). */
   family?: import('../types/family').FamilyRelation[];
+  /** Civic-title appointments — so AI can route a city's internal-affairs
+   *  to its prefect (who gets the +15% internalMultiplier bonus). */
+  appointments?: import('../types').Appointment[];
   date: GameDate;
   difficulty?: Difficulty;
   rng?: () => number;
@@ -111,6 +114,12 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
       );
       if (officersHere.length === 0) continue;
 
+      // Look up this city's prefect (if any) so decideCommand can prefer
+      // them for internal-affairs (the +15% internalMultiplier bonus).
+      const prefectAppt = (input.appointments ?? []).find(
+        (a) => a.titleId === 'prefect' && a.forceId === forceId && a.cityId === city.id,
+      );
+      const prefectId = prefectAppt?.officerId ?? null;
       const decision = decideCommand(
         city,
         officersHere,
@@ -121,6 +130,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         rng,
         input.forces,
         input.family ?? [],
+        prefectId,
       );
       if (!decision) continue;
 
@@ -492,11 +502,12 @@ function decideCommand(
   rng: () => number,
   forces: Record<EntityId, Force>,
   family: import('../types/family').FamilyRelation[],
+  prefectId: EntityId | null = null,
 ): Decision | null {
   const ownRulerId = forces[forceId]?.rulerOfficerId;
   // 1. Food crisis — develop agriculture
   if (city.food < city.troops * 0.6) {
-    const o = bestForCommand(officersHere, 'politics', 'develop-agriculture');
+    const o = bestForCommand(officersHere, 'politics', 'develop-agriculture', prefectId);
     if (o && canAfford(city, 'develop-agriculture')) {
       return internalDecision('develop-agriculture', city, o);
     }
@@ -504,7 +515,7 @@ function decideCommand(
 
   // 2. Troop crisis — recruit
   if (city.troops < 3000) {
-    const o = bestForCommand(officersHere, 'charisma', 'recruit-troops');
+    const o = bestForCommand(officersHere, 'charisma', 'recruit-troops', prefectId);
     if (o && canAfford(city, 'recruit-troops') && city.population > 50_000) {
       return internalDecision('recruit-troops', city, o);
     }
@@ -512,7 +523,7 @@ function decideCommand(
 
   // 3. Loyalty crisis — pacify
   if (city.loyalty < 40) {
-    const o = bestForCommand(officersHere, 'charisma', 'improve-loyalty');
+    const o = bestForCommand(officersHere, 'charisma', 'improve-loyalty', prefectId);
     if (o && canAfford(city, 'improve-loyalty')) {
       return internalDecision('improve-loyalty', city, o);
     }
@@ -598,14 +609,14 @@ function decideCommand(
 
   // 5. Routine — develop the lowest of agriculture/commerce/defense
   const devType = lowestDevCommand(city);
-  const o = bestBy(officersHere, 'politics');
+  const o = bestBy(officersHere, 'politics', prefectId);
   if (o && canAfford(city, devType)) {
     return internalDecision(devType, city, o);
   }
 
   // 6. Pacify if we can afford it (cheap fallback)
   if (city.loyalty < 90) {
-    const fb = bestBy(officersHere, 'charisma');
+    const fb = bestBy(officersHere, 'charisma', prefectId);
     if (fb && canAfford(city, 'improve-loyalty')) {
       return internalDecision('improve-loyalty', city, fb);
     }
@@ -636,24 +647,34 @@ function canAfford(city: City, type: InternalAffairsType | 'march'): boolean {
 function bestBy(
   officers: Officer[],
   stat: keyof OfficerStats,
+  prefectId: EntityId | null = null,
 ): Officer | null {
   if (officers.length === 0) return null;
-  return [...officers].sort((a, b) => b.stats[stat] - a.stats[stat])[0];
+  return [...officers].sort((a, b) => {
+    const aScore = a.stats[stat] * (a.id === prefectId ? 1.2 : 1);
+    const bScore = b.stats[stat] * (b.id === prefectId ? 1.2 : 1);
+    return bScore - aScore;
+  })[0];
 }
 
-/** P3 — fit-aware picker. Score = stat × trait fit multiplier. Higher
- *  is better. Falls back to base stat when no fit modifier applies. */
+/** P3 — fit-aware picker. Score = stat × trait fit × prefect bias.
+ *  Prefects get a +20% nudge when their seat city is the work site, so
+ *  the +15% internalMultiplier bonus actually lands. */
 function bestForCommand(
   officers: Officer[],
   stat: keyof OfficerStats,
   type: InternalAffairsType | 'march',
+  prefectId: EntityId | null = null,
 ): Officer | null {
   if (officers.length === 0) return null;
-  return [...officers].sort(
-    (a, b) =>
-      b.stats[stat] * commandFitMultiplier(b, type) -
-      a.stats[stat] * commandFitMultiplier(a, type),
-  )[0];
+  return [...officers].sort((a, b) => {
+    const aPref = a.id === prefectId ? 1.2 : 1;
+    const bPref = b.id === prefectId ? 1.2 : 1;
+    return (
+      b.stats[stat] * commandFitMultiplier(b, type) * bPref -
+      a.stats[stat] * commandFitMultiplier(a, type) * aPref
+    );
+  })[0];
 }
 
 function lowestDevCommand(

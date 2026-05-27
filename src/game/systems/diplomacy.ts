@@ -42,6 +42,16 @@ export interface DiplomaticContext {
   diplomacy: DiplomaticState;
   date: GameDate;
   rng?: () => number;
+  /** Multiplier on relation score deltas — driven by 大鴻臚 (Herald) title. */
+  diplomacyMultiplier?: number;
+}
+
+/** Round-half-up so a 1.2 multiplier on a +5 base still feels generous. */
+function scaleDelta(delta: number, mul: number | undefined): number {
+  if (!mul || mul === 1) return delta;
+  return delta >= 0
+    ? Math.ceil(delta * mul)
+    : Math.floor(delta * mul);
 }
 
 export function proposeAlliance(ctx: DiplomaticContext): DiplomaticOutcome {
@@ -74,10 +84,11 @@ export function proposeAlliance(ctx: DiplomaticContext): DiplomaticOutcome {
   const roll = rng();
 
   if (roll < chance) {
+    const delta = scaleDelta(30, ctx.diplomacyMultiplier);
     const next = setRelation(ctx.diplomacy, ctx.player.id, ctx.target.id, (r) => ({
       ...r,
       status: 'allied',
-      score: clamp(-100, 100, r.score + 30),
+      score: clamp(-100, 100, r.score + delta),
       expiresAt: undefined,
     }));
     return {
@@ -85,20 +96,21 @@ export function proposeAlliance(ctx: DiplomaticContext): DiplomaticOutcome {
       accepted: true,
       message: `${ctx.target.name.en} accepts an alliance with ${ctx.player.name.en}!`,
       diplomacy: next,
-      scoreDelta: 30,
+      scoreDelta: delta,
     };
   }
 
+  const delta = scaleDelta(5, ctx.diplomacyMultiplier);
   const next = setRelation(ctx.diplomacy, ctx.player.id, ctx.target.id, (r) => ({
     ...r,
-    score: clamp(-100, 100, r.score + 5),
+    score: clamp(-100, 100, r.score + delta),
   }));
   return {
     ok: true,
     accepted: false,
     message: `${ctx.target.name.en} declines the alliance, but the gesture is noted.`,
     diplomacy: next,
-    scoreDelta: 5,
+    scoreDelta: delta,
   };
 }
 
@@ -123,10 +135,11 @@ export function proposeNonAggression(
   const chance = clamp(0.1, 0.95, current.score / 150 + 0.55 + napTraitBonus - napTargetResist);
   const roll = rng();
   if (roll < chance) {
+    const delta = scaleDelta(15, ctx.diplomacyMultiplier);
     const next = setRelation(ctx.diplomacy, ctx.player.id, ctx.target.id, (r) => ({
       ...r,
       status: 'non-aggression',
-      score: clamp(-100, 100, r.score + 15),
+      score: clamp(-100, 100, r.score + delta),
       expiresAt: addSeasons(ctx.date, NAP_DURATION_SEASONS),
     }));
     return {
@@ -134,19 +147,20 @@ export function proposeNonAggression(
       accepted: true,
       message: `${ctx.target.name.en} agrees to a non-aggression pact for ${NAP_DURATION_SEASONS} seasons.`,
       diplomacy: next,
-      scoreDelta: 15,
+      scoreDelta: delta,
     };
   }
+  const delta = scaleDelta(3, ctx.diplomacyMultiplier);
   const next = setRelation(ctx.diplomacy, ctx.player.id, ctx.target.id, (r) => ({
     ...r,
-    score: clamp(-100, 100, r.score + 3),
+    score: clamp(-100, 100, r.score + delta),
   }));
   return {
     ok: true,
     accepted: false,
     message: `${ctx.target.name.en} refuses the pact.`,
     diplomacy: next,
-    scoreDelta: 3,
+    scoreDelta: delta,
   };
 }
 
@@ -154,7 +168,7 @@ export function payTribute(
   ctx: DiplomaticContext,
   amount: number,
 ): DiplomaticOutcome {
-  const gain = Math.floor(amount / 10);
+  const gain = scaleDelta(Math.floor(amount / 10), ctx.diplomacyMultiplier);
   const next = setRelation(ctx.diplomacy, ctx.player.id, ctx.target.id, (r) => ({
     ...r,
     score: clamp(-100, 100, r.score + gain),
@@ -199,10 +213,11 @@ export function proposeHostage(
     };
   }
   // Acceptance: high — hostages are a near-guaranteed peace signal
+  const delta = scaleDelta(HOSTAGE_RELATION_BONUS, ctx.diplomacyMultiplier);
   const next = setRelation(ctx.diplomacy, ctx.player.id, ctx.target.id, (r) => ({
     ...r,
     status: 'non-aggression',
-    score: clamp(-100, 100, r.score + HOSTAGE_RELATION_BONUS),
+    score: clamp(-100, 100, r.score + delta),
     expiresAt: addSeasons(ctx.date, NAP_DURATION_SEASONS * 2),
   }));
   return {
@@ -210,7 +225,7 @@ export function proposeHostage(
     accepted: true,
     message: `${ctx.target.name.en} accepts the hostage. A long peace is sworn (${NAP_DURATION_SEASONS * 2} seasons).`,
     diplomacy: next,
-    scoreDelta: HOSTAGE_RELATION_BONUS,
+    scoreDelta: delta,
   };
 }
 

@@ -137,6 +137,8 @@ function generateWish(o: Officer, ctx: WishContext): OfficerWish {
 export interface ApplyWishContext {
   officers: Record<EntityId, Officer>;
   cities: Record<EntityId, City>;
+  /** Multiplier on the granted loyalty bonus — driven by 諫議大夫. */
+  advisorMultiplier?: number;
 }
 
 export function applyWishGrant(
@@ -151,16 +153,17 @@ export function applyWishGrant(
       entry: { cityId: null, kind: 'note', text: 'Wish target gone.', textZh: '心願對象已不在。' },
     };
   }
+  const bonus = Math.ceil(wish.grantBonus * (ctx.advisorMultiplier ?? 1));
   if (wish.kind === 'transfer' && wish.targetId) {
     officers[o.id] = {
       ...o,
       locationCityId: wish.targetId,
-      loyalty: Math.min(100, o.loyalty + wish.grantBonus),
+      loyalty: Math.min(100, o.loyalty + bonus),
     };
   } else {
     officers[o.id] = {
       ...o,
-      loyalty: Math.min(100, o.loyalty + wish.grantBonus),
+      loyalty: Math.min(100, o.loyalty + bonus),
     };
   }
   return {
@@ -168,8 +171,8 @@ export function applyWishGrant(
     entry: {
       cityId: o.locationCityId,
       kind: 'note',
-      text: `Granted ${o.name.en}'s wish (+${wish.grantBonus} loyalty).`,
-      textZh: `達成${o.name.zh}之心願（忠誠 +${wish.grantBonus}）。`,
+      text: `Granted ${o.name.en}'s wish (+${bonus} loyalty).`,
+      textZh: `達成${o.name.zh}之心願（忠誠 +${bonus}）。`,
     },
   };
 }

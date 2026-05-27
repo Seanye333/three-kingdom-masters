@@ -36,6 +36,7 @@ import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
 import { planAITurn } from '../systems/ai';
 import { planAIAppointments } from '../systems/aiAppointments';
+import { appointmentBonusFor } from '../systems/appointmentEffects';
 import { COMMAND_DEFS } from '../systems/commands';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
@@ -564,8 +565,13 @@ export const useGameStore = create<GameStore>()(
         if (duration <= 0) {
           const have = officer.policies ?? [];
           if (have.includes(policyId)) return { ok: false, reason: '已通此政策' };
+          const advisorMul = appointmentBonusFor(
+            officer.forceId,
+            state.appointments,
+            state.officers,
+          ).advisorMultiplier;
           const newLoyalty = matchingWish
-            ? Math.min(100, officer.loyalty + matchingWish.grantBonus)
+            ? Math.min(100, officer.loyalty + Math.ceil(matchingWish.grantBonus * advisorMul))
             : officer.loyalty;
           set({
             cities: {
@@ -757,6 +763,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           diplomacy: state.diplomacy,
           runtimeBonds: state.runtimeBonds,
           family: state.family,
+          appointments: appointmentsAfterAI,
           date: state.date,
         });
         // Compute whether this period transition crosses a season boundary.
@@ -1707,8 +1714,14 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
                   w.targetId === t.policyId &&
                   !consumedWishIds.has(w.id),
               );
+              const advisorMul = appointmentBonusFor(
+                o.forceId,
+                state.appointments,
+                officersUpd,
+              ).advisorMultiplier;
+              const wishBonus = wish ? Math.ceil(wish.grantBonus * advisorMul) : 0;
               const newLoyalty = wish
-                ? Math.min(100, o.loyalty + wish.grantBonus)
+                ? Math.min(100, o.loyalty + wishBonus)
                 : o.loyalty;
               officersUpd[t.officerId] = { ...o, policies: [...have, t.policyId], loyalty: newLoyalty };
               if (wish) consumedWishIds.add(wish.id);
@@ -1716,8 +1729,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               result.report.entries.push({
                 cityId: t.cityId,
                 kind: 'talent',
-                text: `${o.name.en} completed academy training and learned ${polDef?.en ?? t.policyId}.${wish ? ` (Wish granted, loyalty +${wish.grantBonus}.)` : ''}`,
-                textZh: `${o.name.zh}書院培訓畢業,習得「${polDef?.zh ?? t.policyId}」。${wish ? `(夙願得償,忠誠 +${wish.grantBonus}。)` : ''}`,
+                text: `${o.name.en} completed academy training and learned ${polDef?.en ?? t.policyId}.${wish ? ` (Wish granted, loyalty +${wishBonus}.)` : ''}`,
+                textZh: `${o.name.zh}書院培訓畢業,習得「${polDef?.zh ?? t.policyId}」。${wish ? `(夙願得償,忠誠 +${wishBonus}。)` : ''}`,
               });
               // X1 — Parent mentor: ~15% chance the parent gains 'erudite'
               // trait from teaching their child (only if they don't have it).
@@ -2047,6 +2060,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           playerTotalTroops: computeTotalTroops(player.id, state.cities),
           diplomacy: state.diplomacy,
           date: state.date,
+          diplomacyMultiplier: appointmentBonusFor(player.id, state.appointments, state.officers).diplomacyMultiplier,
         });
 
         if (outcome.ok) {
@@ -2094,6 +2108,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           playerTotalTroops: computeTotalTroops(player.id, state.cities),
           diplomacy: state.diplomacy,
           date: state.date,
+          diplomacyMultiplier: appointmentBonusFor(player.id, state.appointments, state.officers).diplomacyMultiplier,
         });
 
         if (outcome.ok) {
@@ -2137,6 +2152,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             playerTotalTroops: computeTotalTroops(player.id, state.cities),
             diplomacy: state.diplomacy,
             date: state.date,
+            diplomacyMultiplier: appointmentBonusFor(player.id, state.appointments, state.officers).diplomacyMultiplier,
           },
           amount,
         );
@@ -2190,6 +2206,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           playerTotalTroops: computeTotalTroops(player.id, state.cities),
           diplomacy: state.diplomacy,
           date: state.date,
+          diplomacyMultiplier: appointmentBonusFor(player.id, state.appointments, state.officers).diplomacyMultiplier,
         });
 
         if (!outcome.ok) {
@@ -3589,7 +3606,15 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const state = get();
         const wish = state.officerWishes.find((w) => w.id === wishId);
         if (!wish) return;
-        const r = applyWishGrant(wish, { officers: state.officers, cities: state.cities });
+        const wishOfficer = state.officers[wish.officerId];
+        const advisorMul = wishOfficer
+          ? appointmentBonusFor(wishOfficer.forceId, state.appointments, state.officers).advisorMultiplier
+          : 1;
+        const r = applyWishGrant(wish, {
+          officers: state.officers,
+          cities: state.cities,
+          advisorMultiplier: advisorMul,
+        });
         set({
           officers: r.officers,
           officerWishes: state.officerWishes.filter((w) => w.id !== wishId),
