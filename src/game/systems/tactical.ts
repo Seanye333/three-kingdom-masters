@@ -282,14 +282,19 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   const ambushSides = new Set<'attacker' | 'defender'>();
   if (p.attackerFormation === 'ten-ambush') ambushSides.add('attacker');
   if (p.defenderFormation === 'ten-ambush') ambushSides.add('defender');
-  const finalUnits = ambushSides.size === 0
-    ? units
-    : units.map((u) => {
-        if (!ambushSides.has(u.side)) return u;
-        const tile = tiles.find((t) => t.coord.col === u.coord.col && t.coord.row === u.coord.row);
-        if (tile?.terrain !== 'forest') return u;
-        return { ...u, hidden: true };
-      });
+  // Defender prep advantage: starts the fight with +10 morale (they had
+  // time to dig in, brief troops, post lookouts).
+  const finalUnits = units.map((u) => {
+    let next: TacticalUnit = u;
+    if (ambushSides.has(u.side)) {
+      const tile = tiles.find((t) => t.coord.col === u.coord.col && t.coord.row === u.coord.row);
+      if (tile?.terrain === 'forest') next = { ...next, hidden: true };
+    }
+    if (u.side === 'defender') {
+      next = { ...next, morale: Math.min(100, next.morale + 10) };
+    }
+    return next;
+  });
 
   return {
     id: `tac-${p.cityId}-${Date.now()}`,
@@ -421,6 +426,37 @@ export function moveUnit(
 }
 
 /**
+ * Siege units adjacent to a gate hex can spend an attack action to break
+ * it open — converts the gate tile to plain (passable) and consumes AP.
+ * Non-siege units cannot break gates.
+ */
+export function breakGate(b: TacticalBattle, unitId: EntityId, gateCoord: HexCoord): TacticalBattle {
+  const unit = b.units.find((u) => u.id === unitId);
+  if (!unit || unit.unitType !== 'siege') return b;
+  if (unit.ap <= 0) return b;
+  const tile = tileAt(b, gateCoord);
+  if (!tile || tile.terrain !== 'gate') return b;
+  if (hexDistance(unit.coord, gateCoord) !== 1) return b;
+  return {
+    ...b,
+    tiles: b.tiles.map((t) =>
+      t.coord.col === gateCoord.col && t.coord.row === gateCoord.row
+        ? { ...t, terrain: 'plain' }
+        : t,
+    ),
+    units: b.units.map((u) => u.id === unitId ? { ...u, ap: 0 } : u),
+    log: [
+      ...(b.log ?? []),
+      {
+        turn: b.turn,
+        text: `Siege engine smashes the gate down!`,
+        kind: 'event',
+      },
+    ],
+  };
+}
+
+/**
  * Voluntary retreat: a unit walks off the battlefield with its remaining
  * troops intact. Removes the unit from the battle (counted as a loss
  * since they're no longer engaged, but at full troops — no rout).
@@ -476,6 +512,9 @@ export function attackUnits(
 
   const ao = officers[attacker.officerId];
   const To = officers[target.officerId];
+  // Wounded officers fight at reduced effectiveness — 受傷帶兵.
+  const aWoundedMul = ao?.status === 'wounded' ? 0.85 : 1.0;
+  const dWoundedMul = To?.status === 'wounded' ? 1.15 : 1.0;
   const aWar = ao ? effectiveStats(ao).war : 50;
   const dLead = To ? effectiveStats(To).leadership : 50;
 
@@ -520,7 +559,7 @@ export function attackUnits(
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
     base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
-    dShield * ambushBonus * fatigueMul,
+    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);

@@ -143,6 +143,8 @@ export function TacticalBattleScreen() {
   const [attackArcs, setAttackArcs] = useState<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged' }[]>([]);
   // Casualty markers: smoke columns at recently-routed unit positions.
   const [casualties, setCasualties] = useState<{ id: number; coord: HexCoord; side: 'attacker' | 'defender' }[]>([]);
+  // Flee trails: animate routed units retreating toward their edge.
+  const [fleeTrails, setFleeTrails] = useState<{ id: number; from: HexCoord; to: HexCoord; side: 'attacker' | 'defender' }[]>([]);
   const prevUnitsRef = useRef<Array<{ id: string; coord: HexCoord; side: 'attacker' | 'defender' }>>([]);
 
   // Identify which side the player is on.
@@ -187,11 +189,58 @@ export function TacticalBattleScreen() {
     }
   }, [battle?.log?.length]);
 
-  // Track unit roster to spawn casualty smoke when units disappear.
+  // Keyboard shortcuts: 1=move, 2=attack, 3=duel, Esc=cancel, Space=end turn,
+  // U=undo, Tab=cycle selection. Only active during the player's turn.
+  // Inlines selected/myTurn so we don't depend on declarations further down.
+  useEffect(() => {
+    if (!battle) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const myTurnNow = !!(playerSide && battle.activeSide === playerSide && !battle.winner);
+      if (!myTurnNow) return;
+      if (e.key === 'Escape') { setActionMode({ kind: 'none' }); return; }
+      if (e.key === ' ') {
+        e.preventDefault();
+        start(endTurn(battle));
+        setSelectedId(null);
+        setActionMode({ kind: 'none' });
+        setUndoSnapshot(null);
+        return;
+      }
+      if (e.key === 'u' || e.key === 'U') {
+        e.preventDefault();
+        if (undoSnapshot) {
+          start(undoSnapshot);
+          setUndoSnapshot(null);
+          setActionMode({ kind: 'none' });
+        }
+        return;
+      }
+      const selectedNow = selectedId ? battle.units.find((u) => u.id === selectedId) : null;
+      if (!selectedNow) return;
+      if (e.key === '1') setActionMode({ kind: actionMode.kind === 'move' ? 'none' : 'move' });
+      else if (e.key === '2') setActionMode({ kind: actionMode.kind === 'attack' ? 'none' : 'attack' });
+      else if (e.key === '3') setActionMode({ kind: actionMode.kind === 'duel' ? 'none' : 'duel' });
+      else if (e.key === 'Tab') {
+        e.preventDefault();
+        const myUnits = battle.units.filter((u) => u.side === playerSide && u.ap > 0);
+        if (myUnits.length === 0) return;
+        const idx = myUnits.findIndex((u) => u.id === selectedId);
+        const next = myUnits[(idx + 1) % myUnits.length];
+        setSelectedId(next.id);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [battle, selectedId, actionMode, playerSide, undoSnapshot, start]);
+
+  // Track unit roster to spawn casualty smoke + flee trail when units disappear.
   useEffect(() => {
     if (!battle) return;
     const currentIds = new Set(battle.units.map((u) => u.id));
     const lost: typeof casualties = [];
+    const flees: typeof fleeTrails = [];
     for (const prev of prevUnitsRef.current) {
       if (!currentIds.has(prev.id)) {
         lost.push({
@@ -199,26 +248,55 @@ export function TacticalBattleScreen() {
           coord: prev.coord,
           side: prev.side,
         });
+        // Compute flee destination: along their side's nearest edge.
+        const targetCol = prev.side === 'attacker' ? 0 : battle.width - 1;
+        flees.push({
+          id: Date.now() + Math.random(),
+          from: prev.coord,
+          to: { col: targetCol, row: prev.coord.row },
+          side: prev.side,
+        });
       }
     }
     prevUnitsRef.current = battle.units.map((u) => ({ id: u.id, coord: u.coord, side: u.side }));
     if (lost.length > 0) {
       setCasualties((c) => [...c, ...lost]);
-      const ids = lost.map((l) => l.id);
-      setTimeout(() => setCasualties((c) => c.filter((x) => !ids.includes(x.id))), 3500);
+      setFleeTrails((f) => [...f, ...flees]);
+      const cIds = lost.map((l) => l.id);
+      const fIds = flees.map((f) => f.id);
+      setTimeout(() => setCasualties((c) => c.filter((x) => !cIds.includes(x.id))), 3500);
+      setTimeout(() => setFleeTrails((f) => f.filter((x) => !fIds.includes(x.id))), 1400);
     }
   }, [battle?.units]);
 
-  // Sound effects on damage popup spawn.
+  // Sound effects on damage popup spawn + camera shake on crit.
+  const [shakeKey, setShakeKey] = useState(0);
   useEffect(() => {
     const pops = battle?.damagePopups;
     if (!pops || pops.length === 0) return;
     const latest = pops[pops.length - 1];
-    if (latest.text.includes('!')) playSfx('sword');
+    if (latest.text.includes('!')) {
+      playSfx('sword');
+      setShakeKey((k) => k + 1);
+    }
     else if (latest.text.includes('⚡')) playSfx('fire');
     else if (latest.color === '#88b7e8') playSfx('arrow');
     else playSfx('sword');
   }, [battle?.damagePopups?.length]);
+
+  // Signature stratagem flash: peek at the most recent 'voice' log entry
+  // and surface it as a brief fullscreen overlay.
+  const [sigFlash, setSigFlash] = useState<{ text: string; key: number } | null>(null);
+  useEffect(() => {
+    const log = battle?.log;
+    if (!log || log.length === 0) return;
+    const latest = log[log.length - 1];
+    if (latest.kind === 'voice' && /(無雙|過五關|當陽橋|龍威|飛將|火計|連環|落雷)/.test(latest.text)) {
+      setSigFlash({ text: latest.text, key: Date.now() });
+      setShakeKey((k) => k + 1);
+      setTimeout(() => setSigFlash(null), 1600);
+    }
+  }, [battle?.log?.length]);
 
   // Winner trigger → show results modal.
   useEffect(() => {
@@ -347,6 +425,27 @@ export function TacticalBattleScreen() {
 
   return (
     <div className={styles.root}>
+      {/* Signature stratagem fullscreen flash — fades over 1.6s. */}
+      {sigFlash && (
+        <div
+          key={sigFlash.key}
+          className="tkm-sig-flash"
+          style={{
+            position: 'fixed', inset: 0, pointerEvents: 'none',
+            display: 'grid', placeItems: 'center', zIndex: 985,
+            background: 'radial-gradient(circle at center, rgba(212,168,74,0.35) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.8) 100%)',
+          }}
+        >
+          <div style={{
+            fontFamily: 'Songti SC, serif', color: '#d4a84a',
+            fontSize: '3.5rem', letterSpacing: '0.5rem',
+            textShadow: '0 0 24px rgba(212,168,74,0.8), 0 0 8px #b8442e',
+            textAlign: 'center', padding: '0 2rem',
+          }}>
+            {sigFlash.text}
+          </div>
+        </div>
+      )}
       {showCinematic && (
         <div className={styles.cinematic}>
           {/* Sliding curtain panels reveal the title. */}
@@ -416,6 +515,39 @@ export function TacticalBattleScreen() {
 
       {show3D && <TacticalBattleScreen3D onClose={() => setShow3D(false)} />}
 
+      {/* Reinforcement preview: scheduled arrivals shown at the top so
+          the player can plan around them. */}
+      {(battle.reinforcements?.length ?? 0) > 0 && (
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
+          padding: '0.3rem 0.75rem', borderBottom: '1px solid #4a3520',
+          background: 'rgba(26,20,16,0.7)', alignItems: 'center',
+        }}>
+          <span style={{ color: '#8a7050', fontSize: '0.7rem', letterSpacing: '0.2rem' }}>
+            {t('援軍', 'Reinforce')}
+          </span>
+          {battle.reinforcements!
+            .sort((a, b) => a.arriveTurn - b.arriveTurn)
+            .map((r, i) => {
+              const o = officers[r.officerId];
+              const sideColor = r.side === 'attacker' ? '#b8442e' : '#3a7dd9';
+              const edgeZh: Record<typeof r.edge, string> = {
+                north: '北', south: '南', east: '東', west: '西',
+              };
+              return (
+                <span key={i} style={{
+                  fontSize: '0.7rem', color: sideColor,
+                  border: `1px solid ${sideColor}`,
+                  padding: '0.15rem 0.45rem', letterSpacing: '0.1rem',
+                }}>
+                  {t(`第${r.arriveTurn}回`, `T${r.arriveTurn}`)} ·{' '}
+                  {o?.name.zh ?? '?'} · {t(`自${edgeZh[r.edge]}至`, r.edge)} ·{' '}
+                  {r.troops}
+                </span>
+              );
+            })}
+        </div>
+      )}
       {(battle.attackerObjective || battle.defenderObjective) && (
         <div style={{ display: 'flex', gap: '0.5rem', padding: '0 0.75rem' }}>
           {battle.attackerObjective && (
@@ -484,7 +616,11 @@ export function TacticalBattleScreen() {
       </div>
 
       <div className={`${styles.battlefield} tkm-iso-stage`}>
-        <div className={`${styles.gridWrap} tkm-iso-svg`} style={{ position: 'relative' }}>
+        <div
+          key={`shake-${shakeKey}`}
+          className={`${styles.gridWrap} tkm-iso-svg tkm-shake`}
+          style={{ position: 'relative' }}
+        >
           {/* Weather overlay */}
           {battle.weather === 'rain' && (
             <>
@@ -844,6 +980,30 @@ export function TacticalBattleScreen() {
                 />
               );
             })}
+            {/* Flee trails: a small silhouette animates from rout position to edge. */}
+            {fleeTrails.map((f) => {
+              const a = hexCenter(f.from.col, f.from.row);
+              const b = hexCenter(f.to.col, f.to.row);
+              const color = f.side === 'attacker' ? '#b8442e' : '#3a7dd9';
+              return (
+                <g key={`flee-${f.id}`} pointerEvents="none">
+                  <circle r="3" fill={color} opacity="0.7">
+                    <animateMotion
+                      path={`M ${a.x} ${a.y} L ${b.x} ${b.y}`}
+                      dur="1.3s"
+                      fill="freeze"
+                    />
+                    <animate attributeName="opacity" values="0.8;0.6;0.2;0" dur="1.3s" fill="freeze" />
+                  </circle>
+                  <text x={a.x} y={a.y - 8} textAnchor="middle"
+                    fontSize="7" fill="#8a7050" fontFamily="Songti SC, serif">
+                    <animate attributeName="opacity" values="1;0" dur="1.2s" fill="freeze" />
+                    潰
+                  </text>
+                </g>
+              );
+            })}
+
             {/* Casualty smoke columns at recently-routed positions. */}
             {casualties.map((c) => {
               const { x, y } = hexCenter(c.coord.col, c.coord.row);
@@ -916,6 +1076,13 @@ export function TacticalBattleScreen() {
                     <text x={x} y={y + HEX_SIZE * 1.2} textAnchor="middle"
                       fontSize="9" fill="#d4a84a" fontFamily="Songti SC, serif"
                       pointerEvents="none">伏</text>
+                  )}
+                  {/* Wounded officer indicator — 「傷」 above the unit. */}
+                  {off?.status === 'wounded' && (
+                    <text x={x + HEX_SIZE * 0.55} y={y - HEX_SIZE * 0.6} textAnchor="middle"
+                      fontSize="7" fill="#b8442e" fontFamily="Songti SC, serif"
+                      fontWeight="bold" pointerEvents="none"
+                      stroke="#1a1208" strokeWidth="0.3">傷</text>
                   )}
                   {/* Commander emblem — larger gold ring + 主 ideogram. */}
                   {u.isCommander && (

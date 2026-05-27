@@ -713,6 +713,33 @@ button:not(:disabled):active {
   transform-box: fill-box;
 }
 
+/* Camera shake — applied to battlefield container on heavy impact. */
+@keyframes tkmShake {
+  0%, 100% { transform: translate(0, 0); }
+  10%      { transform: translate(-3px, 1px); }
+  20%      { transform: translate(2px, -2px); }
+  30%      { transform: translate(-2px, 2px); }
+  40%      { transform: translate(3px, 1px); }
+  50%      { transform: translate(-1px, -1px); }
+  60%      { transform: translate(2px, 0); }
+  70%      { transform: translate(-2px, 1px); }
+  80%      { transform: translate(1px, -1px); }
+  90%      { transform: translate(-1px, 0); }
+}
+.tkm-shake { animation: tkmShake 0.4s ease-out; }
+
+/* Signature stratagem flash — fullscreen radial burst with the officer's
+ * tactic name. Used for matchless / signature moves. */
+@keyframes tkmSigFlash {
+  0%   { opacity: 0; transform: scale(0.7); }
+  20%  { opacity: 1; transform: scale(1); }
+  85%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.15); }
+}
+.tkm-sig-flash {
+  animation: tkmSigFlash 1.6s ease-out forwards;
+}
+
 /* Casualty smoke column — drifts upward and fades. */
 @keyframes tkmSmokeRise {
   0%   { transform: translateY(0) scale(1);   opacity: 0.8; }

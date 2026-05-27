@@ -258,6 +258,52 @@ export function BattlePrepModal({
             </div>
           </div>
 
+          {/* Terrain composition preview for named maps. */}
+          {namedMap && (() => {
+            const counts: Record<string, number> = {};
+            for (const k of Object.values(namedMap.terrainOverrides)) {
+              counts[k] = (counts[k] ?? 0) + 1;
+            }
+            const labelZh: Record<string, string> = {
+              plain: '平原', forest: '森林', mountain: '山', river: '河',
+              road: '道', hill: '高地', marsh: '沼', chokepoint: '隘',
+              bridge: '橋', gate: '城門', watchtower: '瞭望',
+            };
+            const colorBy: Record<string, string> = {
+              plain: '#4a5e30', forest: '#2a4220', mountain: '#5a4838',
+              river: '#2c5882', road: '#7a6038', hill: '#7a6238',
+              marsh: '#3a4838', chokepoint: '#5a4530', bridge: '#8a6840',
+              gate: '#4a2820', watchtower: '#8a7050',
+            };
+            const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            return (
+              <div style={{
+                display: 'flex', flexWrap: 'wrap', gap: '0.35rem',
+                padding: '0.5rem 0.75rem', fontSize: '0.7rem',
+                background: 'rgba(26,20,16,0.55)', border: '1px solid #4a3520',
+                marginTop: '0.5rem',
+              }}>
+                <span style={{ color: '#8a7050', letterSpacing: '0.2rem', marginRight: '0.3rem' }}>
+                  地形組成
+                </span>
+                {entries.map(([k, n]) => (
+                  <span key={k} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                    border: `1px solid ${colorBy[k] ?? '#5a4530'}`,
+                    padding: '0.1rem 0.4rem',
+                    color: colorBy[k] ?? '#c0a878',
+                  }}>
+                    <span style={{
+                      display: 'inline-block', width: 6, height: 6,
+                      background: colorBy[k] ?? '#5a4530',
+                    }} />
+                    {labelZh[k] ?? k} × {n}
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
+
           <div className={styles.section}>
             <div className={styles.sectionLabel}>
               Officers & unit type — total troops {totalTroops.toLocaleString()}

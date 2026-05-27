@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
-import type { HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
+import type { EntityId, HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
 import type { DefenseBuildingId } from '../../game/data/defenseBuildings';
 import {
   aiTakeTurn, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
@@ -456,13 +456,14 @@ function UnitWeapon({ unit, yLift }: { unit: TacticalUnit; yLift: number }) {
 
 /* ─── A unit standing on a hex ─────────────────────────────────────── */
 function UnitMesh({
-  unit, terrainH, isPlayer, selected, onClick,
+  unit, terrainH, isPlayer, selected, onClick, isWounded,
 }: {
   unit: TacticalUnit;
   terrainH: number;
   isPlayer: boolean;
   selected: boolean;
   onClick: () => void;
+  isWounded?: boolean;
 }) {
   const [tx, tz] = hexWorld(unit.coord.col, unit.coord.row);
   const color = isPlayer ? '#3a7dd9' : '#b8442e';
@@ -536,7 +537,7 @@ function UnitMesh({
       >
         <div style={{
           background: 'rgba(20, 14, 8, 0.88)',
-          border: `1.5px solid ${color}`,
+          border: `1.5px solid ${unit.isCommander ? '#d4a84a' : color}`,
           padding: '2px 6px',
           fontFamily: 'Songti SC, serif',
           fontSize: '12px',
@@ -544,10 +545,17 @@ function UnitMesh({
           whiteSpace: 'nowrap',
           textAlign: 'center',
           borderRadius: 2,
-          boxShadow: `0 0 8px ${color}`,
+          boxShadow: unit.isCommander
+            ? `0 0 14px rgba(212,168,74,0.7)`
+            : `0 0 8px ${color}`,
         }}>
           <div style={{ fontWeight: 'bold' }}>
+            {unit.isCommander && <span style={{ color: '#d4a84a' }}>主 </span>}
             {UNIT_GLYPH[unit.unitType]} {unit.troops.toLocaleString()}
+            {isWounded && <span style={{ color: '#b8442e', marginLeft: 3 }}>傷</span>}
+            {unit.effects.some((e) => e.kind === 'burning') && (
+              <span style={{ color: '#f55a20', marginLeft: 3 }}>🔥</span>
+            )}
           </div>
           <div style={{
             height: 2,
@@ -1121,7 +1129,7 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
 function BattleScene({
   battle, playerSide, actionMode,
   selectedId, hovered, setHovered, onTileClick,
-  attackArcs, stratagemFx,
+  attackArcs, stratagemFx, officers,
 }: {
   battle: TacticalBattle;
   playerSide: 'attacker' | 'defender' | null;
@@ -1132,6 +1140,7 @@ function BattleScene({
   onTileClick: (c: HexCoord) => void;
   attackArcs: { id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }[];
   stratagemFx: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }>;
+  officers: Record<EntityId, Officer>;
 }) {
   const { tiles, units } = battle;
   const tileByCoord = useMemo(() => {
@@ -1276,11 +1285,14 @@ function BattleScene({
       <FormationViz battle={battle} side="attacker" />
       <FormationViz battle={battle} side="defender" />
 
-      {/* All units */}
-      {units.map((u) => {
+      {/* All units — skip hidden enemy units. */}
+      {units
+        .filter((u) => !(u.hidden && u.side !== playerSide))
+        .map((u) => {
         const tile = tileByCoord.get(`${u.coord.col},${u.coord.row}`);
         const h = tile ? TERRAIN_HEIGHT[tile.terrain] : 0.1;
         const isPlayer = playerSide ? u.side === playerSide : u.side === 'attacker';
+        const isWounded = officers[u.officerId]?.status === 'wounded';
         return (
           <UnitMesh
             key={u.id}
@@ -1289,6 +1301,7 @@ function BattleScene({
             isPlayer={isPlayer}
             selected={selectedId === u.id}
             onClick={() => onTileClick(u.coord)}
+            isWounded={isWounded}
           />
         );
       })}
@@ -1629,6 +1642,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
               onTileClick={onTileClick}
               attackArcs={attackArcs}
               stratagemFx={stratagemFx}
+              officers={officers}
             />
             <OrbitControls
               target={target}
