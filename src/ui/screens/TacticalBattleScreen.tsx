@@ -129,6 +129,9 @@ export function TacticalBattleScreen() {
   const [actionMode, setActionMode] = useState<ActionMode>({ kind: 'none' });
   const [showCinematic, setShowCinematic] = useState(true);
   const [show3D, setShow3D] = useState(true);
+  // Undo snapshot: store the battle BEFORE the player's last action so they
+  // can revert mis-clicks within the same turn. Cleared on End-Turn.
+  const [undoSnapshot, setUndoSnapshot] = useState<typeof battle | null>(null);
   const t = useT();
   const desc = useDesc();
   const [showResults, setShowResults] = useState(false);
@@ -216,6 +219,7 @@ export function TacticalBattleScreen() {
     // Mode-dependent dispatch.
     if (actionMode.kind === 'move' && canMove(battle, selected, c)) {
       const fromCoord = selected.coord;
+      setUndoSnapshot(battle);
       start(moveUnit(battle, selected.id, c));
       const tid = Date.now();
       setMoveTrails((t) => [...t, { id: tid, from: fromCoord, to: c }]);
@@ -229,6 +233,7 @@ export function TacticalBattleScreen() {
         const aid = Date.now();
         setAttackArcs((a) => [...a, { id: aid, from: selected.coord, to: u.coord, kind }]);
         setTimeout(() => setAttackArcs((a) => a.filter((x) => x.id !== aid)), 700);
+        setUndoSnapshot(battle);
         start(attackUnits(battle, selected.id, u.id, officers, Math.random));
         setActionMode({ kind: 'none' });
       }
@@ -292,6 +297,14 @@ export function TacticalBattleScreen() {
     start(endTurn(battle));
     setSelectedId(null);
     setActionMode({ kind: 'none' });
+    setUndoSnapshot(null);
+  };
+
+  const onUndo = () => {
+    if (!undoSnapshot || !myTurn) return;
+    start(undoSnapshot);
+    setUndoSnapshot(null);
+    setActionMode({ kind: 'none' });
   };
 
   const svgWidth = battle.width * HEX_COL_STEP + HEX_W / 4;
@@ -337,6 +350,20 @@ export function TacticalBattleScreen() {
           )}
         </div>
         <button
+          onClick={onUndo}
+          disabled={!undoSnapshot || !myTurn}
+          style={{
+            background: undoSnapshot && myTurn ? '#3a2818' : '#1a1410',
+            color: undoSnapshot && myTurn ? '#d4a84a' : '#6a5238',
+            border: '1px solid ' + (undoSnapshot && myTurn ? '#d4a84a' : '#4a3520'),
+            padding: '0.3rem 0.6rem',
+            cursor: undoSnapshot && myTurn ? 'pointer' : 'not-allowed',
+            fontFamily: 'Songti SC, serif',
+            marginRight: '0.5rem',
+          }}
+          title="Undo the last move/attack"
+        >{t('撤步', 'Undo')} ↶</button>
+        <button
           onClick={() => setShow3D(true)}
           style={{
             background: '#1a3a5a', color: '#88b7e8',
@@ -380,11 +407,143 @@ export function TacticalBattleScreen() {
         </div>
       )}
 
+      {/* Turn order strip: shows units of the active side with AP left. */}
+      <div style={{
+        display: 'flex', gap: '0.3rem', padding: '0.4rem 0.75rem',
+        overflowX: 'auto', borderBottom: '1px solid #4a3520',
+        background: 'linear-gradient(180deg, rgba(26,20,16,0.9), rgba(26,20,16,0.6))',
+        alignItems: 'center',
+      }}>
+        <span style={{ color: '#8a7050', fontSize: '0.7rem', letterSpacing: '0.2rem', marginRight: '0.4rem' }}>
+          {t('行動順', 'Turn')}
+        </span>
+        {battle.units
+          .filter((u) => u.side === battle.activeSide && u.troops > 0 && !(u.hidden && u.side !== playerSide))
+          .sort((a, b) => b.ap - a.ap)
+          .map((u) => {
+            const o = officers[u.officerId];
+            const used = u.ap === 0;
+            const color = u.side === 'attacker' ? '#b8442e' : '#3a7dd9';
+            const isSel = u.id === selectedId;
+            return (
+              <button
+                key={u.id}
+                onClick={() => setSelectedId(u.id)}
+                title={`${o?.name.zh ?? '?'} · AP ${u.ap}/${u.maxAp} · ${u.troops} troops`}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  background: isSel ? '#3a2818' : (used ? '#1a1410' : 'transparent'),
+                  border: `1px solid ${isSel ? '#d4a84a' : color}`,
+                  color: used ? '#6a5238' : '#d4a84a',
+                  padding: '0.2rem 0.5rem', fontFamily: 'inherit', cursor: 'pointer',
+                  fontSize: '0.72rem', minWidth: '3.5rem',
+                  opacity: used ? 0.5 : 1,
+                }}
+              >
+                <span style={{ fontSize: '0.72rem' }}>{o?.name.zh.slice(0, 3) ?? '?'}</span>
+                <span style={{ color: '#8a7050', fontSize: '0.6rem' }}>{u.ap}AP</span>
+              </button>
+            );
+          })}
+      </div>
+
       <div className={`${styles.battlefield} tkm-iso-stage`}>
         <div className={`${styles.gridWrap} tkm-iso-svg`} style={{ position: 'relative' }}>
           {/* Weather overlay */}
           {battle.weather === 'rain' && <div className={`${styles.weatherOverlay} ${styles.weatherRain}`} />}
           {battle.weather === 'snow' && <div className={`${styles.weatherOverlay} ${styles.weatherSnow}`} />}
+
+          {/* Terrain legend — collapsible chip at bottom-left of battlefield. */}
+          <div style={{
+            position: 'absolute', bottom: '0.5rem', left: '0.5rem',
+            background: 'rgba(26,20,16,0.92)', border: '1px solid #4a3520',
+            padding: '0.4rem 0.6rem', fontFamily: 'Songti SC, serif',
+            fontSize: '0.7rem', color: '#c0a878', pointerEvents: 'none', zIndex: 40,
+            maxWidth: '220px', letterSpacing: '0.05rem',
+          }}>
+            <div style={{ color: '#d4a84a', letterSpacing: '0.2rem', marginBottom: '0.2rem', fontSize: '0.7rem' }}>
+              地形 Legend
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 0.5rem', fontSize: '0.66rem' }}>
+              <span>高地 = 弓 +25%</span>
+              <span>沼澤 = 騎 ×0.4</span>
+              <span>隘口 = 防 ×0.7</span>
+              <span>瞭望台 = 揭伏</span>
+              <span>橋 = 越河</span>
+              <span>城門 = 攻 +40%</span>
+            </div>
+          </div>
+
+          {/* Tile hover tooltip */}
+          {hoveredCoord && (() => {
+            const tile = battle.tiles.find((t) => t.coord.col === hoveredCoord.col && t.coord.row === hoveredCoord.row);
+            const u = unitAt(battle, hoveredCoord);
+            if (!tile) return null;
+            // Show the visible/own units; hide opponent ambushers.
+            if (u && u.hidden && u.side !== playerSide) return null;
+            const terrainNameZh: Record<string, string> = {
+              plain: '平原', forest: '森林', mountain: '山地', river: '河川', road: '道路',
+              hill: '高地', marsh: '沼澤', chokepoint: '隘口', bridge: '橋樑',
+              gate: '城門', watchtower: '瞭望台',
+            };
+            const terrainEffect: Record<string, string> = {
+              plain: '無修正', forest: '騎兵 ×0.6，弓兵 ×1.1', mountain: '騎兵 ×0.4',
+              river: '水軍 ×1.6', road: '騎兵 ×1.2',
+              hill: '弓兵 ×1.25，騎兵 ×1.3，防御 ×0.9',
+              marsh: '移動 cost 3，騎兵 ×0.4',
+              chokepoint: '槍兵 ×1.25，防御 ×0.7（極强）',
+              bridge: '非水軍可過河',
+              gate: '攻城 ×1.4，防御 ×0.6（堅固）',
+              watchtower: '弓兵 ×1.25，揭穿伏兵',
+            };
+            // Compute damage preview if attacker selected + hovering enemy.
+            let dmgPreview: number | null = null;
+            if (selected && actionMode.kind === 'attack' && u && u.side !== playerSide && canAttack(battle, selected, u)) {
+              // Very rough estimate: replicate the base × multipliers.
+              const ao = officers[selected.officerId];
+              const To = officers[u.officerId];
+              const aWar = ao ? ao.stats.war : 50;
+              const dLead = To ? To.stats.leadership : 50;
+              dmgPreview = Math.floor(
+                (selected.troops * (aWar + 30) * 1.0) / (dLead + 50)
+              );
+            }
+            return (
+              <div style={{
+                position: 'absolute', top: '0.5rem', right: '0.5rem',
+                background: 'linear-gradient(160deg, rgba(26,20,16,0.95), rgba(20,16,12,0.95))',
+                border: '1px solid #5a4530', color: '#e8d9b0',
+                padding: '0.5rem 0.75rem', fontFamily: 'Songti SC, serif',
+                fontSize: '0.78rem', pointerEvents: 'none', zIndex: 50,
+                minWidth: '200px',
+              }}>
+                <div style={{ color: '#d4a84a', letterSpacing: '0.2rem' }}>
+                  {terrainNameZh[tile.terrain] ?? tile.terrain}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#8a7050', marginTop: '0.2rem' }}>
+                  {terrainEffect[tile.terrain] ?? ''}
+                </div>
+                {u && (
+                  <div style={{ marginTop: '0.4rem', paddingTop: '0.4rem', borderTop: '1px solid #4a3520' }}>
+                    <div style={{ color: u.side === 'attacker' ? '#b8442e' : '#3a7dd9' }}>
+                      {officers[u.officerId]?.name.zh ?? '?'} ({u.unitType})
+                    </div>
+                    <div style={{ color: '#c0a878', fontSize: '0.72rem' }}>
+                      {u.troops}/{u.maxTroops} 兵 · AP {u.ap}/{u.maxAp}
+                    </div>
+                    <div style={{ color: '#8a7050', fontSize: '0.7rem' }}>
+                      士気 {u.morale}{u.effects.length > 0 && ` · ${u.effects.map((e) => e.kind).join(', ')}`}
+                    </div>
+                  </div>
+                )}
+                {dmgPreview !== null && (
+                  <div style={{ marginTop: '0.4rem', paddingTop: '0.4rem', borderTop: '1px solid #4a3520', color: '#b8442e' }}>
+                    預估傷害：~{dmgPreview} ± {Math.floor(dmgPreview * 0.3)}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {battle.weather === 'fog' && <div className={`${styles.weatherOverlay} ${styles.weatherFog}`} />}
           {battle.weather === 'wind' && <div className={`${styles.weatherOverlay} ${styles.weatherWind}`} />}
           {/* Time-of-day overlay */}
@@ -628,18 +787,28 @@ export function TacticalBattleScreen() {
                 />
               );
             })}
-            {battle.units.map((u) => {
+            {battle.units
+              // Hidden enemy units: invisible to the player until revealed.
+              // Hidden own units: shown semi-transparently so player can plan.
+              .filter((u) => !(u.hidden && u.side !== playerSide))
+              .map((u) => {
               const { x, y } = hexCenter(u.coord.col, u.coord.row);
               const off = officers[u.officerId];
               const isSel = u.id === selectedId;
               const color = u.side === 'attacker' ? '#b8442e' : '#3a7dd9';
               const trooppct = u.troops / Math.max(1, u.maxTroops);
+              const isHiddenAlly = u.hidden && u.side === playerSide;
               return (
                 <g
                   key={u.id}
                   onClick={() => onTileClick(u.coord)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', opacity: isHiddenAlly ? 0.5 : 1 }}
                 >
+                  {isHiddenAlly && (
+                    <text x={x} y={y + HEX_SIZE * 1.2} textAnchor="middle"
+                      fontSize="9" fill="#d4a84a" fontFamily="Songti SC, serif"
+                      pointerEvents="none">伏</text>
+                  )}
                   {/* Selection glow */}
                   {isSel && (
                     <circle

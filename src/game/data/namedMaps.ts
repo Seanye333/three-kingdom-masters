@@ -246,6 +246,172 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
       { coord: { col: 3, row: 3 }, label: { en: 'Spring', zh: '水源' }, role: 'supply' },
     ],
   },
+  // ─── Six new famous battlefields ──────────────────────────────────
+  {
+    id: 'map-hefei',
+    name: { en: 'Hefei', zh: '合肥' },
+    description: 'The wide plain north of Hefei where Zhang Liao\'s 800 broke Sun Quan\'s 100,000.',
+    width: 14,
+    height: 10,
+    weather: 'clear',
+    timeOfDay: 'dawn',
+    terrainOverrides: (() => {
+      const out: Record<string, import('../types').TerrainKind> = {};
+      // River along the far north (Xiaoyao Ford 逍遙津).
+      for (let col = 0; col < 14; col++) out[`${col},0`] = 'river';
+      out['7,0'] = 'bridge';
+      // City wall on south (Hefei city itself).
+      for (let col = 4; col < 11; col++) out[`${col},9`] = 'gate';
+      // Watchtower flanks.
+      out['3,8'] = 'watchtower';
+      out['10,8'] = 'watchtower';
+      // Light scattered hills.
+      out['5,4'] = 'hill';
+      out['9,5'] = 'hill';
+      return out;
+    })(),
+    specialTiles: [
+      { coord: { col: 7, row: 0 }, label: { en: 'Xiaoyao Ford', zh: '逍遙津' }, role: 'bridge' },
+    ],
+  },
+  {
+    id: 'map-yiling',
+    name: { en: 'Yiling', zh: '夷陵' },
+    description: 'Where Lu Xun burned Liu Bei\'s 700-li camps. Forested gorges with the Yangtze to one side.',
+    width: 16,
+    height: 10,
+    weather: 'wind',
+    timeOfDay: 'dusk',
+    terrainOverrides: (() => {
+      const out: Record<string, import('../types').TerrainKind> = {};
+      // River north edge.
+      for (let col = 0; col < 16; col++) out[`${col},0`] = 'river';
+      // Mountains south.
+      for (let col = 0; col < 16; col++) out[`${col},9`] = 'mountain';
+      // Forested camps stretching the whole battlefield — fire bait.
+      for (let col = 2; col < 15; col += 2) {
+        out[`${col},3`] = 'forest';
+        out[`${col + 1},5`] = 'forest';
+        out[`${col},7`] = 'forest';
+      }
+      out['10,4'] = 'hill';
+      return out;
+    })(),
+    specialTiles: [
+      { coord: { col: 10, row: 4 }, label: { en: 'Lu Xun\'s Observation Hill', zh: '陸遜瞭望' }, role: 'hill' },
+    ],
+  },
+  {
+    id: 'map-bowangpo',
+    name: { en: 'Bowang Slope', zh: '博望坡' },
+    description: 'Zhuge Liang\'s first stratagem — a narrow forested defile lured Cao\'s vanguard into fire.',
+    width: 12,
+    height: 10,
+    weather: 'clear',
+    timeOfDay: 'day',
+    terrainOverrides: (() => {
+      const out: Record<string, import('../types').TerrainKind> = {};
+      // Mountain walls north and south.
+      for (let col = 0; col < 12; col++) {
+        out[`${col},0`] = 'mountain';
+        out[`${col},9`] = 'mountain';
+      }
+      // Dense forest along the central road.
+      for (let col = 1; col < 11; col++) {
+        out[`${col},3`] = 'forest';
+        out[`${col},6`] = 'forest';
+      }
+      // Road runs through center.
+      for (let col = 0; col < 12; col++) out[`${col},5`] = 'road';
+      out['6,5'] = 'chokepoint';
+      return out;
+    })(),
+    specialTiles: [
+      { coord: { col: 6, row: 5 }, label: { en: 'Defile', zh: '隘口' }, role: 'hill' },
+    ],
+  },
+  {
+    id: 'map-xinye',
+    name: { en: 'Xinye', zh: '新野' },
+    description: 'Liu Bei\'s burning of Xinye — a small walled town set ablaze to delay Cao Cao\'s pursuit.',
+    width: 12,
+    height: 9,
+    weather: 'wind',
+    timeOfDay: 'dusk',
+    terrainOverrides: (() => {
+      const out: Record<string, import('../types').TerrainKind> = {};
+      // City gate cluster south.
+      for (let col = 4; col < 9; col++) out[`${col},8`] = 'gate';
+      // Forests surrounding (kindling).
+      for (let col = 1; col < 11; col += 2) {
+        out[`${col},2`] = 'forest';
+        out[`${col + 1},4`] = 'forest';
+        out[`${col},6`] = 'forest';
+      }
+      out['6,5'] = 'hill';
+      return out;
+    })(),
+    specialTiles: [
+      { coord: { col: 6, row: 8 }, label: { en: 'Xinye Town', zh: '新野城' }, role: 'flag' },
+    ],
+  },
+  {
+    id: 'map-tongguan',
+    name: { en: 'Tong Pass', zh: '潼關' },
+    description: 'Where Cao Cao stripped off his red robe and cut his beard to escape Ma Chao\'s charge. A river-side pass.',
+    width: 14,
+    height: 10,
+    weather: 'clear',
+    timeOfDay: 'day',
+    terrainOverrides: (() => {
+      const out: Record<string, import('../types').TerrainKind> = {};
+      // The Yellow River on the north edge.
+      for (let col = 0; col < 14; col++) out[`${col},0`] = 'river';
+      // Mountain wall south of the road.
+      for (let col = 0; col < 14; col++) out[`${col},9`] = 'mountain';
+      for (let col = 0; col < 14; col++) out[`${col},7`] = 'mountain';
+      // Pass road.
+      for (let col = 0; col < 14; col++) out[`${col},5`] = 'road';
+      out['7,5'] = 'chokepoint';
+      // Two bridges crossing the river.
+      out['3,0'] = 'bridge';
+      out['10,0'] = 'bridge';
+      return out;
+    })(),
+    specialTiles: [
+      { coord: { col: 7, row: 5 }, label: { en: 'Tong Pass Gate', zh: '潼關' }, role: 'flag' },
+    ],
+  },
+  {
+    id: 'map-hanzhong',
+    name: { en: 'Hanzhong', zh: '漢中' },
+    description: 'Where Huang Zhong slew Xiahou Yuan at Mt. Dingjun. Forested ridges and steep cliffs.',
+    width: 14,
+    height: 12,
+    weather: 'clear',
+    timeOfDay: 'dawn',
+    terrainOverrides: (() => {
+      const out: Record<string, import('../types').TerrainKind> = {};
+      // Mountain ridge north + south.
+      for (let col = 0; col < 14; col++) {
+        out[`${col},0`] = 'mountain';
+        out[`${col},11`] = 'mountain';
+      }
+      // Forested approaches.
+      for (let col = 1; col < 13; col += 2) {
+        out[`${col},2`] = 'forest';
+        out[`${col + 1},9`] = 'forest';
+      }
+      // Hills — high ground.
+      out['4,5'] = 'hill';
+      out['9,5'] = 'hill';
+      out['7,6'] = 'watchtower';
+      return out;
+    })(),
+    specialTiles: [
+      { coord: { col: 7, row: 6 }, label: { en: 'Mt. Dingjun Watch', zh: '定軍山' }, role: 'hill' },
+    ],
+  },
 ];
 
 export const NAMED_MAPS_BY_CITY: Record<string, string> = {
@@ -261,6 +427,14 @@ export const NAMED_MAPS_BY_CITY: Record<string, string> = {
   'city-luoyang': 'map-hulao-pass',
   'city-wuzhang': 'map-wuzhang-plains',
   'city-guandu': 'map-guandu',
+  // Phase: six new famous battles.
+  'city-hefei':    'map-hefei',
+  'city-yiling':   'map-yiling',
+  'city-yidu':     'map-yiling',     // Yidu is the modern name near Yiling
+  'city-xinye':    'map-xinye',
+  'city-bowang':   'map-bowangpo',
+  'city-tongguan': 'map-tongguan',
+  'city-hanning':  'map-hanzhong',   // Hanning was the old name for Hanzhong
 };
 
 export const NAMED_MAPS_BY_ID: Record<string, NamedBattleMap> =

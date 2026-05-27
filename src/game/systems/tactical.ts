@@ -420,6 +420,28 @@ export function moveUnit(
   };
 }
 
+/**
+ * Voluntary retreat: a unit walks off the battlefield with its remaining
+ * troops intact. Removes the unit from the battle (counted as a loss
+ * since they're no longer engaged, but at full troops — no rout).
+ * Commanders cannot retreat — they must be the last to leave.
+ */
+export function retreatUnit(b: TacticalBattle, unitId: EntityId): TacticalBattle {
+  const unit = b.units.find((u) => u.id === unitId);
+  if (!unit) return b;
+  if (unit.isCommander) return b; // commander stays
+  // Must be at the appropriate edge (close to a side edge) — within 2 hexes.
+  const myEdgeCol = unit.side === 'attacker' ? 0 : b.width - 1;
+  if (Math.abs(unit.coord.col - myEdgeCol) > 2) return b;
+  const remaining = b.units.filter((u) => u.id !== unitId);
+  const lossKey = unit.side === 'attacker' ? 'attackerLosses' : 'defenderLosses';
+  return {
+    ...b,
+    units: remaining,
+    [lossKey]: (b[lossKey] ?? 0) + Math.floor(unit.troops * 0.1), // 10% counted as stragglers
+  };
+}
+
 export function canAttack(
   _b: TacticalBattle,
   unit: TacticalUnit,
@@ -488,11 +510,17 @@ export function attackUnits(
   // forest, gate) reduces incoming damage.
   const dTerrainTile = tileAt(b, target.coord);
   const dShield = dTerrainTile ? defenderTerrainShield(dTerrainTile.terrain) : 1.0;
+  // 糧道枯竭：turn ≥ 10 both sides start to suffer 5% per turn beyond,
+  // capped at -40% so battles still resolve.
+  const fatigueMul = b.turn >= 10
+    ? Math.max(0.6, 1 - 0.05 * (b.turn - 9))
+    : 1.0;
 
   const base =
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
-    base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul * dShield * ambushBonus,
+    base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
+    dShield * ambushBonus * fatigueMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
