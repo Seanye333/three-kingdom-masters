@@ -24,6 +24,7 @@ import {
   type StratagemEffect,
 } from '../data/stratagems2';
 import { combatPolicyEffects, cityPolicyEffects } from './policyEffects';
+import { appointmentBonusFor } from './appointmentEffects';
 import { aggregateSlotEffects } from '../data/defenseBuildings';
 import type { Weather } from './weather';
 
@@ -151,6 +152,9 @@ export interface BattleContext {
   attackerDamageMul?: number;
   /** Runtime family relations — used for relationship combat bonuses. */
   family?: import('../types/family').FamilyRelation[];
+  /** Civic-title power multipliers per side (軍師/太尉/丞相 etc.). */
+  attackerTitlePowerMul?: number;
+  defenderTitlePowerMul?: number;
 }
 
 export function resolveBattle(
@@ -355,10 +359,12 @@ export function resolveBattle(
   // Rival showdown (commanders are rivals) — both sides get an attack boost
   const rivalMul = rivalShowdownMultiplier(attacker.commander, defender.commander);
 
+  const aTitlePowerMul = ctx?.attackerTitlePowerMul ?? 1;
+  const dTitlePowerMul = ctx?.defenderTitlePowerMul ?? 1;
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
     (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul *
-    aRelBonus.powerMul * rivalMul;
+    aRelBonus.powerMul * rivalMul * aTitlePowerMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -393,7 +399,8 @@ export function resolveBattle(
     dSkillEffects.powerMultiplier *
     dElitePower *
     (stratEffect.defenderPowerMul ?? 1) *
-    dPolicy.attackMul * dTraitMods.attackMul * dComboMul * dRelBonus.powerMul * rivalMul / Math.max(0.5, dPolicy.defenseMul);
+    dPolicy.attackMul * dTraitMods.attackMul * dComboMul * dRelBonus.powerMul * rivalMul *
+    dTitlePowerMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;
@@ -657,6 +664,8 @@ export interface MarchContext {
   delayedEffectsOut?: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }>;
   /** Runtime family relations — used for relationship combat bonuses. */
   family?: import('../types/family').FamilyRelation[];
+  /** Civic-title appointments — derive per-force power multiplier per battle. */
+  appointments?: import('../types').Appointment[];
 }
 
 export interface MarchOutcome {
@@ -744,6 +753,14 @@ export function handleMarch(
   // Watchtower / arrow-platform / rockfall pre-strike the attacker before battle math.
   const adjustedAttackerTroops = Math.max(0, sentTroops - slotEffects.rangedPrestrike);
 
+  // Civic title force multipliers (軍師/太尉/丞相). Looked up by attacker
+  // and defender force; null target owner ⇒ 1.
+  const attackerTitlePowerMul = ctx.appointments
+    ? appointmentBonusFor(source.ownerForceId, ctx.appointments, officers).powerMultiplier
+    : 1;
+  const defenderTitlePowerMul = ctx.appointments
+    ? appointmentBonusFor(target.ownerForceId, ctx.appointments, officers).powerMultiplier
+    : 1;
   const result = resolveBattle(
     { troops: adjustedAttackerTroops, commander, companions },
     {
@@ -759,6 +776,8 @@ export function handleMarch(
       allowPursuit: true,
       attackerDamageMul: slotEffects.attackerDamageMul,
       family: ctx.family,
+      attackerTitlePowerMul,
+      defenderTitlePowerMul,
     },
   );
   // Account for the prestrike in the casualty report.

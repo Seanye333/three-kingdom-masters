@@ -35,6 +35,7 @@ import {
 import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
 import { planAITurn } from '../systems/ai';
+import { planAIAppointments } from '../systems/aiAppointments';
 import { COMMAND_DEFS } from '../systems/commands';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
@@ -730,9 +731,23 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (state.victoryStatus !== 'playing' && state.victoryStatus !== 'observing')
           return;
         // AI rulers issue their commands for the season.
+        // AI civic appointments + military promotions — runs before the AI
+        // turn so the resulting force bonuses (e.g. 軍師 +10% power) apply
+        // this very season.
+        const aiAppts = planAIAppointments({
+          forces: state.forces,
+          officers: state.officers,
+          cities: state.cities,
+          appointments: state.appointments,
+          playerForceId: state.playerForceId,
+          year: state.date.year,
+        });
+        const officersAfterAppts = aiAppts.officers;
+        const appointmentsAfterAI = aiAppts.appointments;
+
         const planned = planAITurn({
           cities: state.cities,
-          officers: state.officers,
+          officers: officersAfterAppts,
           forces: state.forces,
           playerForceId: state.playerForceId,
           pendingCommands: state.pendingCommands,
@@ -763,12 +778,39 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           runtimeBonds: planned.runtimeBonds,
           lostItems: state.lostItems,
           family: state.family,
+          appointments: appointmentsAfterAI,
           weather: state.weather,
           seasonBoundary,
         });
         // Prepend AI diplomatic announcements to the report.
         if (planned.entries.length > 0) {
           result.report.entries.unshift(...planned.entries);
+        }
+        // Surface AI appointment/promotion changes so the player can see
+        // what rival courts did this season.
+        for (const ch of aiAppts.changes) {
+          const o = officersAfterAppts[ch.officerId];
+          const force = state.forces[ch.forceId];
+          if (!o || !force) continue;
+          if (ch.kind === 'appoint' && ch.titleId) {
+            const def = CIVIC_TITLES_BY_ID[ch.titleId];
+            if (!def) continue;
+            result.report.entries.push({
+              cityId: o.locationCityId,
+              kind: 'note',
+              text: `${force.name.en} appointed ${o.name.en} as ${def.name.en}.`,
+              textZh: `${force.name.zh}拜${o.name.zh}為${def.name.zh}。`,
+            });
+          } else if (ch.kind === 'promote' && ch.rankId) {
+            const rankDef = MILITARY_RANKS_BY_ID[ch.rankId];
+            if (!rankDef) continue;
+            result.report.entries.push({
+              cityId: o.locationCityId,
+              kind: 'note',
+              text: `${force.name.en} promoted ${o.name.en} to ${rankDef.name.en}.`,
+              textZh: `${force.name.zh}晉${o.name.zh}為${rankDef.name.zh}。`,
+            });
+          }
         }
 
         // Snapshot the player's queued commands (captured pre-resolution,
@@ -1848,6 +1890,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           burningCities: nextBurning,
           mandate: nextMandate,
           pendingDelayedEffects: remainingDelayed,
+          appointments: appointmentsAfterAI,
         });
       },
 
@@ -2359,12 +2402,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             return { ok: false, reason: 'not your city' };
         }
         const filtered = state.appointments.filter((a) => {
-          // Same officer can only hold one post — drop prior post for them.
           if (a.officerId === officerId) return false;
-          // Unique-per-force posts can only be held by one officer at a time.
           if (def.uniquePerForce && a.titleId === titleId && a.forceId === state.playerForceId)
             return false;
-          // Prefect: only one per city.
           if (titleId === 'prefect' && a.titleId === 'prefect' && a.cityId === cityId)
             return false;
           return true;
@@ -2376,19 +2416,63 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           cityId,
           appointedYear: state.date.year,
         };
-        set({ appointments: [...filtered, appt] });
+        // Apply loyalty bump on appointment; emit jealousy reactions for
+        // higher-stat envious/jealous peers in the same force.
+        const nextOfficers = { ...state.officers };
+        const loyaltyBump = def.loyaltyOnAppoint ?? 0;
+        if (loyaltyBump > 0) {
+          nextOfficers[officerId] = {
+            ...officer,
+            loyalty: Math.min(100, officer.loyalty + loyaltyBump),
+          };
+        }
+        // Jealousy: peers with `envious` or `jealous` trait whose
+        // primaryStat exceeds the appointee's lose 5 loyalty.
+        const apptStat = officer.stats[def.primaryStat];
+        for (const o of Object.values(state.officers)) {
+          if (o.id === officerId) continue;
+          if (o.forceId !== state.playerForceId) continue;
+          if (o.status === 'dead' || o.status === 'imprisoned') continue;
+          const tr = o.traits ?? [];
+          if (!tr.includes('envious') && !tr.includes('jealous')) continue;
+          if (o.stats[def.primaryStat] <= apptStat) continue;
+          const prev = nextOfficers[o.id] ?? o;
+          nextOfficers[o.id] = { ...prev, loyalty: Math.max(0, prev.loyalty - 5) };
+        }
+        set({
+          appointments: [...filtered, appt],
+          officers: nextOfficers,
+        });
         return { ok: true };
       },
 
       revokeTitle: (officerId) => {
         const state = get();
-        const before = state.appointments.length;
-        const after = state.appointments.filter(
-          (a) => a.officerId !== officerId,
-        );
-        if (after.length === before)
+        const revokedAppts = state.appointments.filter((a) => a.officerId === officerId);
+        if (revokedAppts.length === 0)
           return { ok: false, reason: 'no title held' };
-        set({ appointments: after });
+        const after = state.appointments.filter((a) => a.officerId !== officerId);
+        // Losing a post stings: drop the officer's loyalty by half of the
+        // (original) appointment bump. 罷免之恥。
+        const officer = state.officers[officerId];
+        let nextOfficers = state.officers;
+        if (officer) {
+          const bumpSum = revokedAppts.reduce(
+            (s, a) => s + (CIVIC_TITLES_BY_ID[a.titleId]?.loyaltyOnAppoint ?? 0),
+            0,
+          );
+          const penalty = Math.ceil(bumpSum / 2);
+          if (penalty > 0) {
+            nextOfficers = {
+              ...state.officers,
+              [officerId]: {
+                ...officer,
+                loyalty: Math.max(0, officer.loyalty - penalty),
+              },
+            };
+          }
+        }
+        set({ appointments: after, officers: nextOfficers });
         return { ok: true };
       },
 
@@ -2399,20 +2483,31 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (!officer || !rankDef) return { ok: false, reason: 'invalid' };
         if (officer.forceId !== state.playerForceId)
           return { ok: false, reason: 'not your officer' };
-        // Stat check: top of war or leadership must clear minStat.
         const best = Math.max(officer.stats.war, officer.stats.leadership);
         if (best < rankDef.minStat)
           return { ok: false, reason: `requires ${rankDef.minStat} war/lead` };
-        set({
-          officers: {
-            ...state.officers,
-            [officerId]: {
-              ...officer,
-              rank: rankId,
-              loyalty: Math.min(100, officer.loyalty + rankDef.loyaltyBonus),
-            },
+        const nextOfficers = {
+          ...state.officers,
+          [officerId]: {
+            ...officer,
+            rank: rankId,
+            loyalty: Math.min(100, officer.loyalty + rankDef.loyaltyBonus),
           },
-        });
+        };
+        // Jealousy reactions — same logic as appointTitle.
+        const apptStat = best;
+        for (const o of Object.values(state.officers)) {
+          if (o.id === officerId) continue;
+          if (o.forceId !== state.playerForceId) continue;
+          if (o.status === 'dead' || o.status === 'imprisoned') continue;
+          const tr = o.traits ?? [];
+          if (!tr.includes('envious') && !tr.includes('jealous')) continue;
+          const oBest = Math.max(o.stats.war, o.stats.leadership);
+          if (oBest <= apptStat) continue;
+          const prev = nextOfficers[o.id] ?? o;
+          nextOfficers[o.id] = { ...prev, loyalty: Math.max(0, prev.loyalty - 5) };
+        }
+        set({ officers: nextOfficers });
         return { ok: true };
       },
 

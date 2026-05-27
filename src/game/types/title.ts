@@ -38,7 +38,11 @@ export type CivicTitleId =
   | 'strategist' // 軍師 — chief strategist
   | 'chancellor' // 丞相 — chief minister (cao-cao, zhuge-liang, etc.)
   | 'inspector'  // 刺史 — inspector general
-  | 'minister';  // 司徒 — general civil minister
+  | 'minister'   // 司徒 — general civil minister
+  | 'grand-marshal' // 太尉 — chief defense minister
+  | 'foreign-affairs' // 大鴻臚 — head of foreign relations
+  | 'censor'     // 御史中丞 — censor-general (anti-corruption)
+  | 'advisor';   // 諫議大夫 — court remonstrator / counselor
 
 export interface CivicTitle {
   id: CivicTitleId;
@@ -57,7 +61,15 @@ export interface CivicTitle {
     recruitBonus?: number;
     /** Multiplier on power for the entire force in battle. */
     powerMultiplier?: number;
+    /** Multiplier on diplomatic relation gain/loss for the force. */
+    diplomacyMultiplier?: number;
+    /** Per-season force-wide loyalty drift bonus (anti-corruption). */
+    loyaltyDrift?: number;
+    /** Multiplier on wish/dialogue-grant loyalty rewards. */
+    advisorMultiplier?: number;
   };
+  /** One-shot loyalty bump granted to the appointee on appointment. */
+  loyaltyOnAppoint?: number;
 }
 
 /**

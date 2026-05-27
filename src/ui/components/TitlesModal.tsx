@@ -1,9 +1,23 @@
 import { useMemo, useState } from 'react';
 import { CIVIC_TITLES, MILITARY_RANKS } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
-import type { CivicTitleId, EntityId, MilitaryRankId, Officer } from '../../game/types';
+import type { Appointment, CivicTitleId, EntityId, MilitaryRankId, Officer } from '../../game/types';
 import styles from './TitlesModal.module.css';
 import { useDesc } from '../i18n';
+
+function pickBestFit(
+  officers: Officer[],
+  stat: 'leadership' | 'war' | 'intelligence' | 'politics' | 'charisma',
+  appointments: Appointment[],
+): Officer | null {
+  const heldIds = new Set(appointments.map((a) => a.officerId));
+  let best: Officer | null = null;
+  for (const o of officers) {
+    if (heldIds.has(o.id)) continue;
+    if (!best || o.stats[stat] > best.stats[stat]) best = o;
+  }
+  return best;
+}
 
 interface Props {
   onClose: () => void;
@@ -67,7 +81,50 @@ export function TitlesModal({ onClose }: Props) {
             <div className={styles.titleZh}>任官</div>
             <div className={styles.titleEn}>Titles &amp; Appointments</div>
           </div>
-          <button className={styles.closeButton} onClick={onClose}>×</button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              className={styles.appointBtn}
+              title="一鍵任官 — fill vacant posts and max promotions with best-stat eligible officers"
+              onClick={() => {
+                let appointed = 0;
+                let promoted = 0;
+                // Fill vacant civic posts.
+                for (const titleDef of CIVIC_TITLES) {
+                  if (titleDef.id === 'prefect') {
+                    for (const c of ownCities) {
+                      if (titleHolders[`prefect-${c.id}`]) continue;
+                      const best = pickBestFit(ownOfficers, titleDef.primaryStat, appointments);
+                      if (!best) continue;
+                      const r = appointTitle(best.id, 'prefect', c.id);
+                      if (r.ok) appointed++;
+                    }
+                    continue;
+                  }
+                  if (titleHolders[titleDef.id]) continue;
+                  const best = pickBestFit(ownOfficers, titleDef.primaryStat, appointments);
+                  if (!best) continue;
+                  if (best.stats[titleDef.primaryStat] < 60) continue;
+                  const r = appointTitle(best.id, titleDef.id);
+                  if (r.ok) appointed++;
+                }
+                // Max promotions.
+                for (const o of ownOfficers) {
+                  const curTier = MILITARY_RANKS.find((r) => r.id === o.rank)?.tier ?? 0;
+                  const best = Math.max(o.stats.war, o.stats.leadership);
+                  const top = [...MILITARY_RANKS]
+                    .sort((a, b) => b.tier - a.tier)
+                    .find((r) => r.tier > curTier && best >= r.minStat);
+                  if (!top) continue;
+                  const r = promoteOfficer(o.id, top.id);
+                  if (r.ok) promoted++;
+                }
+                alert(`一鍵任官：appointed ${appointed}, promoted ${promoted}.`);
+              }}
+            >
+              一鍵任官
+            </button>
+            <button className={styles.closeButton} onClick={onClose}>×</button>
+          </div>
         </header>
         <div className={styles.tabs}>
           <button

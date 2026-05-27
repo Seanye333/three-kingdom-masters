@@ -16,6 +16,8 @@ import { handleSearch, resolveInternalAffairs, type LostItemRef } from './comman
 import { handleMarch } from './combat';
 import { tickDiplomacy } from './diplomacy';
 import { tickCityEconomy } from './economy';
+import { appointmentBonusFor } from './appointmentEffects';
+import { MILITARY_RANKS_BY_ID } from '../data/titles';
 import { rollEvents } from './events';
 
 export interface ResolutionInput {
@@ -29,6 +31,8 @@ export interface ResolutionInput {
   lostItems: LostItemRef[];
   /** Runtime family relations — flow through into combat for kinship bonuses. */
   family?: import('../types/family').FamilyRelation[];
+  /** Civic-title appointments — drive force-wide bonuses in commands + combat. */
+  appointments?: import('../types').Appointment[];
   rng?: () => number;
   weather?: import('./weather').Weather;
   /**
@@ -86,6 +90,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       weather: input.weather,
       delayedEffectsOut: delayedEffects,
       family: input.family,
+      appointments: input.appointments,
     });
     cities = outcome.cities;
     officers = outcome.officers;
@@ -110,7 +115,13 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       entries.push(result.entry);
       continue;
     }
-    const result = resolveInternalAffairs(cmd.type, officer, city, rng);
+    const bonus = appointmentBonusFor(
+      city.ownerForceId,
+      input.appointments ?? [],
+      officers,
+      city.id,
+    );
+    const result = resolveInternalAffairs(cmd.type, officer, city, rng, bonus);
     cities[city.id] = applyDelta(city, result.delta);
     entries.push({
       cityId: city.id,
@@ -188,6 +199,43 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     }
   }
 
+  // 2b. Military stipend payment — each force pays its officers' rank
+  // stipends out of its capital city's gold. Insufficient funds means
+  // unpaid arrears (logged) — over time, this hurts loyalty.
+  if (seasonBoundary) {
+    for (const force of Object.values(forces)) {
+      if (!force.capitalCityId) continue;
+      const capital = cities[force.capitalCityId];
+      if (!capital) continue;
+      let stipend = 0;
+      for (const o of Object.values(officers)) {
+        if (o.forceId !== force.id) continue;
+        if (o.status === 'dead' || o.status === 'imprisoned') continue;
+        const rank = MILITARY_RANKS_BY_ID[o.rank];
+        if (rank) stipend += rank.stipend;
+      }
+      if (stipend === 0) continue;
+      const paid = Math.min(capital.gold, stipend);
+      const owed = stipend - paid;
+      cities[capital.id] = { ...capital, gold: capital.gold - paid };
+      if (owed > 0) {
+        // Unpaid arrears: shave 2 loyalty off every officer of this force.
+        // Discontent spreads quickly when the treasury runs dry.
+        for (const o of Object.values(officers)) {
+          if (o.forceId !== force.id) continue;
+          if (o.status === 'dead' || o.status === 'imprisoned') continue;
+          officers[o.id] = { ...o, loyalty: Math.max(0, o.loyalty - 2) };
+        }
+        entries.push({
+          cityId: capital.id,
+          kind: 'note',
+          text: `${force.name.en} treasury fell short of military stipends by ${owed}g — officers' loyalty −2.`,
+          textZh: `${force.name.zh}府庫不足，俸祿欠 ${owed} 金，諸將忠誠 −2。`,
+        });
+      }
+    }
+  }
+
   // 3. Reset officer tasks + loyalty drift toward force strength.
   // Compute per-force city counts once.
   const cityCountByForce: Record<EntityId, number> = {};
@@ -204,6 +252,18 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
 
   // Oath bonds are imported from data/bonds.ts.
 
+  // Per-force censor loyalty drift bonus (御史中丞): +1 per season to all
+  // officers of that force, on top of the cities-balance drift above.
+  const censorBonusByForce: Record<EntityId, number> = {};
+  if (input.appointments) {
+    for (const f of Object.keys(cityCountByForce)) {
+      censorBonusByForce[f] = appointmentBonusFor(
+        f,
+        input.appointments,
+        officers,
+      ).loyaltyDriftPerSeason;
+    }
+  }
   for (const o of Object.values(officers)) {
     let next: Officer = o.task ? { ...o, task: null } : o;
     if (o.forceId && o.status === 'idle') {
@@ -212,6 +272,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       if (owned > avgCities + 1) drift = 1;
       else if (owned < avgCities - 1) drift = -1;
       else if (owned === 0) drift = -3;
+      drift += censorBonusByForce[o.forceId] ?? 0;
       if (drift !== 0) {
         const newLoyalty = Math.max(0, Math.min(100, o.loyalty + drift));
         if (newLoyalty !== o.loyalty) {

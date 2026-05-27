@@ -153,12 +153,18 @@ export function resolveInternalAffairs(
   officer: Officer,
   city: City,
   rng: () => number,
+  bonus?: { internalMultiplier?: number; recruitBonus?: number },
 ): CommandResult {
   const def = COMMAND_DEFS[type];
   // Trait multiplier (diligent +20%, lazy −20%, specialist +20% for matching
   // category, etc.) scales the effective stat so the output gain reflects it.
   const traitMul = internalAffairsMultiplier(officer, type);
-  const statValue = Math.round(officer.stats[def.stat] * traitMul);
+  // Civic-title force bonus: 太守/丞相/司徒 multiply the effective stat for
+  // internal-affairs commands; 刺史/丞相 add a flat recruit bonus.
+  const titleMul = type === 'recruit-troops'
+    ? 1 + (bonus?.recruitBonus ?? 0)
+    : (bonus?.internalMultiplier ?? 1);
+  const statValue = Math.round(officer.stats[def.stat] * traitMul * titleMul);
 
   const size = citySize(city);
   const cap = cityStatCap(city);
