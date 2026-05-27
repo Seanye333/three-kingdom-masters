@@ -125,6 +125,8 @@ export function OfficerDetail({
   const buildings = useGameStore((s) => s.buildings);
   const family = useGameStore((s) => s.family);
   const officerDeeds = useGameStore((s) => s.deeds[officer.id]);
+  const officerWishes = useGameStore((s) => s.officerWishes);
+  const openWish = officerWishes.find((w) => w.officerId === officer.id);
   const activeTraining = pendingTrainings.find((tr) => tr.officerId === officer.id);
 
   const forces = forcesOverride ?? storeForces;
@@ -166,6 +168,20 @@ export function OfficerDetail({
                     {lang === 'both' && <> {officer.courtesyName.en}</>}
                   </span>
                 )}
+              </div>
+            )}
+            {openWish && (
+              <div style={{
+                marginTop: '0.3rem', fontSize: '0.78rem',
+                color: openWish.kind === 'info' ? '#7ed68a' : '#d4a84a',
+                letterSpacing: '0.1rem',
+              }}>
+                📜 {openWish.kind === 'info' ? '一封上書待覽' : '一封書信待覆'}
+              </div>
+            )}
+            {(officer.grievanceCount ?? 0) >= 2 && (
+              <div style={{ marginTop: '0.2rem', fontSize: '0.72rem', color: '#b8442e' }}>
+                ⚠ 怨望日深（怨次 {officer.grievanceCount}）
               </div>
             )}
           </div>
@@ -1356,6 +1372,9 @@ function FamilyTreeSection({ officerId, officersOverride }: {
         </span>
         {o.status === 'dead' && (
           <span style={{ fontSize: '0.6rem', color: '#6b3a3a', marginTop: 1 }}>† {t('卒', 'dec.')}</span>
+        )}
+        {o.status === 'retired' && (
+          <span style={{ fontSize: '0.6rem', color: '#7a8a5a', marginTop: 1 }}>{t('歸隱', 'retired')}</span>
         )}
       </div>
     );

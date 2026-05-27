@@ -34,7 +34,7 @@ export interface Officer {
   loyalty: number;
   locationCityId: EntityId | null;
   forceId: EntityId | null;
-  status: 'active' | 'idle' | 'imprisoned' | 'dead' | 'unsearched' | 'wounded';
+  status: 'active' | 'idle' | 'imprisoned' | 'dead' | 'unsearched' | 'wounded' | 'retired';
   /** Historical hometown — fixed at scenario load from the template. Doesn't
    *  change as the officer moves around. Used by UI + search bonuses. */
   hometownCityId?: EntityId;
@@ -64,4 +64,7 @@ export interface Officer {
   policies?: import('../data/officerAttributes').PolicyId[];
   /** Lv. — officer level (1–100), derived from total stats. */
   level?: number;
+  /** Number of wishes this officer has had rejected. Escalates penalty +
+   *  triggers defection risk at threshold. */
+  grievanceCount?: number;
 }

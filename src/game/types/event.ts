@@ -14,6 +14,7 @@ export type EventEffect =
   | { kind: 'officer-join'; officerId: EntityId; forceId: EntityId }
   | { kind: 'spawn-rebel-force'; cityId: EntityId; troops: number; label: BilingualName }
   | { kind: 'grant-title'; officerId: EntityId; titleId: import('./title').CivicTitleId; cityId?: EntityId }
+  | { kind: 'force-wish'; officerId: EntityId; wishKind: import('./family').WishKind; text: BilingualName; rejectPenalty?: number; grantBonus?: number }
   | { kind: 'flag'; key: string }; // sets a flag in state.eventFlags
 
 export interface HistoricalEvent {

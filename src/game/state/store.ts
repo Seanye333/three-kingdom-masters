@@ -962,6 +962,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         let postForces = result.forces;
         let postFlags = eventFlagsAfterCourt;
         let postFiredIds = state.firedEventIds;
+        const forcedEventWishes: import('../types').OfficerWish[] = [];
         const eventCheck = findFiringEvent({
           date: result.date,
           cities: postCities,
@@ -1026,6 +1027,23 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               kind: 'talent',
               text: `By edict, ${grantee.name.en} is named ${titleDef.name.en}.`,
               textZh: `奉詔拜${grantee.name.zh}為${titleDef.name.zh}。`,
+            });
+          }
+          // Forced wishes from 'force-wish' effects — only show to player
+          // when the targeted officer belongs to the player force.
+          for (const fw of after.forcedWishes ?? []) {
+            const target = postOfficers[fw.officerId];
+            if (!target || target.forceId !== state.playerForceId) continue;
+            forcedEventWishes.push({
+              id: `wish-event-${fw.officerId}-${result.date.year}-${result.date.season}`,
+              officerId: fw.officerId,
+              kind: fw.wishKind,
+              text: fw.text,
+              issuedYear: result.date.year,
+              issuedSeason: result.date.season,
+              rejectPenalty: fw.rejectPenalty ?? 8,
+              grantBonus: fw.grantBonus ?? 10,
+              expiresAfterSeasons: 6,
             });
           }
         }
@@ -2028,6 +2046,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               ? newWishes.filter((w) => !consumedWishIds.has(w.id))
               : newWishes),
             ...woundedRetireWishes,
+            ...forcedEventWishes,
           ],
           pendingWishEntries: [],
           shipOrders: remainingOrders,
@@ -3973,14 +3992,37 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const advisorMul = wishOfficer
           ? appointmentBonusFor(wishOfficer.forceId, state.appointments, state.officers).advisorMultiplier
           : 1;
+        // Compute unequipped item pool for `item` wishes — items in inventory
+        // not held by any officer.
+        const equippedSet = new Set<EntityId>();
+        for (const o of Object.values(state.officers)) {
+          for (const it of (o.equipment ?? [])) equippedSet.add(it);
+        }
+        // ITEMS_BY_ID has every defined item; subtract equipped + lost.
+        const lostSet = new Set(state.lostItems.map((l) => l.itemId));
+        const unequippedItemIds: EntityId[] = [];
+        for (const id of Object.keys(ITEMS_BY_ID)) {
+          if (!equippedSet.has(id) && !lostSet.has(id)) unequippedItemIds.push(id);
+        }
         const r = applyWishGrant(wish, {
           officers: state.officers,
           cities: state.cities,
           advisorMultiplier: advisorMul,
+          unequippedItemIds,
+          lostItems: state.lostItems,
         });
+        // Granting also resets grievance — the lord acknowledged them.
+        if (wishOfficer && (wishOfficer.grievanceCount ?? 0) > 0) {
+          r.officers[wishOfficer.id] = { ...r.officers[wishOfficer.id], grievanceCount: 0 };
+        }
+        // If an item was drawn from lostItems, remove it from the pool.
+        const newLostItems = r.consumedFromLost
+          ? state.lostItems.filter((l) => !(l.itemId === r.consumedItemId && l.cityId === r.consumedFromLost))
+          : state.lostItems;
         set({
           officers: r.officers,
           cities: r.cities,
+          lostItems: newLostItems,
           officerWishes: state.officerWishes.filter((w) => w.id !== wishId),
           // Queue the report entry so it shows up in the next season report.
           pendingWishEntries: [...(state.pendingWishEntries ?? []), r.entry],

@@ -92,6 +92,14 @@ export interface EventApplyOutput {
     titleId: import('../types').CivicTitleId;
     cityId?: EntityId;
   }>;
+  /** Wish injections emitted by 'force-wish' effects this event. */
+  forcedWishes?: Array<{
+    officerId: EntityId;
+    wishKind: import('../types').WishKind;
+    text: { en: string; zh: string };
+    rejectPenalty?: number;
+    grantBonus?: number;
+  }>;
 }
 
 /**
@@ -107,11 +115,12 @@ export function applyEventEffects(
   const forces = { ...ctx.forces };
   const eventFlags = { ...ctx.eventFlags };
   const appointmentGrants: NonNullable<EventApplyOutput['appointmentGrants']> = [];
+  const forcedWishes: NonNullable<EventApplyOutput['forcedWishes']> = [];
 
   for (const e of evt.effects) {
-    applySingleEffect(e, { cities, officers, forces, eventFlags, appointmentGrants });
+    applySingleEffect(e, { cities, officers, forces, eventFlags, appointmentGrants, forcedWishes });
   }
-  return { cities, officers, forces, eventFlags, appointmentGrants };
+  return { cities, officers, forces, eventFlags, appointmentGrants, forcedWishes };
 }
 
 function applySingleEffect(
@@ -213,6 +222,15 @@ function applySingleEffect(
         officerId: e.officerId,
         titleId: e.titleId,
         cityId: e.cityId,
+      });
+      break;
+    case 'force-wish':
+      mut.forcedWishes?.push({
+        officerId: e.officerId,
+        wishKind: e.wishKind,
+        text: e.text,
+        rejectPenalty: e.rejectPenalty,
+        grantBonus: e.grantBonus,
       });
       break;
   }

@@ -332,12 +332,20 @@ export interface ApplyWishContext {
   cities: Record<EntityId, City>;
   /** Multiplier on the granted loyalty bonus — driven by 諫議大夫. */
   advisorMultiplier?: number;
+  /** Pool of items not currently equipped; used for `item` wish grant. */
+  unequippedItemIds?: EntityId[];
+  /** Lost items pool; cheaper fallback if no unequipped exist. */
+  lostItems?: Array<{ itemId: EntityId; cityId: EntityId }>;
 }
 
 export interface ApplyWishOutput {
   officers: Record<EntityId, Officer>;
   cities: Record<EntityId, City>;
   entry: ReportEntry;
+  /** When the wish was 'item' and an item was granted, the consumed pool
+   *  is reported here so the store can mutate state.lostItems / items. */
+  consumedItemId?: EntityId;
+  consumedFromLost?: EntityId; // cityId entry if drawn from lostItems
 }
 
 export function applyWishGrant(
@@ -409,11 +417,40 @@ export function applyWishGrant(
       extraZh = `（已達其能升之最高軍銜，僅 +忠誠。）`;
     }
   } else if (wish.kind === 'item') {
-    // Grant satisfaction only — actual item gift relies on player's armoury
-    // (kept loose to avoid forcing equip mechanics). Loyalty + small flavor.
+    // BUG FIX: actually grant an item from the unequipped pool or lost pool.
+    let granted: EntityId | null = null;
+    let fromLost: EntityId | undefined;
+    if (ctx.unequippedItemIds && ctx.unequippedItemIds.length > 0) {
+      granted = ctx.unequippedItemIds[0];
+    } else if (ctx.lostItems && ctx.lostItems.length > 0) {
+      granted = ctx.lostItems[0].itemId;
+      fromLost = ctx.lostItems[0].cityId;
+    }
+    if (granted) {
+      const have = o.equipment ?? [];
+      officers[o.id] = {
+        ...o,
+        equipment: [...have, granted],
+        loyalty: Math.min(100, o.loyalty + bonus),
+      };
+      extraEn = ` Item #${granted} bestowed from the armoury.`;
+      extraZh = `自府庫賜「${granted}」。`;
+      return {
+        officers, cities,
+        entry: {
+          cityId: o.locationCityId,
+          kind: 'note',
+          text: `Granted ${o.name.en}'s wish (+${bonus} loyalty).${extraEn}`,
+          textZh: `達成${o.name.zh}之心願（忠誠 +${bonus}）。${extraZh}`,
+        },
+        consumedItemId: granted,
+        consumedFromLost: fromLost,
+      };
+    }
+    // No items available — loyalty only, mark in text.
     officers[o.id] = { ...o, loyalty: Math.min(100, o.loyalty + bonus) };
-    extraEn = ' A token from the armoury is sent.';
-    extraZh = '自府庫賜寶。';
+    extraEn = ' (Armoury empty — token granted in name only.)';
+    extraZh = '（府庫無實物，徒以言謝。）';
   } else if (wish.kind === 'dismiss-rival' && wish.targetId) {
     // Drop the rival's loyalty by 5 (they feel slighted), satisfy petitioner.
     const rival = officers[wish.targetId];
@@ -424,15 +461,13 @@ export function applyWishGrant(
     }
     officers[o.id] = { ...o, loyalty: Math.min(100, o.loyalty + bonus) };
   } else if (wish.kind === 'retire') {
-    // Officer leaves service permanently. Set status to dead-equivalent: mark
-    // 'imprisoned' as a retire stand-in keeps them visible in encyclopedia
-    // but unavailable. Actually use a dedicated 'retired' if exists; else
-    // remove forceId so they wander off.
+    // Officer leaves service permanently — status:'retired' keeps them
+    // visible in 列傳 with a "歸隱" tag.
     officers[o.id] = {
       ...o,
       forceId: null,
-      status: 'unsearched',
-      locationCityId: o.locationCityId, // keep location
+      status: 'retired',
+      locationCityId: o.hometownCityId ?? o.locationCityId,
       task: null,
       loyalty: Math.min(100, o.loyalty + bonus),
     };
@@ -486,17 +521,29 @@ export function applyWishReject(
       entry: { cityId: null, kind: 'note', text: 'Wish target gone.', textZh: '心願對象已不在。' },
     };
   }
+  // Grievance escalates the rejection penalty. Each prior rejection adds
+  // a multiplier so the 4th rejection costs roughly 2.4× the first.
+  const grievance = o.grievanceCount ?? 0;
+  const escalation = 1 + grievance * 0.45;
+  const penalty = Math.ceil(wish.rejectPenalty * escalation);
   officers[o.id] = {
     ...o,
-    loyalty: Math.max(0, o.loyalty - wish.rejectPenalty),
+    loyalty: Math.max(0, o.loyalty - penalty),
+    grievanceCount: grievance + 1,
   };
+  const grievanceNote = grievance >= 2
+    ? ` ${o.name.en} is visibly frustrated (grievance ${grievance + 1}).`
+    : '';
+  const grievanceNoteZh = grievance >= 2
+    ? `${o.name.zh}已多次被拒，怨望日深（怨次 ${grievance + 1}）。`
+    : '';
   return {
     officers, cities,
     entry: {
       cityId: o.locationCityId,
       kind: 'note',
-      text: `Rejected ${o.name.en}'s wish (−${wish.rejectPenalty} loyalty).`,
-      textZh: `回絕${o.name.zh}之心願（忠誠 −${wish.rejectPenalty}）。`,
+      text: `Rejected ${o.name.en}'s wish (−${penalty} loyalty).${grievanceNote}`,
+      textZh: `回絕${o.name.zh}之心願（忠誠 −${penalty}）。${grievanceNoteZh}`,
     },
   };
 }
