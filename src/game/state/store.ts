@@ -36,6 +36,8 @@ import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
 import { planAITurn } from '../systems/ai';
 import { planAIAppointments } from '../systems/aiAppointments';
+import { planAICourt } from '../systems/aiCourt';
+import { rollFactionEvents } from '../systems/factionEvents';
 import { appointmentBonusFor, pruneStaleAppointments, traitRefusal, isOnCooldown } from '../systems/appointmentEffects';
 import { canPromoteToRank } from '../systems/imperialEffects';
 import { COMMAND_DEFS } from '../systems/commands';
@@ -752,10 +754,38 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const officersAfterAppts = aiAppts.officers;
         let appointmentsAfterAI = aiAppts.appointments;
 
-        const planned = planAITurn({
-          cities: state.cities,
-          officers: officersAfterAppts,
+        // AI court: imperial-rank promotions + edict issuance. Runs after
+        // appointments so a freshly-appointed 丞相 unlocks 公爵 this turn.
+        const aiCourt = planAICourt({
           forces: state.forces,
+          officers: officersAfterAppts,
+          cities: state.cities,
+          appointments: appointmentsAfterAI,
+          edictCooldowns: state.edictCooldowns,
+          deeds: state.deeds,
+          diplomacy: state.diplomacy,
+          eventFlags: state.eventFlags,
+          mandate: state.mandate,
+          date: state.date,
+          playerForceId: state.playerForceId,
+          rng: Math.random,
+        });
+        const forcesAfterCourt = aiCourt.forces;
+        const officersAfterCourt = aiCourt.officers;
+        const citiesAfterCourt = aiCourt.cities;
+        const edictHistoryAfterCourt = [...state.edictHistory, ...aiCourt.edictHistory];
+        const edictCooldownsAfterCourt = aiCourt.edictCooldowns;
+        const casusBelliAfterCourt = [...state.casusBelliMarks, ...aiCourt.casusBelliMarks];
+        // Enthronement flags for AI emperors (gates further promotion).
+        const eventFlagsAfterCourt = { ...state.eventFlags };
+        for (const eid of aiCourt.newEnthronements) {
+          eventFlagsAfterCourt['enthroned-' + eid] = true;
+        }
+
+        const planned = planAITurn({
+          cities: citiesAfterCourt,
+          officers: officersAfterCourt,
+          forces: forcesAfterCourt,
           playerForceId: state.playerForceId,
           pendingCommands: state.pendingCommands,
           pendingTrainings: state.pendingTrainings,
@@ -780,14 +810,14 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           date: state.date,
           cities: planned.cities,
           officers: planned.officers,
-          forces: state.forces,
+          forces: forcesAfterCourt,
           pendingCommands: planned.pendingCommands,
           diplomacy: planned.diplomacy,
           runtimeBonds: planned.runtimeBonds,
           lostItems: state.lostItems,
           family: state.family,
           appointments: appointmentsAfterAI,
-          casusBelliMarks: state.casusBelliMarks,
+          casusBelliMarks: casusBelliAfterCourt,
           recruitBonusSeasons: state.recruitBonusSeasons,
           weather: state.weather,
           seasonBoundary,
@@ -795,6 +825,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // Prepend AI diplomatic announcements to the report.
         if (planned.entries.length > 0) {
           result.report.entries.unshift(...planned.entries);
+        }
+        // Surface AI court actions (rank promotions + edict issuances).
+        if (aiCourt.entries.length > 0) {
+          result.report.entries.unshift(...aiCourt.entries);
         }
         // Surface AI appointment/promotion changes so the player can see
         // what rival courts did this season. Also log to appointmentHistory.
@@ -921,7 +955,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         let postCities = tribeResult.cities;
         let postOfficers = espResult.officers;
         let postForces = result.forces;
-        let postFlags = state.eventFlags;
+        let postFlags = eventFlagsAfterCourt;
         let postFiredIds = state.firedEventIds;
         const eventCheck = findFiringEvent({
           date: result.date,
@@ -1170,6 +1204,18 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           });
           nextMandate = omenOut.mandate;
           if (omenOut.entry) result.report.entries.push(omenOut.entry);
+          // Faction-imbalance events: 黨錮/武人干政/九品官人/新政
+          const facOut = rollFactionEvents({
+            forces: postForces,
+            officers: postOfficers,
+            cities: postCities,
+            mandate: nextMandate,
+            rng: Math.random,
+          });
+          postOfficers = facOut.officers;
+          postCities = facOut.cities;
+          nextMandate = facOut.mandate;
+          if (facOut.entries.length > 0) result.report.entries.push(...facOut.entries);
         }
 
         // ── Wounded recovery tick: decrement woundedSeasons, restore to idle at 0 ──
@@ -1985,9 +2031,12 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             ...aiHistoryAppends,
             ...pruneHistoryAppends,
           ],
+          // AI court actions persist into edictHistory + cooldowns.
+          edictHistory: edictHistoryAfterCourt,
+          edictCooldowns: edictCooldownsAfterCourt,
           // 討伐令 marks expire by season — drop any past their date.
           casusBelliMarks: seasonBoundary
-            ? state.casusBelliMarks.filter((m) => {
+            ? casusBelliAfterCourt.filter((m) => {
                 const seasonIdx = { spring: 0, summer: 1, autumn: 2, winter: 3 } as const;
                 const nextAbs = result.date.year * 4 + seasonIdx[result.date.season];
                 const expAbs = m.expiresYear * 4 + seasonIdx[m.expiresSeason];
