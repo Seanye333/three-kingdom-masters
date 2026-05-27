@@ -221,6 +221,7 @@ interface GameStore extends GameState {
     itemId: EntityId,
     toOfficerId: EntityId,
   ) => { ok: boolean; reason?: string };
+  unequipItem: (officerId: EntityId, itemId: EntityId) => { ok: boolean; reason?: string };
   unequipSlot: (
     officerId: EntityId,
     slot: 'weapon' | 'horse' | 'treasure' | 'book',
@@ -2564,12 +2565,77 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             equipment: currentHolder.equipment.filter((id) => id !== itemId),
           };
         }
-        updates[toOfficerId] = {
-          ...target,
-          equipment: [...target.equipment, itemId],
+        // Apply one-shot grants from the item (book teaches policy, etc.).
+        let nextTarget: typeof target = { ...target, equipment: [...target.equipment, itemId] };
+        const grants = (item as import('../data/items').Item).grants;
+        if (grants) {
+          if (grants.policy) {
+            const have = nextTarget.policies ?? [];
+            if (!have.includes(grants.policy as import('../types').PolicyId)) {
+              nextTarget = { ...nextTarget, policies: [...have, grants.policy as import('../types').PolicyId] };
+            }
+          }
+          if (grants.tactic) {
+            const have = nextTarget.tactics ?? [];
+            if (!have.includes(grants.tactic as import('../types').TacticId)) {
+              nextTarget = { ...nextTarget, tactics: [...have, grants.tactic as import('../types').TacticId] };
+            }
+          }
+          if (grants.trait) {
+            const have = nextTarget.traits ?? [];
+            if (!have.includes(grants.trait as import('../types').PersonalityTrait)) {
+              nextTarget = { ...nextTarget, traits: [...have, grants.trait as import('../types').PersonalityTrait] };
+            }
+          }
+          if (grants.formation) {
+            const have = nextTarget.formations ?? [];
+            if (!have.includes(grants.formation as import('../types').OfficerFormationId)) {
+              nextTarget = { ...nextTarget, formations: [...have, grants.formation as import('../types').OfficerFormationId] };
+            }
+          }
+        }
+        updates[toOfficerId] = nextTarget;
+        // Track item-holder history.
+        const histEntry = {
+          itemId,
+          fromOfficerId: currentHolder?.id ?? null,
+          toOfficerId,
+          year: state.date.year,
+          season: state.date.season,
         };
+        set({
+          officers: { ...state.officers, ...updates },
+          itemHistory: [...(state.itemHistory ?? []), histEntry],
+        });
+        return { ok: true };
+      },
 
-        set({ officers: { ...state.officers, ...updates } });
+      unequipItem: (officerId: EntityId, itemId: EntityId) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        if (!officer) return { ok: false, reason: 'invalid officer' };
+        if (officer.forceId !== state.playerForceId)
+          return { ok: false, reason: 'not your officer' };
+        if (!officer.equipment.includes(itemId)) return { ok: true };
+        set({
+          officers: {
+            ...state.officers,
+            [officerId]: {
+              ...officer,
+              equipment: officer.equipment.filter((id) => id !== itemId),
+            },
+          },
+          itemHistory: [
+            ...(state.itemHistory ?? []),
+            {
+              itemId,
+              fromOfficerId: officerId,
+              toOfficerId: officerId, // sentinel: unequipped, no new holder
+              year: state.date.year,
+              season: state.date.season,
+            },
+          ],
+        });
         return { ok: true };
       },
 
@@ -4117,6 +4183,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           casusBelliMarks: loaded.casusBelliMarks ?? [],
           recruitBonusSeasons: loaded.recruitBonusSeasons ?? {},
           pendingWishEntries: loaded.pendingWishEntries ?? [],
+          itemHistory: loaded.itemHistory ?? [],
           eventFlags: loaded.eventFlags ?? {},
           firedEventIds: loaded.firedEventIds ?? [],
           ports: migratePorts(
@@ -4182,6 +4249,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         pendingHeirs: state.pendingHeirs,
         officerWishes: state.officerWishes,
         pendingWishEntries: state.pendingWishEntries,
+        itemHistory: state.itemHistory,
         endingsAchieved: state.endingsAchieved,
         hotSeatPlayers: state.hotSeatPlayers,
         hotSeatActiveIndex: state.hotSeatActiveIndex,

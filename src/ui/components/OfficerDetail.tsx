@@ -127,7 +127,9 @@ export function OfficerDetail({
   const officerDeeds = useGameStore((s) => s.deeds[officer.id]);
   const officerWishes = useGameStore((s) => s.officerWishes);
   const openWish = officerWishes.find((w) => w.officerId === officer.id);
+  const unequipItemFn = useGameStore((s) => s.unequipItem);
   const activeTraining = pendingTrainings.find((tr) => tr.officerId === officer.id);
+  const isPlayerOfficer = officer.forceId === playerForceId;
 
   const forces = forcesOverride ?? storeForces;
   const cities = citiesOverride ?? storeCities;
@@ -677,42 +679,77 @@ export function OfficerDetail({
           </section>
         )}
 
-        {officer.equipment.length > 0 && (
-          <section className={styles.statsSection}>
-            <h3 className={styles.sectionTitle}>
-              {t('持有', 'Equipment')} ({officer.equipment.length})
-            </h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-              {officer.equipment.map((id) => {
-                const item = ITEMS_BY_ID[id];
-                if (!item) return null;
-                const kindColor =
-                  item.kind === 'weapon'   ? '#b8442e'
-                  : item.kind === 'horse'    ? '#c19a3b'
-                  : item.kind === 'treasure' ? '#d4a84a'
-                  : item.kind === 'book'     ? '#3a7dd9'
-                  : '#5a4530';
-                const desc = lang === 'zh' && item.descriptionZh ? item.descriptionZh : item.description;
-                const effects = Object.entries(item.effects)
-                  .map(([stat, val]) => `${stat.slice(0, 3).toUpperCase()} +${val}`)
-                  .join(' · ');
-                return (
-                  <span
-                    key={id}
-                    title={`${desc}\n${effects}`}
-                    style={{
-                      background: '#1a1410', border: `1px solid ${kindColor}`, color: kindColor,
-                      padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
-                    }}
-                  >
-                    {lang === 'en' ? item.name.en : item.name.zh}
-                    {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{item.name.en}</span></>}
+        {officer.equipment.length > 0 && (() => {
+          // Aggregate all item stat bonuses.
+          const total: Record<string, number> = {};
+          for (const id of officer.equipment) {
+            const item = ITEMS_BY_ID[id];
+            if (!item) continue;
+            for (const [k, v] of Object.entries(item.effects)) {
+              total[k] = (total[k] ?? 0) + (v as number);
+            }
+          }
+          const totalStr = Object.entries(total)
+            .filter(([, v]) => v > 0)
+            .map(([k, v]) => `${k.slice(0, 3).toUpperCase()} +${v}`)
+            .join(' · ');
+          return (
+            <section className={styles.statsSection}>
+              <h3 className={styles.sectionTitle}>
+                {t('持有', 'Equipment')} ({officer.equipment.length})
+                {totalStr && (
+                  <span style={{ marginLeft: '0.8rem', fontSize: '0.75rem', color: '#d4a84a', letterSpacing: '0.1rem' }}>
+                    {t('合計', 'Total')}: {totalStr}
                   </span>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                )}
+              </h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                {officer.equipment.map((id) => {
+                  const item = ITEMS_BY_ID[id];
+                  if (!item) return null;
+                  const kindColor =
+                    item.kind === 'weapon'   ? '#b8442e'
+                    : item.kind === 'horse'    ? '#c19a3b'
+                    : item.kind === 'treasure' ? '#d4a84a'
+                    : item.kind === 'book'     ? '#3a7dd9'
+                    : '#5a4530';
+                  const desc = lang === 'zh' && item.descriptionZh ? item.descriptionZh : item.description;
+                  const effects = Object.entries(item.effects)
+                    .map(([stat, val]) => `${stat.slice(0, 3).toUpperCase()} +${val}`)
+                    .join(' · ');
+                  const grantSummary = item.grants ? Object.entries(item.grants)
+                    .map(([k, v]) => `+${k}:${v}`).join(' · ') : '';
+                  return (
+                    <span
+                      key={id}
+                      title={`${desc}\n${effects}${grantSummary ? '\n' + grantSummary : ''}`}
+                      style={{
+                        background: '#1a1410', border: `1px solid ${kindColor}`, color: kindColor,
+                        padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                      }}
+                    >
+                      <span>
+                        {lang === 'en' ? item.name.en : item.name.zh}
+                        {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{item.name.en}</span></>}
+                      </span>
+                      {isPlayerOfficer && (
+                        <button
+                          onClick={() => unequipItemFn(officer.id, id)}
+                          title={t('卸下', 'Unequip')}
+                          style={{
+                            background: 'none', border: 'none', color: '#8a7050',
+                            cursor: 'pointer', padding: '0 0.1rem', fontSize: '0.75rem',
+                          }}
+                        >×</button>
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })()}
 
         <section className={styles.statsSection}>
           <h3 className={styles.sectionTitle}>{t('列傳', 'Biography')}</h3>

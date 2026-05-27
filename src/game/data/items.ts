@@ -15,6 +15,15 @@ export interface Item {
     politics?: number;
     charisma?: number;
   };
+  /** One-shot grants when this item is equipped by an officer who doesn't
+   *  already have the granted ability. Granted abilities stay even if the
+   *  item is unequipped — knowledge keeps. */
+  grants?: {
+    policy?: string;     // PolicyId
+    tactic?: string;     // TacticId
+    trait?: string;      // PersonalityTrait
+    formation?: string;  // OfficerFormationId
+  };
 }
 
 export const ITEMS: Item[] = [
@@ -177,6 +186,7 @@ export const ITEMS: Item[] = [
     description: "Sun Wu's classic of military strategy. Required reading for any commander.",
     descriptionZh: "孫武所著之兵法經典，為將者必讀之書。",
     effects: { leadership: 8, intelligence: 5 },
+    grants: { policy: 'military-theory' },
   },
   {
     id: 'taiping',
@@ -186,6 +196,7 @@ export const ITEMS: Item[] = [
     description: 'The mystical text given to Zhang Jiao by Immortal Nan Hua. Started the Yellow Turban revolt.',
     descriptionZh: "南華老仙授予張角的奇書，黃巾之亂由此而起。",
     effects: { intelligence: 6, charisma: 5 },
+    grants: { trait: 'cunning' },
   },
   {
     id: 'meng-de-xinshu',
@@ -195,6 +206,7 @@ export const ITEMS: Item[] = [
     description: "Cao Cao's own annotated commentary on the Art of War.",
     descriptionZh: "曹操親自批註孫子兵法之作。",
     effects: { leadership: 5, intelligence: 5 },
+    grants: { policy: 'military-theory' },
   },
   {
     id: 'spring-autumn',
@@ -204,6 +216,7 @@ export const ITEMS: Item[] = [
     description: 'Confucius\'s history, Guan Yu\'s nightly reading. Cultivates righteousness.',
     descriptionZh: "孔子所修史書，關羽夜讀不輟，可養浩然之氣。",
     effects: { intelligence: 3, politics: 3, charisma: 4 },
+    grants: { trait: 'pious', policy: 'rites' },
   },
 
   // ── Phase 26 items ──

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ITEMS } from '../../game/data';
+import type { Item } from '../../game/data/items';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, Officer } from '../../game/types';
 import styles from './ArmouryModal.module.css';
@@ -10,6 +11,46 @@ interface Props {
 }
 
 type KindFilter = 'all' | 'weapon' | 'horse' | 'treasure' | 'book';
+type OwnerFilter = 'mine' | 'enemy' | 'unclaimed' | 'all';
+
+/** Sum all stat boosts an item gives — used for rarity classification. */
+function itemRarityScore(item: Item): number {
+  let s = 0;
+  for (const v of Object.values(item.effects)) s += (v as number) ?? 0;
+  return s;
+}
+
+function rarityTier(item: Item): 'legendary' | 'rare' | 'uncommon' | 'common' {
+  const s = itemRarityScore(item);
+  if (s >= 13) return 'legendary';
+  if (s >= 8) return 'rare';
+  if (s >= 4) return 'uncommon';
+  return 'common';
+}
+
+const RARITY_COLOR: Record<ReturnType<typeof rarityTier>, string> = {
+  legendary: '#d4a84a',
+  rare:      '#c178c7',
+  uncommon:  '#88b7e8',
+  common:    '#8a7050',
+};
+const RARITY_LABEL_ZH: Record<ReturnType<typeof rarityTier>, string> = {
+  legendary: '神品', rare: '逸品', uncommon: '上品', common: '常品',
+};
+
+/** Pick the relevant stat for best-fit ranking. */
+function bestFitStat(item: Item): 'leadership' | 'war' | 'intelligence' | 'politics' | 'charisma' {
+  if (item.kind === 'weapon')  return 'war';
+  if (item.kind === 'horse')   return 'war';
+  if (item.kind === 'book')    return 'intelligence';
+  // treasure: rank by sum of biggest effect
+  const entries = Object.entries(item.effects) as Array<[
+    'leadership' | 'war' | 'intelligence' | 'politics' | 'charisma',
+    number,
+  ]>;
+  entries.sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
+  return entries[0]?.[0] ?? 'politics';
+}
 
 export function ArmouryModal({ onClose }: Props) {
   const officers = useGameStore((s) => s.officers);
@@ -17,11 +58,15 @@ export function ArmouryModal({ onClose }: Props) {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const assignItem = useGameStore((s) => s.assignItem);
   const unequipSlot = useGameStore((s) => s.unequipSlot);
+  const lostItems = useGameStore((s) => s.lostItems);
 
   const [filter, setFilter] = useState<KindFilter>('all');
+  const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>('all');
   const [assigningItemId, setAssigningItemId] = useState<string | null>(null);
   const t = useT();
   const d = useDesc();
+
+  const lostItemIds = useMemo(() => new Set(lostItems.map((l) => l.itemId)), [lostItems]);
 
   const itemHolders = useMemo(() => {
     const map: Record<string, Officer | null> = {};
@@ -51,10 +96,26 @@ export function ArmouryModal({ onClose }: Props) {
     [officers, playerForceId],
   );
 
-  const visibleItems = useMemo(
-    () => (filter === 'all' ? ITEMS : ITEMS.filter((i) => i.kind === filter)),
-    [filter],
-  );
+  const visibleItems = useMemo(() => {
+    let list = filter === 'all' ? ITEMS : ITEMS.filter((i) => i.kind === filter);
+    if (ownerFilter !== 'all') {
+      list = list.filter((item) => {
+        const holder = itemHolders[item.id];
+        const isLost = lostItemIds.has(item.id);
+        if (ownerFilter === 'mine') return holder && holder.forceId === playerForceId;
+        if (ownerFilter === 'enemy') return holder && holder.forceId && holder.forceId !== playerForceId;
+        if (ownerFilter === 'unclaimed') return !holder && !isLost;
+        return true;
+      });
+    } else {
+      // Even in 'all', hide truly hidden (lost & not yet discovered) items —
+      // they should only show via Search, never as a teasing "Unclaimed" row.
+      list = list.filter((i) => !lostItemIds.has(i.id));
+    }
+    // Sort: legendary first, then rare, uncommon, common.
+    const tierOrder = { legendary: 0, rare: 1, uncommon: 2, common: 3 };
+    return [...list].sort((a, b) => tierOrder[rarityTier(a)] - tierOrder[rarityTier(b)]);
+  }, [filter, ownerFilter, itemHolders, lostItemIds, playerForceId]);
 
   const handleAssign = (itemId: string, officerId: EntityId) => {
     assignItem(itemId, officerId);
@@ -103,6 +164,25 @@ export function ArmouryModal({ onClose }: Props) {
             </button>
           ))}
         </div>
+        <div className={styles.filters}>
+          <span className={styles.filterLabel}>{t('持有', 'Owner')}</span>
+          {(
+            [
+              ['all',       t('全部', 'All')],
+              ['mine',      t('我軍', 'Mine')],
+              ['enemy',     t('他國', 'Enemy')],
+              ['unclaimed', t('無主', 'Unclaimed')],
+            ] as Array<[OwnerFilter, string]>
+          ).map(([k, label]) => (
+            <button
+              key={k}
+              className={`${styles.chip} ${ownerFilter === k ? styles.chipActive : ''}`}
+              onClick={() => setOwnerFilter(k)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         <ul className={styles.list}>
           {visibleItems.map((item) => {
@@ -110,17 +190,23 @@ export function ArmouryModal({ onClose }: Props) {
             const holderForce = holder?.forceId ? forces[holder.forceId] : null;
             const isYours = holder?.forceId === playerForceId;
             const isAssigning = assigningItemId === item.id;
+            const tier = rarityTier(item);
+            const tierColor = RARITY_COLOR[tier];
             return (
               <li
                 key={item.id}
                 className={`${styles.row} ${styles[`kind_${item.kind}`]}`}
+                style={{ borderLeft: `3px solid ${tierColor}` }}
               >
                 <div className={styles.itemBlock}>
                   <div className={styles.itemNameRow}>
-                    <span className={styles.itemNameZh}>{item.name.zh}</span>
+                    <span className={styles.itemNameZh} style={{ color: tierColor }}>{item.name.zh}</span>
                     <span className={styles.itemNameEn}>{item.name.en}</span>
                     <span className={`${styles.kindTag} ${styles[`kindTag_${item.kind}`]}`}>
                       {item.kind}
+                    </span>
+                    <span style={{ fontSize: '0.65rem', color: tierColor, letterSpacing: '0.1rem' }}>
+                      {RARITY_LABEL_ZH[tier]}
                     </span>
                   </div>
                   <div className={styles.itemDesc}>{d(item)}</div>
@@ -187,32 +273,44 @@ export function ArmouryModal({ onClose }: Props) {
                   )}
                 </div>
 
-                {isAssigning && (
-                  <div className={styles.officerPicker}>
-                    <div className={styles.pickerLabel}>Assign to:</div>
-                    <div className={styles.officerGrid}>
-                      {ownOfficers.length === 0 ? (
-                        <span className={styles.muted}>No officers in your force.</span>
-                      ) : (
-                        ownOfficers.map((o) => (
-                          <button
-                            key={o.id}
-                            className={styles.officerBtn}
-                            onClick={() => handleAssign(item.id, o.id)}
-                          >
-                            <span className={styles.officerZh}>{o.name.zh}</span>
-                            <span className={styles.officerStats}>
-                              W{o.stats.war} L{o.stats.leadership}
-                              {o.equipment.length > 0 && (
-                                <span className={styles.officerHas}> · holds {o.equipment.length}</span>
-                              )}
-                            </span>
-                          </button>
-                        ))
-                      )}
+                {isAssigning && (() => {
+                  const fitStat = bestFitStat(item);
+                  const sortedForPick = [...ownOfficers].sort(
+                    (a, b) => b.stats[fitStat] - a.stats[fitStat],
+                  );
+                  return (
+                    <div className={styles.officerPicker}>
+                      <div className={styles.pickerLabel}>
+                        Assign to (★ best {fitStat.slice(0, 3).toUpperCase()}):
+                      </div>
+                      <div className={styles.officerGrid}>
+                        {sortedForPick.length === 0 ? (
+                          <span className={styles.muted}>No officers in your force.</span>
+                        ) : (
+                          sortedForPick.map((o, idx) => (
+                            <button
+                              key={o.id}
+                              className={styles.officerBtn}
+                              onClick={() => handleAssign(item.id, o.id)}
+                            >
+                              <span className={styles.officerZh}>
+                                {idx === 0 && <span style={{ color: '#d4a84a' }}>★ </span>}
+                                {o.name.zh}
+                              </span>
+                              <span className={styles.officerStats}>
+                                {fitStat.slice(0, 3).toUpperCase()}{o.stats[fitStat]}
+                                {' · '}W{o.stats.war} L{o.stats.leadership}
+                                {o.equipment.length > 0 && (
+                                  <span className={styles.officerHas}> · holds {o.equipment.length}</span>
+                                )}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </li>
             );
           })}

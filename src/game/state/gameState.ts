@@ -144,6 +144,14 @@ export interface GameState {
   placementMode: 'historical' | 'random';
   /** Items hidden in cities, awaiting discovery via Search. */
   lostItems: Array<{ itemId: EntityId; cityId: EntityId }>;
+  /** Item-holder history — append-only log of equip transfers. */
+  itemHistory: Array<{
+    itemId: EntityId;
+    fromOfficerId: EntityId | null;
+    toOfficerId: EntityId;
+    year: number;
+    season: 'spring' | 'summer' | 'autumn' | 'winter';
+  }>;
   /** Saved battle replays. */
   battleReplays: import('../types').BattleReplay[];
   /** Heroic deeds tracker keyed by officer id. */
@@ -251,6 +259,7 @@ export const EMPTY_STATE: GameState = {
   language: 'zh',
   placementMode: 'historical',
   lostItems: [],
+  itemHistory: [],
   battleReplays: [],
   deeds: {},
   fogOfWar: false,
@@ -420,6 +429,7 @@ export function loadScenario(
     tutorialStep: null,
     musicTrack: state.musicTrack,
     lostItems: computeLostItems(officers, scaledCities, state.placementMode),
+    itemHistory: [],
     battleReplays: [],
     deeds: {},
     fogOfWar: state.fogOfWar,
