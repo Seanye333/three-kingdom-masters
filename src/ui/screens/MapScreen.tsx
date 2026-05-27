@@ -188,12 +188,14 @@ export function MapScreen() {
         >
           {t('武將', 'Officers')}
         </button>
-        <button
-          className={styles.forcesButton}
-          onClick={() => setShowDiplomacy(true)}
-        >
-          {t('外交', 'Diplomacy')}
-        </button>
+        <HudMenu
+          label={t('外交', 'Diplomacy')}
+          title={t('外交 — 邦交、關係図', 'Diplomacy — relations & graph')}
+          items={[
+            { label: t('邦交', 'Relations'), onClick: () => setShowDiplomacy(true) },
+            { label: t('關係図', 'Graph'),   onClick: () => setShowDipGraph(true) },
+          ]}
+        />
         <button
           className={styles.forcesButton}
           onClick={() => setShowForces(true)}
@@ -204,14 +206,13 @@ export function MapScreen() {
         {/* ── Grouped dropdowns ── */}
         <HudMenu
           label={t('人才', 'Personnel')}
-          title={t('人才 — 絆、武功、列傳', 'Personnel — bonds, deeds, biographies')}
+          title={t('人才 — 因緣、武功、列傳', 'Personnel — bonds, deeds, biographies')}
           items={[
             { label: t('因緣', 'Relations'), onClick: () => setShowRelationships(true) },
             { label: t('武功', 'Deeds'),     onClick: () => setShowDeeds(true) },
             { label: t('列傳', 'Wiki'),      onClick: () => setShowEncyclopedia(true) },
-            { label: t('關係図', 'Graph'),   onClick: () => setShowDipGraph(true) },
             ...(careerMode
-              ? [{ label: t('列傳', 'Career'), onClick: () => setShowCareer(true) }]
+              ? [{ label: t('一代記', 'Chronicle'), onClick: () => setShowCareer(true) }]
               : []),
           ]}
         />

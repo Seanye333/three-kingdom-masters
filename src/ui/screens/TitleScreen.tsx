@@ -242,7 +242,7 @@ export function TitleScreen() {
               onChange={(e) => setCareerMode(e.target.checked)}
               style={{ marginRight: '0.4rem' }}
             />
-            {t('列傳模式（選擇一位武將為主角）', 'Career mode (pick one officer as your avatar)')}
+            {t('一代記模式（選擇一位武將為主角）', 'Chronicle mode (pick one officer as your avatar)')}
           </label>
           <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#8a7050', cursor: 'pointer' }}>
             <input
@@ -261,7 +261,7 @@ export function TitleScreen() {
               style={{ marginRight: '0.4rem' }}
               disabled={!careerMode}
             />
-             {t('Roguelike 模式（主角陣亡即遊戲結束；需開啟列傳）', 'Roguelike (career officer death = game over; requires Career mode)')}
+             {t('Roguelike 模式（主角陣亡即遊戲結束；需開啟一代記）', 'Roguelike (chronicle officer death = game over; requires Chronicle mode)')}
           </label>
           <button
             onClick={() => setShowAchievements(true)}
@@ -314,7 +314,7 @@ export function TitleScreen() {
                           .map((o, i) => `${i + 1}. ${lang === 'zh' ? o.name.zh : `${o.name.zh} ${o.name.en}`} (W${o.stats.war} I${o.stats.intelligence})`)
                           .join('\n');
                         const choice = prompt(
-                          `${t('列傳主角 — 請輸入編號：', 'Career officer — pick a number:')}\n\n${list}`,
+                          `${t('一代記主角 — 請輸入編號：', 'Chronicle officer — pick a number:')}\n\n${list}`,
                           '1',
                         );
                         const idx = Math.max(0, Math.min(officersInForce.length - 1, Number(choice) - 1));

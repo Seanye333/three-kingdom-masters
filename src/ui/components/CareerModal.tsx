@@ -35,7 +35,7 @@ export function CareerModal({ onClose }: Props) {
             color: '#c0a878', fontFamily: '"Songti SC", serif', textAlign: 'center',
           }}
         >
-          {t('列傳模式未啟用。請於新遊戲中選擇主角武將。', 'Career mode is not active. Start a new game with a career officer.')}
+          {t('一代記模式未啟用。請於新遊戲中選擇主角武將。', 'Chronicle mode is not active. Start a new game with a career officer.')}
         </div>
       </div>
     );
@@ -73,7 +73,7 @@ export function CareerModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>{t('列傳', 'Career')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>{t('一代記', 'Chronicle')}</div>
             <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>
               {lang === 'en' ? `Career: ${officer?.name.en ?? '?'}` : `主角 ${officer?.name.zh ?? '?'}`}
             </div>
