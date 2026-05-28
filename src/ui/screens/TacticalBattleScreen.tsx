@@ -36,6 +36,7 @@ import { BattleResultsModal } from '../components/BattleResultsModal';
 import { DuelModal } from '../components/DuelModal';
 import { MapDefs as SharedMapDefs, MapFrame as SharedMapFrame, CompassRose as SharedCompassRose, TerrainArt as SharedTerrainArt } from '../components/hexMapShared';
 import { TacticalBattleScreen3D } from './TacticalBattleScreen3D';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useT, useDesc } from '../i18n';
 
 const UNIT_TYPE_GLYPH: Record<UnitType, string> = {
@@ -554,7 +555,11 @@ export function TacticalBattleScreen() {
         </button>
       </header>
 
-      {show3D && <TacticalBattleScreen3D onClose={() => setShow3D(false)} />}
+      {show3D && (
+        <ErrorBoundary fallbackLabel="3D 战场加载失败 — fell back to 2D">
+          <TacticalBattleScreen3D onClose={() => setShow3D(false)} />
+        </ErrorBoundary>
+      )}
 
       {/* Reinforcement preview: scheduled arrivals shown at the top so
           the player can plan around them. */}
