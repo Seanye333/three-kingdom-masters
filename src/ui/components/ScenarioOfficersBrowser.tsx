@@ -3,6 +3,9 @@ import type { Officer, OfficerStats, Scenario } from '../../game/types';
 import {
   deriveFormations, deriveTactics, derivePolicies,
 } from '../../game/data/officerAttributes';
+import { DYNASTY_DEFS, type Dynasty } from '../../game/data/dynasties';
+import { useGameStore } from '../../game/state/store';
+import { buildHistoricalOfficers } from '../../game/data/officers';
 import { OfficerDetail } from './OfficerDetail';
 import styles from './OfficersTab.module.css';
 import { useT, useLanguage } from '../i18n';
@@ -55,6 +58,7 @@ const SORT_LABEL_EN: Record<SortKey, string> = {
 type FilterKey = 'all' | 'unsearched' | 'free-agent' | 'elite' | string; // string = forceId
 
 export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
+  const enabledDynasties = useGameStore((s) => s.enabledDynasties);
   const [sortKey, setSortKey] = useState<SortKey>('total');
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const [filter, setFilter] = useState<FilterKey>('all');
@@ -62,9 +66,23 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
   const [search, setSearch] = useState('');
   const [minStat, setMinStat] = useState<number>(0);
   const [statKey, setStatKey] = useState<keyof OfficerStats | 'any'>('any');
+  const [dynastyFilter, setDynastyFilter] = useState<'all' | 'three-kingdoms' | Dynasty>('all');
   const t = useT();
   const lang = useLanguage();
   const SORT_LABEL = lang === 'en' ? SORT_LABEL_EN : SORT_LABEL_ZH;
+
+  // Merge in historical officers from currently-enabled dynasties so the
+  // title-screen preview reflects what the player will actually face.
+  const allOfficers = useMemo<Officer[]>(() => {
+    const hist = buildHistoricalOfficers(enabledDynasties);
+    return hist.length > 0 ? [...scenario.officers, ...hist] : scenario.officers;
+  }, [scenario, enabledDynasties]);
+
+  const presentDynasties = useMemo(() => {
+    const set = new Set<Dynasty>();
+    for (const o of allOfficers) if (o.dynasty) set.add(o.dynasty);
+    return DYNASTY_DEFS.filter((d) => set.has(d.id));
+  }, [allOfficers]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -76,7 +94,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
   };
 
   const visibleOfficers = useMemo<Officer[]>(() => {
-    let list = scenario.officers.filter((o) => o.status !== 'dead');
+    let list = allOfficers.filter((o) => o.status !== 'dead');
 
     if (filter === 'unsearched') {
       list = list.filter((o) => o.status === 'unsearched');
@@ -88,6 +106,13 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
       );
     } else if (filter !== 'all') {
       list = list.filter((o) => o.forceId === filter);
+    }
+
+    // Dynasty filter.
+    if (dynastyFilter === 'three-kingdoms') {
+      list = list.filter((o) => !o.dynasty);
+    } else if (dynastyFilter !== 'all') {
+      list = list.filter((o) => o.dynasty === dynastyFilter);
     }
 
     if (search.trim()) {
@@ -124,7 +149,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
     };
     const cmp = (a: Officer, b: Officer): number => primary(a, b) || sum(b) - sum(a);
     return [...list].sort((a, b) => (sortDir === 'desc' ? cmp(a, b) : -cmp(a, b)));
-  }, [scenario, filter, sortKey, sortDir, search, minStat, statKey]);
+  }, [allOfficers, filter, sortKey, sortDir, search, minStat, statKey, dynastyFilter]);
 
   const forcesById = useMemo(
     () => Object.fromEntries(scenario.forces.map((f) => [f.id, f])),
@@ -135,12 +160,12 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
     [scenario],
   );
   const officersById = useMemo(
-    () => Object.fromEntries(scenario.officers.map((o) => [o.id, o])),
-    [scenario],
+    () => Object.fromEntries(allOfficers.map((o) => [o.id, o])),
+    [allOfficers],
   );
 
-  const total = scenario.officers.filter((o) => o.status !== 'dead').length;
-  const unsearched = scenario.officers.filter(
+  const total = allOfficers.filter((o) => o.status !== 'dead').length;
+  const unsearched = allOfficers.filter(
     (o) => o.status === 'unsearched',
   ).length;
 
@@ -241,6 +266,34 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
               }}
             />
           </div>
+
+          {presentDynasties.length > 0 && (
+            <div className={styles.controlRow}>
+              <span className={styles.controlLabel}>{t('朝代', 'Era')}</span>
+              <button
+                className={`${styles.chip} ${dynastyFilter === 'all' ? styles.chipActive : ''}`}
+                onClick={() => setDynastyFilter('all')}
+              >{t('全部', 'All')}</button>
+              <button
+                className={`${styles.chip} ${dynastyFilter === 'three-kingdoms' ? styles.chipActive : ''}`}
+                onClick={() => setDynastyFilter('three-kingdoms')}
+              >{t('三國', 'Three Kingdoms')}</button>
+              {presentDynasties.map((d) => (
+                <button
+                  key={d.id}
+                  className={`${styles.chip} ${dynastyFilter === d.id ? styles.chipActive : ''}`}
+                  onClick={() => setDynastyFilter(d.id)}
+                  title={lang === 'en' ? d.era.en : d.era.zh}
+                >
+                  <span
+                    className={styles.chipDot}
+                    style={{ background: d.color }}
+                  />
+                  {lang === 'en' ? d.name.en : d.name.zh}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className={styles.controlRow}>
             <span className={styles.controlLabel}>{t('排序', 'Sort')}</span>

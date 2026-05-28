@@ -67,4 +67,8 @@ export interface Officer {
   /** Number of wishes this officer has had rejected. Escalates penalty +
    *  triggers defection risk at threshold. */
   grievanceCount?: number;
+  /** Historical dynasty tag — undefined / omitted for the default
+   *  Three-Kingdoms roster; set for officers from other eras pulled in via
+   *  the "Historical Officers" toggles on the title screen. */
+  dynasty?: import('../data/dynasties').Dynasty;
 }

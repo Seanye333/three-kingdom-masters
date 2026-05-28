@@ -270,6 +270,7 @@ interface GameStore extends GameState {
   setMusicTrack: (track: string | null) => void;
   setLanguage: (lang: 'zh' | 'en' | 'both') => void;
   setPlacementMode: (mode: 'historical' | 'random') => void;
+  setEnabledDynasties: (dynasties: import('../data/dynasties').Dynasty[]) => void;
   setFogOfWar: (on: boolean) => void;
   saveCommandTemplate: (label: string) => void;
   applyCommandTemplate: (id: EntityId) => void;
@@ -3449,6 +3450,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       setMusicTrack: (track) => set({ musicTrack: track }),
       setLanguage: (lang) => set({ language: lang }),
       setPlacementMode: (mode) => set({ placementMode: mode }),
+      setEnabledDynasties: (dynasties) => set({ enabledDynasties: dynasties }),
       setFogOfWar: (on) => set({ fogOfWar: on }),
 
       saveCommandTemplate: (label) => {
@@ -4256,6 +4258,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         musicTrack: state.musicTrack,
         language: state.language,
         placementMode: state.placementMode,
+        enabledDynasties: state.enabledDynasties,
         lostItems: state.lostItems,
         battleReplays: state.battleReplays,
         deeds: state.deeds,
@@ -4275,6 +4278,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // only owner + hp from the persisted snapshot. This lets us tweak
         // port coords / connections / maxHp without breaking existing saves.
         if (!state) return;
+        if (!state.enabledDynasties) state.enabledDynasties = [];
         const cityOwnerByCityId = Object.fromEntries(
           Object.values(state.cities ?? {}).map((c) => [c.id, c.ownerForceId]),
         );

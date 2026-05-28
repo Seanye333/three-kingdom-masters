@@ -1,4 +1,6 @@
 import type { Equipment, Officer } from '../types';
+import type { Dynasty } from './dynasties';
+import { HISTORICAL_OFFICER_TEMPLATES } from './historicalOfficers';
 import { ITEMS_BY_ID } from './items';
 import {
   OFFICER_SKILLS,
@@ -1492,3 +1494,51 @@ export function buildInitialOfficers(
 
 export const OFFICER_IDS = OFFICER_TEMPLATES.map((t) => t.id);
 export const TALENT_POOL_IDS = TALENT_POOL_TEMPLATES.map((t) => t.id);
+
+/**
+ * Build historical officers (from dynasties other than the Three Kingdoms)
+ * as unsearched free agents waiting at their hometown for "Search for Talent".
+ *
+ * Filtered to the dynasties the player opted into on the title screen — if
+ * the set is empty the result is `[]` (default behaviour: no cross-era roster).
+ */
+export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>): Officer[] {
+  if (enabledDynasties.length === 0) return [];
+  const set = new Set(enabledDynasties);
+  return HISTORICAL_OFFICER_TEMPLATES
+    .filter((t) => set.has(t.dynasty))
+    .map<Officer>((t) => {
+      const skills = deriveDefaultSkills(t.stats);
+      const rank = deriveInitialRank(t.stats);
+      const traits = deriveTraitsFromStats(t.stats);
+      const doctrine = deriveDoctrine(t.stats, t.id);
+      const formations = deriveFormations(t.stats, t.id);
+      const tactics = deriveTactics(t.stats, t.id);
+      const policies = derivePolicies(t.stats, t.id);
+      const level = deriveLevel(t.stats);
+      return {
+        id: t.id,
+        name: t.name,
+        courtesyName: t.courtesyName,
+        birthYear: t.birthYear,
+        hometownCityId: t.hometownCityId,
+        stats: t.stats,
+        loyalty: 0,
+        locationCityId: t.hometownCityId,
+        forceId: null,
+        status: 'unsearched',
+        task: null,
+        equipment: [],
+        skills,
+        rank,
+        traits,
+        doctrine,
+        formations,
+        tactics,
+        policies,
+        level,
+        dynasty: t.dynasty,
+        female: t.female,
+      };
+    });
+}

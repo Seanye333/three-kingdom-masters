@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { SCENARIOS } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
@@ -13,6 +13,7 @@ import { IndividualitiesModal } from '../components/IndividualitiesModal';
 import { SaveSlotsModal } from '../components/SaveSlotsModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { ScenarioOfficersBrowser } from '../components/ScenarioOfficersBrowser';
+import { DYNASTY_DEFS, type Dynasty } from '../../game/data/dynasties';
 import { useT, useLanguage, useDesc } from '../i18n';
 import styles from './TitleScreen.module.css';
 
@@ -43,9 +44,17 @@ export function TitleScreen() {
   const [showPolicies, setShowPolicies] = useState(false);
   const [showIndividualities, setShowIndividualities] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDynasties, setShowDynasties] = useState(false);
   const enterCareerMode = useGameStore((s) => s.enterCareerMode);
   const setRomanceMode = useGameStore((s) => s.setRomanceMode);
   const setRoguelikeMode = useGameStore((s) => s.setRoguelikeMode);
+  const enabledDynasties = useGameStore((s) => s.enabledDynasties);
+  const setEnabledDynasties = useGameStore((s) => s.setEnabledDynasties);
+  const toggleDynasty = (d: Dynasty) => {
+    const set = new Set(enabledDynasties);
+    if (set.has(d)) set.delete(d); else set.add(d);
+    setEnabledDynasties([...set]);
+  };
   const t = useT();
   const lang = useLanguage();
   const desc = useDesc();
@@ -263,6 +272,103 @@ export function TitleScreen() {
             />
              {t('Roguelike 模式（主角陣亡即遊戲結束；需開啟一代記）', 'Roguelike (chronicle officer death = game over; requires Chronicle mode)')}
           </label>
+
+          {/* Per-dynasty historical officer toggles — collapsible to keep the
+              title screen tidy. Selections persist across sessions and apply
+              to the next scenario loaded. */}
+          <button
+            type="button"
+            onClick={() => setShowDynasties((v) => !v)}
+            style={{
+              display: 'block',
+              width: '100%',
+              marginTop: '0.5rem',
+              background: enabledDynasties.length > 0 ? '#3a2818' : 'transparent',
+              border: '1px solid #4a3520',
+              color: enabledDynasties.length > 0 ? '#d4a84a' : '#8a7050',
+              padding: '0.35rem 0.6rem',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '0.8rem',
+              textAlign: 'left',
+            }}
+          >
+            {showDynasties ? '▾' : '▸'} {t('歷代名將', 'Historical Officers')}
+            {enabledDynasties.length > 0 && (
+              <span style={{ float: 'right', color: '#d4a84a' }}>
+                {enabledDynasties.length} {t('朝', 'dyn.')}
+              </span>
+            )}
+          </button>
+          {showDynasties && (
+            <div
+              style={{
+                marginTop: '0.4rem',
+                padding: '0.5rem',
+                border: '1px solid #4a3520',
+                background: 'rgba(20,16,12,0.5)',
+              }}
+            >
+              <div style={{ fontSize: '0.7rem', color: '#8a7050', marginBottom: '0.4rem' }}>
+                {t(
+                  '勾選後，對應朝代的名將以「未發現」狀態加入劇本，依出生地隱於各城，需「搜索人才」尋得。',
+                  'Selected dynasties join as unsearched free agents at their hometown cities — use Search for Talent to discover them.',
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setEnabledDynasties(DYNASTY_DEFS.map((d) => d.id))}
+                  style={miniBtn(false)}
+                >{t('全選', 'All')}</button>
+                <button
+                  type="button"
+                  onClick={() => setEnabledDynasties([])}
+                  style={miniBtn(false)}
+                >{t('清除', 'None')}</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
+                {DYNASTY_DEFS.map((d) => {
+                  const on = enabledDynasties.includes(d.id);
+                  return (
+                    <label
+                      key={d.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                        cursor: 'pointer',
+                        padding: '0.2rem 0.4rem',
+                        background: on ? 'rgba(212,168,74,0.08)' : 'transparent',
+                        border: `1px solid ${on ? '#5a4530' : 'transparent'}`,
+                        fontSize: '0.75rem',
+                        color: on ? '#d4a84a' : '#a08c6a',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() => toggleDynasty(d.id)}
+                      />
+                      <span
+                        style={{
+                          width: 8, height: 8, borderRadius: '50%',
+                          background: d.color, flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ flex: 1 }}>
+                        {lang === 'en' ? d.name.en : d.name.zh}
+                      </span>
+                      <span style={{ fontSize: '0.65rem', color: '#6a5238' }}>
+                        {lang === 'en' ? d.era.en : d.era.zh}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={() => setShowAchievements(true)}
             className={styles.officersButton}
@@ -404,4 +510,16 @@ export function TitleScreen() {
       >⚙</button>
     </div>
   );
+}
+
+function miniBtn(disabled: boolean): CSSProperties {
+  return {
+    background: '#3a2818',
+    border: '1px solid #4a3520',
+    color: disabled ? '#6a5238' : '#d4a84a',
+    padding: '0.15rem 0.5rem',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: 'inherit',
+    fontSize: '0.7rem',
+  };
 }

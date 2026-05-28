@@ -37,6 +37,8 @@ import { ITEMS } from '../data/items';
 import { buildInitialPorts } from '../data/ports';
 import { buildInitialForts } from '../data/forts';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
+import { buildHistoricalOfficers } from '../data/officers';
+import type { Dynasty } from '../data/dynasties';
 
 export type VictoryStatus = 'playing' | 'victory' | 'defeat' | 'observing';
 export type Difficulty = 'easy' | 'normal' | 'hard';
@@ -142,6 +144,10 @@ export interface GameState {
    *  'random' — both are scattered uniformly. Same scenario plays out
    *    very differently because Zhuge Liang isn't waiting in Langya, etc. */
   placementMode: 'historical' | 'random';
+  /** Per-dynasty toggles for the "Historical Officers" pool. When non-empty,
+   *  officers from these eras are added as 'unsearched' free agents at their
+   *  hometown cities on scenario load. Set on the title screen. */
+  enabledDynasties: Dynasty[];
   /** Items hidden in cities, awaiting discovery via Search. */
   lostItems: Array<{ itemId: EntityId; cityId: EntityId }>;
   /** Item-holder history — append-only log of equip transfers. */
@@ -258,6 +264,7 @@ export const EMPTY_STATE: GameState = {
   musicTrack: null,
   language: 'zh',
   placementMode: 'historical',
+  enabledDynasties: [],
   lostItems: [],
   itemHistory: [],
   battleReplays: [],
@@ -316,18 +323,25 @@ export function loadScenario(
     return { ...base, wallTier };
   });
 
+  // Pull in historical officers from enabled dynasties — these arrive as
+  // unsearched free agents at their hometown city.
+  const historicalOfficers = buildHistoricalOfficers(state.enabledDynasties);
+  const baseOfficers = historicalOfficers.length > 0
+    ? [...scenario.officers, ...historicalOfficers]
+    : scenario.officers;
+
   // If the player chose 'random' placement, scrub the historical hometowns
   // off undiscovered officers so they don't all sit at Langya / Tianshui etc.
   // Officers waiting at hometown have `status: 'unsearched'` and
   // `locationCityId === hometownCityId`; setting `locationCityId: null`
   // puts them in the "rootless wanderer" pool so search finds them anywhere.
   let officers = state.placementMode === 'random'
-    ? scenario.officers.map((o) =>
+    ? baseOfficers.map((o) =>
         o.status === 'unsearched' && o.locationCityId === o.hometownCityId
           ? { ...o, locationCityId: null }
           : o,
       )
-    : scenario.officers;
+    : baseOfficers;
   if (customOfficer) {
     // Place custom officer either in their chosen force's capital, or in a
     // random owned city as a free agent.
@@ -346,7 +360,7 @@ export function loadScenario(
       status = 'unsearched';
     }
     officers = [
-      ...scenario.officers,
+      ...officers,
       {
         id: customOfficer.id,
         name: customOfficer.name,

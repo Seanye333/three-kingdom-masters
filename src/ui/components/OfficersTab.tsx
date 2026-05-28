@@ -4,6 +4,7 @@ import { COMMAND_DEFS } from '../../game/systems/commands';
 import {
   deriveFormations, deriveTactics, derivePolicies,
 } from '../../game/data/officerAttributes';
+import { DYNASTY_DEFS, type Dynasty } from '../../game/data/dynasties';
 import type { EntityId, Officer, OfficerStats } from '../../game/types';
 import { OfficerDetail } from './OfficerDetail';
 import { OfficerHoverCard } from './OfficerHoverCard';
@@ -59,6 +60,15 @@ export function OfficersTab({ onClose }: Props) {
   const [search, setSearch] = useState('');
   const [minStat, setMinStat] = useState<number>(0);
   const [statKey, setStatKey] = useState<keyof OfficerStats | 'any'>('any');
+  // 'all' = no dynasty filter; 'three-kingdoms' = officers with no dynasty tag;
+  // a Dynasty id = officers from that era.
+  const [dynastyFilter, setDynastyFilter] = useState<'all' | 'three-kingdoms' | Dynasty>('all');
+  // Dynasties present in the current officer pool — drives which chips render.
+  const presentDynasties = useMemo(() => {
+    const set = new Set<Dynasty>();
+    for (const o of Object.values(officers)) if (o.dynasty) set.add(o.dynasty);
+    return DYNASTY_DEFS.filter((d) => set.has(d.id));
+  }, [officers]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -86,6 +96,13 @@ export function OfficersTab({ onClose }: Props) {
       );
     } else if (filter !== 'all') {
       list = list.filter((o) => o.forceId === filter);
+    }
+
+    // Dynasty filter.
+    if (dynastyFilter === 'three-kingdoms') {
+      list = list.filter((o) => !o.dynasty);
+    } else if (dynastyFilter !== 'all') {
+      list = list.filter((o) => o.dynasty === dynastyFilter);
     }
 
     // Free-text search by name / courtesy name.
@@ -125,7 +142,7 @@ export function OfficersTab({ onClose }: Props) {
     // Tiebreaker: fall back to total stats so equal primary values sort by overall rank.
     const cmp = (a: Officer, b: Officer): number => primary(a, b) || sum(b) - sum(a);
     return [...list].sort((a, b) => (sortDir === 'desc' ? cmp(a, b) : -cmp(a, b)));
-  }, [officers, filter, sortKey, sortDir, playerForceId, search, minStat, statKey]);
+  }, [officers, filter, sortKey, sortDir, playerForceId, search, minStat, statKey, dynastyFilter]);
 
   const liveForces = useMemo(
     () =>
@@ -257,6 +274,34 @@ export function OfficersTab({ onClose }: Props) {
               }}
             />
           </div>
+
+          {presentDynasties.length > 0 && (
+            <div className={styles.controlRow}>
+              <span className={styles.controlLabel}>朝代</span>
+              <button
+                className={`${styles.chip} ${dynastyFilter === 'all' ? styles.chipActive : ''}`}
+                onClick={() => setDynastyFilter('all')}
+              >全部</button>
+              <button
+                className={`${styles.chip} ${dynastyFilter === 'three-kingdoms' ? styles.chipActive : ''}`}
+                onClick={() => setDynastyFilter('three-kingdoms')}
+              >三國</button>
+              {presentDynasties.map((d) => (
+                <button
+                  key={d.id}
+                  className={`${styles.chip} ${dynastyFilter === d.id ? styles.chipActive : ''}`}
+                  onClick={() => setDynastyFilter(d.id)}
+                  title={d.era.zh}
+                >
+                  <span
+                    className={styles.chipDot}
+                    style={{ background: d.color }}
+                  />
+                  {d.name.zh}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className={styles.controlRow}>
             <span className={styles.controlLabel}>Sort</span>
