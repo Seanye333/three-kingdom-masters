@@ -135,6 +135,10 @@ export function TacticalBattleScreen() {
   // Undo snapshot: store the battle BEFORE the player's last action so they
   // can revert mis-clicks within the same turn. Cleared on End-Turn.
   const [undoSnapshot, setUndoSnapshot] = useState<typeof battle | null>(null);
+  // Battlefield zoom — scales the rendered SVG without touching hex coords.
+  const [zoom, setZoom] = useState(1.0);
+  const zoomOut = () => setZoom((z) => Math.max(0.6, +(z - 0.15).toFixed(2)));
+  const zoomIn = () => setZoom((z) => Math.min(1.6, +(z + 0.15).toFixed(2)));
   const t = useT();
   const desc = useDesc();
   const [showResults, setShowResults] = useState(false);
@@ -200,6 +204,9 @@ export function TacticalBattleScreen() {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      // Zoom keys work regardless of whose turn it is.
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); return; }
+      if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomOut(); return; }
       const myTurnNow = !!(playerSide && battle.activeSide === playerSide && !battle.winner);
       if (!myTurnNow) return;
       if (e.key === 'Escape') { setActionMode({ kind: 'none' }); return; }
@@ -501,6 +508,37 @@ export function TacticalBattleScreen() {
           }}
           title="Undo the last move/attack"
         >{t('撤步', 'Undo')} ↶</button>
+        {/* Zoom controls — scales the SVG without touching battle data. */}
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+          marginRight: '0.5rem', border: '1px solid #4a3520', padding: '0.1rem 0.2rem',
+        }}>
+          <button
+            onClick={zoomOut}
+            disabled={zoom <= 0.6}
+            style={{
+              background: 'transparent', color: '#d4a84a',
+              border: 'none', padding: '0.2rem 0.5rem',
+              cursor: zoom > 0.6 ? 'pointer' : 'not-allowed',
+              fontFamily: 'monospace', fontSize: '0.85rem',
+            }}
+            title="Zoom out"
+          >−</button>
+          <span style={{ color: '#8a7050', fontSize: '0.72rem', minWidth: '2.3rem', textAlign: 'center' }}>
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            onClick={zoomIn}
+            disabled={zoom >= 1.6}
+            style={{
+              background: 'transparent', color: '#d4a84a',
+              border: 'none', padding: '0.2rem 0.5rem',
+              cursor: zoom < 1.6 ? 'pointer' : 'not-allowed',
+              fontFamily: 'monospace', fontSize: '0.85rem',
+            }}
+            title="Zoom in"
+          >+</button>
+        </div>
         <button
           onClick={() => setShow3D(true)}
           style={{
@@ -850,8 +888,8 @@ export function TacticalBattleScreen() {
           })()}
           <svg
             className={styles.svgGrid}
-            width={svgWidth}
-            height={svgHeight}
+            width={svgWidth * zoom}
+            height={svgHeight * zoom}
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           >
             <SharedMapDefs />

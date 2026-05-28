@@ -186,8 +186,10 @@ export function BattlePrepModal({
 
     const battle = setupTacticalBattle({
       cityId: target.id,
-      width: namedMap?.width ?? 14,
-      height: namedMap?.height ?? 10,
+      // Procedural default sized for tactical depth — named maps still
+      // use their own hand-crafted dimensions.
+      width: namedMap?.width ?? 18,
+      height: namedMap?.height ?? 12,
       attackerForceId: source.ownerForceId,
       defenderForceId: target.ownerForceId,
       attackers,
