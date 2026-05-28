@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { SEASON_LABEL } from '../../game/types';
 import type { HistoricBattle, Season } from '../../game/types';
@@ -9,15 +9,65 @@ interface Props {
   onClose: () => void;
 }
 
+type OutcomeFilter = 'all' | 'won' | 'lost' | 'conquest';
+
 export function BattleHistoryModal({ onClose }: Props) {
   const battles = useGameStore((s) => s.battleHistory);
   const cities = useGameStore((s) => s.cities);
   const officers = useGameStore((s) => s.officers);
   const forces = useGameStore((s) => s.forces);
+  const playerForceId = useGameStore((s) => s.playerForceId);
   const [selected, setSelected] = useState<HistoricBattle | null>(null);
+  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>('all');
+  const [search, setSearch] = useState('');
 
-  // Newest first
-  const sorted = [...battles].reverse();
+  // Aggregate stats — restricted to player's battles where possible.
+  const stats = useMemo(() => {
+    const playerBattles = battles.filter(
+      (b) => b.attacker.forceId === playerForceId || b.defender.forceId === playerForceId,
+    );
+    let won = 0, lost = 0, conquests = 0;
+    let killsDealt = 0, killsTaken = 0;
+    for (const b of playerBattles) {
+      const playerIsAttacker = b.attacker.forceId === playerForceId;
+      const playerWon = (b.attackerWins && playerIsAttacker) || (!b.attackerWins && !playerIsAttacker);
+      if (playerWon) won++; else lost++;
+      if (b.cityFalls && playerIsAttacker) conquests++;
+      // Approximation: enemy loss = kills dealt by player
+      if (playerIsAttacker) {
+        killsDealt += b.defenderLosses;
+        killsTaken += b.attackerLosses;
+      } else {
+        killsDealt += b.attackerLosses;
+        killsTaken += b.defenderLosses;
+      }
+    }
+    return { total: playerBattles.length, won, lost, conquests, killsDealt, killsTaken };
+  }, [battles, playerForceId]);
+
+  // Newest first, filtered
+  const sorted = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const qZh = search.trim();
+    return [...battles]
+      .reverse()
+      .filter((b) => {
+        if (outcomeFilter !== 'all') {
+          const playerIsAttacker = b.attacker.forceId === playerForceId;
+          const playerWon = (b.attackerWins && playerIsAttacker) || (!b.attackerWins && !playerIsAttacker);
+          if (outcomeFilter === 'won' && !playerWon) return false;
+          if (outcomeFilter === 'lost' && playerWon) return false;
+          if (outcomeFilter === 'conquest' && !(b.cityFalls && playerIsAttacker)) return false;
+        }
+        if (!q) return true;
+        const city = cities[b.cityId];
+        return (
+          (city?.name.zh ?? '').includes(qZh) ||
+          (city?.name.en ?? '').toLowerCase().includes(q) ||
+          String(b.date.year).includes(q)
+        );
+      });
+  }, [battles, outcomeFilter, search, cities, playerForceId]);
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -33,6 +83,58 @@ export function BattleHistoryModal({ onClose }: Props) {
             ×
           </button>
         </header>
+
+        {/* Aggregate stats — player perspective. */}
+        {playerForceId && stats.total > 0 && (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))',
+            gap: '0.5rem', padding: '0.6rem 1rem', borderBottom: '1px solid #4a3520',
+            background: 'rgba(20,16,12,0.4)',
+            fontFamily: '"Songti SC", serif', fontSize: '0.78rem',
+          }}>
+            <Stat label="總戰" value={stats.total} color="#c0a878" />
+            <Stat label="勝" value={stats.won} color="#7ed68a" />
+            <Stat label="敗" value={stats.lost} color="#b8442e" />
+            <Stat label="攻陷" value={stats.conquests} color="#d4a84a" />
+            <Stat label="殲敵" value={stats.killsDealt.toLocaleString()} color="#c19a3b" />
+            <Stat label="己損" value={stats.killsTaken.toLocaleString()} color="#8a5a3a" />
+          </div>
+        )}
+
+        {/* Filter row */}
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center',
+          padding: '0.5rem 1rem', borderBottom: '1px solid #4a3520',
+        }}>
+          {(['all', 'won', 'lost', 'conquest'] as const).map((k) => {
+            const label = { all: '全部', won: '勝戰', lost: '敗戰', conquest: '攻陷' }[k];
+            const active = outcomeFilter === k;
+            return (
+              <button
+                key={k}
+                onClick={() => setOutcomeFilter(k)}
+                style={{
+                  background: active ? '#3a2818' : 'transparent',
+                  border: `1px solid ${active ? '#d4a84a' : '#4a3520'}`,
+                  color: active ? '#d4a84a' : '#8a7050',
+                  padding: '0.2rem 0.6rem',
+                  cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.75rem',
+                }}
+              >{label}</button>
+            );
+          })}
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="搜尋城名/年份…"
+            style={{
+              flex: 1, minWidth: '140px',
+              background: '#1a1410', border: '1px solid #4a3520',
+              color: '#e8d9b0', padding: '0.25rem 0.5rem',
+              fontFamily: 'inherit', fontSize: '0.78rem',
+            }}
+          />
+        </div>
 
         {sorted.length === 0 ? (
           <div className={styles.empty}>
@@ -109,6 +211,15 @@ export function BattleHistoryModal({ onClose }: Props) {
           />
         )}
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, color }: { label: string; value: string | number; color: string }) {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.2rem' }}>{label}</div>
+      <div style={{ fontSize: '1rem', color, fontFamily: 'ui-monospace, monospace', marginTop: '0.15rem' }}>{value}</div>
     </div>
   );
 }

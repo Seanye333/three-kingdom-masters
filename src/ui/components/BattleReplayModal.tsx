@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { SEASON_LABEL } from '../../game/types';
 
@@ -12,8 +12,33 @@ export function BattleReplayModal({ onClose }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(replays[0]?.id ?? null);
   const replay = selectedId ? replays.find((r) => r.id === selectedId) : null;
   const [turnIdx, setTurnIdx] = useState(0);
+  // Playback controls
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState<0.5 | 1 | 2 | 4>(1);
+  const [filter, setFilter] = useState('');
 
   const snapshot = replay && replay.snapshots[turnIdx] ? replay.snapshots[turnIdx] : replay?.finalBattle ?? null;
+  const totalSnaps = replay?.snapshots.length ?? 0;
+
+  // Auto-advance turn while playing.
+  useEffect(() => {
+    if (!isPlaying || !replay || totalSnaps === 0) return;
+    if (turnIdx >= totalSnaps - 1) { setIsPlaying(false); return; }
+    const interval = 900 / speed; // base 900ms per turn
+    const id = window.setTimeout(() => setTurnIdx((i) => i + 1), interval);
+    return () => window.clearTimeout(id);
+  }, [isPlaying, turnIdx, speed, totalSnaps, replay]);
+
+  // Filtered list of replays by city/year search.
+  const filteredReplays = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return replays;
+    return replays.filter((r) =>
+      r.cityName.zh.includes(filter) ||
+      r.cityName.en.toLowerCase().includes(q) ||
+      String(r.year).includes(q),
+    );
+  }, [replays, filter]);
 
   return (
     <div
@@ -58,12 +83,26 @@ export function BattleReplayModal({ onClose }: Props) {
         </header>
         <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', overflow: 'hidden', flex: 1 }}>
           <div style={{ overflowY: 'auto', borderRight: '1px solid #4a3520', padding: '0.5rem' }}>
+            {replays.length > 0 && (
+              <input
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="搜尋… (城名/年份)"
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  background: '#1a1410', border: '1px solid #4a3520',
+                  color: '#e8d9b0', padding: '0.35rem 0.5rem',
+                  fontFamily: 'inherit', fontSize: '0.78rem',
+                  marginBottom: '0.4rem',
+                }}
+              />
+            )}
             {replays.length === 0 && (
               <div style={{ color: '#6a5238', fontStyle: 'italic', padding: '1rem', textAlign: 'center' }}>
                 No replays yet. Tactical battles auto-save here.
               </div>
             )}
-            {replays.map((r) => {
+            {filteredReplays.map((r) => {
               const season = SEASON_LABEL[r.season];
               return (
                 <button
@@ -102,25 +141,66 @@ export function BattleReplayModal({ onClose }: Props) {
                 </div>
                 {snapshot && (
                   <>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    {/* Playback controls row */}
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <button
+                        onClick={() => { setTurnIdx(0); setIsPlaying(false); }}
+                        style={btn(false)}
+                        title="Restart"
+                      >⏮</button>
                       <button
                         onClick={() => setTurnIdx((i) => Math.max(0, i - 1))}
                         disabled={turnIdx === 0}
                         style={btn(turnIdx === 0)}
-                      >
-                        ←
-                      </button>
-                      <div style={{ flex: 1, textAlign: 'center', fontFamily: 'ui-monospace, monospace' }}>
+                      >←</button>
+                      <button
+                        onClick={() => {
+                          if (turnIdx >= totalSnaps - 1) { setTurnIdx(0); setIsPlaying(true); }
+                          else setIsPlaying((p) => !p);
+                        }}
+                        disabled={totalSnaps === 0}
+                        style={{ ...btn(totalSnaps === 0), minWidth: '2.5rem' }}
+                        title={isPlaying ? 'Pause' : 'Play'}
+                      >{isPlaying ? '⏸' : '▶'}</button>
+                      <button
+                        onClick={() => setTurnIdx((i) => Math.min(Math.max(0, totalSnaps - 1), i + 1))}
+                        disabled={totalSnaps === 0 || turnIdx >= totalSnaps - 1}
+                        style={btn(totalSnaps === 0 || turnIdx >= totalSnaps - 1)}
+                      >→</button>
+                      <div style={{ flex: 1, textAlign: 'center', fontFamily: 'ui-monospace, monospace', fontSize: '0.8rem' }}>
                         Turn {snapshot.turn} / {replay.finalBattle.turn}
                       </div>
-                      <button
-                        onClick={() => setTurnIdx((i) => Math.min((replay.snapshots.length || 1) - 1, i + 1))}
-                        disabled={replay.snapshots.length === 0 || turnIdx >= replay.snapshots.length - 1}
-                        style={btn(replay.snapshots.length === 0 || turnIdx >= replay.snapshots.length - 1)}
-                      >
-                        →
-                      </button>
+                      {/* Speed selector */}
+                      {([0.5, 1, 2, 4] as const).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setSpeed(s)}
+                          style={{
+                            background: speed === s ? '#3a2818' : 'transparent',
+                            border: '1px solid ' + (speed === s ? '#d4a84a' : '#4a3520'),
+                            color: speed === s ? '#d4a84a' : '#8a7050',
+                            padding: '0.15rem 0.4rem',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            fontSize: '0.72rem',
+                          }}
+                        >{s}×</button>
+                      ))}
                     </div>
+                    {/* Scrubber — drag to jump to any turn */}
+                    {totalSnaps > 1 && (
+                      <input
+                        type="range"
+                        min={0}
+                        max={totalSnaps - 1}
+                        value={turnIdx}
+                        onChange={(e) => { setTurnIdx(Number(e.target.value)); setIsPlaying(false); }}
+                        style={{
+                          width: '100%', accentColor: '#d4a84a',
+                          marginBottom: '0.5rem',
+                        }}
+                      />
+                    )}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                       <div style={{ background: '#1a1410', border: '1px solid #4a3520', padding: '0.5rem' }}>
                         <div style={{ color: '#b8442e', fontSize: '0.78rem', marginBottom: '0.25rem' }}>

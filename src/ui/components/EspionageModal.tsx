@@ -75,6 +75,34 @@ export function EspionageModal({ onClose }: Props) {
     !!pickedTargetForceId &&
     (def.targetsOfficer ? !!pickedTargetOfficerId : !!pickedTargetCityId);
 
+  // Success probability preview — mirrors the calc in resolveEspionage:
+  //   chance = baseSuccess × (agent.int / 100)
+  //   chance += (agent.int − target avg int) × 0.005
+  //   chance += espionage trait bonus
+  //   chance −= target counter-intel resist
+  //   for defect: heavy (100 − target.loyalty) / 50 boost
+  // We approximate (no trait module call) for a player-facing estimate.
+  const successProb = useMemo(() => {
+    if (!def || !pickedAgentId || !pickedTargetForceId) return null;
+    const agent = officers[pickedAgentId];
+    if (!agent) return null;
+    const targetForceOfficers = Object.values(officers).filter(
+      (o) => o.forceId === pickedTargetForceId && o.status !== 'dead',
+    );
+    const avgInt = targetForceOfficers.length > 0
+      ? targetForceOfficers.reduce((s, o) => s + o.stats.intelligence, 0) / targetForceOfficers.length
+      : 60;
+    let chance = def.baseSuccess * (agent.stats.intelligence / 100);
+    chance += (agent.stats.intelligence - avgInt) * 0.005;
+    if (def.kind === 'defect' && pickedTargetOfficerId) {
+      const targ = officers[pickedTargetOfficerId];
+      if (targ) chance += (100 - targ.loyalty) / 50;
+    }
+    // Cunning trait bonus on attacker
+    if ((agent.traits ?? []).includes('cunning')) chance += 0.1;
+    return Math.max(0.05, Math.min(0.95, chance));
+  }, [def, pickedAgentId, pickedTargetForceId, pickedTargetOfficerId, officers]);
+
   const submit = () => {
     if (!canConfirm || !pickedKind || !pickedAgentId || !pickedTargetForceId) return;
     const r = queueEspionage(
@@ -236,6 +264,38 @@ export function EspionageModal({ onClose }: Props) {
               <span>Pick an operation, agent, and target.</span>
             )}
           </div>
+          {/* Success probability bar — estimated, not exact. */}
+          {successProb !== null && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              minWidth: '160px',
+            }}>
+              <span style={{ fontSize: '0.7rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
+                估算
+              </span>
+              <div style={{
+                flex: 1, height: '8px', minWidth: '70px',
+                background: '#1a1410', border: '1px solid #4a3520',
+                position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{
+                  width: `${successProb * 100}%`, height: '100%',
+                  background: successProb > 0.65 ? '#7ed68a' :
+                              successProb > 0.4 ? '#d4a84a' : '#b8442e',
+                  transition: 'width 0.2s ease-out',
+                }} />
+              </div>
+              <span style={{
+                fontFamily: 'ui-monospace, monospace',
+                fontSize: '0.85rem',
+                color: successProb > 0.65 ? '#7ed68a' :
+                       successProb > 0.4 ? '#d4a84a' : '#b8442e',
+                minWidth: '2.5rem', textAlign: 'right',
+              }}>
+                {Math.round(successProb * 100)}%
+              </span>
+            </div>
+          )}
           <button className={styles.confirmBtn} disabled={!canConfirm} onClick={submit}>
             Queue Op
           </button>

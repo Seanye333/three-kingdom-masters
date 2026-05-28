@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FORMATIONS } from '../../game/data';
+import { useGameStore } from '../../game/state/store';
 import type { FormationDef } from '../../game/types';
 import { useT, useLanguage, useDesc } from '../i18n';
 
@@ -57,14 +58,34 @@ const CATEGORY_COLOR: Record<Category, string> = {
 
 export function FormationsModal({ onClose }: Props) {
   const [cat, setCat] = useState<Category>('all');
+  const [usableOnly, setUsableOnly] = useState(false);
   const t = useT();
   const lang = useLanguage();
   const desc = useDesc();
 
+  const officers = useGameStore((s) => s.officers);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+
+  // Highest INT among the player's officers — gates which formations the
+  // force can deploy. (Each formation has minIntelligence.)
+  const maxPlayerInt = useMemo(() => {
+    if (!playerForceId) return 0;
+    let m = 0;
+    for (const o of Object.values(officers)) {
+      if (o.forceId !== playerForceId) continue;
+      if (o.status === 'dead' || o.status === 'imprisoned') continue;
+      if (o.stats.intelligence > m) m = o.stats.intelligence;
+    }
+    return m;
+  }, [officers, playerForceId]);
+
   const list: FormationDef[] = useMemo(() => {
-    if (cat === 'all') return FORMATIONS;
-    return FORMATIONS.filter((f) => CATEGORY[f.id] === cat);
-  }, [cat]);
+    let base = cat === 'all' ? FORMATIONS : FORMATIONS.filter((f) => CATEGORY[f.id] === cat);
+    if (usableOnly) {
+      base = base.filter((f) => maxPlayerInt >= f.minIntelligence);
+    }
+    return base;
+  }, [cat, usableOnly, maxPlayerInt]);
 
   return (
     <div
@@ -146,6 +167,26 @@ export function FormationsModal({ onClose }: Props) {
               </button>
             );
           })}
+          {/* Usable-only filter — gated by player's highest-INT officer. */}
+          {playerForceId && (
+            <button
+              onClick={() => setUsableOnly((v) => !v)}
+              style={{
+                background: usableOnly ? '#3a2818' : 'transparent',
+                color: usableOnly ? '#7ed68a' : 'var(--tkm-text-body)',
+                border: `1px solid ${usableOnly ? '#7ed68a' : 'var(--tkm-border)'}`,
+                padding: '0.3rem 0.7rem',
+                fontFamily: 'var(--tkm-font-body)',
+                fontSize: '0.78rem',
+                letterSpacing: '0.15rem',
+                cursor: 'pointer',
+                marginLeft: '0.4rem',
+              }}
+              title={`Filter to formations your top officer (INT ${maxPlayerInt}) can deploy`}
+            >
+              {t('我軍可用', 'Usable')} ({maxPlayerInt})
+            </button>
+          )}
         </div>
 
         {/* Formation list */}
@@ -211,6 +252,7 @@ export function FormationsModal({ onClose }: Props) {
                 }}>
                   {desc(f)}
                 </div>
+                <FormationDiagram formation={f.id} accent={accent} />
                 <div style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   fontSize: '0.7rem',
@@ -248,5 +290,78 @@ export function FormationsModal({ onClose }: Props) {
         </footer>
       </div>
     </div>
+  );
+}
+
+/**
+ * Tiny hex-grid sketch of where troops sit in this formation. Schematic —
+ * uses a 7x4 grid with filled hexes representing unit slots. Hand-tuned
+ * per formation to match its historical shape.
+ */
+function FormationDiagram({ formation, accent }: { formation: string; accent: string }) {
+  const W = 7, H = 4;
+  // Hand-curated unit positions per formation. (col, row).
+  const SHAPES: Record<string, Array<[number, number]>> = {
+    'none':              [[2, 1], [3, 1], [4, 1], [2, 2], [3, 2], [4, 2]],
+    'fish-scale':        [[1, 0], [2, 1], [3, 0], [4, 1], [5, 0], [2, 2], [4, 2], [3, 3]],
+    'eight-trigrams':    [[3, 0], [1, 1], [5, 1], [2, 2], [3, 2], [4, 2], [1, 3], [5, 3]],
+    'arrow-tip':         [[3, 0], [2, 1], [4, 1], [1, 2], [3, 2], [5, 2], [2, 3], [4, 3]],
+    'crane-wing':        [[0, 0], [1, 1], [2, 2], [3, 3], [4, 2], [5, 1], [6, 0]],
+    'spread-out':        [[0, 0], [3, 0], [6, 0], [1, 2], [5, 2], [2, 3], [4, 3]],
+    'awl':               [[3, 0], [3, 1], [2, 2], [3, 2], [4, 2], [3, 3]],
+    'wheel':             [[3, 0], [1, 1], [5, 1], [3, 2], [1, 3], [5, 3]],
+    'square':            [[1, 0], [3, 0], [5, 0], [1, 2], [3, 2], [5, 2], [1, 3], [3, 3], [5, 3]],
+    'crescent-moon':     [[1, 0], [3, 0], [5, 0], [0, 2], [3, 2], [6, 2]],
+    'wild-goose':        [[1, 0], [3, 0], [5, 0], [2, 1], [4, 1], [3, 2]],
+    'trinity':           [[3, 0], [2, 2], [4, 2]],
+    'back-to-water':     [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0]],
+    'ten-ambush':        [[0, 0], [6, 0], [3, 1], [1, 2], [5, 2], [0, 3], [3, 3], [6, 3]],
+    'long-snake':        [[0, 1], [1, 1], [2, 2], [3, 2], [4, 1], [5, 1], [6, 2]],
+    'crescent-withdraw': [[1, 1], [2, 0], [3, 1], [4, 0], [5, 1], [3, 3]],
+    'yoke':              [[1, 0], [3, 0], [5, 0], [2, 1], [4, 1], [3, 2]],
+    'armored-cart':      [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]],
+    'seven-star':        [[3, 0], [1, 1], [5, 1], [2, 2], [4, 2], [3, 3], [3, 2]],
+    'five-elements':     [[3, 0], [1, 2], [5, 2], [2, 3], [4, 3]],
+    'four-symbols':      [[3, 0], [1, 1], [5, 1], [3, 3]],
+    'rattan-armor':      [[1, 0], [3, 0], [5, 0], [1, 2], [3, 2], [5, 2]],
+    'stacked':           [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2]],
+    'mandarin-duck':     [[2, 1], [3, 1], [4, 1], [3, 2]],
+  };
+  const positions = SHAPES[formation] ?? SHAPES['none'];
+  const slotSet = new Set(positions.map(([c, r]) => `${c},${r}`));
+  const hexR = 4;
+  const colStep = hexR * 1.5;
+  const rowStep = hexR * Math.sqrt(3);
+  const width = W * colStep + hexR;
+  const height = H * rowStep + hexR;
+  return (
+    <svg
+      width="100%" height="50"
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ marginBottom: '0.5rem', opacity: 0.95 }}
+    >
+      {Array.from({ length: H }).map((_, row) =>
+        Array.from({ length: W }).map((_, col) => {
+          const x = col * colStep + hexR;
+          const y = row * rowStep + (col & 1 ? rowStep / 2 : 0) + hexR;
+          const filled = slotSet.has(`${col},${row}`);
+          const pts: string[] = [];
+          for (let i = 0; i < 6; i++) {
+            const a = (Math.PI / 3) * i;
+            pts.push(`${x + hexR * Math.cos(a)},${y + hexR * Math.sin(a)}`);
+          }
+          return (
+            <polygon
+              key={`${col},${row}`}
+              points={pts.join(' ')}
+              fill={filled ? accent : 'none'}
+              stroke={filled ? '#1a1208' : '#3a2818'}
+              strokeWidth={filled ? 0.4 : 0.2}
+              opacity={filled ? 0.9 : 0.4}
+            />
+          );
+        }),
+      )}
+    </svg>
   );
 }
