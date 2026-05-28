@@ -495,29 +495,70 @@ function UnitMesh({
     <group ref={groupRef} position={[tx, terrainH + 0.02, tz]}>
       {/* Mount or vehicle (cavalry horse / siege cart / navy boat) */}
       <UnitMount unit={unit} onClick={onClick} />
-      {/* Body torso (sits above mount if any) */}
+      {/* Lower robe / hakama — wider at the bottom, gives armored silhouette. */}
       <mesh
-        position={[0, 0.4 + yLift, 0]}
+        position={[0, 0.18 + yLift, 0]}
         onClick={(e) => { e.stopPropagation(); onClick(); }}
         castShadow
       >
-        <cylinderGeometry args={[0.30, 0.40, 0.55, 12]} />
-        <meshStandardMaterial color={color} roughness={0.6} />
+        <cylinderGeometry args={[0.36, 0.45, 0.30, 12]} />
+        <meshStandardMaterial color="#3a2818" roughness={0.85} />
+      </mesh>
+      {/* Belt sash — accent ring at the waist. */}
+      <mesh position={[0, 0.36 + yLift, 0]} castShadow>
+        <cylinderGeometry args={[0.37, 0.37, 0.06, 12]} />
+        <meshStandardMaterial color="#5a4530" roughness={0.7} metalness={0.2} />
+      </mesh>
+      {/* Chest armor — main body with side-faction color. */}
+      <mesh
+        position={[0, 0.55 + yLift, 0]}
+        castShadow
+      >
+        <cylinderGeometry args={[0.30, 0.36, 0.36, 12]} />
+        <meshStandardMaterial color={color} roughness={0.55} metalness={0.15} />
+      </mesh>
+      {/* Shoulder pauldrons — two small spheres for armor detail. */}
+      <mesh position={[-0.28, 0.68 + yLift, 0]} castShadow>
+        <sphereGeometry args={[0.10, 8, 8]} />
+        <meshStandardMaterial color={color} roughness={0.55} metalness={0.25} />
+      </mesh>
+      <mesh position={[0.28, 0.68 + yLift, 0]} castShadow>
+        <sphereGeometry args={[0.10, 8, 8]} />
+        <meshStandardMaterial color={color} roughness={0.55} metalness={0.25} />
+      </mesh>
+      {/* Neck */}
+      <mesh position={[0, 0.78 + yLift, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.10, 0.10, 8]} />
+        <meshStandardMaterial color="#d8b894" roughness={0.7} />
       </mesh>
       {/* Head */}
-      <mesh position={[0, 0.78 + yLift, 0]} castShadow>
-        <sphereGeometry args={[0.17, 12, 12]} />
+      <mesh position={[0, 0.90 + yLift, 0]} castShadow>
+        <sphereGeometry args={[0.16, 12, 12]} />
         <meshStandardMaterial color="#e0c498" roughness={0.7} />
       </mesh>
+      {/* Helmet — cone for commanders or warriors. Skipped for low-tier units. */}
+      {unit.isCommander && (
+        <>
+          <mesh position={[0, 1.04 + yLift, 0]} castShadow>
+            <coneGeometry args={[0.17, 0.18, 8]} />
+            <meshStandardMaterial color="#3a2818" roughness={0.5} metalness={0.4} />
+          </mesh>
+          {/* Crest plume — small vertical bar in red. */}
+          <mesh position={[0, 1.18 + yLift, 0]} castShadow>
+            <boxGeometry args={[0.04, 0.10, 0.02]} />
+            <meshStandardMaterial color="#b8442e" roughness={0.4} />
+          </mesh>
+        </>
+      )}
       {/* Per-unit-type weapon */}
       <UnitWeapon unit={unit} yLift={yLift} />
       {/* Banner pole + flag */}
-      <mesh position={[0.25, 0.95 + yLift, 0]} castShadow>
-        <cylinderGeometry args={[0.025, 0.025, 0.9, 6]} />
+      <mesh position={[0.28, 1.05 + yLift, 0]} castShadow>
+        <cylinderGeometry args={[0.025, 0.025, 0.95, 6]} />
         <meshStandardMaterial color="#3a2818" />
       </mesh>
-      <mesh position={[0.45, 1.25 + yLift, 0]} castShadow>
-        <planeGeometry args={[0.4, 0.25]} />
+      <mesh position={[0.50, 1.40 + yLift, 0]} castShadow>
+        <planeGeometry args={[0.42, 0.28]} />
         <meshStandardMaterial color={color} side={THREE.DoubleSide} />
       </mesh>
       {/* Selection ring */}

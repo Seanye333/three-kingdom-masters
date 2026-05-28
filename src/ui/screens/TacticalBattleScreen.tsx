@@ -124,6 +124,7 @@ type ActionMode =
 export function TacticalBattleScreen() {
   const battle = useGameStore((s) => s.tacticalBattle);
   const officers = useGameStore((s) => s.officers);
+  const forces = useGameStore((s) => s.forces);
   const close = useGameStore((s) => s.cancelTacticalBattle);
   const start = useGameStore((s) => s.startTacticalBattle);
   const applyResolution = useGameStore((s) => s.applyTacticalResolution);
@@ -1143,11 +1144,35 @@ export function TacticalBattleScreen() {
               const color = u.side === 'attacker' ? '#b8442e' : '#3a7dd9';
               const trooppct = u.troops / Math.max(1, u.maxTroops);
               const isHiddenAlly = u.hidden && u.side === playerSide;
+              // Force color ribbon — looks up the force's banner color.
+              const forceId = u.side === 'attacker' ? battle.attackerForceId : battle.defenderForceId;
+              const forceColor = forceId ? forces[forceId]?.color : null;
+              // Troop scale — bigger silhouette for bigger armies. 1500+ troops
+              // = full size; smaller scales down to ~70%.
+              const troopScale = 0.7 + Math.min(0.3, u.troops / 5000);
+              // Commander emphasis — 30% larger silhouette + 'animation hook.
+              const commanderScale = u.isCommander ? 1.3 : 1.0;
+              const finalScale = troopScale * commanderScale;
+              // Facing direction — flip horizontally if nearest enemy is to the left.
+              const enemies = battle.units.filter((e) => e.side !== u.side && !e.hidden);
+              let facingFlip = false;
+              if (enemies.length > 0) {
+                let nearest = enemies[0];
+                let minDist = Math.abs(nearest.coord.col - u.coord.col) + Math.abs(nearest.coord.row - u.coord.row);
+                for (const e of enemies) {
+                  const d = Math.abs(e.coord.col - u.coord.col) + Math.abs(e.coord.row - u.coord.row);
+                  if (d < minDist) { minDist = d; nearest = e; }
+                }
+                facingFlip = nearest.coord.col < u.coord.col;
+              }
+              // Action animation hint — burning units sway, moving units bounce.
+              const isBurning = u.effects.some((e) => e.kind === 'burning');
               return (
                 <g
                   key={u.id}
                   onClick={() => onTileClick(u.coord)}
-                  style={{ cursor: 'pointer', opacity: isHiddenAlly ? 0.5 : 1 }}
+                  className={isBurning ? undefined : 'tkm-unit-idle'}
+                  style={{ cursor: 'pointer', opacity: isHiddenAlly ? 0.5 : 1, transformOrigin: `${x}px ${y}px` }}
                 >
                   {isHiddenAlly && (
                     <text x={x} y={y + HEX_SIZE * 1.2} textAnchor="middle"
@@ -1203,17 +1228,30 @@ export function TacticalBattleScreen() {
                     </circle>
                   )}
                   {/* Ground shadow under the unit for visual weight */}
-                  <ellipse cx={x} cy={y + HEX_SIZE * 0.6} rx={HEX_SIZE * 0.55} ry="2.5"
+                  <ellipse cx={x} cy={y + HEX_SIZE * 0.6}
+                    rx={HEX_SIZE * 0.55 * finalScale} ry="2.5"
                     fill="rgba(0,0,0,0.45)" pointerEvents="none" />
-                  {/* Body — silhouette varies by unit type, with drop-shadow filter */}
-                  <path
-                    d={unitSilhouette(x, y, HEX_SIZE * 0.75, u.unitType)}
-                    fill={color}
-                    stroke={isSel ? '#d4a84a' : '#1a1410'}
-                    strokeWidth={isSel ? 2.5 : 1.5}
-                    opacity={0.95}
-                    filter="url(#tkmUnitShadow)"
-                  />
+                  {/* Body — silhouette varies by unit type, with drop-shadow filter.
+                      Group transforms apply troop-scale, commander-scale, and facing flip. */}
+                  <g transform={`translate(${x} ${y}) scale(${facingFlip ? -1 : 1} 1) scale(${finalScale}) translate(${-x} ${-y})`}>
+                    <path
+                      d={unitSilhouette(x, y, HEX_SIZE * 0.75, u.unitType)}
+                      fill={color}
+                      stroke={isSel ? '#d4a84a' : '#1a1410'}
+                      strokeWidth={isSel ? 2.5 : 1.5}
+                      opacity={0.95}
+                      filter="url(#tkmUnitShadow)"
+                    />
+                    {/* Force color ribbon — sash across the body matching banner color. */}
+                    {forceColor && (
+                      <rect
+                        x={x - HEX_SIZE * 0.55} y={y - HEX_SIZE * 0.12}
+                        width={HEX_SIZE * 1.1} height={HEX_SIZE * 0.16}
+                        fill={forceColor} opacity={0.85}
+                        stroke="#1a1208" strokeWidth="0.5"
+                      />
+                    )}
+                  </g>
                   {/* Pennant flag on a pole — color matches side; banner ripples in wind */}
                   <line
                     x1={x + HEX_SIZE * 0.5}

@@ -713,6 +713,16 @@ button:not(:disabled):active {
   transform-box: fill-box;
 }
 
+/* Battle unit idle breathing — subtle vertical sway to bring units to life. */
+@keyframes tkmUnitIdle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-0.6px); }
+}
+.tkm-unit-idle {
+  animation: tkmUnitIdle 2.6s ease-in-out infinite;
+  transform-box: fill-box;
+}
+
 /* Scroll-unfurl entrance — used by SeasonReportModal + DialogueModal. */
 @keyframes tkmScrollUnfurl {
   0%   { opacity: 0; transform: scaleY(0.02) translateY(-30px); filter: blur(2px); }
