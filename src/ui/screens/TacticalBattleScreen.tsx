@@ -37,6 +37,8 @@ import { DuelModal } from '../components/DuelModal';
 import { MapDefs as SharedMapDefs, MapFrame as SharedMapFrame, CompassRose as SharedCompassRose, TerrainArt as SharedTerrainArt } from '../components/hexMapShared';
 import { TacticalBattleScreen3D } from './TacticalBattleScreen3D';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { resolveWordWar, type WordWarResult } from '../../game/systems/wordWar';
+import { WordWarModal } from '../components/WordWarModal';
 import { useT, useDesc } from '../i18n';
 
 const UNIT_TYPE_GLYPH: Record<UnitType, string> = {
@@ -136,6 +138,11 @@ export function TacticalBattleScreen() {
   // Undo snapshot: store the battle BEFORE the player's last action so they
   // can revert mis-clicks within the same turn. Cleared on End-Turn.
   const [undoSnapshot, setUndoSnapshot] = useState<typeof battle | null>(null);
+  // 舌戰 — opens after the opening cinematic when both sides have INT ≥ 80.
+  const [wordWar, setWordWar] = useState<WordWarResult | null>(null);
+  // Track whether we've already evaluated word war this battle, so it
+  // doesn't re-fire on each re-render after the cinematic.
+  const [wordWarChecked, setWordWarChecked] = useState(false);
   // Battlefield zoom — scales the rendered SVG without touching hex coords.
   const [zoom, setZoom] = useState(1.0);
   const zoomOut = () => setZoom((z) => Math.max(0.6, +(z - 0.15).toFixed(2)));
@@ -162,6 +169,30 @@ export function TacticalBattleScreen() {
     if (battle.defenderForceId === playerForceId) return 'defender';
     return null;
   }, [battle, playerForceId]);
+
+  // After the cinematic ends, if both sides have an INT ≥ 80 officer,
+  // fire the 舌戰 (word war) prelude. Result modifies live unit morale
+  // when the player dismisses the modal.
+  useEffect(() => {
+    if (!battle || showCinematic || wordWarChecked) return;
+    setWordWarChecked(true);
+    const attackerOfficers = battle.units
+      .filter((u) => u.side === 'attacker')
+      .map((u) => officers[u.officerId])
+      .filter((o): o is import('../../game/types').Officer => !!o);
+    const defenderOfficers = battle.units
+      .filter((u) => u.side === 'defender')
+      .map((u) => officers[u.officerId])
+      .filter((o): o is import('../../game/types').Officer => !!o);
+    const aLead = attackerOfficers.find((o) => o.stats.intelligence >= 80);
+    const dLead = defenderOfficers.find((o) => o.stats.intelligence >= 80);
+    if (!aLead || !dLead) return;
+    const ww = resolveWordWar(
+      attackerOfficers[0], defenderOfficers[0],
+      attackerOfficers.slice(1), defenderOfficers.slice(1),
+    );
+    setWordWar(ww);
+  }, [battle, showCinematic, wordWarChecked, officers]);
 
   // Hide cinematic after 3.6s.
   useEffect(() => {
@@ -1362,6 +1393,28 @@ export function TacticalBattleScreen() {
         <DuelModal
           result={duelResult}
           onClose={() => setDuelResult(null)}
+        />
+      )}
+      {/* 舌戰 — fires once at battle start, after the opening cinematic.
+          On dismiss, applies the loser's −10 morale across all their units. */}
+      {wordWar && (
+        <WordWarModal
+          result={wordWar}
+          onClose={() => {
+            // Apply morale delta to live battle units, then clear.
+            const next = {
+              ...battle,
+              units: battle.units.map((u) => ({
+                ...u,
+                morale: Math.max(0, Math.min(100, u.morale +
+                  (u.side === 'attacker'
+                    ? wordWar.attackerMoraleDelta
+                    : wordWar.defenderMoraleDelta))),
+              })),
+            };
+            start(next);
+            setWordWar(null);
+          }}
         />
       )}
     </div>

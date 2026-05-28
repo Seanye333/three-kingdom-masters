@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FORMATIONS, NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../../game/data';
 import { inferUnitType, setupTacticalBattle } from '../../game/systems/tactical';
-import { resolveWordWar, type WordWarResult } from '../../game/systems/wordWar';
 import { useGameStore } from '../../game/state/store';
 import type {
   EntityId,
@@ -9,7 +8,6 @@ import type {
   Officer,
   UnitType,
 } from '../../game/types';
-import { WordWarModal } from './WordWarModal';
 import styles from './BattlePrepModal.module.css';
 import { useLanguage, useDesc } from '../i18n';
 
@@ -149,8 +147,7 @@ export function BattlePrepModal({
   });
 
   const [formation, setFormation] = useState<FormationId>('none');
-  const [wordWar, setWordWar] = useState<WordWarResult | null>(null);
-  const [pendingBattle, setPendingBattle] = useState<ReturnType<typeof setupTacticalBattle> | null>(null);
+  // 舌戰 state moved into TacticalBattleScreen — fires after the opening cinematic.
 
   const namedMapId = NAMED_MAPS_BY_CITY[targetCityId];
   const namedMap = namedMapId ? NAMED_MAPS_BY_ID[namedMapId] : undefined;
@@ -208,24 +205,7 @@ export function BattlePrepModal({
       },
     });
 
-    // 舌戰 — if both sides have an officer with INT ≥ 80, run a war of words first.
-    const aLead = ourOfficers.find((o) => o.stats.intelligence >= 80);
-    const dLead = defenders.find((o) => o.stats.intelligence >= 80);
-    if (aLead && dLead) {
-      const ww = resolveWordWar(ourOfficers[0], defenders[0], ourOfficers.slice(1), defenders.slice(1));
-      // Apply the morale modifier to the battle's units.
-      const adjusted = {
-        ...battle,
-        units: battle.units.map((u) => ({
-          ...u,
-          morale: Math.max(0, Math.min(100, u.morale + (u.side === 'attacker' ? ww.attackerMoraleDelta : ww.defenderMoraleDelta))),
-        })),
-      };
-      setPendingBattle(adjusted);
-      setWordWar(ww);
-      return;
-    }
-
+    // 舌戰 is now triggered AFTER the 3D battle opens — see TacticalBattleScreen.
     startTactical(battle);
     onClose();
   };
@@ -389,17 +369,6 @@ export function BattlePrepModal({
           </button>
         </div>
       </div>
-      {wordWar && pendingBattle && (
-        <WordWarModal
-          result={wordWar}
-          onClose={() => {
-            startTactical(pendingBattle);
-            setWordWar(null);
-            setPendingBattle(null);
-            onClose();
-          }}
-        />
-      )}
     </div>
   );
 }
