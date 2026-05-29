@@ -1,4 +1,5 @@
 import type { FamilyRelation } from '../types/family';
+import { HISTORICAL_FAMILY } from './historicalRelationships';
 
 /**
  * Historical family lineages — populated into `state.family` at scenario
@@ -633,4 +634,9 @@ export const FAMILY_LINEAGE: FamilyRelation[] = [
   // ═══════════════════════════════════════════════════════════════════
   // 諸葛瑾 + Wu wife (Sun clan tie; not certain in roster — skip)
   // ═══════════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 歷代名將 (Historical Officers across all 14 dynasties)
+  // ═══════════════════════════════════════════════════════════════════
+  ...HISTORICAL_FAMILY,
 ];

@@ -1,4 +1,5 @@
 import type { EntityId } from '../types';
+import { HISTORICAL_OATHS } from './historicalRelationships';
 
 export interface OathBond {
   officerA: EntityId;
@@ -20,4 +21,7 @@ export interface OathBond {
  * tactical-battle comradeship). New runtime bonds still go into
  * state.runtimeBonds; this static seed is retired.
  */
-export const OATH_BONDS: OathBond[] = [];
+export const OATH_BONDS: OathBond[] = [
+  // ─── 歷代名將 (Historical figures across all 14 dynasties) ───
+  ...HISTORICAL_OATHS,
+];
