@@ -1508,9 +1508,12 @@ export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>
   return HISTORICAL_OFFICER_TEMPLATES
     .filter((t) => set.has(t.dynasty))
     .map<Officer>((t) => {
-      const skills = deriveDefaultSkills(t.stats);
+      // Mirror the TKM pattern: prefer curated lookups by id, fall back to
+      // stat-derived defaults. Historical officers can now share the same
+      // OFFICER_TRAITS / OFFICER_SKILLS maps as their Three Kingdoms cousins.
+      const skills = OFFICER_SKILLS[t.id] ?? deriveDefaultSkills(t.stats);
       const rank = deriveInitialRank(t.stats);
-      const traits = deriveTraitsFromStats(t.stats);
+      const traits = OFFICER_TRAITS[t.id] ?? deriveTraitsFromStats(t.stats);
       const doctrine = deriveDoctrine(t.stats, t.id);
       const formations = deriveFormations(t.stats, t.id);
       const tactics = deriveTactics(t.stats, t.id);

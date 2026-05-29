@@ -1,4 +1,5 @@
 import type { OfficerStats } from '../types';
+import { HISTORICAL_DOCTRINES, HISTORICAL_FORMATIONS } from './historicalAttributes';
 
 // ──────────────────────────────────────────────────────────────────────
 // 主義 (Doctrine / Ideology)
@@ -88,6 +89,8 @@ export const OFFICER_DOCTRINES: Record<string, Doctrine> = {
   'liu-xie':       'royal',
   'xu-shao':       'reclusion',
   'sun-shao':      'reclusion',
+  // ─── 歷代名將 ───
+  ...HISTORICAL_DOCTRINES,
 };
 
 export function deriveDoctrine(stats: OfficerStats, id?: string): Doctrine {
@@ -167,6 +170,8 @@ export const OFFICER_FORMATIONS: Record<string, OfficerFormationId[]> = {
   'cao-ren':      ['square', 'fish-scale', 'long-snake'],
   'hao-zhao':     ['square', 'fish-scale'],
   'tian-yu':      ['wild-goose', 'long-snake'],
+  // ─── 歷代名將 ───
+  ...HISTORICAL_FORMATIONS,
 };
 
 export function deriveFormations(stats: OfficerStats, id?: string): OfficerFormationId[] {

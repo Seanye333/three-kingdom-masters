@@ -4,6 +4,7 @@ import type {
   RulerPersonality,
   RulerPersonalityDef,
 } from '../types';
+import { HISTORICAL_TRAITS } from './historicalAttributes';
 
 export const TRAIT_DEFS: PersonalityTraitDef[] = [
   { id: 'drunkard',    name: { en: 'Drunkard',    zh: '嗜酒' }, description: 'Loves wine to excess. Vulnerable to assassination and brawls.',                descriptionZh: '嗜酒成性。易遭暗殺與鬥毆。',                                       color: '#b8442e', positive: false },
@@ -1013,6 +1014,8 @@ export const OFFICER_TRAITS: Record<string, PersonalityTrait[]> = {
   'zou-jing':          ['loyal', 'veteran', 'diligent', 'cautious'],
   'zuo-ci':            ['mystical', 'unfathomable', 'wandering-spirit', 'long-lived', 'pious'],
   'zuo-si':            ['erudite', 'poetic-genius', 'ugly', 'diligent', 'honest-to-fault'],
+  // ─── 歷代名將 (Historical Officers) — merged from historicalAttributes.ts ───
+  ...HISTORICAL_TRAITS,
 };
 
 export function deriveTraitsFromStats(stats: {
