@@ -6,6 +6,7 @@
  * Each entry has a Chinese narrative and an English translation. Officers
  * not in this map fall back to a procedural description derived from stats.
  */
+import { HISTORICAL_BIOGRAPHIES } from './historicalBiographies';
 
 export interface OfficerBiography {
   zh: string;
@@ -271,6 +272,8 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字德祖,弘農華陰人。 才思敏捷,曹操謀士,常解其心意而招忌。 「雞肋」之語,終被曹操所殺。',
     en: "Style name Dezu, of Huayin in Hongnong. So nimble of mind that Cao Cao's hidden meanings could not stay hidden from him — which earned him hatred. When he read Cao Cao's password 'chicken-ribs' as a sign the campaign was finished, Cao Cao at last had him executed.",
   },
+  // ─── 歷代名將 (Historical Officers, 14 dynasties) ───
+  ...HISTORICAL_BIOGRAPHIES,
 };
 
 /**
