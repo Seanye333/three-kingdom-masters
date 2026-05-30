@@ -3215,6 +3215,302 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '匈奴單于。漢初冒頓單于之另寫。',
     en: 'A Xiongnu Chanyu; an alternate writing for Modu Chanyu of early Han.',
   },
+  // ─── 歷代名將 新增第十二批 (Historical biographies — batch 12: cross-dynasty early) ───
+  // Spring & Autumn
+  'hist-wu-zixu': {
+    era: { zh: '春秋雪父之仇', en: 'Avenger of His Father' },
+    zh: '名員,楚國人。父兄被楚平王所殺,伍子胥奔吳,助闔閭五戰入郢,鞭楚平王屍三百以雪父兄之仇。後吳王夫差不聽其言,賜屬鏤劍命其自盡,曰:「抉吾眼置吳東門,以觀越寇入吳!」',
+    en: 'Personal name Yun, of Chu. His father and brother were killed by King Ping of Chu; Wu Zixu fled to Wu, helped King Helu in five battles into Ying, and whipped the corpse of King Ping three hundred strokes. King Fuchai later would not hear him, sent the Shulü sword, and he cried: "Pluck out my eyes and set them on the eastern gate of Wu — that I may see Yue come in!"',
+  },
+  'hist-wen-zhong': {
+    zh: '楚國郢人,字子禽。與范蠡共佐越王句踐滅吳。范蠡知句踐可共患難,不可共富貴,函書勸之去,文種不從。終被句踐賜劍自盡。',
+    en: 'Of Ying in Chu, style Ziqin. With Fan Li he served King Goujian of Yue in destroying Wu. Fan Li, knowing Goujian could share hardship but not prosperity, sent a letter urging him to leave; Wen Zhong would not go. Goujian sent him a sword.',
+  },
+  'hist-you-yu': {
+    zh: '原戎人,後事秦穆公。獻計平西戎,使秦穆公稱霸西陲。',
+    en: 'Originally of the Rong, later he served Duke Mu of Qin. He gave the counsels to pacify the western Rong and made Duke Mu hegemon of the west.',
+  },
+  'hist-ji-you': {
+    zh: '魯莊公弟。性正直,廢慶父之亂,立僖公。魯國中興之臣。',
+    en: 'Younger brother of Duke Zhuang of Lu. Upright in temper, he put down Qingfu\'s revolt and set up Duke Xi — a restorer of Lu.',
+  },
+  'hist-qingfu': {
+    zh: '魯莊公庶兄。亂魯,殺二君,後逃莒。魯人賂莒求之,慶父歸,自縊於密。「慶父不死,魯難未已」千古絕唱。',
+    en: 'Half-brother of Duke Zhuang of Lu. He stirred Lu to chaos and killed two rulers, then fled to Ju. The Lu bribed Ju and he returned; he hanged himself at Mi. "While Qingfu is not dead, the troubles of Lu have no end" rang forever.',
+  },
+  'hist-huan-tui': {
+    zh: '宋國司馬。孔子過宋,桓魋欲殺之。孔子歎曰:「天生德於予,桓魋其如予何!」',
+    en: 'Sima of Song. When Confucius passed through Song, Huan Tui would have killed him. The Master sighed: "Heaven bore virtue in me — what can Huan Tui do to me?"',
+  },
+  'hist-zhao-wu': {
+    era: { zh: '趙氏孤兒', en: 'The Orphan of the Zhao' },
+    zh: '趙朔之子。趙氏為屠岸賈所滅,程嬰、公孫杵臼救之,藏於山中十五年。後趙武長大,復趙氏,誅屠岸賈,千古傳為忠義故事,改編為元雜劇《趙氏孤兒》。',
+    en: 'Son of Zhao Shuo. When the Zhao clan was wiped out by Tu\'an Gu, Cheng Ying and Gongsun Chujiu saved him; he was hidden in the mountains fifteen years. Grown, Zhao Wu restored the Zhao and killed Tu\'an Gu — a tale of loyalty for the ages, made into the Yuan zaju "The Orphan of the Zhao."',
+  },
+  'hist-tu’an-jia': {
+    zh: '晉國權臣。譖殺趙朔,夷趙氏。程嬰、公孫杵臼藏趙氏孤兒。後趙武長,屠岸賈被誅。',
+    en: 'A great power-holder of Jin. He slandered Zhao Shuo to death and wiped out the Zhao. Cheng Ying and Gongsun Chujiu hid the Zhao orphan. When Zhao Wu grew up, Tu\'an Gu was killed.',
+  },
+  'hist-qubo-yu': {
+    zh: '春秋衛國大夫。賢者。年五十而知四十九年之非。孔子至衛,主於蘧伯玉家,以為「君子哉蘧伯玉!」',
+    en: 'A grandee of Wey in the Spring and Autumn, a worthy man. At fifty he knew the faults of his forty-nine years. When Confucius came to Wey he stayed in his house: "A gentleman is Qu Boyu!"',
+  },
+  'hist-yuxiong': {
+    zh: '楚國始祖鬻熊。傳為周文王之師。後封於楚,楚國八百年之祖。',
+    en: 'Yuxiong, ancestor of the state of Chu. Tradition says he was teacher to King Wen of Zhou. Enfeoffed in Chu, he was the ancestor of the eight-hundred-year house.',
+  },
+  'hist-ziyu-chu': {
+    zh: '楚成王令尹,字子玉。城濮之戰主帥,為晉文公所敗,楚成王問罪,自殺於連榖。',
+    en: 'Chancellor of King Cheng of Chu, style Ziyu. Commander at Chengpu, broken by Duke Wen of Jin. When King Cheng asked his crime, he killed himself at Liangu.',
+  },
+  'hist-ziyu-song': {
+    zh: '宋國司寇。宋襄公之兄。屢諫襄公,泓水之戰勸其擊楚渡河之軍,襄公不從。',
+    en: 'Minister of Justice in Song, elder brother of Duke Xiang. He often remonstrated; at the Hong River he urged the Duke to strike the Chu army mid-crossing — the Duke would not.',
+  },
+  'hist-zichang': {
+    zh: '楚國令尹,字囊瓦。性貪,索蔡昭侯之裘,蔡昭侯不與,囊瓦怒囚之。後蔡昭侯入吳乞師,吳師伐楚入郢,囊瓦逃鄭而死。',
+    en: 'Chancellor of Chu, style Nangwa. Greedy by nature, he demanded the fur robe of Marquis Zhao of Cai, who refused — and Nangwa held him captive. Marquis Zhao went to Wu to beg an army; the Wu army entered Ying; Nangwa fled to Zheng and died there.',
+  },
+  'hist-zinang': {
+    zh: '楚共王令尹。臨終遺命:「必城郢!」 國以為憂,郢都之外無城,後楚平王築城於郢。',
+    en: 'Chancellor of King Gong of Chu. On his deathbed he charged: "Be sure to wall Ying!" The state took it to heart, for outside Ying there was no wall; King Ping later raised it.',
+  },
+  'hist-zipi': {
+    zh: '鄭國正卿。子產之師。',
+    en: 'Chief Minister of Zheng, teacher of Zichan.',
+  },
+  'hist-zijia-ji': {
+    zh: '鄭國大夫。執政。後與穆公子靈相爭。',
+    en: 'A grandee of Zheng, holding power; he later contested with the prince Ling, son of Duke Mu.',
+  },
+  'hist-shi-hui': {
+    zh: '晉國正卿。從晉文公流亡。後事晉襄公、晉靈公,以智見稱。',
+    en: 'Chief Minister of Jin. He followed Duke Wen in exile. Under Dukes Xiang and Ling he was famed for cleverness.',
+  },
+  'hist-fan-wenzi': {
+    zh: '晉國正卿。范文子。事晉景公、厲公。性謙退,屢辭功賞。',
+    en: 'Chief Minister of Jin, Fan Wenzi. He served Dukes Jing and Li. Modest, he often refused merit and reward.',
+  },
+  'hist-zhixuanzi': {
+    zh: '晉國正卿。智宣子。智伯之父。',
+    en: 'Chief Minister of Jin, Zhi Xuanzi. Father of Zhibo.',
+  },
+  'hist-zhonghang-linfu': {
+    zh: '晉國六卿之一。中行氏。後與趙氏交戰,被驅逐。',
+    en: 'One of the Six Ministers of Jin, of the Zhonghang clan. He warred with the Zhao and was driven out.',
+  },
+  'hist-han-xuanzi': {
+    zh: '晉國正卿。韓氏。執政於春秋末,為韓國之祖。',
+    en: 'Chief Minister of Jin, of the Han clan. He held power at the end of the Spring and Autumn — ancestor of the state of Han.',
+  },
+  'hist-wei-xuangong': {
+    zh: '衛國國君。在位十九年。性淫,娶宣姜,生公子壽、朔。後弒太子伋,衛由是亂。',
+    en: 'Duke Xuan of Wey. Nineteen years he reigned. Lewd in temper, he took Lady Xuanjiang and bore the princes Shou and Shuo; he killed the heir Ji, and Wey fell into chaos.',
+  },
+  'hist-wei-huanzi': {
+    zh: '晉國六卿之一,魏氏。為魏國之祖。',
+    en: 'One of the Six Ministers of Jin, of the Wei clan — ancestor of the state of Wei.',
+  },
+  // Warring States
+  'hist-wu-qi': {
+    era: { zh: '吳子兵法', en: 'The Wuzi Bingfa' },
+    zh: '衛國左氏人。為將與士卒同甘苦,卒有疽,吳起親為吮膿。事魯、魏、楚三國,皆為名將。在楚變法,觸貴族之怒。楚悼王死,貴族圍攻,吳起伏屍王屍上,中箭而亡。',
+    en: 'Of Zuoshi in Wey. As a general he shared every hardship with his men — when a soldier had a boil, he sucked the pus with his own mouth. He served Lu, Wei, and Chu in turn. In Chu he led reforms and roused the nobles\' wrath. When King Dao died, the nobles surrounded him; Wu Qi flung himself across the king\'s body and died there under arrows.',
+  },
+  'hist-zhao-she': {
+    era: { zh: '馬服君', en: 'Lord of Mafu' },
+    zh: '趙國名將。閼與之戰,以「狹路相逢勇者勝」破秦軍,封馬服君。其子趙括紙上談兵,長平之敗實基於此。',
+    en: 'A famed general of Zhao. At Yuyu he broke Qin by the saying "where two meet on a narrow road, the bold wins," and was made Lord of Mafu. His son Zhao Kuo could only "talk strategy on paper" — and the rout of Changping was rooted here.',
+  },
+  'hist-yue-jian': {
+    zh: '樂毅之子。事燕惠王、武成王。性沉雅。後燕武成王伐趙,樂閒勸阻,不聽,大敗。樂閒奔趙。',
+    en: 'Son of Yue Yi. He served Kings Hui and Wucheng of Yan. Steady and refined. When King Wucheng would march on Zhao, Yue Jian urged him not to; the king would not hear and was utterly broken. Yue Jian fled to Zhao.',
+  },
+  'hist-yue-cheng': {
+    zh: '樂毅之姪。事燕,後事趙,封武襄君。',
+    en: 'Nephew of Yue Yi. He served Yan and later Zhao, made Lord Wuxiang.',
+  },
+  'hist-cai-ze': {
+    era: { zh: '貂蟬冠', en: '"The Sable-Marten Cap"' },
+    zh: '燕國人。秦昭王時辯士。代范雎為秦相。性辯,有「日中則移,月滿則虧」之語,勸範雎讓位。',
+    en: 'Of Yan. A diviner under King Zhao of Qin who replaced Fan Ju as chancellor. Eloquent — "the sun at noon will move; the moon when full will wane" was the saying with which he urged Fan Ju to yield.',
+  },
+  'hist-ju-xin': {
+    zh: '楚國將。秦攻楚,劇辛奉命救援,中秦軍埋伏,大敗,自殺。',
+    en: 'A general of Chu. When Qin came against Chu, Ju Xin marched to relieve; trapped in the Qin ambush he was broken and killed himself.',
+  },
+  'hist-duangan-mu': {
+    zh: '魏國隱士。魏文侯欲見之,段干木翻牆而逃。文侯每過其閭必下車軾,以示敬。',
+    en: 'A recluse of Wei. When Marquis Wen wished to meet him, Duangan Mu leapt over the wall to escape. Whenever the marquis passed his alley, he bowed from his carriage in honor.',
+  },
+  'hist-gongshu-cuo': {
+    zh: '魏國相。臨終薦商鞅於魏惠王,曰:「公叔之臣有公孫鞅者,雖少,有奇才,願君舉國以聽之。」 又曰:「若君不能用,則殺之,毋使出境。」 惠王皆不從,商鞅遂奔秦,秦由是強。',
+    en: 'Chancellor of Wei. On his deathbed he recommended Shang Yang to King Hui: "There is a man in my service, Gongsun Yang. Though young, he has rare talent. Take the state and listen to him." And again: "If you cannot use him, kill him — let him not leave the borders." The king did neither; Shang Yang fled to Qin, and from him Qin grew strong.',
+  },
+  'hist-pang-xuan': {
+    zh: '魏國將。從吳起戰於陰晉,以五萬破秦五十萬,中華軍史奇跡之一。',
+    en: 'A general of Wei. At Yinjin under Wu Qi, with fifty thousand he broke Qin\'s five hundred thousand — one of the wonders of Chinese military history.',
+  },
+  'hist-zhao-suhou': {
+    zh: '趙國國君。在位二十四年。任用肥義,趙國中興。其孫即趙武靈王。',
+    en: 'Marquis Su of Zhao. Twenty-four years he reigned. He raised Fei Yi, and Zhao was restored. His grandson would be King Wuling of Zhao.',
+  },
+  'hist-zou-yang': {
+    zh: '齊國辯士。從吳王劉濞,後事梁孝王。獻《獄中上梁王書》,陳冤情,梁孝王赦之。',
+    en: 'A diviner of Qi. He served the King of Wu Liu Bi and later King Xiao of Liang. He sent up the Letter from Prison to King of Liang, setting out his case; the king pardoned him.',
+  },
+  'hist-han-zhaohou': {
+    zh: '韓國國君。任用申不害變法,韓國中興十五年。',
+    en: 'Marquis Zhao of Han. He raised Shen Buhai to lead the reforms, and Han was restored for fifteen years.',
+  },
+  'hist-han-xiangwang': {
+    zh: '韓國國君。在位二十三年。中原合縱抗秦時,韓襄王屢與秦戰,皆敗。',
+    en: 'King Xiang of Han. Twenty-three years he reigned. In the days of the Vertical Alliance against Qin he fought Qin many times and lost each time.',
+  },
+  'hist-chu-kaolie': {
+    zh: '楚國國君。在位二十五年。任用春申君為令尹。其後因春申君獻李園之妹生太子,引李園之亂。',
+    en: 'King Kaolie of Chu. Twenty-five years he reigned, with Chunshen-jun as chancellor. When Chunshen-jun presented Li Yuan\'s sister, who bore the crown prince, the Li Yuan revolt followed.',
+  },
+  'hist-chu-qingxiang': {
+    zh: '楚國國君。屈原所事之主。聽信讒言,放逐屈原。後秦伐楚,失國而走,卒於陳。',
+    en: 'King Qingxiang of Chu — the king whom Qu Yuan served. Hearing slander, he exiled Qu Yuan. Later Qin came against Chu; he lost the land and fled, dying at Chen.',
+  },
+  'hist-chu-weiwang': {
+    zh: '楚國國君。任用昭陽為令尹,楚國強盛。位至「諸侯之長」。',
+    en: 'King Wei of Chu. He raised Zhao Yang as chancellor, and Chu was strong, with the title "head of the lords."',
+  },
+  'hist-chu-zhaowang': {
+    zh: '楚國國君。吳師入郢,楚昭王奔隨。後申包胥哭秦庭,秦師救楚,昭王還國,中興楚室。',
+    en: 'King Zhao of Chu. When the Wu army entered Ying he fled to Sui. After Shen Baoxu wept at the Qin court, the Qin army came to relieve Chu; King Zhao returned and restored his house.',
+  },
+  'hist-chu-daowang': {
+    zh: '楚國國君。在位二十一年。任吳起變法,楚國強盛。卒,貴族圍攻吳起,吳起伏屍王屍上,中箭而死,變法亦廢。',
+    en: 'King Dao of Chu. Twenty-one years he reigned. He raised Wu Qi to reform the state, and Chu was strong. At his death the nobles surrounded Wu Qi; Wu Qi flung himself across the king\'s body and died under arrows — and the reforms were undone.',
+  },
+  'hist-tian-qi': {
+    zh: '齊國將。田齊宗室。從田忌,後因鄒忌之讒奔楚。',
+    en: 'A general of Qi, of the Tian-Qi house. He marched with Tian Ji; through Zou Ji\'s slander he fled to Chu.',
+  },
+  'hist-zhao-liehou': {
+    zh: '趙國國君,趙烈侯。在位九年。任用公仲連等賢臣,趙國始強。',
+    en: 'Marquis Lie of Zhao. Nine years he reigned. He raised Gongzhong Lian and other worthies — and Zhao first grew strong.',
+  },
+  // Qin (the dynasty)
+  'hist-meng-wu': {
+    zh: '秦國名將。蒙驁之子,蒙恬、蒙毅之父。從王翦伐楚,有功。',
+    en: 'A famed Qin general, son of Meng Ao, father of Meng Tian and Meng Yi. With Wang Jian he marched on Chu with credit.',
+  },
+  'hist-wang-li': {
+    zh: '秦國名將。王翦之孫,王賁之子。鉅鹿之戰被項羽所擒,被殺。秦三世名將,至此而絕。',
+    en: 'A famed Qin general. Grandson of Wang Jian, son of Wang Ben. At Julu he was taken by Xiang Yu and killed. Three generations of Wang generals ended with him.',
+  },
+  'hist-feng-jie': {
+    zh: '秦國右丞相。秦始皇崩後,趙高、李斯矯詔,馮去疾、馮劫憤而自殺。',
+    en: 'Right Chancellor of Qin. After the First Emperor died and Zhao Gao with Li Si forged the edict, Feng Quji and his son Feng Jie in fury killed themselves.',
+  },
+  'hist-feng-quji': {
+    zh: '秦國右丞相,馮劫之父。秦二世時與李斯共諫,被囚,自殺。',
+    en: 'Right Chancellor of Qin, father of Feng Jie. Under the Second Emperor he remonstrated with Li Si; imprisoned, he killed himself.',
+  },
+  'hist-feng-jing': {
+    zh: '秦國名將。事始皇,屢從征戰。',
+    en: 'A famed Qin general; he served the First Emperor in many campaigns.',
+  },
+  'hist-wang-wan': {
+    zh: '秦始皇丞相。主分封制,與李斯主郡縣制相爭,始皇用李斯之策。',
+    en: 'Chancellor of the First Emperor of Qin. He urged the feudatory system against Li Si\'s commandery system; the emperor took Li Si\'s plan.',
+  },
+  'hist-wei-liao': {
+    zh: '魏國大梁人。秦始皇尉繚。獻計散財賄賂六國權貴,以亂其政,助秦掃六合。著《尉繚子》兵法。',
+    en: 'Of Daliang in Wei. Marshal Liao of the First Emperor of Qin. He gave the counsel of scattering wealth to bribe the nobles of the six states and throw their courts into chaos — helping Qin sweep them. He wrote the Marshal Liao Bingfa.',
+  },
+  'hist-neishi-teng': {
+    zh: '秦國內史。秦始皇十七年率兵滅韓,六國之第一個滅亡。',
+    en: 'Intendant of the Capital under Qin. In 230 BCE he led the troops that destroyed Han — the first of the six states to fall.',
+  },
+  'hist-li-you': {
+    zh: '李斯之子。秦三川郡守。陳勝起義,吳廣攻三川,李由戰死。',
+    en: 'Son of Li Si, Governor of the Sanchuan commandery. When Chen Sheng rose and Wu Guang attacked Sanchuan, Li You died fighting.',
+  },
+  'hist-han-tan': {
+    zh: '秦國將。從王翦滅楚,有戰功。',
+    en: 'A Qin general; with Wang Jian he marched against Chu with credit.',
+  },
+  'hist-zhao-tuo': {
+    era: { zh: '南越王', en: 'King of Nanyue' },
+    zh: '真定人。秦末南海尉。秦亡,趙佗自立為南越武王,據嶺南九十三年。漢初與漢和親,稱臣。壽過百歲。',
+    en: 'Of Zhending. Commandant of Nanhai at the end of Qin. When Qin fell, Zhao Tuo set himself up as Martial King of Nanyue and held Lingnan for ninety-three years. In early Han he made peace and submitted as vassal. He lived past a hundred.',
+  },
+  'hist-zheng-guo': {
+    zh: '韓國水工。韓國恐秦攻韓,使鄭國至秦獻策修水渠,以耗秦力。秦始皇納其策,築鄭國渠,引涇水溉田四萬餘頃。後韓國本意被覺,秦始皇欲殺之,鄭國曰:「臣為韓延數歲之命,而為秦建萬世之功!」 秦始皇赦之,渠成,關中沃野千里,秦更強。',
+    en: 'A water engineer of Han. Fearing Qin, Han sent Zheng Guo to Qin to propose building a great canal — to drain Qin\'s strength. The First Emperor took the plan; the Zheng Guo Canal was built, leading the Jing River to water forty thousand qing of fields. When the Han design was found out and the emperor would have killed him, Zheng Guo said: "Your servant has bought a few more years for Han, and built ten-thousand-generation merit for Qin!" The emperor pardoned him; the canal was finished, and Guanzhong became a thousand li of rich land — Qin grew stronger.',
+  },
+  'hist-sima-xin': {
+    zh: '秦將。鉅鹿之戰後,司馬欣與章邯共降項羽,封塞王。後降漢,項羽伐齊,司馬欣再叛,被劉邦所斬。',
+    en: 'A Qin general. After Julu he submitted to Xiang Yu with Zhang Han and was made King of Sai. He later submitted to Han; when Xiang Yu marched on Qi, Sima Xin rose again, and Liu Bang beheaded him.',
+  },
+  'hist-yin-tong': {
+    zh: '秦會稽郡守。項梁、項羽於會稽舉兵,殷通先發於項梁,項梁斬之以奪其兵權。',
+    en: 'Governor of Kuaiji under Qin. When Xiang Liang and Xiang Yu raised troops at Kuaiji, Yin Tong moved first against Xiang Liang; Xiang Liang beheaded him and seized his command.',
+  },
+  // Western Han additions
+  'hist-lou-jing': {
+    era: { zh: '婁敬', en: 'Lou Jing' },
+    zh: '齊人。漢初獻策劉邦遷都關中,賜姓劉。又獻和親匈奴之策,定漢匈百年之大計。',
+    en: 'Of Qi. In early Han he gave Liu Bang the counsel of moving the capital to Guanzhong, and was granted the surname Liu. He also gave the plan of marriage-alliance with the Xiongnu — the great hundred-year design between Han and Xiongnu.',
+  },
+  'hist-xiao-wangzhi': {
+    zh: '字長倩,東海人。漢宣帝、元帝兩朝大臣。直言敢諫,屢忤宦官石顯。後被石顯構陷,自殺。',
+    en: 'Style Changqian, of Donghai. A great minister of Emperors Xuan and Yuan of Han. Straight of speech, he often clashed with the eunuch Shi Xian. Framed at last by Shi Xian, he killed himself.',
+  },
+  'hist-han-yanshou': {
+    zh: '字長公,燕人。漢宣帝時潁川太守。性嚴明,有政治才能。為京兆尹,與蕭望之相爭,被誣賜死。',
+    en: 'Style Changgong, of Yan. Governor of Yingchuan under Emperor Xuan of Han. Stern and clear; of political talent. As Intendant of the metropolitan region he clashed with Xiao Wangzhi; framed, he was given a draught of death.',
+  },
+  'hist-zhao-guanghan': {
+    zh: '字子都,涿郡蠡吾人。漢宣帝時京兆尹。執法嚴明,豪強斂手。後因事被誣,腰斬於市,百姓號哭數萬人。',
+    en: 'Style Zidu, of Liwu in Zhuojun. Intendant of the metropolitan region under Emperor Xuan of Han. Strict in the law, the great houses drew in their hands. Later framed and cut in two at the waist, tens of thousands of the people wept aloud.',
+  },
+  'hist-wei-xuancheng': {
+    zh: '魏相之子。事漢元帝為丞相。性溫和,以儉約名。',
+    en: 'Son of Wei Xiang. Under Emperor Yuan of Han he was chancellor. Mild in temper, known for frugality.',
+  },
+  'hist-zheng-ji': {
+    zh: '字翁孫,會稽山陰人。漢宣帝時西域都護。屯田渠犁,定西域日逐王,封安遠侯。漢西域第一任都護。',
+    en: 'Style Wengsun, of Shanyin in Kuaiji. Protector-General of the Western Regions under Emperor Xuan of Han. He set up agricultural colonies at Quli and pacified the Rizhu King of the western lands; made Marquis of Anyuan — the first Protector-General of the Western Regions for Han.',
+  },
+  'hist-zhu-fu': {
+    zh: '漢初辯士。事齊王劉肥。',
+    en: 'A diviner of early Han, who served King Liu Fei of Qi.',
+  },
+  'hist-zhu-bo': {
+    zh: '漢成帝時大臣。性剛直,屢諫不阿。',
+    en: 'A great minister under Emperor Cheng of Han. Stiff and upright, he remonstrated without flattery.',
+  },
+  'hist-zhai-fangjin': {
+    zh: '字子威,汝南上蔡人。漢成帝丞相。少貧苦,以才學自顯。為相九年,以執法嚴明稱。後因日食上書自責,服毒自殺。',
+    en: 'Style Ziwei, of Shangcai in Runan. Chancellor of Emperor Cheng of Han. Poor in youth, he made himself by talent and learning. Nine years he was chancellor, known for strict law. After a solar eclipse he sent up a memorial of self-blame and took poison to die.',
+  },
+  'hist-wang-jia': {
+    zh: '字公仲,平陵人。漢哀帝丞相。直言敢諫,反對哀帝寵董賢,被下獄絕食而死。',
+    en: 'Style Gongzhong, of Pingling. Chancellor of Emperor Ai of Han. Straight of speech, he stood against the emperor\'s dotage on Dong Xian, was thrown in prison, and starved himself to death.',
+  },
+  'hist-shao-xinchen': {
+    zh: '字翁卿,九江壽春人。漢宣帝時南陽太守。興水利,廣灌田,百姓富庶,號「召父」(後與漢光武時杜詩齊名「召父杜母」)。',
+    en: 'Style Wengqing, of Shouchun in Jiujiang. Governor of Nanyang under Emperor Xuan of Han. He raised the waterworks and broadened irrigation, and the people grew rich — called "Father Shao" (with Du Shi of Eastern Han later "Father Shao and Mother Du").',
+  },
+  'hist-du-shi': {
+    zh: '字君公,河內汲人。東漢光武帝時南陽太守。發明水排,用水力鼓風冶鐵,中華冶鐵之大革新。百姓號為「杜母」,與西漢召信臣並稱「召父杜母」。',
+    en: 'Style Jungong, of Ji in Henei. Governor of Nanyang under Emperor Guangwu of the Eastern Han. He invented the water-bellows, using water power to blow air for iron-smelting — a great revolution in Chinese metallurgy. The people called him "Mother Du" and with Shao Xinchen of the Western Han made "Father Shao and Mother Du."',
+  },
+  'hist-ren-yan': {
+    zh: '字長孫,南陽宛人。東漢光武帝時九真太守。在郡四年,興水利,教民耕織,夷漢咸服。',
+    en: 'Style Zhangsun, of Wan in Nanyang. Governor of Jiuzhen under Emperor Guangwu of the Eastern Han. Four years he held the commandery, raised the waterworks, taught the people to plough and weave — barbarian and Han alike yielded.',
+  },
+  'hist-geng-chun': {
+    zh: '字伯山,鉅鹿宋子人。東漢光武帝二十八將之一。從征戰立功,封東光侯。',
+    en: 'Style Boshan, of Songzi in Julu. One of the Twenty-Eight Cloud Terrace Generals of Emperor Guangwu of the Eastern Han. He marched and won credit, made Marquis of Dongguang.',
+  },
   // ─── 歷代名將 新增第十批 (Historical biographies — batch 10: Qing) ───
   'hist-hong-taiji': {
     zh: '參見「hist-huangtaiji」。',
