@@ -1814,6 +1814,244 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字奉孝,劉備庶子。封梁王。蜀漢亡後遷洛陽。',
     en: 'Style name Fengxiao, natural son of Liu Bei. Made Prince of Liang. When Shu fell, he was moved to Luoyang.',
   },
+  // ─── 三國新增列傳 第六批 (Three Kingdoms — batch 6) ───
+  'cao-ren': {
+    era: { zh: '天人之姿', en: 'Of Heavenly Stature' },
+    zh: '字子孝,沛國譙人,曹操從弟。少好弓馬,膽勇過人。從曹操征戰,屢立大功,守城最稱奇將。荊州之役以孤城拒周瑜歲餘,牙旗如山。襄樊之圍,關羽水淹七軍,曹仁守樊城,身被數創不退,士卒爭以血肉填壕。徐晃援至,內外夾擊大破關羽。位至大司馬,封陳侯。卒年五十六。',
+    en: 'Style name Zixiao, of Qiao in Pei, cousin of Cao Cao. From youth a master of bow and horse, his courage beyond men\'s. He campaigned with Cao Cao and earned great laurels, but it was in the holding of cities that he stood alone. In the Jingzhou war he held a single isolated wall against Zhou Yu for more than a year, his banners standing like a mountain. In the siege of Xiangfan, when Guan Yu drowned the seven armies, Cao Ren held Fancheng under dozens of wounds and would not give way; his soldiers fought to fill the moat with their own bodies. When Xu Huang came up they struck Guan Yu from both sides and shattered him. He rose to Marshal of State and was made Marquis of Chen. He died at fifty-six.',
+  },
+  'cao-hong': {
+    zh: '字子廉,沛國譙人,曹操族弟。少有膽烈。汴水之敗,曹操失馬,洪解馬與之,曰:「天下可無洪,不可無公!」 步行扶操過河,操由是得免。從征戰歷年,功業甚多,然性吝嗇,坐犯不法事幾死,賴卞太后救之。位至驃騎將軍。',
+    en: 'Style name Zilian, of Qiao in Pei, a clansman-cousin of Cao Cao. Of fierce courage from youth. After the defeat at the Bian River, when Cao Cao had lost his horse, Cao Hong gave him his own: "The world can do without Hong, but it cannot do without you!" He helped Cao Cao on foot across the river, and Cao Cao survived. He served in many campaigns with great credit. Yet grasping in temper — caught later in a crooked matter, he was nearly put to death, and only Empress Dowager Bian saved him. He rose to General of Agile Cavalry.',
+  },
+  'cao-chun': {
+    era: { zh: '虎豹騎', en: 'Captain of the Tiger and Leopard Cavalry' },
+    zh: '字子和,曹操族弟,曹仁之弟。督虎豹騎,曹操精銳。從征,於南皮陣斬袁譚,於長坂大破劉備,擒劉備二女,所向披靡。卒於建安十五年,曹操深歎其才。',
+    en: 'Style name Zihe, cousin of Cao Cao and younger brother of Cao Ren. Commander of the Tiger and Leopard Cavalry, the elite of Cao Cao\'s host. He marched with Cao Cao, beheaded Yuan Tan in the line at Nanpi, broke Liu Bei at Changban and took his two daughters captive — none could stand before him. He died in 210, and Cao Cao mourned the talent lost.',
+  },
+  'cao-ang': {
+    zh: '字子修,曹操長子。母劉夫人。曹操征張繡,張繡降而復叛,夜襲曹營。曹操騎絕影,中流矢,曹昂以己馬與父,自步戰殿後,為亂兵所害。曹丕後為太子,實基於曹昂之死。',
+    en: 'Style name Zixiu, eldest son of Cao Cao, born of Lady Liu. When Cao Cao went against Zhang Xiu, who first surrendered and then rose, in the night attack Cao Cao\'s steed Jueying was hit by an arrow. Cao Ang gave his own horse to his father and stayed afoot in the rearguard; he was cut down in the chaos. That Cao Pi later became crown prince was founded on Cao Ang\'s death.',
+  },
+  'bao-xin': {
+    zh: '字允誠,泰山平陽人。漢末名士,與曹操為知己。董卓入京,鮑信首勸袁紹襲卓,紹不敢,信獨遣兵歸鄉。後與曹操共擊兗州黃巾,鮑信戰歿,操求其屍不得,刻木為像,大哭祭之。',
+    en: 'Style name Yuncheng, of Pingyang in Taishan. A famed gentleman of late Han and intimate of Cao Cao. When Dong Zhuo entered the capital, Bao Xin first urged Yuan Shao to strike him down; Yuan Shao would not, and Bao Xin alone took his troops home. Later with Cao Cao he attacked the Yanzhou Yellow Turbans and fell in battle; Cao Cao could not find his body, carved a wooden likeness, and wept over it in offering.',
+  },
+  'bian-rang': {
+    zh: '字文禮,陳留人。漢末名士,以辭辯名於世。曹操為兗州牧,邊讓輕之,作詩文諷之。曹操羅織其罪,夷三族,引兗州士林大震,張邈、陳宮遂迎呂布反曹,曹操幾失根本。',
+    en: 'Style name Wenli, of Chenliu. A famed gentleman of late Han, known throughout the realm for elegant speech. When Cao Cao took Yanzhou, Bian Rang slighted him and wrote verses to mock him. Cao Cao wove a crime around him and put his clan to the sword to three branches — at which the Yanzhou gentry rose in horror; Zhang Miao and Chen Gong welcomed Lü Bu into revolt, and Cao Cao nearly lost his base.',
+  },
+  'chen-dao': {
+    era: { zh: '蜀漢白毦', en: 'Captain of the White-Plume Elite' },
+    zh: '字叔至,汝南人。劉備帳下大將,聲名僅次趙雲。督白毦兵,蜀中精銳,專司宿衛。鎮永安,屢禦東吳。蜀漢一柱,惜陳壽未為立傳,後人歎之。',
+    en: 'Style name Shuzhi, of Runan. A great general in Liu Bei\'s house, his name second only to Zhao Yun. He led the White-Plume Elite, the choicest soldiers of Shu, charged with the personal guard. He held Yong\'an against Wu in many fights. A pillar of Shu — and it is a pity Chen Shou wrote no biography for him; later ages have sighed for it.',
+  },
+  'chen-shou': {
+    era: { zh: '三國志作者', en: 'Author of the Records of the Three Kingdoms' },
+    zh: '字承祚,巴西安漢人,譙周門人。蜀漢時為觀閣令史,以不附黃皓被廢。蜀亡入晉,為著作郎,撰《三國志》六十五卷,文筆簡潔,評論公允,世稱良史。然父為馬謖部曲,父受髡刑,陳壽為馬謖、諸葛瞻立傳,有微辭,後世亦有譏之者。',
+    en: 'Style name Chengzuo, of Anhan in Baxi, pupil of Qiao Zhou. Under Shu he was a Watchtower Recorder; for refusing to attach to Huang Hao he was dismissed. After the fall of Shu he came to Jin and as Court Author wrote the Records of the Three Kingdoms in sixty-five fascicles — terse in prose and balanced in judgment; the world calls it a fine history. Yet his father had been a captain under Ma Su and had been shaved for it as punishment, and his treatment of Ma Su and Zhuge Zhan carries an edge — for which later ages have sometimes faulted him.',
+  },
+  'chen-zhen': {
+    zh: '字孝起,南陽人。蜀漢使者。屢出使東吳,以辯才見稱,與孫權相得。位至衛尉。卒於建興十二年。',
+    en: 'Style name Xiaoqi, of Nanyang. An envoy of Shu. He went many times to Wu, famed for his speech, and was on good terms with Sun Quan. He rose to Commandant of the Guards. He died in 234.',
+  },
+  'chen-jiao': {
+    zh: '字季弼,廣陵東陽人。事曹操、曹丕、曹叡三世。鎮東吳邊境,屢敗孫權之師。位至司徒。',
+    en: 'Style name Jibi, of Dongyang in Guangling. He served Cao Cao, Cao Pi, and Cao Rui in turn. Holding the eastern marches against Wu, he beat back Sun Quan\'s armies many times. He rose to Excellency over the Masses.',
+  },
+  'chen-lan': {
+    zh: '袁術部將。袁術稱帝,與雷薄共據灊山,後與雷薄叛走潛山。建安四年,袁術潰敗,陳蘭、雷薄拒之不納。後曹操遣張遼、于禁征之,陳蘭走天柱山,被張遼擒斬。',
+    en: 'A captain of Yuan Shu. When Yuan Shu took the imperial title, he held Mount Qian with Lei Bo, and then deserted to Mount Qian (Tianzhu). When Yuan Shu was broken in 199, Chen Lan and Lei Bo refused to take him in. Cao Cao later sent Zhang Liao and Yu Jin to put them down; Chen Lan fled to Mount Tianzhu and was caught and beheaded by Zhang Liao.',
+  },
+  'cui-jun': {
+    zh: '崔琰之姪。事曹操,以孝廉舉。為東萊太守,治民有方。',
+    en: 'A nephew of Cui Yan. He served Cao Cao after being raised on Filial and Incorrupt. As Governor of Donglai he ruled the people well.',
+  },
+  'cui-lin': {
+    zh: '字德儒,清河東武城人。崔琰從弟。事曹操、曹丕,以清節稱。位至御史中丞。',
+    en: 'Style name Deru, of Dongwucheng in Qinghe, cousin of Cui Yan. Under Cao Cao and Cao Pi, he was known for clean conduct. He rose to Vice-Inspector of the Censorate.',
+  },
+  'da-qiao': {
+    era: { zh: '大喬', en: 'Da Qiao' },
+    zh: '廬江皖人,喬玄之女,小喬之姊。國色天香,孫策破皖城娶之,與妹小喬同稱「江東二喬」。孫策卒,大喬青年寡居。傳赤壁之戰,曹操作銅雀台,有「攬二喬於東南」之語,周瑜以此為辭激孫權抗曹。',
+    en: 'Of Wan in Lujiang, daughter of Qiao Xuan, elder sister of Xiao Qiao. Of nation-toppling beauty. When Sun Ce broke Wan he took her to wife, and the two sisters were known as the "Two Qiaos of Jiangdong." Sun Ce died young and Da Qiao was widowed in her prime. Tradition tells that Cao Cao at the Bronze Sparrow Terrace longed to "gather the two Qiaos into the southeast"; Zhou Yu used the words to stir Sun Quan against him.',
+  },
+  'xiao-qiao': {
+    era: { zh: '小喬', en: 'Xiao Qiao' },
+    zh: '廬江皖人,喬玄之少女。周瑜娶之,夫婦相得。蘇東坡《念奴嬌·赤壁懷古》「小喬初嫁了,雄姿英發」之句,千古傳誦。周瑜卒於三十六歲,小喬青年寡居。',
+    en: 'Of Wan in Lujiang, younger daughter of Qiao Xuan. Zhou Yu took her to wife and the marriage was beautiful. Su Dongpo\'s lines in "Reflections on Red Cliffs" — "Xiao Qiao was newly wed, his bearing brave and bright" — have rung across the ages. Zhou Yu died at thirty-six, and Xiao Qiao was widowed in her prime.',
+  },
+  'deng-zhi': {
+    zh: '字伯苗,義陽新野人。蜀漢使者。劉備死後,蜀吳關係惡,鄧芝出使,以利害說孫權,復通孫劉之好。後從諸葛亮北伐,以剛直見稱。位至車騎將軍。',
+    en: 'Style name Bomiao, of Xinye in Yiyang. An envoy of Shu. After Liu Bei\'s death, Shu and Wu were estranged; Deng Zhi went as envoy, laid out the gains and losses to Sun Quan, and renewed the bond between Sun and Liu. He later marched with Zhuge Liang on the north, famed for stiff uprightness. He rose to General of Chariots and Cavalry.',
+  },
+  'dong-bai': {
+    zh: '董卓之孫女。卓寵之異常,封渭陽君。卓死,被王允下獄,坐車裂,年才十五。',
+    en: 'A granddaughter of Dong Zhuo. He doted on her beyond all and made her Mistress of Weiyang. When Dong Zhuo fell, Wang Yun cast her into prison and had her torn between chariots at fifteen.',
+  },
+  'fan-jiang': {
+    zh: '張飛帳下將。閬中之變,夜與張達共割張飛首,投降孫權。劉備伐吳,孫權懼,執范彊、張達送還蜀漢,凌遲處死,以祭翼德。',
+    en: 'A captain under Zhang Fei. In the Langzhong mutiny he and Zhang Da cut off Zhang Fei\'s head in the night and went over to Sun Quan. When Liu Bei marched on Wu, Sun Quan in fear sent Fan Qiang and Zhang Da back, and they were torn apart in offering to Zhang Yide\'s spirit.',
+  },
+  'fei-shi': {
+    zh: '字公舉,江夏鄳人,費禕之父。劉備入蜀,費詩拜為前部司馬。直諫劉備不可受漢中王號,觸怒貶為永昌從事,後復起為諫議大夫。',
+    en: 'Style name Gongju, of Meng in Jiangxia, father of Fei Yi. When Liu Bei came into Shu, Fei Shi was made Marshal of the Vanguard. He spoke against Liu Bei taking the title of King of Hanzhong, was thrust down to a Yongchang office, and was later raised again as Counselor.',
+  },
+  'fu-qian': {
+    era: { zh: '蜀漢忠烈', en: 'Loyal Martyr of Shu' },
+    zh: '字公琰,義陽人,傅肜之子。蜀漢將。鄧艾入蜀,傅僉守關口,蔣舒詐降,僉知其叛,猶力戰不退,殺數十人,自刎而死。父子皆死國事,世稱蜀中忠烈。',
+    en: 'Style name Gongyan, of Yiyang, son of Fu Rong. A captain of Shu. When Deng Ai broke through, Fu Qian held the pass; Jiang Shu pretended to surrender, and Fu Qian, knowing the betrayal, still fought on without one step back, killed dozens, and cut his own throat. Father and son both gave their lives for the state; the world counts them martyrs of Shu.',
+  },
+  'fu-rong': {
+    zh: '字宏才,義陽人。蜀漢將。劉備伐吳,夷陵之敗,傅肜為斷後,被吳軍圍。吳人勸降,傅肜罵曰:「吳狗,何有漢將軍降者!」 力戰而死。',
+    en: 'Style name Hongcai, of Yiyang. A captain of Shu. In the Yiling rout he covered the rear, surrounded by Wu. They called him to surrender; he cursed: "Wu dogs! When has a general of Han ever yielded?" and died fighting.',
+  },
+  'fu-xie': {
+    zh: '字南容,北地靈州人。漢末名臣。中平四年涼州羌亂,漢陽太守傅燮城陷,城中皆勸降,燮對曰:「世亂不能養浩然之氣,食人之祿,豈避其難!」 引兵出戰而死。',
+    en: 'Style name Nanrong, of Lingzhou in Beidi. A famed minister of late Han. In 187 the Qiang revolt of Liang province broke open the walls of Hanyang where he governed; all in the city urged surrender. Fu Xie answered: "In a chaotic age I cannot nurture the great breath of heaven — but I have eaten the lord\'s pay; how shall I shun his trial?" He led his men out and died fighting.',
+  },
+  'gao-shun': {
+    era: { zh: '陷陣營', en: 'Captain of the Trap-Camp' },
+    zh: '呂布部將。沉默寡言,不飲酒,清廉自守。所將「陷陣營」七百餘人,號為千人,鎧甲精煉,屢攻不克者,布令陷陣營必破之。下邳之圍,呂布敗,高順被擒,寧死不降,曹操斬之。',
+    en: 'A captain of Lü Bu. Silent, refused drink, and kept clean hands. His "Trap-Camp" — over seven hundred strong, called a thousand for awe\'s sake — wore picked armor; any wall that defied attack, Lü Bu would order the Trap-Camp to break, and break it they did. In the siege of Xiapi Lü Bu fell; Gao Shun was taken, refused to yield, and Cao Cao beheaded him.',
+  },
+  'gao-lan': {
+    zh: '原袁紹將。官渡之戰,郭圖讒之,高覽與張郃共降曹操。曹操喜,皆封侯。',
+    en: 'Originally a general of Yuan Shao. At Guandu, Guo Tu whispered against him; Gao Lan and Zhang He together went over to Cao Cao. Cao Cao was overjoyed and made both marquises.',
+  },
+  'gao-ding': {
+    zh: '蜀越雋夷王。劉備死,高定與雍闓、朱褒共反。諸葛亮南征,離間其黨,殺雍闓,高定軍亂,被斬。',
+    en: 'King of the Yue-Sui tribes of Shu. When Liu Bei died, Gao Ding rose with Yong Kai and Zhu Bao. Zhuge Liang in the southern campaign sowed division between them, killed Yong Kai, and in the confusion that followed Gao Ding\'s army broke and he was beheaded.',
+  },
+  'gu-shao': {
+    zh: '字孝則,顧雍長子。少有名於江東,與陸績、龐統並稱。事孫權,為豫章太守。早卒於官。',
+    en: 'Style name Xiaoze, eldest son of Gu Yong. From youth a name in Jiangdong, ranked with Lu Ji and Pang Tong. Under Sun Quan he was Governor of Yuzhang. He died young in office.',
+  },
+  'gu-tan': {
+    zh: '字子默,顧雍之孫。事孫權,為太常。捲入二宮之爭,被流交州,卒於途中,年僅四十二。',
+    en: 'Style name Zimo, grandson of Gu Yong. Under Sun Quan he was Minister of Ceremonies. Drawn into the Strife of the Two Palaces, he was exiled to Jiao province and died on the road at forty-two.',
+  },
+  'guan-lu': {
+    era: { zh: '神卜', en: 'The Divine Diviner' },
+    zh: '字公明,平原人。漢末方士,通《周易》、風角、占卜,所言無不奇驗。曾為何晏、鄧颺占曰:「鬼幽鬼躁,有死無生。」 後高平陵之變,二人果俱被誅。年僅四十八卒。',
+    en: 'Style name Gongming, of Pingyuan. An adept of late Han, master of the Book of Changes, the winds, and divination — every word he spoke came true. He once cast a fortune for He Yan and Deng Yang: "Ghost-dark, ghost-restless; death is there, life is not." In the Gaopingling coup both men were killed as he had said. He died at only forty-eight.',
+  },
+  'guo-yuan': {
+    zh: '袁紹甥。建安七年,鍾繇圍其於平陽,馬超從父馬騰遣龐德率兵助鍾繇,陣斬郭援。',
+    en: 'A nephew of Yuan Shao. In 202 Zhong Yao besieged him at Pingyang; Ma Teng sent Pang De with troops to help Zhong Yao, and Pang De cut Guo Yuan down in the line.',
+  },
+  'han-fu': {
+    zh: '字文節,潁川人。漢末冀州牧。袁紹引兵入冀州,韓馥畏之,讓州於袁紹,自走依張邈。後憂懼自殺。',
+    en: 'Style name Wenjie, of Yingchuan. Inspector of Jizhou in late Han. When Yuan Shao brought troops into Ji province, Han Fu in fear ceded the post to him and went to Zhang Miao. Later, sunk in dread, he took his own life.',
+  },
+  'han-hao': {
+    zh: '字元嗣,河內人。事曹操。屯田之策,韓浩亦預其議,鎮關中,撫流民。位至中護軍。',
+    en: 'Style name Yuansi, of Henei. He served Cao Cao. He joined in the counsels of the agricultural colonies and held Guanzhong, gathering the wanderers. He rose to Inspector of the Central Guards.',
+  },
+  'han-song': {
+    zh: '字德高,義陽人。漢末名士。劉表使其過許都察動靜,被曹操留為侍中。劉表怒,欲殺其家,蒯越止之。',
+    en: 'Style name Degao, of Yiyang. A famed gentleman of late Han. Liu Biao sent him to Xudu to gauge what was afoot; Cao Cao kept him as Palace Attendant. Liu Biao in anger would have killed his household, but Kuai Yue stopped him.',
+  },
+  'han-zong': {
+    zh: '韓玄之弟。長沙陷,韓宗從劉度奔走荊南。',
+    en: 'Younger brother of Han Xuan. When Changsha fell, Han Zong went with Liu Du into the south of Jingzhou.',
+  },
+  'hao-meng': {
+    zh: '呂布部將。建安元年起兵反呂布,夜攻下邳,布走,賴高順、曹性平之。郝萌被曹性所斬。',
+    en: 'A captain of Lü Bu. In 196 he rose against Lü Bu, attacking Xiapi by night; Lü Bu fled, and Gao Shun and Cao Xing put it down. Cao Xing cut Hao Meng down.',
+  },
+  'he-miao': {
+    zh: '何進弟,車騎將軍。何進謀誅宦官,十常侍先殺進,何苗亦為袁紹所殺,以何進舊將吳匡指其陰結中常侍。',
+    en: 'Younger brother of He Jin, General of Chariots and Cavalry. When He Jin\'s plot against the eunuchs broke, the Ten Attendants killed him first; He Miao was then killed by Yuan Shao on Wu Kuang\'s charge that he had been in secret with the eunuchs.',
+  },
+  'he-yong': {
+    zh: '字伯求,南陽人。漢末名士,清議領袖。性敏銳,評議朝政無所避。漢末党錮之禍,何顒亡命江湖,獻計袁紹,謀誅宦官。',
+    en: 'Style name Boqiu, of Nanyang. A famed gentleman of late Han and a leader of the "pure judgment" gentry. Sharp-minded, he spoke against court abuses without restraint. In the Disaster of the Faction Proscription he went into hiding among the rivers and lakes, and later gave Yuan Shao the plan to wipe out the eunuchs.',
+  },
+  'he-qi': {
+    zh: '字公苗,會稽山陰人。事孫權,屢平山越,鎮會稽十餘年,境內肅然。位至後將軍。',
+    en: 'Style name Gongmiao, of Shanyin in Kuaiji. Under Sun Quan he put down the Shan Yue tribes time and again. Twenty years he held Kuaiji, and within his borders all was quiet. He rose to General of the Rear.',
+  },
+  'hou-cheng': {
+    zh: '呂布部將。下邳之圍,呂布酗酒鞭撻部下,侯成與宋憲、魏續共執陳宮、高順,開城降曹操,呂布被擒。',
+    en: 'A captain of Lü Bu. In the siege of Xiapi, when Lü Bu drank to excess and beat his men, Hou Cheng with Song Xian and Wei Xu seized Chen Gong and Gao Shun, opened the gate to Cao Cao, and Lü Bu was taken.',
+  },
+  'song-xian': {
+    zh: '呂布部將。下邳之圍,與侯成、魏續共執陳宮、高順,開城降曹操。後從征戰。',
+    en: 'A captain of Lü Bu. In the siege of Xiapi, with Hou Cheng and Wei Xu, he seized Chen Gong and Gao Shun and opened the gate to Cao Cao. He later marched with him in campaigns.',
+  },
+  'wei-xu': {
+    zh: '呂布部將。與宋憲、侯成共開城降曹。',
+    en: 'A captain of Lü Bu. With Song Xian and Hou Cheng he opened the gate to Cao Cao.',
+  },
+  'cao-xing': {
+    zh: '呂布部將。郝萌之亂,曹性執其首歸呂布。後一目被夏侯惇射中,曹性以箭還射夏侯惇,中其左目。',
+    en: 'A captain of Lü Bu. In Hao Meng\'s revolt he took his head and brought it to Lü Bu. In a later fight, hit in one eye by Xiahou Dun\'s arrow, he shot back and struck Xiahou Dun in the left eye.',
+  },
+  'cao-bao': {
+    zh: '陶謙部將。陶謙死,劉備代之,以曹豹為下邳相。後與張飛不睦,張飛醉酒鞭之,曹豹引呂布入下邳,劉備失徐州。',
+    en: 'A captain of Tao Qian. When Tao Qian died and Liu Bei took Xuzhou, Cao Bao was made Chancellor of Xiapi. He fell out with Zhang Fei, who whipped him in his cups; Cao Bao called Lü Bu into Xiapi, and Liu Bei lost his province.',
+  },
+  'fu-wan': {
+    zh: '字叔安,東漢獻帝皇后伏壽之父。建安十九年,獻帝衣帶詔事敗後,伏皇后密書其父除曹操,事洩,曹操殺伏后及二子,夷伏氏。',
+    en: 'Style name Shu\'an, father of Empress Fu Shou of Emperor Xian. In 214, after the sash-edict affair, his daughter wrote in secret to her father to be rid of Cao Cao; the plot was found out, and Cao Cao killed the empress and two of her sons, wiping out the Fu clan.',
+  },
+  'fu-shi': {
+    zh: '伏壽,獻帝皇后。其父伏完,以衣帶詔事密謀曹操,事洩被誅,皇后被廢黜,幽閉而死,二子亦死。',
+    en: 'Fu Shou, empress of Emperor Xian. When her father Fu Wan\'s plot against Cao Cao was uncovered and his line wiped out, the empress was deposed, shut up in a chamber where she died, and her two sons died with her.',
+  },
+  'cao-zhao': {
+    zh: '曹操之子,封濟陽公。早卒。',
+    en: 'A son of Cao Cao, Duke of Jiyang. He died young.',
+  },
+  'cao-xun': {
+    zh: '曹操之子,封陽武公。早卒。',
+    en: 'A son of Cao Cao, Duke of Yangwu. He died young.',
+  },
+  'cao-shu': {
+    zh: '曹操之子,封相殤公。早卒,曹操為之傷悼。',
+    en: 'A son of Cao Cao, the Sorrowful Duke of Xiang. He died young and Cao Cao mourned him.',
+  },
+  'cao-jiong': {
+    zh: '曹操之子,封樊安公。早卒。',
+    en: 'A son of Cao Cao, Duke of Fan\'an. He died young.',
+  },
+  'cao-lin': {
+    zh: '字未詳,曹丕之子,封東海王。為人勤學,工書法。',
+    en: 'Style name unknown, son of Cao Pi, Prince of Donghai. Studious in life and a master of calligraphy.',
+  },
+  'cao-yu': {
+    zh: '字彭祖,曹操之子。封燕王。明帝臨終欲託以社稷,劉放、孫資進讒罷之。蜀漢亡後仍以燕王之爵終。',
+    en: 'Style name Pengzu, son of Cao Cao, Prince of Yan. Emperor Ming on his deathbed thought to entrust him with the state; Liu Fang and Sun Zi whispered against it, and he was set aside. He kept the title of Prince of Yan to the end of his days.',
+  },
+  'cao-yi': {
+    zh: '曹操之子,封穀城殤公。早卒。',
+    en: 'A son of Cao Cao, the Sorrowful Duke of Gucheng. He died young.',
+  },
+  'deng-yang': {
+    zh: '字玄茂,南陽新野人。曹爽之黨,與何晏、丁謐並進。高平陵之變後被司馬懿所誅,夷三族。',
+    en: 'Style name Xuanmao, of Xinye in Nanyang. A man of Cao Shuang\'s faction, set forward with He Yan and Ding Mi. After the Gaopingling coup Sima Yi killed him and three branches of his clan were extinguished.',
+  },
+  'ding-mi': {
+    zh: '曹爽謀士。與何晏、鄧颺共執朝政。高平陵之變被誅。',
+    en: 'A counselor of Cao Shuang. With He Yan and Deng Yang he held the court. He was killed in the Gaopingling coup.',
+  },
+  'cheng-ji-sh': {
+    zh: '司馬昭部將。甘露五年高貴鄉公率宿衛攻司馬昭,賈充令成濟弒之,血濺殿階。後事敗,司馬昭以成濟為罪首,夷其族以塞天下口。',
+    en: 'A captain under Sima Zhao. When the Duke of Gaogui led the guards against Sima Zhao in 260, Jia Chong told Cheng Ji to strike the emperor down; the blood splashed the palace steps. After the deed Sima Zhao made him the chief criminal and wiped out his clan to silence the realm.',
+  },
+  'feng-ji': {
+    zh: '潁川人。袁紹謀士。屢進讒言,排擠田豐、沮授。袁紹敗,逢紀構陷田豐,袁紹遂殺之。後袁譚、袁尚相爭,逢紀附袁尚,被袁譚所殺。',
+    en: 'Of Yingchuan. A counselor of Yuan Shao. He whispered often against Tian Feng and Ju Shou. After Guandu he wove the slander that brought Tian Feng a draught of death. When Yuan Tan and Yuan Shang fell to fighting, Feng Ji sided with Yuan Shang and was killed by Yuan Tan.',
+  },
+  'feng-xi': {
+    zh: '蜀漢將。隨劉備伐吳,夷陵之火,馮習、張南俱戰歿。',
+    en: 'A Shu officer. He marched with Liu Bei against Wu; in the fire of Yiling, Feng Xi and Zhang Nan both fell.',
+  },
+  'guan-yi': {
+    zh: '關羽之孫,關興之子。蜀漢亡時被龐德之子龐會滅其家,以報父讎,世以為惜。',
+    en: 'Grandson of Guan Yu and son of Guan Xing. When Shu fell, Pang De\'s son Pang Hui wiped out his household in vengeance for his father — the world long held it a sad ending.',
+  },
   // ─── 歷代名將 (Historical Officers, 14 dynasties) ───
   ...HISTORICAL_BIOGRAPHIES,
 };
