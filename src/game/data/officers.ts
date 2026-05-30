@@ -1991,6 +1991,9 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   'hist-zhang-tingyu':'zhang-tingyu-pei-tai',// 張廷玉配太廟
   'hist-zhang-binglin':'zhang-taiyan',     // 章太炎國故
   'hist-weng-tonghe': 'weng-wengong',      // 翁文恭日記
+  // 補：補回缺漏的 primary
+  'sun-quan':         'purple-lightning',  // 紫電劍 — 孫權御劍
+  'hist-wang-anshi':  'wang-anshi-bian-fa',// 王安石變法 — 熙寧新政
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
@@ -2024,6 +2027,98 @@ const ITEM_CHAINS: Array<{ itemId: string; ownerChain: string[] }> = [
   // 商君書 — already primary
   // 蘭亭集序 — already primary for hist-wang-xizhi (overrides zhong-yao)
 ];
+
+// Secondary items: officers who historically possessed multiple iconic
+// artifacts beyond their CANONICAL_ITEMS_PRIMARY. Listed here so they
+// receive the full set of attested gear in their equipment array.
+// Order matters: items appear in equipment after primary + chain.
+const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
+  // 三國
+  'zhuge-liang': [
+    'bagua-robe',          // 八卦衣
+    'wooden-ox',           // 木牛流馬
+    'chu-shi-biao',        // 出師表
+    'jie-zi-shu',          // 誡子書
+    'kong-ming-deng',      // 孔明燈
+  ],
+  'cao-cao': [
+    'jue-ying',            // 絕影馬
+    'zhuahuang-feidian',   // 爪黃飛電
+    'tongque-token',       // 銅雀符
+    'duan-ge-xing',        // 短歌行
+  ],
+  'guan-yu': [
+    'spring-autumn',       // 春秋
+    'han-shou-ting-hou-yin',// 漢壽亭侯印
+  ],
+  'liu-bei': [
+    'bi-rou-fu-sheng',     // 髀肉復生
+  ],
+  'sun-quan': [
+    'er-zhang-mou',        // 二張之謀(張昭張紘)
+  ],
+  'cao-pi':   [
+    'dian-lun',            // 典論論文
+  ],
+  // 歷代名將 — 多名品大家
+  'hist-li-bai': [
+    'jiang-jin-jiu',       // 將進酒
+    'jing-ye-si',          // 靜夜思
+    'yue-xia-du-zhuo',     // 月下獨酌
+    'shu-dao-nan',         // 蜀道難
+  ],
+  'hist-du-fu': [
+    'chun-wang',           // 春望
+    'mao-wu-qiu-feng',     // 茅屋為秋風所破歌
+    'bing-che-xing',       // 兵車行
+  ],
+  'hist-su-shi': [
+    'nian-nu-jiao-chibi',  // 念奴嬌·赤壁懷古
+    'huang-zhou-han-shi',  // 黃州寒食帖
+  ],
+  'hist-wang-xizhi': [
+    'shi-qi-tie',          // 十七帖
+    'sang-luan-tie',       // 喪亂帖
+  ],
+  'hist-bai-juyi': [
+    'pipa-xing',           // 琵琶行
+  ],
+  'hist-wang-xianzhi': [
+    'yu-ban-shi-san-xing', // 玉版十三行
+  ],
+  'hist-yan-zhenqing': [
+    'duo-bao-ta-bei',      // 多寶塔碑
+  ],
+  'hist-qu-yuan': [
+    'tian-wen',            // 天問
+    'jiu-ge',              // 九歌
+  ],
+  'hist-li-qingzhao': [
+    'sheng-sheng-man',     // 聲聲慢
+  ],
+  'hist-xin-qiji': [
+    'po-zhen-zi',          // 破陣子
+  ],
+  'hist-wang-anshi': [
+    'bo-chuan-gua-zhou',   // 泊船瓜洲
+  ],
+  'hist-fan-zhongyan': [
+    'yu-jia-ao',           // 漁家傲·秋思
+  ],
+  'hist-sima-guang': [
+    'su-shui-ji-wen',      // 涑水紀聞
+  ],
+  'hist-yue-fei': [
+    'man-jiang-hong',      // 滿江紅
+  ],
+  'hist-confucius': [
+    'shi-jing-shanding',   // 詩經刪定
+    'chun-qiu-bi-shu',     // 春秋筆削
+  ],
+  'hist-jiang-ziya': [
+    'feng-shen-bang',      // 封神榜
+  ],
+};
 
 // Pre-220 canonical items reassign on death. We'll keep this simple
 // by just listing item ownership snapshots per officer.
@@ -2071,6 +2166,9 @@ export function buildInitialOfficers(
     };
     addItem(CANONICAL_ITEMS_PRIMARY[officerId]);
     addItem(chainAssignments[officerId]);
+    for (const itemId of CANONICAL_ITEMS_SECONDARY[officerId] ?? []) {
+      addItem(itemId);
+    }
     return eq;
   };
   const assigned = OFFICER_TEMPLATES.map((t) => {
@@ -2217,6 +2315,11 @@ export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>
       const primaryItem = CANONICAL_ITEMS_PRIMARY[t.id];
       if (primaryItem && ITEMS_BY_ID[primaryItem]) {
         equipment.push(primaryItem);
+      }
+      for (const itemId of CANONICAL_ITEMS_SECONDARY[t.id] ?? []) {
+        if (ITEMS_BY_ID[itemId] && !equipment.includes(itemId)) {
+          equipment.push(itemId);
+        }
       }
       return {
         id: t.id,
