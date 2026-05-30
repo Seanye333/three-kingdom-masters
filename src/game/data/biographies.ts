@@ -1589,6 +1589,231 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '汝南黃巾餘黨。從劉辟,後為曹操所破而死。',
     en: 'A leftover Yellow Turban of Runan, with Liu Pi. Cao Cao broke and killed him.',
   },
+  // ─── 三國新增列傳 第五批 (Three Kingdoms — batch 5) ───
+  'xu-shu': {
+    era: { zh: '元直走馬薦諸葛', en: 'Yuanzhi on Horseback Recommends Zhuge' },
+    zh: '字元直,潁川人。少好擊劍,為人報仇被捕,得救改名單福。從司馬徽學,與諸葛亮、龐統交厚。事劉備於新野,獻計破曹仁八門金鎖陣。曹操聞其名,囚其母以召之;徐庶辭劉備而北行,走馬薦諸葛於前。終身在魏不為設一謀,以全孝子之心。',
+    en: 'Style name Yuanzhi, of Yingchuan. In his youth he loved the sword and went into hiding under a false name "Shan Fu" after killing a man in revenge. He studied under Sima Hui and became close to Zhuge Liang and Pang Tong. He served Liu Bei at Xinye and laid the plan that broke Cao Ren\'s Eight-Gate Golden Lock formation. When Cao Cao heard of him, he seized his mother to call him in. Xu Shu took his leave of Liu Bei and, riding north, turned in the saddle to recommend Zhuge Liang one last time. In Wei he gave Cao Cao not one stratagem to his dying day, that the heart of a filial son be kept whole.',
+  },
+  'liu-feng': {
+    zh: '原羅侯寇氏子,劉備義子。隨諸葛亮、張飛入蜀,有戰功,鎮上庸。關羽北伐,呼劉封、孟達出兵相援,二人託詞不發。關羽敗死,劉封又與孟達不睦,被達誘叛魏,封獨還成都。劉備責之,且諸葛亮慮其剛猛難制,終勸劉備賜死。劉備為之流涕。',
+    en: 'Originally a son of the Kou clan, lords of Luo, adopted by Liu Bei. He went into Shu with Zhuge Liang and Zhang Fei, won credit, and held Shangyong. When Guan Yu marched north and called on Liu Feng and Meng Da to support him, both made excuses. After Guan Yu\'s death, Liu Feng fell out with Meng Da, who turned him toward Wei; Liu Feng alone fled back to Chengdu. Liu Bei rebuked him, and Zhuge Liang, fearing his fierce temper would be too hard to rein in, urged Liu Bei to send down a draught of death. Liu Bei wept for him.',
+  },
+  'guan-ping': {
+    zh: '關羽長子。隨父鎮荊州,助父出征襄樊,水淹七軍,擒于禁、斬龐德,父子之名震華夏。荊州陷後,隨父走麥城,父子俱被孫權所執。臨刑面不變色,從容就死,與父同葬於漳鄉。',
+    en: 'Eldest son of Guan Yu. He held Jingzhou at his father\'s side and joined the Xiangfan campaign, the drowning of the seven armies, the capture of Yu Jin, and the killing of Pang De — father and son shook all China together. When Jingzhou fell he followed his father to Maicheng; the two were taken together by Sun Quan. At the block his colour did not change; calmly he died, and was buried with his father at Zhangxiang.',
+  },
+  'huo-jun': {
+    zh: '字仲邈,南郡枝江人。劉備入蜀,以霍峻守葭萌關。劉璋將扶禁、向存以萬餘人圍之,峻以數百人拒之一年,出其不意,大破之,陣斬向存。劉備聞之大喜,擢為梓潼太守。早卒,劉備親臨弔哭。',
+    en: 'Style name Zhongmiao, of Zhijiang in Nanjun. When Liu Bei marched into Shu, Huo Jun was set to hold Jiameng Pass. Liu Zhang\'s captains Fu Jin and Xiang Cun came up with over ten thousand and laid siege; Huo Jun with a few hundred held them off for a year, then struck out by surprise, broke them utterly, and beheaded Xiang Cun. Liu Bei in great joy made him Governor of Zitong. He died young; Liu Bei came in person to his bier.',
+  },
+  'wu-lan': {
+    zh: '蜀漢將。劉備伐漢中,以吳蘭、雷銅為前鋒,與曹洪相持。中曹洪、曹休伏兵,陣亡。',
+    en: 'A Shu officer. In Liu Bei\'s Hanzhong campaign, with Lei Tong he was set in the van against Cao Hong. They walked into Cao Hong and Cao Xiu\'s ambush and were killed.',
+  },
+  'leigh-tong': {
+    zh: '蜀漢將。與吳蘭同為先鋒,共陣亡於漢中之役。',
+    en: 'A Shu officer. With Wu Lan in the van, he died in the same Hanzhong ambush.',
+  },
+  'gao-pei': {
+    zh: '劉璋部將。守白水關。劉備與龐統用計襲取,高沛被斬,劉備遂得長驅入蜀。',
+    en: 'A captain of Liu Zhang. Holding Baishui Pass, he was struck down by Liu Bei and Pang Tong\'s ruse, and Liu Bei drove on into Shu unchecked.',
+  },
+  'yang-yi': {
+    zh: '字威公,襄陽人。事關羽,後從劉備、諸葛亮。性狹隘,與魏延不睦。諸葛亮死於五丈原,楊儀總攬軍事,設計殺魏延。後因不得繼諸葛亮之任,口出怨言,被廢為庶人,流徙漢嘉,自殺。',
+    en: 'Style name Weigong, of Xiangyang. He served Guan Yu and then Liu Bei and Zhuge Liang. Narrow in temper, he and Wei Yan did not get on. When Zhuge Liang died at Wuzhang Plains, Yang Yi took the command and laid the plot that killed Wei Yan. Later, denied the chancellorship that he had hoped to inherit, he muttered words of grievance; reduced to commoner and exiled to Hanjia, he killed himself.',
+  },
+  'xu-jing': {
+    zh: '字文休,汝南平輿人。漢末名士,與從弟許劭並有人物之名。從劉璋避亂入蜀。劉備定蜀,以為左將軍長史,後拜司徒。年七十餘卒,諸葛亮親往弔之。',
+    en: 'Style name Wenxiu, of Pingyu in Runan. A famed gentleman of late Han, ranked with his cousin Xu Shao as a great judge of men. He went into Shu with Liu Zhang to escape the chaos. When Liu Bei settled Shu he made him Chief Clerk to the General of the Left, and later Excellency over the Masses. He died past seventy; Zhuge Liang came in person to mourn.',
+  },
+  'liu-ba': {
+    zh: '字子初,零陵烝陽人。少有奇才。曹操定荊州,劉巴歸之,曹操使其撫劉璋部下。後事劉備,任尚書令,鑄直百錢以穩定物價,蜀漢初年財用得寬。諸葛亮稱其「運籌策於帷幄之中,吾不如子初」。卒於章武二年。',
+    en: 'Style name Zichu, of Zhengyang in Lingling. Of rare talent in youth. When Cao Cao took Jingzhou, Liu Ba went over to him and was sent to win Liu Zhang\'s men. Later he served Liu Bei as Director of the Imperial Secretariat; his minting of the Hundred-cash coin steadied prices and gave early Shu room to breathe. Zhuge Liang said: "In drawing strategies within the tent, I am not the equal of Zichu." He died in 222.',
+  },
+  'qiao-zhou': {
+    era: { zh: '蜀中孔子', en: 'The Confucius of Shu' },
+    zh: '字允南,巴西西充國人。蜀漢碩儒。著《仇國論》,主和反戰。鄧艾兵臨成都,譙周勸後主降,蜀漢遂亡。後人毀譽不一,然其學問深廣,門徒陳壽、文立、李密等皆名重於晉。',
+    en: 'Style name Yunnan, of Xichongguo in Baxi. The grand scholar of Shu. He wrote the Discourse on Enemy States, urging peace against war. When Deng Ai came up to the gates of Chengdu, Qiao Zhou pressed the Second Emperor to surrender — and Shu was ended. Later ages have spoken both for and against him; but his learning was vast, and his pupils — Chen Shou, Wen Li, Li Mi — all rose to high name under Jin.',
+  },
+  'huang-hao': {
+    era: { zh: '禍蜀之宦', en: 'The Eunuch Who Ruined Shu' },
+    zh: '蜀漢宦官。後主寵幸,日盛於後宮。董允在世,黃皓不敢為非;允卒,皓內外勾結,搆陷姜維,致蜀漢人心離散。鄧艾入蜀,皓賄郤正勸後主降,後主從之。蜀漢亡,皓被司馬昭凌遲處死。',
+    en: 'A eunuch of Shu. The Second Emperor doted on him and his power grew daily in the inner palace. While Dong Yun lived, Huang Hao dared do no evil; when Dong Yun died he wove webs within and without, slandered Jiang Wei, and tore the kingdom\'s spirit apart. When Deng Ai came in, he bribed Xi Zheng to urge the emperor to yield, and the emperor yielded. After Shu fell, Sima Zhao had Huang Hao torn apart.',
+  },
+  'chen-zhi': {
+    zh: '字奉宗,汝南人。蜀漢後期執政,後主寵之。與黃皓互為表裏,排擠姜維,弊政叢生。延熙年卒於官。',
+    en: 'Style name Fengzong, of Runan. A late Shu chancellor, doted on by the Second Emperor. He and Huang Hao were inside and outside of one body, drove off Jiang Wei, and bred bad government. He died in office in the Yanxi years.',
+  },
+  'du-qiong': {
+    zh: '字伯瑜,蜀郡成都人。蜀漢儒臣。任太常。性沉默寡言,術數占候皆精。',
+    en: 'Style name Boyu, of Chengdu in Shu. A Confucian minister of Shu, Minister of Ceremonies. Quiet and sparing of speech, expert in arithmancy and astrology.',
+  },
+  'lai-min': {
+    zh: '字敬達,義陽新野人。蜀漢儒臣。任輔軍將軍。性放達好直言,屢忤後主,終以言被廢。',
+    en: 'Style name Jingda, of Xinye in Yiyang. A Confucian minister of Shu, General Who Supports the Army. Free in temper and fond of plain speech, he clashed often with the Second Emperor and at last was dismissed for his words.',
+  },
+  'liao-li': {
+    zh: '字公淵,武陵臨沅人。少有才名,諸葛亮稱其「龐統之亞」。後因怨言被貶為民,流徙汶山。聞諸葛亮死,大慟。',
+    en: 'Style name Gongyuan, of Linyuan in Wuling. From youth a name of repute; Zhuge Liang called him "next to Pang Tong." Later, for muttered words of grievance, he was reduced to commoner and exiled to Wenshan. When Zhuge Liang died he wept bitterly.',
+  },
+  // Wu mid-tier
+  'xu-sheng-wu': {
+    zh: '字文嚮,琅琊莒人。投孫權,以勇略稱。守柴桑,屢禦曹魏。曹丕南征,徐盛於江岸築木城百里,如真城然,曹丕望之歎曰:「魏雖有武騎千群,無所用之!」 引兵而退。',
+    en: 'Style name Wenxiang, of Ju in Langya. He came over to Sun Quan and was famed for boldness. Holding Chaisang, he beat back Wei many times. When Cao Pi marched south, Xu Sheng built a hundred li of timber walls along the bank that looked like a real city; Cao Pi gazed at them and sighed: "Though Wei has a thousand troops of horse, I can put them to no use here!" He led his army back.',
+  },
+  'dong-zhao': {
+    zh: '字公仁,濟陰定陶人。曹操謀士。漢末勸曹操迎獻帝於許,定大計。後位至司徒。性深沉,有遠略。卒年八十一。',
+    en: 'Style name Gongren, of Dingtao in Jiyin. A strategist of Cao Cao. In late Han he urged Cao Cao to escort the emperor to Xu, fixing the great policy. Later he rose to Excellency over the Masses. Deep and far-sighted. He died at eighty-one.',
+  },
+  'mao-jie': {
+    zh: '字孝先,陳留平丘人。曹操謀士。性清廉公正,主吏部選舉,所薦皆清明之士。坐崔琰之獄,被免歸家,卒。',
+    en: 'Style name Xiaoxian, of Pingqiu in Chenliu. A strategist of Cao Cao. Clean and just; in charge of the selection of officials, the men he recommended were all upright. Caught up in the Cui Yan affair, he was dismissed to his home and died.',
+  },
+  'cui-yan': {
+    zh: '字季珪,清河東武城人。曹操幕士。儀容偉麗,鬚長四尺,曹操甚畏之。直諫不阿,觸怒曹操,被下獄賜死,士林惜之。',
+    en: 'Style name Jigui, of Dongwucheng in Qinghe. A counselor of Cao Cao. Of majestic appearance, beard four chi long; Cao Cao stood in awe of him. He remonstrated straight and would not flatter; angering Cao Cao, he was thrown into prison and made to die. The gentry mourned him.',
+  },
+  'ren-jun': {
+    zh: '字伯達,河南中牟人。曹操謀士。獻屯田之策,使許下倉廩盈滿,曹操強兵之本實基於此。位至長水校尉。',
+    en: 'Style name Boda, of Zhongmou in Henan. A strategist of Cao Cao. He gave the plan of the agricultural colonies; the granaries of Xu were filled, and Cao Cao\'s strength was founded on this. He rose to Colonel of the Long Waters.',
+  },
+  'jiang-ji': {
+    zh: '字子通,楚國平阿人。事曹氏四世,以智謀稱。從司馬懿發高平陵之變,後悔曰:「孤負曹爽矣!」 憂憤而卒。',
+    en: 'Style name Zitong, of Ping\'e in Chu. He served four generations of the Cao house, famed for wisdom. He joined Sima Yi in the Gaopingling coup, then repented: "I have failed Cao Shuang!" He died of grief and rage.',
+  },
+  'gao-rou': {
+    zh: '字文惠,陳留圉人。事曹氏四世,執掌廷尉二十餘年,以平反冤獄稱,獄無留滯。位至司空。卒年九十。',
+    en: 'Style name Wenhui, of Yu in Chenliu. He served four generations of the Cao house, holding the Court Steward\'s office for over twenty years; famed for reversing wrongful judgments, no case was left to rot. He rose to Excellency over the Works. He died at ninety.',
+  },
+  'du-ji': {
+    zh: '字伯侯,京兆杜陵人。曹操幕士,出為河東太守,治民有方,十六年間政化大行。位至尚書僕射。',
+    en: 'Style name Bohou, of Duling in the metropolitan region. A counselor of Cao Cao, he was sent out as Governor of Hedong; his rule was wise and in sixteen years the people\'s ways were changed. He rose to Vice-Director of the Imperial Secretariat.',
+  },
+  'du-shu': {
+    zh: '字務伯,杜畿之子。少有令名,事曹魏,以直言被誣免官。',
+    en: 'Style name Wubo, son of Du Ji. From youth a name of repute, he served Wei; slandered for his plain speech, he was dismissed.',
+  },
+  'chen-tai': {
+    zh: '字玄伯,潁川許昌人,陳群之子。事曹魏,鎮關中,屢卻姜維。性正直,不附權貴。高貴鄉公被殺,陳泰大哭曰:「殺天子者,司馬昭也!」 旋憂憤而卒。',
+    en: 'Style name Xuanbo, of Xu in Yingchuan, son of Chen Qun. He served Wei, holding Guanzhong and beating back Jiang Wei many times. Upright by nature, attached to no faction. When the Duke of Gaogui — Emperor Mao — was killed, Chen Tai wept aloud: "He who killed the Son of Heaven is Sima Zhao!" Soon after, he died of grief and rage.',
+  },
+  'wei-guan': {
+    zh: '字伯玉,河東安邑人。事曹魏、司馬氏。鄧艾、鍾會滅蜀,衛瓘監軍,事後收殺二人,獨還洛陽。事晉,位至太保。八王之亂中為楚王瑋所殺。',
+    en: 'Style name Boyu, of Anyi in Hedong. He served Wei and the Sima house. When Deng Ai and Zhong Hui broke Shu, Wei Guan was Inspector of the Army; he had them both killed afterward and rode back alone to Luoyang. Under Jin he rose to Grand Mentor. In the War of Eight Princes, Prince Wei of Chu killed him.',
+  },
+  'jia-chong': {
+    zh: '字公閭,平陽襄陵人。司馬昭智囊。高貴鄉公率殿中宿衛攻司馬昭,賈充令成濟弒之。司馬炎即位,封魯郡公,位至太尉。其女賈南風為惠帝皇后,八王之亂禍源。',
+    en: 'Style name Gonglü, of Xiangling in Pingyang. Sima Zhao\'s brain. When the Duke of Gaogui led the palace guards out against Sima Zhao, it was Jia Chong who told Cheng Ji to strike the emperor down. When Sima Yan took the throne, Jia Chong was made Duke of Lu commandery and rose to Grand Marshal. His daughter Jia Nanfeng became Empress of Emperor Hui — the wellspring of the War of Eight Princes.',
+  },
+  'shi-bao': {
+    zh: '字仲容,渤海南皮人。事司馬氏,鎮南將軍。鎮淮南二十年,屢禦吳。武帝以為大司馬,封樂陵郡公。',
+    en: 'Style name Zhongrong, of Nanpi in Bohai. He served the Sima house as General Who Pacifies the South. Twenty years he held Huainan and beat back Wu. Emperor Wu made him Marshal of State and Duke of Leling commandery.',
+  },
+  'du-yu': {
+    era: { zh: '武庫', en: 'The Armory' },
+    zh: '字元凱,京兆杜陵人,杜預。博學多通,世稱「杜武庫」,無所不曉。鎮西大將軍,主謀伐吳。咸寧五年率軍渡江,連克江陵、武昌,長驅直入,旬月之間吳亡。喜《左氏春秋》,自稱「左傳癖」,著《春秋左氏經傳集解》,千古不刊。',
+    en: 'Style name Yuankai, of Duling in the metropolitan region. Vastly learned and skilled in all things, the world called him "Du the Armory." As Grand General Who Garrisons the West, he was chief planner of the war on Wu. In 279 he led his army across the river, took Jiangling and Wuchang in one breath, drove straight on, and within a month Wu was undone. He loved the Zuo Commentary on the Spring and Autumn Annals and called himself a "Zuo Commentary addict." His Collected Notes on the Spring and Autumn Annals and Its Zuo Tradition has never gone out of use.',
+  },
+  'wang-jun': {
+    era: { zh: '樓船下益州', en: 'The Tower-Ships Came Down from Yizhou' },
+    zh: '字士治,弘農湖人。少有大志。為益州刺史,建造樓船,長百二十步,可載二千人,號為「樓船之冠」。咸寧六年順流而下,直撲建業,「千尋鐵鎖沉江底,一片降幡出石頭」,孫皓出降。後人賦之,千古傳誦。',
+    en: 'Style name Shizhi, of Hu in Hongnong. Of high resolution from youth. As Inspector of Yi province he built tower-ships a hundred and twenty paces long, each carrying two thousand — first in the world. In 280 he sailed downstream straight on Jianye; "the thousand-fathom iron chains sank to the river bed, a single flag of surrender came out of Shitou" — and Sun Hao yielded. The verse is read forever.',
+  },
+  'wang-hun': {
+    zh: '字玄沖,太原晉陽人。晉伐吳,與杜預、王濬分道下江南。性矜伐,與王濬爭功不已。武帝兩無所偏,二人皆封郡公。',
+    en: 'Style name Xuanchong, of Jinyang in Taiyuan. In the Jin war on Wu he marched down with Du Yu and Wang Jun. Proud and contentious, he wrangled with Wang Jun for credit endlessly. Emperor Wu took neither side; both were made dukes of commanderies.',
+  },
+  'sun-hao': {
+    era: { zh: '吳末帝', en: 'Last Emperor of Wu' },
+    zh: '字元宗,孫權之孫,孫和之子。永安七年立。初頗有為,後沉湎酒色,殘殺臣下,鑿人眼，剝人面,吳國上下離心。天紀四年晉伐吳,孫皓銜璧降,送之洛陽,封歸命侯,卒於四年後。',
+    en: 'Style name Yuanzong, grandson of Sun Quan and son of Sun He. Set on the throne in 264. He began with promise, then drowned in wine and women, gouged out eyes, flayed faces, and the heart of Wu turned away from him. In 280 the Jin marched against Wu and Sun Hao came forth bearing the jade seal; sent to Luoyang as Marquis of Returned Allegiance, he died four years later.',
+  },
+  'sun-he': {
+    era: { zh: '南陽王', en: 'Prince of Nanyang' },
+    zh: '字子孝,孫權第三子。孫登卒,立為太子。性仁孝。後與孫霸爭嫡,二宮之爭起,被廢為庶人,後賜死。其子孫皓即位,追尊文皇帝。',
+    en: 'Style name Zixiao, third son of Sun Quan. After Sun Deng died he was made crown prince. Kind and filial. Later, locked in the Strife of the Two Palaces with Sun Ba, he was reduced to commoner and then to death. When his son Sun Hao took the throne, he raised him posthumously to Emperor Wen.',
+  },
+  'sun-deng': {
+    zh: '字子高,孫權長子。立為太子,有令名,孫權所深愛。年三十三早卒,孫權哭之至痛,曰:「天乎,何奪吾子之速!」',
+    en: 'Style name Zigao, eldest son of Sun Quan. Made crown prince, of high name, beloved of his father. He died at thirty-three; Sun Quan wept till his voice broke: "O Heaven — why take my son so soon?"',
+  },
+  'sun-liang': {
+    zh: '字子明,孫權少子。年十歲嗣位,孫綝擅權,廢為會稽王,後又貶為侯官侯,自殺。',
+    en: 'Style name Ziming, youngest son of Sun Quan. He came to the throne at ten; Sun Chen seized power and deposed him to Prince of Kuaiji, then reduced him to Marquis of Houguan, where he killed himself.',
+  },
+  'sun-xiu': {
+    era: { zh: '吳景帝', en: 'Emperor Jing of Wu' },
+    zh: '字子烈,孫權第六子。永安元年立。性好學,博覽群書。誅孫綝,收吳國權柄。在位七年崩。',
+    en: 'Style name Zilie, sixth son of Sun Quan. Set on the throne in 258. Fond of learning, broad in his reading. He killed Sun Chen and took back the reins of state. He reigned seven years and died.',
+  },
+  'sun-jun': {
+    zh: '字子遠,孫權姪孫。誅諸葛恪,執政。性陰險殺人不眨眼。為孫綝之從兄,死後孫綝繼之。',
+    en: 'Style name Ziyuan, great-nephew of Sun Quan. He killed Zhuge Ke and took the regency. Sinister, who killed without blinking. Cousin to Sun Chen, who succeeded him at his death.',
+  },
+  'ding-feng': {
+    zh: '字承淵,廬江安豐人。少從甘寧征戰,長於騎射。雪夜短兵,大破諸葛誕援兵於東興,聲威大震。後從孫休誅孫綝,功著吳國。',
+    en: 'Style name Chengyuan, of Anfeng in Lujiang. He campaigned with Gan Ning from youth, master of horse and bow. In a snowy night he stripped off his armor and broke Zhuge Dan\'s relief force at Dongxing — his fame shook the realm. He later helped Sun Xiu put down Sun Chen, of great credit to Wu.',
+  },
+  'lu-dai': {
+    zh: '字定公,廣陵海陵人。事孫權四十年。鎮交州,平士氏,撫蠻夷。性嚴整,行軍有度。年九十六卒。',
+    en: 'Style name Dinggong, of Hailing in Guangling. Forty years he served Sun Quan. Holding Jiao province, he settled the Shi clan and gentled the southern tribes. Stern and ordered in command. He died at ninety-six.',
+  },
+  // Wei mid-tier
+  'cao-zhang': {
+    era: { zh: '黃鬚兒', en: 'The Yellow-Whiskered Boy' },
+    zh: '字子文,曹操之子。鬚黃,曹操稱為「黃鬚兒」。少善騎射,武藝過人。北征烏桓有功。曹操卒後,曹彰問璽於曹丕,丕疑之,召之還國,後暴卒,世以為丕鴆之。',
+    en: 'Style name Ziwen, son of Cao Cao. His whiskers were yellow, and Cao Cao called him his "Yellow-Whiskered Boy." Skilled with bow and horse from youth, his prowess in arms beyond men\'s. He earned credit in the northern campaign against the Wuhuan. After Cao Cao\'s death, when Cao Zhang asked after the imperial seal, Cao Pi grew suspicious, called him back to his fief, and there he died suddenly — the world said Cao Pi had poisoned him.',
+  },
+  'cao-rui': {
+    era: { zh: '魏明帝', en: 'Emperor Ming of Wei' },
+    zh: '字元仲,曹丕之子。少時聰穎,曹丕欲廢之,後感其孝乃止。在位十三年,沉毅好斷,任司馬懿、陳群、曹真。屢敗諸葛亮北伐,平公孫淵。然好土木,起宮室,百姓苦之。年三十五崩,以幼子曹芳託司馬懿、曹爽。',
+    en: 'Style name Yuanzhong, son of Cao Pi. Sharp in youth, Cao Pi once thought of disinheriting him but was moved by his filial piety and let it pass. Thirteen years he reigned, deep and bold in judgment, trusting Sima Yi, Chen Qun, and Cao Zhen. He broke Zhuge Liang\'s northern campaigns many times and put down Gongsun Yuan. Yet he loved building — palaces rose and the people groaned. He died at thirty-five, and entrusted the boy Cao Fang to Sima Yi and Cao Shuang.',
+  },
+  'cao-fang': {
+    zh: '字蘭卿,曹叡養子。年八歲嗣位,司馬懿、曹爽輔政。高平陵之變後司馬氏專權,正始十年司馬師廢之為齊王。卒於晉,壽四十三。',
+    en: 'Style name Lanqing, adopted son of Cao Rui. He took the throne at eight, with Sima Yi and Cao Shuang as regents. After the Gaopingling coup the Sima house held all power; in 254 Sima Shi deposed him to Prince of Qi. He died under Jin at forty-three.',
+  },
+  'cao-mao': {
+    era: { zh: '高貴鄉公', en: 'Duke of Gaogui Township' },
+    zh: '字彥士,曹丕之孫。司馬師廢曹芳,立之為帝。聰明剛烈,深疾司馬氏專權。甘露五年率殿中宿衛數百攻司馬昭,曰:「司馬昭之心,路人所知!」 為賈充所率成濟所弒,年僅二十,血濺殿階。',
+    en: 'Style name Yanshi, grandson of Cao Pi. When Sima Shi deposed Cao Fang, he was set on the throne. Sharp and fierce, he hated bitterly the rule of the Sima house. In 260 he led some hundreds of palace guards against Sima Zhao crying: "The heart of Sima Zhao is known even to the passerby!" Jia Chong\'s man Cheng Ji struck him down — twenty years old, his blood across the palace steps.',
+  },
+  'cao-huan': {
+    era: { zh: '魏元帝', en: 'Emperor Yuan of Wei' },
+    zh: '字景明,曹操之孫。曹髦被弒後立。年十五嗣位,司馬昭專政。咸熙二年司馬炎逼禪,曹魏遂亡。封陳留王,卒於太康元年,壽五十八。',
+    en: 'Style name Jingming, grandson of Cao Cao. Set on the throne after Cao Mao was struck down. He took the throne at fifteen, Sima Zhao holding power in his stead. In 265 Sima Yan forced abdication, and Wei was ended. He was made Prince of Chenliu and died in 280 at fifty-eight.',
+  },
+  'cao-shuang': {
+    zh: '字昭伯,曹真之子。曹叡臨終以與司馬懿同輔曹芳。爽用何晏、鄧颺、丁謐,排斥司馬懿。正始十年司馬懿乘其出獵高平陵,起兵奪權,曹爽不戰而降,夷三族。',
+    en: 'Style name Zhaobo, son of Cao Zhen. Cao Rui on his deathbed made him co-regent of Cao Fang with Sima Yi. Cao Shuang put forward He Yan, Deng Yang, and Ding Mi and pushed Sima Yi aside. In 249, while he was out at the hunt at Gaopingling, Sima Yi rose, took the city, and Cao Shuang yielded without a blow — three branches of his clan were extinguished.',
+  },
+  'cao-zhen': {
+    zh: '字子丹,曹操族子。從征戰,有功。曹丕、曹叡兩朝大將軍。鎮關中,屢禦諸葛亮北伐。卒於太和五年。',
+    en: 'Style name Zidan, a clansman of Cao Cao. He marched in many campaigns with credit. Grand Marshal under Cao Pi and Cao Rui. Holding Guanzhong, he beat back Zhuge Liang\'s northern campaigns many times. He died in 231.',
+  },
+  'cao-xiu': {
+    zh: '字文烈,曹操族姪。從征戰,有勇略。鎮揚州,大破吳將呂範。後石亭之役為陸遜所敗,憤恚而卒。',
+    en: 'Style name Wenlie, a clansman-nephew of Cao Cao. He marched in many campaigns with bold counsel. Holding Yangzhou, he broke the Wu officer Lü Fan. Later beaten by Lu Xun at Shiting, he died of rage.',
+  },
+  'cao-chong': {
+    era: { zh: '稱象神童', en: 'The Child Who Weighed the Elephant' },
+    zh: '字倉舒,曹操之子。五六歲時智意所及,有若成人。鄴下有獻象,曹操欲知象重,群臣不能,曹沖曰:「置象於船中,刻其水痕,稱物以較之,則象重可知。」 操大喜。十三歲早卒,曹操痛失麒麟兒,曰:「此我之不幸,而汝曹之幸也!」',
+    en: 'Style name Cangshu, son of Cao Cao. At five or six his mind was as a grown man\'s. When an elephant was sent to Ye, Cao Cao wished to know its weight; his ministers could not answer. Cao Chong said: "Put the elephant on a boat, mark the water-line, then weigh things against it — the weight will be known." Cao Cao was overjoyed. He died at thirteen; Cao Cao mourned the loss of his unicorn-child: "This is my misfortune — and your fortune!"',
+  },
+  'liu-shan': {
+    era: { zh: '蜀漢後主', en: 'Second Emperor of Shu' },
+    zh: '字公嗣,小名阿斗,劉備之子。劉備死,即位於成都,在位四十一年。前期賴諸葛亮輔政,蜀漢治;亮卒後,寵信黃皓,蜀政日壞。鄧艾兵臨,出降。後遷洛陽,封安樂公。司馬昭嘗試之以蜀樂,禪笑曰:「此間樂,不思蜀也。」 千古「樂不思蜀」之語出此。卒年六十四。',
+    en: 'Style name Gongsi, childhood name A-dou, son of Liu Bei. He took the throne at Chengdu after his father\'s death and reigned forty-one years. While Zhuge Liang held the reins, Shu was well ordered; after Zhuge Liang\'s death he doted on the eunuch Huang Hao and the government decayed. When Deng Ai came up he yielded. Moved to Luoyang as Duke of Anle, Sima Zhao tried him by setting Shu music before him; Liu Shan smiled: "It is so pleasant here — I do not think of Shu." So began the proverb "happy and thinking not of Shu." He died at sixty-four.',
+  },
+  'liu-yong': {
+    zh: '字公壽,劉備庶子,劉禪庶弟。封魯王。蜀漢亡,隨後主遷洛陽。',
+    en: 'Style name Gongshou, natural son of Liu Bei and half-brother of Liu Shan. Made Prince of Lu. When Shu fell, he went with the Second Emperor to Luoyang.',
+  },
+  'liu-li': {
+    zh: '字奉孝,劉備庶子。封梁王。蜀漢亡後遷洛陽。',
+    en: 'Style name Fengxiao, natural son of Liu Bei. Made Prince of Liang. When Shu fell, he was moved to Luoyang.',
+  },
   // ─── 歷代名將 (Historical Officers, 14 dynasties) ───
   ...HISTORICAL_BIOGRAPHIES,
 };
