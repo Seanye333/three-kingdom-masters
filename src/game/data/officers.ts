@@ -1890,6 +1890,52 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   // 清
   'hist-nalan-xingde':'yin-shui-ci',        // 飲水詞
   'hist-wang-shizhen-qing':'shen-yun-shuo', // 神韻說
+  // ─── 名品擴充第十批 (Phase 40 — assassins, regents, conquerors) ───
+  // 春秋戰國
+  'hist-bao-shuya':   'bao-shu-jian-guan', // 鮑叔薦管
+  'hist-baosi':       'feng-huo-xi-zhuhou',// 烽火戲諸侯 — 褒姒
+  'hist-lin-xiangru': 'wan-bi-gui-zhao',   // 完璧歸趙
+  'hist-lu-buwei':    'qi-huo-ke-ju',      // 奇貨可居 — 呂不韋
+  'hist-jie-zitui':   'han-shi-jie',       // 寒食節
+  'hist-jing-ke':     'ci-qin-bi-shou',    // 荊軻刺秦
+  'hist-gan-luo':     'gan-luo-12-bai-xiang',// 甘羅十二拜相
+  // 漢
+  'hist-cao-can':     'xiao-gui-cao-sui',  // 蕭規曹隨
+  'hist-cen-peng':    'cen-peng-jiang',    // 岑彭三州
+  'hist-geng-yan':    'yi-jian-ke-bei',    // 有志者事竟成 — 耿弇
+  'hist-dong-zhongshu':'tian-ren-san-ce',  // 天人三策 — 董仲舒
+  // 商/南北朝
+  'hist-fu-hao':      'fu-hao-yue',        // 婦好鉞
+  'hist-huan-xuan':   'huan-chu-pi-jin',   // 桓楚篡晉
+  // (梅花三弄 留 catalog — hist-huan-yi 為秦將桓齮 非東晉桓伊)
+  'hist-chen-baxian': 'chen-wu-jian-guo',  // 陳武建國
+  // 唐
+  'hist-li-jiancheng':'xuanwu-men',        // 玄武門之變
+  'hist-di-renjie':   'di-jie-shen-tan',   // 狄公斷案
+  'hist-du-ruhui':    'du-duan-cao',       // 杜斷草
+  'hist-huang-chao':  'man-cheng-jin-jia', // 滿城盡帶黃金甲
+  'hist-li-cunxiao':  'li-cunxiao-13',     // 十三太保
+  // 遼/金/西夏/元
+  'hist-abaoji':      'liao-tai-zu',       // 遼太祖 — 阿保機
+  'hist-aguda':       'jin-tai-zu',        // 金太祖 — 阿骨打
+  'hist-hong-taiji':  'tian-cong-tian-ming',// 清太宗 — 皇太極
+  'hist-li-yuanhao':  'xi-xia-jian-guo',   // 西夏建國
+  'hist-bayan':       'bayan-mie-song',    // 伯顏滅宋
+  // 明
+  'hist-li-zicheng':  'da-shun-yong-chang',// 大順永昌
+  'hist-li-dingguo':  'nan-ming-zhong-jiang',// 南明忠將
+  'hist-li-mengyang': 'ming-qian-qi-zi',   // 明前七子
+  'hist-fang-xiaoru': 'zhu-shi-zu',        // 誅十族
+  'hist-fu-youde':    'ming-kai-guo-jiang',// 明開國將
+  'hist-hong-chengchou':'hong-jiang-qing', // 洪承疇降清
+  'hist-jiajing':     'jia-jing-fang-shi', // 嘉靖方術
+  'hist-chongzhen':   'ying-shan-zhi-shu', // 煤山之樹 — 崇禎
+  // 宋
+  'hist-cao-bin':     'cao-bin-ru-shi',    // 曹彬入蜀
+  // 晚清/民國
+  'hist-feng-zicai':  'zhen-nan-guan',     // 鎮南關大捷
+  'hist-lu-xiufu':    'ya-shan-fu-di',     // 崖山負帝
+  'hist-cai-e':       'tao-yuan-jun',      // 討袁軍
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
