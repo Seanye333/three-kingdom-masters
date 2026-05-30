@@ -2890,16 +2890,6 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字長庚,江西奉新人。明末科學家。著《天工開物》十八卷,記中華農業、手工業之全,中華科技史之珍,世界第一部科技百科。',
     en: 'Style Changgeng, of Fengxin in Jiangxi. A scientist of late Ming. He wrote the Exploitation of the Works of Nature in eighteen fascicles — a complete record of Chinese agriculture and handicrafts, a treasure of Chinese science history, the world\'s first technical encyclopedia.',
   },
-  'hist-shi-nai’an': {
-    era: { zh: '水滸傳作者', en: 'Author of the Water Margin' },
-    zh: '字耐庵,興化人。元末明初小說家。著《水滸傳》一百二十回,記宋江等一百零八位好漢之事,中華四大名著之一。',
-    en: 'Style Nai\'an, of Xinghua. A novelist of late Yuan and early Ming. He wrote the Water Margin in a hundred and twenty chapters, telling of Song Jiang and the hundred and eight heroes — one of the Four Great Novels of China.',
-  },
-  'hist-wu-cheng’en': {
-    era: { zh: '西遊記作者', en: 'Author of Journey to the West' },
-    zh: '字汝忠,號射陽山人,淮安山陽人。明朝小說家。著《西遊記》一百回,記唐僧、孫悟空、豬八戒、沙僧西天取經之事,中華四大名著之一。',
-    en: 'Style Ruzhong, called the Mountain Recluse of Sheyang, of Shanyang in Huai\'an. A novelist of Ming. He wrote the Journey to the West in a hundred chapters, telling of the Tang monk, Sun Wukong, Zhu Bajie, and Sha Seng on their pilgrimage to the western paradise — one of the Four Great Novels of China.',
-  },
   'hist-tang-xianzu': {
     era: { zh: '東方莎士比亞', en: '"The Shakespeare of the East"' },
     zh: '字義仍,號海若,臨川人。明朝戲曲家。著「臨川四夢」(《牡丹亭》、《紫釵記》、《邯鄲記》、《南柯記》),以《牡丹亭》為魁。世稱「東方莎士比亞」。',
