@@ -1226,6 +1226,326 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '廣西藤縣人,太平天國忠王。後期軍事支柱。曾國藩攻天京,李秀成苦守數年,終城陷被擒。寫《李秀成自述》數萬言而後就死,千古迷案。',
     en: 'Of Tengxian in Guangxi, Loyal King of the Taiping. The military pillar of its later years. When Zeng Guofan laid siege to Tianjing, Li Xiucheng held it bitterly for years; when the city fell at last he was taken. He wrote the Autobiography of Li Xiucheng in tens of thousands of characters and went to his death — a mystery of the ages.',
   },
+  // ─── 歷代名將 新增第三批 (Historical biographies — batch 3: Spring & Autumn) ───
+  'hist-zhou-wenwang': {
+    era: { zh: '周文王', en: 'King Wen of Zhou' },
+    zh: '姓姬名昌,商末周國國君。被殷紂囚於羑里七年,演《周易》。出獄後招賢納士,渭水訪呂尚,奠周朝八百年基業。卒,武王繼之伐紂。',
+    en: 'Surname Ji, personal name Chang. Ruler of the Zhou state at the end of Shang. Imprisoned by the tyrant Zhou Xin at Youli for seven years, he there composed the Book of Changes. On his release he gathered worthies, met Jiang Ziya by the Wei River, and laid the foundation of the eight-hundred-year house of Zhou. He died; his son King Wu took up the work and overthrew Shang.',
+  },
+  'hist-zhou-wuwang': {
+    era: { zh: '周武王', en: 'King Wu of Zhou' },
+    zh: '姓姬名發,文王次子。承父志,以姜子牙為師,率八百諸侯,牧野一戰大破殷軍七十萬,紂王自焚於鹿臺,商遂亡。武王封功臣於各地,定周朝八百年之制。',
+    en: 'Surname Ji, personal name Fa, second son of King Wen. Taking up his father\'s resolve, with Jiang Ziya as Grand Tutor he led eight hundred lords to Muye, broke seven hundred thousand of Shang in one blow; the tyrant Zhou burned himself on the Deer Terrace and Shang was ended. King Wu enfeoffed his meritorious men in every region and set the system that endured for eight hundred years.',
+  },
+  'hist-zhou-chengwang': {
+    zh: '名誦,武王之子。十二歲嗣位,周公旦攝政,平管蔡之亂。成王親政後,「成康之治」開西周盛世。卒,康王繼之。',
+    en: 'Personal name Song, son of King Wu. He took the throne at twelve; the Duke of Zhou served as regent and put down the Guan-Cai revolt. When King Cheng took up rule himself, the "Reign of Cheng-Kang" opened the golden age of Western Zhou. He died, and King Kang took up the line.',
+  },
+  'hist-zhou-liwang': {
+    zh: '名胡,西周厲王。性暴虐貪婪,任榮夷公專利,行「監謗」之政,殺諫者。國人不堪,起而暴動,厲王奔彘,十四年而死。「防民之口,甚於防川」之語出此。',
+    en: 'Personal name Hu, King Li of Western Zhou. Cruel and grasping, he made Duke Yi of Rong monopolize the marshes, set up the "watch on slander," and killed those who spoke. The people would bear no more and rose; King Li fled to Zhi and died there fourteen years later. "To bar the people\'s mouths is worse than barring a river" comes from this.',
+  },
+  'hist-zhou-xuanwang': {
+    zh: '名靜,厲王之子。在位四十六年,初有「宣王中興」之譽,任用召穆公、周定公、尹吉甫,平淮夷、北戎。然晚年好戰,西周由此衰。',
+    en: 'Personal name Jing, son of King Li. Forty-six years he reigned. His early years were called the "Restoration of King Xuan," when with Duke Mu of Shao, Duke Ding of Zhou, and Yin Jifu he pacified the Huai-Yi and the Northern Rong. But his late years were too fond of war, and Western Zhou began its decline.',
+  },
+  'hist-zhou-youwang': {
+    zh: '名宮湦,宣王之子。寵褒姒,廢申后與太子宜臼。烽火戲諸侯,失信於天下。申侯怒,引犬戎攻鎬京,幽王死於驪山,西周遂亡。平王東遷洛邑,東周自此始。',
+    en: 'Personal name Gongsheng, son of King Xuan. He doted on Baosi, deposed Queen Shen and the heir Yijiu. With his beacon-fires he made sport of the lords and lost the faith of the realm. The Marquis of Shen in fury brought the Quanrong against the capital Haojing; King You died at Mount Li, and Western Zhou fell. King Ping moved east to Luoyi — and from him the Eastern Zhou began.',
+  },
+  'hist-qi-huan-gong': {
+    era: { zh: '春秋首霸', en: 'First Hegemon of the Spring and Autumn' },
+    zh: '名小白,齊襄公之弟。鮑叔牙設計使其先入齊都即位。任用管仲為相,鮑叔牙副之,行「尊王攘夷」之策,九合諸侯,一匡天下,為春秋五霸之首。然晚年寵易牙、豎刁,死後諸子爭位,屍蛆出戶六十七日方葬。',
+    en: 'Personal name Xiaobai, younger brother of Duke Xiang of Qi. Through Bao Shuya\'s scheme he entered the Qi capital first and took the throne. He raised Guan Zhong as chancellor with Bao Shuya as deputy and led the "honor the king, repel the barbarians" policy — nine times he gathered the lords and set the realm in order, first of the Five Hegemons of the Spring and Autumn. But in his old age he doted on Yi Ya and Shu Diao; his sons fought for the throne when he died, and his maggot-ridden body lay sixty-seven days before burial.',
+  },
+  'hist-song-xianggong': {
+    era: { zh: '宋襄之仁', en: 'The Mercy of Duke Xiang of Song' },
+    zh: '名茲甫,宋國國君。齊桓公死後,欲繼為霸主。與楚成王戰於泓水,楚軍渡河未濟、列陣未成時,公子目夷皆勸擊之,襄公皆不從,曰:「君子不困人於阸。」 終大敗,襄公中股,次年傷重而卒。「宋襄之仁」千古為笑談。',
+    en: 'Personal name Zifu, ruler of the Song state. After Duke Huan of Qi died, he wished to take up the hegemony. He met King Cheng of Chu in battle at the Hong River; as the Chu army crossed the river and before they could form their line, the prince Muyi twice urged the strike. Duke Xiang refused: "A gentleman does not press a man in a strait." He was utterly broken and shot in the thigh, dying of the wound the next year. "The mercy of Duke Xiang of Song" is told down the ages as a joke.',
+  },
+  'hist-jin-wen-gong': {
+    era: { zh: '退避三舍', en: 'Retreated Three Days\' March' },
+    zh: '名重耳,晉獻公次子。少時遭驪姬之亂,亡命列國十九年。流亡中受楚成王厚待,許曰:「若返國治政,他日相見,當退避三舍。」 後返晉即位,大行新政。城濮之戰,果踐前言,退軍九十里,大破楚軍。春秋五霸之一。',
+    en: 'Personal name Chong\'er, second son of Duke Xian of Jin. In youth, caught up in the Lady Li disaster, he fled abroad for nineteen years. In exile King Cheng of Chu received him richly; Chong\'er promised: "If I return to rule, on the day we meet again I will retreat three days\' march." He returned, took the throne, and reformed the state. At Chengpu, true to his word, he pulled back ninety li — then broke the Chu host. One of the Five Hegemons of the Spring and Autumn.',
+  },
+  'hist-qin-mugong': {
+    era: { zh: '秦穆公', en: 'Duke Mu of Qin' },
+    zh: '名任好,春秋秦國國君。在位三十九年,以五羖羊皮聘百里奚,任用蹇叔、由余等賢臣,平西戎,稱霸西陲,春秋五霸之一。崤之戰雖敗於晉,然撫綏戰士,終成西伯。',
+    en: 'Personal name Renhao, ruler of Qin in the Spring and Autumn. Thirty-nine years he reigned, summoning Baili Xi for the price of five black goatskins, employing Jian Shu, You Yu, and other worthies; he pacified the western Rong and became hegemon of the west — one of the Five Hegemons of the Spring and Autumn. Though broken at the battle of Yao by Jin, he comforted his soldiers and grew into the Lord of the West.',
+  },
+  'hist-chu-zhuang-wang': {
+    era: { zh: '不鳴則已,一鳴驚人', en: '"Once It Cries, It Astonishes the World"' },
+    zh: '名旅,楚成王之孫。三年不問政事,大臣諫之,莊王曰:「三年不蜚,蜚將沖天;三年不鳴,鳴將驚人。」 後親政,任用孫叔敖,平內亂,北上中原,邲之戰大破晉軍,問鼎中原。春秋五霸之一。',
+    en: 'Personal name Lü, grandson of King Cheng of Chu. Three years he did not touch state affairs; when his ministers urged him, he said: "Three years without flying, when it flies it will pierce the sky; three years without crying, when it cries it will astonish the world." He took up rule, raised Sunshu Ao, settled the inner troubles, marched north to the central plains, broke the Jin army at Bi, and asked the weight of the ding cauldrons. One of the Five Hegemons.',
+  },
+  'hist-chu-chengwang': {
+    zh: '楚成王熊惲。在位四十六年,擴楚地千里,北敗齊兵,稱霸南方。後欲廢太子商臣,商臣攻成王,逼縊之。',
+    en: 'King Cheng of Chu, Xiong Yun. Forty-six years he reigned, opening a thousand li of new ground for Chu, broke the Qi army in the north, and was hegemon of the south. Late in life he meant to depose the heir Shangchen; Shangchen attacked the king and forced him to hang himself.',
+  },
+  'hist-chu-gongwang': {
+    zh: '楚共王熊審。楚莊王之子。鄢陵之戰被晉軍射傷一目。臨終嘆「不穀蒞政而獨敗於鄢陵,當謚靈、厲」。',
+    en: 'King Gong of Chu, Xiong Shen, son of King Zhuang. At the battle of Yanling the Jin shot him through one eye. On his deathbed he sighed: "I have ruled and alone lost at Yanling — let my posthumous name be Ling or Li."',
+  },
+  'hist-chu-huiwang': {
+    zh: '楚惠王熊章。在位五十七年,平白公勝之亂,北上滅蔡、滅杞,楚復興盛。',
+    en: 'King Hui of Chu, Xiong Zhang. Fifty-seven years he reigned. He put down the revolt of Sheng of Bai, marched north to swallow Cai and Qi — and Chu rose again.',
+  },
+  'hist-chu-lingwang': {
+    zh: '楚靈王熊圍。性奢侈,築章華臺,「楚王好細腰,宮中多餓死」。後諸弟起兵,靈王眾叛親離,自縊於申亥之家。',
+    en: 'King Ling of Chu, Xiong Wei. Lavish in life, he built the Zhanghua Terrace — "the king of Chu loved thin waists, and the palace ladies starved themselves to death." When his brothers rose against him, his people and kin fell away; he hanged himself in Shen Hai\'s house.',
+  },
+  'hist-chu-pingwang': {
+    zh: '楚平王熊棄疾。聽信費無忌之讒,奪太子建之妃,殺伍奢、伍尚父子,逼伍子胥奔吳。後吳師伐楚入郢,伍子胥鞭楚平王屍三百以雪父兄之仇。',
+    en: 'King Ping of Chu, Xiong Qiji. Listening to Fei Wuji\'s slander, he took the heir Jian\'s bride, killed Wu She and Wu Shang father and son, and forced Wu Zixu into exile with Wu. Later the Wu army marched on Chu and entered Ying, and Wu Zixu whipped the corpse of King Ping three hundred strokes to wash out the grudge.',
+  },
+  'hist-helu': {
+    era: { zh: '吳王闔閭', en: 'King Helu of Wu' },
+    zh: '名光,吳王諸樊之子。使專諸刺王僚而自立。任用伍子胥、孫武,西破楚入郢,北威齊晉,南服越。後與越王句踐戰於檇李,中箭傷足而死,囑子夫差勿忘越仇。',
+    en: 'Personal name Guang, son of King Zhufan of Wu. Through Zhuan Zhu he assassinated King Liao and took the throne himself. With Wu Zixu and Sun Wu, he broke Chu in the west and entered Ying, awed Qi and Jin in the north, and brought Yue to heel in the south. Later in battle with King Goujian of Yue at Zuili he was shot in the foot and died, charging his son Fuchai not to forget the grudge of Yue.',
+  },
+  'hist-fuchai': {
+    era: { zh: '吳王夫差', en: 'King Fuchai of Wu' },
+    zh: '吳王闔閭之子。為報父仇,擊敗越句踐於夫椒,圍之於會稽。句踐請降,夫差釋之。後夫差北上爭霸,黃池之會問鼎中原。然句踐臥薪嘗膽,內修十年,終以越兵破吳。夫差自殺,以巾覆面曰:「吾無顏見伍子胥於地下!」',
+    en: 'King Fuchai of Wu, son of King Helu. To avenge his father he broke King Goujian of Yue at Fujiao and besieged him at Kuaiji; Goujian begged surrender and Fuchai let him go. Fuchai then marched north for hegemony and at the meeting of Huangchi asked the weight of the cauldrons. But Goujian, sleeping on brushwood and tasting gall, rebuilt for ten years and at last broke Wu. Fuchai killed himself, covering his face with a cloth: "I cannot face Wu Zixu in the world below!"',
+  },
+  'hist-jian-shu': {
+    zh: '宋人,百里奚之友。秦穆公以重幣聘之,與百里奚共佐穆公,稱霸西戎。崤之戰前哭送其子,謂秦軍必敗,果應其言。',
+    en: 'Of Song, friend of Baili Xi. Duke Mu of Qin called him with rich gifts; with Baili Xi he served Duke Mu in the hegemony of the western Rong. Before the battle of Yao he wept as his son rode out, saying the Qin army would surely lose — and his words came true.',
+  },
+  'hist-jie-zitui': {
+    era: { zh: '割股啖君', en: 'Cut Flesh from His Thigh to Feed His Lord' },
+    zh: '春秋晉國介之推。隨重耳流亡十九年,飢時割股肉以食重耳。重耳即位為晉文公,大封從臣,獨遺之推。之推不爭,攜母隱於綿山。文王悔,焚山逼之出,介之推與母抱樹而焚死。後人立寒食節以紀之。',
+    en: 'Jie Zhitui of Jin in the Spring and Autumn. He followed Chong\'er through nineteen years of exile; in their hunger he cut flesh from his own thigh to feed his lord. When Chong\'er took the Jin throne as Duke Wen and richly enfeoffed his men, he alone was forgotten. Jie Zhitui would not contend; with his mother he hid in Mount Mian. The duke regretted and burned the mountain to force him out; Jie Zhitui and his mother embraced a tree and burned to death. Later the Cold Food Festival was set to commemorate him.',
+  },
+  'hist-sunshu-ao': {
+    era: { zh: '令尹孫叔敖', en: 'Chancellor Sunshu Ao' },
+    zh: '楚莊王令尹。三起三黜而面無慍色,興水利,鑄錢幣,楚由是強。位至宰相而家無餘財。臨終戒子勿受封地,得善終。',
+    en: 'Chancellor under King Zhuang of Chu. Three times raised and three times cast down, his face never showed displeasure. He raised the waterworks, cast the coinage — and Chu grew strong. He rose to chancellor and his household held nothing. On his deathbed he warned his son to take no fief and died peacefully.',
+  },
+  'hist-shen-baoxu': {
+    era: { zh: '哭秦庭', en: 'Wept at the Court of Qin' },
+    zh: '楚國大夫,伍子胥之友。子胥伐楚入郢,申包胥奔秦乞師。立於秦庭,哭七日七夜,水漿不入口。秦哀公感之,賦《無衣》,出兵助楚,大破吳師,楚復國。',
+    en: 'A grandee of Chu, friend of Wu Zixu. When Wu Zixu marched on Chu and entered Ying, Shen Baoxu fled to Qin to beg an army. He stood at the Qin court and wept seven days and seven nights, taking neither food nor water. Duke Ai of Qin was moved, sang the verse "Without Robes," and sent troops to help Chu; the Wu host was broken and Chu restored.',
+  },
+  'hist-zigong': {
+    zh: '名端木賜,孔子弟子。能言善辯,精商賈,孔門十哲之一。出使列國,折衝樽俎,「子貢一出,存魯、亂齊、破吳、強晉、霸越」。',
+    en: 'Personal name Duanmu Ci, disciple of Confucius. Eloquent and a master of commerce, one of the Ten Philosophers of the school. Sent as envoy to many states he swayed them at the wine-table: "One sortie of Zigong preserved Lu, threw Qi into chaos, broke Wu, strengthened Jin, and made Yue hegemon."',
+  },
+  'hist-zilu': {
+    zh: '名仲由,字子路,孔子弟子。性勇直,事孔子四十年。後事衛,值衛亂,別人勸其去,子路曰:「食其食者不避其難。」 戰至冠纓斷,曰:「君子死,冠不免。」 結纓而死。孔子聞之,覆醢以哀。',
+    en: 'Personal name Zhongyou, style Zilu, disciple of Confucius. Bold and straight; he served the Master forty years. He later served Wey; when chaos broke out and others urged him to flee, he said: "He who eats his lord\'s food does not flee his trouble." He fought until his cap-cord was cut and said: "A gentleman dies — his cap shall not fall." He tied the cord and fell. When Confucius heard, he overturned the meat-sauce in his grief.',
+  },
+  'hist-yan-hui': {
+    era: { zh: '亞聖', en: 'Second Sage' },
+    zh: '字子淵,孔子弟子。一簞食,一瓢飲,在陋巷,人不堪其憂,回也不改其樂。孔子贊曰:「賢哉回也!」 不幸早卒,孔子哭之慟,曰:「天喪予!天喪予!」 後世尊為復聖。',
+    en: 'Style Ziyuan, disciple of Confucius. "A single bowl of rice, a single gourd of water, in a mean alley — others could not bear the grief, Hui did not change his joy." Confucius praised: "How worthy is Hui!" He died young; Confucius wept till his voice broke: "Heaven has bereft me! Heaven has bereft me!" Later ages honored him as the Restored Sage.',
+  },
+  'hist-zaiwo': {
+    zh: '名予,字子我,孔子弟子。能言善辯。晝寢,孔子斥之:「朽木不可雕也,糞土之牆不可圬也。」 後事齊,參與田常之亂,被田常所殺,夷其族。',
+    en: 'Personal name Yu, style Ziwo, disciple of Confucius. Eloquent in speech. He napped by day, and the Master rebuked him: "Rotten wood cannot be carved; a wall of dung cannot be plastered." He later served Qi, joined the revolt of Tian Chang, and was killed by Tian Chang — his clan exterminated.',
+  },
+  'hist-zhonggong': {
+    zh: '名冉雍,字仲弓,孔子弟子。德行高潔,孔子稱:「雍也可使南面。」 為季氏宰,有惠政。',
+    en: 'Personal name Ran Yong, style Zhonggong, disciple of Confucius. Of high virtue. The Master said: "Yong might face south as a ruler." As steward of the Ji clan he ruled with grace.',
+  },
+  'hist-ranqiu': {
+    zh: '名求,字子有,孔子弟子。多才多藝,長於政事。為季氏宰,助季氏聚斂,孔子怒曰:「非吾徒也!小子鳴鼓而攻之可也。」',
+    en: 'Personal name Qiu, style Ziyou, disciple of Confucius. Of many gifts, master of affairs of state. As steward of the Ji clan he helped them gather wealth, and the Master raged: "He is no disciple of mine! Let the young men beat the drum and attack him."',
+  },
+  'hist-zizhang': {
+    zh: '名顓孫師,字子張,孔子弟子。志向高遠,問達於孔子。孔子答:「夫達也者,質直而好義,察言而觀色,慮以下人。」',
+    en: 'Personal name Zhuansun Shi, style Zizhang, disciple of Confucius. Of lofty aim. He asked about reaching the truly accomplished; the Master answered: "He who is truly accomplished is upright in substance and loves righteousness, weighs words and watches faces, thinks always to bow before others."',
+  },
+  'hist-ziyou': {
+    zh: '名言偃,字子游,孔子弟子。長於文學。為武城宰,以禮樂教民,孔子聞絃歌之聲,莞爾而笑曰:「割雞焉用牛刀?」',
+    en: 'Personal name Yan Yan, style Ziyou, disciple of Confucius. Master of letters. As steward of Wucheng he taught the people through ritual and music; Confucius heard the strings and song and smiled: "Why use an ox-knife to kill a chicken?"',
+  },
+  'hist-zijian': {
+    zh: '名宓不齊,字子賤,孔子弟子。為單父宰,鳴琴而治,百姓安樂。孔子贊曰:「君子哉若人!魯無君子者,斯焉取斯?」',
+    en: 'Personal name Mi Buqi, style Zijian, disciple of Confucius. As steward of Shanfu he ruled by playing the qin, and the people lived in ease. The Master praised: "A gentleman, this man! Were there no gentlemen in Lu, where would he get this from?"',
+  },
+  'hist-gongye-chang': {
+    zh: '孔子弟子,孔子之婿。能解鳥語。雖嘗在縲紲之中,孔子以為非其罪,妻之以女。',
+    en: 'Disciple of Confucius and his son-in-law. He could understand the speech of birds. Though once jailed, the Master said it was no fault of his and married his daughter to him.',
+  },
+  'hist-qidiao-kai': {
+    zh: '孔子弟子。孔子使之仕,對曰:「吾斯之未能信。」 孔子悅之。',
+    en: 'A disciple of Confucius. When the Master sent him to take office he replied: "In this I cannot yet trust myself." The Master was glad.',
+  },
+  'hist-gao-chai': {
+    zh: '字子羔,孔子弟子。身不滿五尺,然執法公正,事衛,逢衛亂全身而退。',
+    en: 'Style Zigao, disciple of Confucius. Less than five chi tall, yet upright in the law; he served Wey and when chaos broke out he escaped with his life.',
+  },
+  'hist-gongxi-hua': {
+    zh: '名赤,字子華,孔子弟子。善於禮節,出使能應對。孔子贊曰:「赤也,束帶立於朝,可使與賓客言也。」',
+    en: 'Personal name Chi, style Zihua, disciple of Confucius. Master of ritual and a fit envoy. The Master praised: "Chi — girt with his sash he might stand in court and speak with the foreign guests."',
+  },
+  'hist-sima-niu': {
+    zh: '名耕,字子牛,宋國人,孔子弟子。其兄桓魋亂宋,子牛憂之。問君子於孔子,孔子曰:「不憂不懼。」',
+    en: 'Personal name Geng, style Ziniu, of Song, disciple of Confucius. His brother Huan Tui threw Song into chaos and Ziniu was full of grief. He asked the Master about the gentleman; Confucius said: "He neither grieves nor fears."',
+  },
+  'hist-yan-lu': {
+    zh: '字路,孔子弟子,顏回之父。顏回死,顏路請孔子之車賣為椁,孔子不許。',
+    en: 'Style Lu, disciple of Confucius and father of Yan Hui. When Yan Hui died, Yan Lu asked the Master\'s carriage to sell for an outer coffin; Confucius would not give it.',
+  },
+  'hist-shao-gong-shi': {
+    zh: '召公奭,周文王之子。輔成王、康王,與周公旦並稱「周召」。治燕,以恩信服胡,燕由是強。',
+    en: 'Duke Shi of Shao, son of King Wen. He served as regent under Kings Cheng and Kang, and with the Duke of Zhou was called "Zhou and Shao." Ruling Yan, he brought the Hu in by faith and grace, and Yan grew strong.',
+  },
+  'hist-zi-chan': {
+    era: { zh: '鄭子產', en: 'Zichan of Zheng' },
+    zh: '名僑,字子產,鄭國公族。執政二十六年,鑄刑書於鼎,開法律公布之先聲。孔子稱其有「君子之道四焉」。卒,孔子聞之流涕曰:「古之遺愛也!」',
+    en: 'Personal name Qiao, style Zichan, of the Zheng ducal house. For twenty-six years he held the reins, casting the penal code onto bronze tripods — the first public publication of law. Confucius said: "In him are four ways of the gentleman." At his death Confucius wept: "A bequest of love from antiquity!"',
+  },
+  'hist-zheng-zhuanggong': {
+    zh: '名寤生,鄭武公之子。春秋初鄭國中興之主。母武姜偏愛其弟共叔段,謀叛,被莊公平定,與母誓「不及黃泉,無相見也」,後掘隧黃泉相見而和。',
+    en: 'Personal name Wusheng, son of Duke Wu of Zheng. The restorer of Zheng in early Spring and Autumn. His mother Lady Wujiang loved his brother Gongshu Duan more; she helped him plot revolt and was put down. Duke Zhuang swore to his mother: "Not until we reach the Yellow Springs shall we meet." Later he dug a tunnel to the Yellow Springs and met her there, and they were reconciled.',
+  },
+  'hist-zhao-dun': {
+    zh: '春秋晉國正卿。權傾朝野。靈公欲殺之,鉏麑刺殺不忍而觸樹死。後趙穿弒靈公,趙盾雖未親手,然太史董狐書「趙盾弒其君」,千古史筆之典。',
+    en: 'Chief minister of Jin in the Spring and Autumn. Power above the court. Duke Ling sought to kill him; the assassin Chu Ni could not bear it and dashed himself against a tree. Later Zhao Chuan killed Duke Ling; though Zhao Dun did not strike, the Grand Historian Dong Hu wrote: "Zhao Dun killed his lord." A model of historical writing for the ages.',
+  },
+  'hist-zhao-cui': {
+    zh: '晉文公股肱之臣。隨重耳流亡十九年,後輔文公定霸業。',
+    en: 'A pillar minister of Duke Wen of Jin. He went with Chong\'er through nineteen years of exile, then helped Duke Wen set the hegemony.',
+  },
+  'hist-zhao-jianzi': {
+    zh: '春秋末晉國正卿。趙氏宗主。鑄刑鼎於范氏,定趙氏之基。其子趙無恤,後與韓、魏滅智伯,瓜分晉地,啟戰國之局。',
+    en: 'Chief minister of Jin at the end of the Spring and Autumn; head of the Zhao house. He cast a penal tripod for the Fan clan and set the foundation of Zhao. His son Zhao Wuxu later joined Han and Wei in destroying Zhibo and partitioning Jin — opening the age of the Warring States.',
+  },
+  'hist-zhao-xiangzi': {
+    zh: '名無恤,趙簡子之子。智伯求地,趙無恤不與,智伯與韓魏圍之於晉陽三年。後趙無恤與韓魏密謀,反攻智伯,殺之於汾水,瓜分智地。趙、韓、魏三家分晉,戰國七雄始於此。',
+    en: 'Personal name Wuxu, son of Zhao Jianzi. When Zhibo demanded land, Zhao Wuxu refused, and Zhibo with Han and Wei besieged him at Jinyang for three years. He then plotted with Han and Wei in secret, struck back, and killed Zhibo at the Fen River, dividing his lands among them. The three houses of Zhao, Han, and Wei split Jin — and the Seven Powers of the Warring States began from here.',
+  },
+  'hist-zhibo': {
+    zh: '名瑤,春秋末晉國四卿之一。專橫驕橫,索地於韓、魏、趙,趙不與。圍晉陽三年,引汾水灌之。韓魏與趙密謀,反攻智伯,殺之,以其頭為飲器,夷其族。',
+    en: 'Personal name Yao, one of the four chief ministers of Jin at the end of the Spring and Autumn. Overbearing and proud, he demanded land from Han, Wei, and Zhao; Zhao refused. He besieged Jinyang for three years, diverting the Fen River to flood it. Han and Wei plotted in secret with Zhao, struck back, killed Zhibo, and made his skull a drinking-cup; his clan was exterminated.',
+  },
+  'hist-zhuan-zhu': {
+    zh: '春秋吳國刺客。公子光謀殺王僚,使專諸藏匕首於魚腹,進炙時刺殺王僚於宴上,專諸亦死。光遂即位,是為吳王闔閭。',
+    en: 'An assassin of Wu in the Spring and Autumn. When Prince Guang plotted the death of King Liao, he had Zhuan Zhu hide a dagger in the belly of a fish; serving the roasted dish at the banquet, Zhuan Zhu struck the king down — and was killed himself. Prince Guang took the throne as King Helu of Wu.',
+  },
+  'hist-yao-li': {
+    zh: '春秋吳國刺客。受闔閭命刺殺王僚之子慶忌。先自斷右臂,殺其妻子,以取信於慶忌。後刺殺慶忌於江中。功成,自殺於江,曰:「殺妻子以事君,非仁;為新君而殺故君之子,非義。」',
+    en: 'An assassin of Wu in the Spring and Autumn. He took King Helu\'s order to kill Qingji, the son of King Liao. First he cut off his own right arm and killed his wife and children to win Qingji\'s trust. He stabbed Qingji on the river. The work done, he killed himself on the river: "To kill wife and child to serve a lord is not humane; to kill the son of the old lord for the new is not righteous."',
+  },
+  'hist-qing-ji': {
+    zh: '吳王僚之子。武力過人,能伏熊搏虎。父被弒,慶忌奔衛謀復仇。為要離所刺,投江而死,以手按要離於水中三次,讚之為「天下勇士」,終讓其去。',
+    en: 'Son of King Liao of Wu. Of great prowess, he could wrestle bears and tigers down. When his father was killed he fled to Wey to plot vengeance. Yao Li stabbed him; mortally wounded, he held Yao Li down in the water three times and yet praised him as a "bold man under heaven" — and at last let him go.',
+  },
+  'hist-tian-ji': {
+    era: { zh: '田忌賽馬', en: '"Tian Ji at the Horse Race"' },
+    zh: '齊國名將,孫臏之友。賽馬之事,孫臏教以「以下駟對其上駟,以上駟對其中駟,以中駟對其下駟」,三戰二勝。又用孫臏之策,圍魏救趙,馬陵伏弩,大破龐涓。',
+    en: 'A famed general of Qi, friend of Sun Bin. In the horse-race affair, Sun Bin taught him: "Match your lowest horse against his highest, your highest against his middling, your middling against his lowest" — three rounds, two wins. With Sun Bin\'s strategy he besieged Wei to relieve Zhao and laid the Maling ambush, breaking Pang Juan utterly.',
+  },
+  'hist-sima-rangju': {
+    zh: '春秋齊國名將。司馬之祖。將兵立法嚴明,使齊景公愛將莊賈不至期斬之,軍威大振。著《司馬法》傳世,中華兵書之祖。',
+    en: 'A famed general of Qi in the Spring and Autumn; ancestor of the Sima line. He set the law of command strictly, beheading the duke\'s favorite Zhuang Jia for arriving late — and the army\'s awe shook. His Methods of the Sima survive, the founding book of Chinese military thought.',
+  },
+  'hist-yi-yin': {
+    era: { zh: '商湯之相', en: 'Chancellor of Tang of Shang' },
+    zh: '夏末商初人。本為奴隸,以烹飪通湯,湯任之為相。輔商湯滅夏桀,建立商朝。又輔太甲三年,流之於桐宮,太甲悔過,迎之歸朝。卒,商朝以伊尹為千古第一賢相。',
+    en: 'Of late Xia and early Shang. Born a slave, by his cooking he won the attention of Tang, who made him chancellor. He helped Tang overthrow the tyrant Jie and found the Shang dynasty. He then served Tai Jia for three years, exiled him to the Tong palace; when Tai Jia repented, he welcomed him back. At his death Shang held Yi Yin first among the worthy chancellors of all ages.',
+  },
+  'hist-fei-wuji': {
+    zh: '楚平王佞臣。讒言奪太子建之妃,誣伍奢、伍尚父子,逼伍子胥奔吳。後吳師伐楚,費無忌被楚人誅。',
+    en: 'A flattering minister of King Ping of Chu. By slander he took the bride of the heir Jian and accused Wu She and Wu Shang father and son falsely, forcing Wu Zixu to flee to Wu. Later when the Wu army marched on Chu, the people of Chu killed Fei Wuji.',
+  },
+  'hist-yang-youji': {
+    era: { zh: '百步穿楊', en: 'A Hundred Paces Through the Willow' },
+    zh: '春秋楚國神箭手。能於百步外射穿楊葉,百發百中,「百步穿楊」千古傳為神射之典。',
+    en: 'A peerless archer of Chu in the Spring and Autumn. He could shoot a willow leaf at a hundred paces and never miss — "a hundred paces through the willow" is told down the ages as the model of divine shooting.',
+  },
+  'hist-zheng-huangong': {
+    zh: '鄭桓公友。西周宣王之弟。封於鄭,後遷新鄭,鄭國之祖。',
+    en: 'Duke Huan of Zheng, named You, younger brother of King Xuan of Western Zhou. Enfeoffed at Zheng and later moved to Xinzheng; ancestor of the Zheng state.',
+  },
+  'hist-lu-ban': {
+    era: { zh: '工聖', en: 'Sage of Craftsmen' },
+    zh: '名公輸般,魯國人。中華木工、機械之祖。發明雲梯、勾強、鋸子、墨斗、刨子。為楚造雲梯欲攻宋,墨子止之。後世奉為「工聖」、「祖師爺」,千古匠人之祖。',
+    en: 'Personal name Gongshu Ban, of Lu. Founder of Chinese woodworking and mechanical craft. He invented the cloud-ladder, the grappling-spear, the saw, the carpenter\'s ink-line, and the plane. He made cloud-ladders for Chu to attack Song; Mozi stopped him. Later ages honored him as the "Sage of Craftsmen" and the "Founding Master," the ancestor of every artisan of the ages.',
+  },
+  'hist-liezi': {
+    zh: '名禦寇,鄭國人。道家三大宗師之一,與老子、莊子並稱。著《列子》八篇。「愚公移山」、「兩小兒辯日」、「歧路亡羊」、「杞人憂天」皆出此書,千古傳誦。',
+    en: 'Personal name Yukou, of Zheng. One of the three founding masters of Daoism, with Laozi and Zhuangzi. The Liezi in eight pieces is his. "Yu Gong moves the mountain," "two boys argue about the sun," "the lost sheep at the fork," and "the man of Qi who feared the sky would fall" all come from this book and are read forever.',
+  },
+  'hist-zhao-chuan': {
+    zh: '春秋晉國刺客。趙盾族弟。受趙盾意,在桃園刺殺晉靈公,太史董狐書「趙盾弒其君」。',
+    en: 'An assassin of Jin in the Spring and Autumn, cousin of Zhao Dun. At Zhao Dun\'s nod he killed Duke Ling of Jin in the peach garden; the Grand Historian Dong Hu wrote: "Zhao Dun killed his lord."',
+  },
+  'hist-luan-shu': {
+    zh: '春秋晉國正卿。鄢陵之戰,晉軍大破楚,欒書與郤錡、士燮共為主將。後與荀偃廢晉厲公,立悼公。',
+    en: 'Chief minister of Jin in the Spring and Autumn. At the battle of Yanling, when the Jin broke the Chu, Luan Shu was a chief commander with Xi Qi and Shi Xie. With Xun Yan he later deposed Duke Li of Jin and set up Duke Dao.',
+  },
+  'hist-han-jue': {
+    zh: '春秋晉國正卿。趙氏孤兒之事,韓厥保全趙氏血脈,使程嬰、公孫杵臼之事得遂,趙武得復興趙氏。',
+    en: 'Chief minister of Jin in the Spring and Autumn. In the affair of the Zhao orphan he kept the Zhao line alive, so that the work of Cheng Ying and Gongsun Chujiu could come to fruit and Zhao Wu could raise his clan again.',
+  },
+  'hist-hu-yan': {
+    zh: '字子犯,晉文公之舅。隨重耳流亡十九年,輔晉文公成霸業。城濮之戰獻策退避三舍。',
+    en: 'Style Zifan, uncle of Duke Wen of Jin. He went with Chong\'er through nineteen years of exile and helped him to the hegemony. At Chengpu he gave the counsel of retreating three days\' march.',
+  },
+  'hist-xian-zhen': {
+    zh: '春秋晉國名將。城濮之戰晉軍中軍主將,大破楚軍。後與秦軍戰於崤,大破秦師。',
+    en: 'A famed general of Jin in the Spring and Autumn. He was central-army commander at Chengpu and broke the Chu host, and later broke the Qin army at Yao.',
+  },
+  'hist-xian-gao': {
+    zh: '鄭國商人。秦師欲襲鄭,弦高於滑遇之,假鄭君命以十二牛犒師,秦師以為鄭有備,遂退,鄭得免於難。',
+    en: 'A merchant of Zheng. When the Qin army meant to take Zheng by surprise, Xian Gao met them at Hua and, faking the order of his lord, fêted them with twelve oxen. The Qin thought Zheng was forewarned and turned back, and Zheng escaped the disaster.',
+  },
+  'hist-zhu-zhiwu': {
+    era: { zh: '燭之武退秦師', en: 'Zhu Zhiwu Turned Back the Qin Army' },
+    zh: '鄭國老臣。秦晉合圍鄭,燭之武夜縋出城,說秦穆公:「亡鄭以陪鄰,君之薄也。」 秦穆公感之,留兵戍鄭而去,鄭得免於難。',
+    en: 'An old minister of Zheng. When Qin and Jin together besieged Zheng, Zhu Zhiwu was lowered from the wall at night and persuaded Duke Mu of Qin: "To destroy Zheng is to make your neighbor strong; it is to your loss." Duke Mu was moved, left troops to garrison Zheng, and withdrew — and Zheng escaped the disaster.',
+  },
+  'hist-yan-jiangjun': {
+    zh: '春秋楚將顏率之另寫。',
+    en: 'Alternate writing for the Chu general Yan Shuai.',
+  },
+  'hist-qi-jinggong': {
+    zh: '齊景公,在位五十八年,景公後期任用晏嬰,國治稍安。然好奢侈,養馬萬匹,孔子過齊歎之。',
+    en: 'Duke Jing of Qi. Fifty-eight years he reigned; in his later years he raised Yan Ying and the state had peace. Yet lavish — he kept ten thousand horses, and Confucius sighed as he passed through Qi.',
+  },
+  'hist-yi-he': {
+    zh: '秦國神醫。為晉平公診病,曰「不可為也」,並述六氣致病之理,千古中醫之祖。',
+    en: 'A divine physician of Qin. Called to treat Duke Ping of Jin, he said: "It cannot be cured," and set out the doctrine of the Six Qi causing disease — an ancestor of Chinese medicine for the ages.',
+  },
+  'hist-shensheng': {
+    zh: '晉獻公太子。母齊姜。獻公寵驪姬,驪姬譖之,申生不肯辨,自縊於曲沃。後諡共太子。',
+    en: 'Crown prince of Duke Xian of Jin, son of Lady Qi Jiang. Duke Xian doted on Lady Li, who slandered him. Shen Sheng would not defend himself and hanged himself at Quwo. He was posthumously named the Reverent Crown Prince.',
+  },
+  'hist-li-ji': {
+    zh: '驪姬,晉獻公寵妃。譖太子申生,逼申生自縊,又逼重耳、夷吾出奔,晉國大亂二十年。後被殺。',
+    en: 'Lady Li, favorite of Duke Xian of Jin. She slandered the heir Shen Sheng to suicide and drove Chong\'er and Yiwu into exile, throwing Jin into chaos for twenty years. She was at last killed.',
+  },
+  'hist-wen-jiang': {
+    zh: '魯桓公夫人,齊襄公之妹。與兄通姦,使彭生殺魯桓公於齊,千古宮闈醜聞。',
+    en: 'Wife of Duke Huan of Lu, sister of Duke Xiang of Qi. She had a liaison with her brother and through Peng Sheng killed Duke Huan of Lu in Qi — a palace scandal of the ages.',
+  },
+  'hist-xia-ji': {
+    zh: '陳國夏徵舒之母。容貌絕世,屢嫁屢寡,凡九夫。陳靈公與孔寧、儀行父皆通之,夏徵舒怒殺靈公。後楚莊王滅夏氏,賜夏姬於連尹襄老,襄老死於邲之戰,夏姬又從巫臣奔晉。',
+    en: 'Mother of Xia Zhengshu of Chen. Of peerless beauty, she was widowed many times — nine husbands. Duke Ling of Chen with Kong Ning and Yi Xingfu had liaisons with her, and Xia Zhengshu in anger killed Duke Ling. King Zhuang of Chu then wiped out the Xia clan and gave her to Lian Yin Xianglao; when Xianglao died at the battle of Bi, she went with Wu Chen to Jin.',
+  },
+  'hist-shengong-wuchen': {
+    zh: '楚國申公巫臣。為夏姬背楚奔晉。後楚滅其族,巫臣怒,獻計於晉,使吳國學戰車之術,以擾楚。吳楚之爭遂起。',
+    en: 'Lord Wu Chen of Shen of Chu. For Lady Xia he left Chu and fled to Jin. When Chu wiped out his clan, in his rage he counseled Jin to teach Wu the use of chariot warfare to harass Chu — and the war between Wu and Chu was thus begun.',
+  },
+  'hist-qing-feng': {
+    zh: '齊國大夫。崔杼弒齊莊公,慶封與之共執國政。後反殺崔氏,專齊政,終為四族所攻,奔吳,後楚靈王使吳獻之,被楚軍殺之。',
+    en: 'A grandee of Qi. When Cui Zhu killed Duke Zhuang of Qi, Qing Feng held power with him. He later turned and wiped out the Cui, holding Qi alone — and was attacked by the four clans. He fled to Wu; when King Ling of Chu later asked Wu to give him up, the Chu army killed him.',
+  },
+  'hist-shu-ya': {
+    zh: '魯國叔孫氏,叔牙之另寫。',
+    en: 'Alternate writing for Shu Ya of the Shu Sun clan of Lu.',
+  },
+  'hist-cai-aihou': {
+    zh: '蔡哀侯,蔡國國君。其妹嫁息侯。蔡哀侯戲息侯之夫人息媯,息侯怒,引楚文王伐蔡,蔡哀侯被擒。',
+    en: 'Marquis Ai of Cai. His sister married the Marquis of Xi. Cai Ai mocked the Marquis of Xi\'s wife Lady Xi Gui; the Marquis of Xi in fury brought King Wen of Chu against Cai, and Cai Ai was taken.',
+  },
+  'hist-cai-huangong': {
+    zh: '蔡桓公,蔡國國君。扁鵲三見之而不信,終病入膏肓而死,「諱疾忌醫」千古傳為俗語。',
+    en: 'Duke Huan of Cai. Bian Que saw him three times and he would not believe; at last the sickness reached his marrow and he died — "shunning the doctor and hiding the disease" became a saying for the ages.',
+  },
   'hist-guangxu': {
     zh: '名載湉,同治帝堂弟。同治死無嗣,慈禧立之為帝,時年四歲。長大欲變法圖強,行戊戌變法,被慈禧囚於瀛臺十年。光緒三十四年十月二十一日卒,二十二日慈禧亦卒,世傳慈禧鴆光緒。',
     en: 'Personal name Zaitian, cousin of Tongzhi. When Tongzhi died without heir, Cixi set him on the throne at four. As an adult he wished to reform the state and led the Hundred Days\' Reform; Cixi imprisoned him at Yingtai for ten years. On the twenty-first day of the tenth month of 1908 he died; on the twenty-second Cixi died too — and the world says Cixi poisoned Guangxu.',
