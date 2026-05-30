@@ -2016,4 +2016,191 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字景伯,扶風平陵人。東漢經學家。注《左傳》、《國語》、《周官》。為馬融、鄭玄之師,東漢古文經學之祖。',
     en: 'Style Jingbo, of Pingling in Fufeng. A classical scholar of the Eastern Han. He annotated the Zuo Tradition, the Discourses of the States, and the Rites of Zhou. Teacher of Ma Rong and Zheng Xuan, founder of the Ancient-Script learning of the Eastern Han.',
   },
+  // ─── 歷代名將 新增第六批 (Historical biographies — batch 6: Jin & Southern-Northern) ───
+  'hist-liu-yuan': {
+    era: { zh: '漢趙開國', en: 'Founder of Han-Zhao' },
+    zh: '字元海,匈奴左部帥劉豹之子。漢化匈奴貴族。永興元年起兵離石,稱漢王,後稱帝,建漢趙(前趙),為五胡十六國之首。',
+    en: 'Style Yuanhai, son of Liu Bao the Chief of the Left Xiongnu. A Xiongnu noble steeped in Han culture. In 304 he raised troops at Lishi, called himself King of Han, then emperor, and founded the Han-Zhao (Former Zhao) — the first of the Sixteen Kingdoms of the Five Hu.',
+  },
+  'hist-liu-yao': {
+    zh: '前趙皇帝,劉淵族子。在位十一年,平劉曜之亂,定關中。後與石勒戰於洛陽,大敗被擒,被殺。前趙遂亡。',
+    en: 'Emperor of the Former Zhao, clansman of Liu Yuan. Eleven years he reigned: he put down Liu Yao\'s revolt and settled Guanzhong. Defeated by Shi Le at Luoyang, he was taken and killed — and the Former Zhao was ended.',
+  },
+  'hist-fu-hong': {
+    zh: '氐族,前秦開國之祖。輔石虎於後趙,後石虎死,氐族散去。苻洪率眾入關中,稱秦王,旋為部下毒殺。其子苻健建前秦。',
+    en: 'Of the Di people, ancestor of the Former Qin. He served Shi Hu in the Later Zhao. When Shi Hu died and the Di scattered, Fu Hong led them into Guanzhong and called himself King of Qin — and was soon poisoned by his own men. His son Fu Jian (the earlier) founded the Former Qin.',
+  },
+  'hist-fu-xiong': {
+    zh: '苻洪之子。後敗於石虎,降之。苻洪死,苻雄輔苻健建前秦。位至車騎大將軍。',
+    en: 'Son of Fu Hong. After being broken by Shi Hu he submitted to him. When Fu Hong died, Fu Xiong helped Fu Jian (the elder) found the Former Qin. He rose to Grand General of Chariots and Cavalry.',
+  },
+  'hist-murong-huang': {
+    zh: '前燕開國皇帝,字元真,鮮卑慕容部首領。在位十六年。建立前燕,定都龍城,後遷都鄴。',
+    en: 'Founding emperor of the Former Yan, style Yuanzhen, chieftain of the Xianbei Murong. Sixteen years he reigned. He founded the Former Yan, set the capital first at Longcheng, then at Ye.',
+  },
+  'hist-murong-jun': {
+    zh: '前燕第二代皇帝,慕容皝之子。在位十一年。滅冉魏,取河北,定都鄴。',
+    en: 'Second emperor of the Former Yan, son of Murong Huang. Eleven years he reigned. He destroyed the Ran Wei, took the north of the river, and set the capital at Ye.',
+  },
+  'hist-murong-ke': {
+    zh: '字玄恭,慕容皝之子。前燕宗室。輔幼主慕容暐,為太宰、太傅。性溫雅,有大略,前燕第一賢相。卒,前燕由是衰。',
+    en: 'Style Xuangong, son of Murong Huang. A prince of the Former Yan. He served the boy-ruler Murong Wei as Grand Steward and Grand Tutor. Mild and refined, of great strategy — the first worthy chancellor of the Former Yan. At his death the Former Yan declined.',
+  },
+  'hist-tuoba-gui': {
+    era: { zh: '北魏太祖', en: 'Emperor Taizu of Northern Wei' },
+    zh: '字涉珪,鮮卑拓跋部首領。北魏開國皇帝。年十六起兵代北,平諸部,統一北方一隅。後敗於後燕,後北上敗後燕,定都平城。在位二十三年,被子拓跋紹所弒。',
+    en: 'Style Shegui, chieftain of the Xianbei Tuoba. Founding emperor of Northern Wei. At sixteen he raised troops north of Dai, settled the tribes, and unified a corner of the north. Beaten by the Later Yan first, he then marched north and broke them, setting the capital at Pingcheng. Twenty-three years he reigned and was killed by his son Tuoba Shao.',
+  },
+  'hist-xiao-daocheng': {
+    era: { zh: '南齊高帝', en: 'Emperor Gao of Southern Qi' },
+    zh: '字紹伯,蘭陵人。南齊開國皇帝。劉宋大將,後篡宋建齊。在位四年崩,壽五十六。',
+    en: 'Style Shaobo, of Lanling. Founding emperor of the Southern Qi. A great general of Liu Song, he replaced Song and founded Qi. Four years he reigned and died at fifty-six.',
+  },
+  'hist-xiao-tong': {
+    era: { zh: '昭明太子', en: 'Crown Prince Zhaoming' },
+    zh: '字德施,梁武帝蕭衍長子。昭明太子。性仁孝好學,主編《昭明文選》三十卷,中國第一部詩文總集,千古文人必讀之書。年三十一早卒,世以為惜。',
+    en: 'Style Deshi, eldest son of Emperor Wu of Liang. Crown Prince Zhaoming. Kind, filial, and fond of learning, he led the compilation of the Wenxuan in thirty fascicles — the first general anthology of Chinese poetry and prose, the indispensable book of every man of letters. He died young at thirty-one, and the world has grieved him.',
+  },
+  'hist-xie-lingyun': {
+    era: { zh: '山水詩祖', en: 'Founder of Landscape Poetry' },
+    zh: '字宣明,陳郡陽夏人,謝玄之孫。南朝劉宋文人,中國山水詩之祖。屢遭貶謫,終以謀反罪被殺於廣州,年四十九。',
+    en: 'Style Xuanming, of Yangxia in Chen, grandson of Xie Xuan. A writer of Liu Song in the Southern Dynasties, founder of Chinese landscape poetry. Sent down again and again, he was at last killed at Guangzhou on a charge of revolt at forty-nine.',
+  },
+  'hist-yu-xin': {
+    era: { zh: '哀江南賦', en: 'The Lament for the South' },
+    zh: '字子山,南陽新野人。南北朝大文學家。原仕梁,出使西魏被扣,事西魏、北周二十餘年。位至開府儀同三司,然終身思南,作《哀江南賦》,千古絕唱。',
+    en: 'Style Zishan, of Xinye in Nanyang. A great writer of the Northern and Southern Dynasties. Originally with Liang, sent as envoy to Western Wei he was held, and served Western Wei and Northern Zhou for twenty years. He rose to Kaifu Yitong Sansi. All his life he longed for the south, and his Lament for the South rings forever.',
+  },
+  'hist-tao-hongjing': {
+    era: { zh: '山中宰相', en: 'Chancellor in the Mountains' },
+    zh: '字通明,丹陽秣陵人。南朝齊梁間道士、醫家、煉丹家。隱於茅山,梁武帝書信頻通,每有大事必問之,世稱「山中宰相」。著《本草經集注》、《真誥》。',
+    en: 'Style Tongming, of Moling in Danyang. A Daoist adept, physician, and alchemist of the Southern Qi and Liang. Hidden on Mount Mao, he exchanged letters often with Emperor Wu of Liang, who asked him before every great matter — the world called him the "Chancellor in the Mountains." The Collected Annotations on Materia Medica and the True Declarations are his.',
+  },
+  'hist-ge-hong': {
+    era: { zh: '抱朴子', en: '"He Who Embraces Simplicity"' },
+    zh: '字稚川,自號抱朴子,丹陽句容人。東晉道士、煉丹家、醫家。著《抱朴子》內外篇、《肘後備急方》。中華煉丹術、化學之祖。',
+    en: 'Style Zhichuan, calling himself "He Who Embraces Simplicity," of Jurong in Danyang. A Daoist adept, alchemist, and physician of the Eastern Jin. The Inner and Outer Chapters of the Baopuzi and the Emergency Recipes for One\'s Elbow Pocket are his — an ancestor of Chinese alchemy and chemistry.',
+  },
+  'hist-kou-qianzhi': {
+    zh: '字輔真,馮翊萬年人。北魏道士。改革天師道,創北天師道,被北魏太武帝奉為國師,主持滅佛之事。',
+    en: 'Style Fuzhen, of Wannian in Fengyi. A Daoist of Northern Wei. He reformed the Way of the Celestial Masters and founded the Northern school; Emperor Taiwu of Northern Wei honored him as State Preceptor and used him in the persecution of the Buddhists.',
+  },
+  'hist-jia-sixie': {
+    era: { zh: '齊民要術', en: 'Author of the Essential Arts for the People' },
+    zh: '北魏農學家。著《齊民要術》十卷,記中國北方農業之全,中國現存最早之農書,世界農學之珍。',
+    en: 'A specialist in agriculture of Northern Wei. He wrote the Essential Arts for the People in ten fascicles — a complete record of the agriculture of north China, the earliest extant farming manual in China, a treasure of world agricultural science.',
+  },
+  'hist-gan-bao': {
+    zh: '字令升,新蔡人。東晉史學家、文學家。著《搜神記》二十卷,中國志怪小說之祖。又著《晉紀》,記西晉一朝之事。',
+    en: 'Style Lingsheng, of Xincai. A historian and writer of Eastern Jin. He wrote In Search of the Supernatural in twenty fascicles — the founding work of the Chinese tale of the strange. He also wrote the Jin Annals, a record of the Western Jin.',
+  },
+  'hist-liu-yiqing': {
+    era: { zh: '世說新語', en: 'A New Account of the Tales of the World' },
+    zh: '南朝劉宋宗室,臨川王。主編《世說新語》,記魏晉名士風流軼事,千古文人之必讀,中國筆記小說之祖。',
+    en: 'A prince of Liu Song in the Southern Dynasties, Prince of Linchuan. He led the compilation of A New Account of the Tales of the World, recording the elegant tales of the Wei-Jin gentlemen — read by every man of letters for the ages, the founder of the Chinese miscellany.',
+  },
+  'hist-jiang-yan': {
+    era: { zh: '江郎才盡', en: '"Lord Jiang\'s Talent Has Run Dry"' },
+    zh: '字文通,濟陽考城人。南朝梁文人。少有才,作《別賦》、《恨賦》,千古傳誦。晚年才思衰退,世以「江郎才盡」為俗語。',
+    en: 'Style Wentong, of Kaocheng in Jiyang. A writer of Liang in the Southern Dynasties. Talented in youth, his Rhapsody on Parting and Rhapsody on Regret are read forever. In old age his talent ran thin, and "Lord Jiang\'s talent has run dry" became a saying.',
+  },
+  'hist-yan-zhitui': {
+    era: { zh: '顏氏家訓', en: 'Author of the Family Instructions of the Yan Clan' },
+    zh: '字介,琅琊臨沂人。北齊、北周、隋三朝臣。著《顏氏家訓》二十篇,中華第一部家訓,千古傳為治家之典。',
+    en: 'Style Jie, of Linyi in Langya. A minister of three dynasties — Northern Qi, Northern Zhou, and Sui. He wrote the Family Instructions of the Yan Clan in twenty pieces — the first family-instructions text of China, a model of household discipline for the ages.',
+  },
+  'hist-gao-huan': {
+    era: { zh: '北齊高祖', en: 'High Founder of Northern Qi' },
+    zh: '字賀六渾,渤海蓨人。鮮卑化漢人,東魏權臣。立元善見為孝靜帝,挾天子以令諸侯。屢與宇文泰爭,玉璧之戰大敗,憂憤而卒。其子高洋篡東魏建北齊。',
+    en: 'Style Heliuhun, of Tiao in Bohai. A Xianbei-acculturated Han, the great power-holder of the Eastern Wei. He set up Yuan Shanjian as Emperor Xiaojing and held the throne to command the realm. He fought Yuwen Tai again and again; broken at Yubi he died of grief and rage. His son Gao Yang took the Eastern Wei throne and founded Northern Qi.',
+  },
+  'hist-gao-yang': {
+    era: { zh: '北齊文宣帝', en: 'Emperor Wenxuan of Northern Qi' },
+    zh: '高歡次子。篡東魏建北齊。在位十年,前期英武,後期沉湎酒色,大殺宗室、大臣,殘暴無道。卒於三十一歲。',
+    en: 'Second son of Gao Huan. He took the Eastern Wei throne and founded Northern Qi. Ten years he reigned: brave and bold at first, in his later years he drowned in wine and women and killed the princes and great ministers — cruel and faithless. He died at thirty-one.',
+  },
+  'hist-gao-cheng': {
+    zh: '字子惠,高歡長子。東魏權臣,大將軍。性聰穎,有才略。與弟高洋共執朝政。為廚奴蘭京所殺,年二十九。',
+    en: 'Style Zihui, eldest son of Gao Huan. A great power-holder of the Eastern Wei, Grand Marshal. Sharp and capable. With his brother Gao Yang he held the court. He was killed by the kitchen-slave Lan Jing at twenty-nine.',
+  },
+  'hist-yuwen-tai': {
+    era: { zh: '北周太祖', en: 'Founder of Northern Zhou' },
+    zh: '字黑獺,鮮卑化匈奴人。西魏權臣。立元寶炬為文帝,挾天子以令諸侯。與高歡對峙,玉璧之戰大破之。建府兵制,為隋唐之基。卒,子宇文覺篡西魏建北周。',
+    en: 'Style Heita, a Xiongnu Xianbei-acculturated man. Great power-holder of Western Wei. He set up Yuan Baoju as Emperor Wen and held the throne to command the realm. Against Gao Huan he broke him utterly at Yubi. He set up the Garrison Militia system, the foundation of Sui and Tang. At his death his son Yuwen Jue took the Western Wei throne and founded Northern Zhou.',
+  },
+  'hist-yuwen-yong': {
+    era: { zh: '北周武帝', en: 'Emperor Wu of Northern Zhou' },
+    zh: '宇文邕,宇文泰第四子。北周第三代皇帝。誅權臣宇文護,親政。建德六年滅北齊,統一北方。又行滅佛之政(三武滅佛之一)。卒於伐突厥途中,年三十六。隋楊堅以其女為后。',
+    en: 'Yuwen Yong, fourth son of Yuwen Tai. Third emperor of Northern Zhou. He killed the powerful Yuwen Hu and took up rule himself. In 577 he ended the Northern Qi and unified the north. He also persecuted the Buddhists (one of the Three Wu persecutions). He died on the campaign against the Türks at thirty-six. Yang Jian of Sui made his daughter empress.',
+  },
+  'hist-yuwen-hu': {
+    zh: '宇文泰之姪。北周權臣。執政十六年,廢殺孝閔帝、明帝二帝,專橫跋扈。後被武帝宇文邕誅之,夷三族。',
+    en: 'Nephew of Yuwen Tai. The great power-holder of Northern Zhou. Sixteen years he held the court, deposing and killing two emperors — Xiaomin and Ming. Wild and overweening, he was at last killed by Emperor Wu Yuwen Yong and his clan exterminated to three branches.',
+  },
+  'hist-erzhu-rong': {
+    zh: '北秀容人。北魏末權臣。河陰之變,殺胡太后與幼主,沉於黃河,又屠百官二千餘人,京師為空。後孝莊帝設計殺之,北魏遂亂。',
+    en: 'Of Beixiurong. The great power-holder at the end of Northern Wei. In the Heyin incident he killed the Empress Dowager Hu and the boy-emperor, sinking them in the Yellow River, and butchered over two thousand officials — the capital was emptied. Emperor Xiaozhuang later laid the plot that killed him, and Northern Wei fell into chaos.',
+  },
+  'hist-wei-xiaokuan': {
+    era: { zh: '玉璧守將', en: 'Defender of Yubi' },
+    zh: '字孝寬,京兆杜陵人。西魏、北周名將。玉璧之戰,以一城之兵拒高歡十萬之眾,圍五十日不下。高歡憂憤而卒。功在千秋,周武帝倚之以滅北齊。',
+    en: 'Style Xiaokuan, of Duling in the metropolitan region. A famed general of Western Wei and Northern Zhou. At Yubi with one city\'s force he held Gao Huan\'s hundred thousand for fifty days; the siege failed and Gao Huan died of grief and rage. His merit will not fade — Emperor Wu of Zhou leaned on him for the conquest of Northern Qi.',
+  },
+  'hist-huan-xuan': {
+    zh: '字敬道,譙國龍亢人,桓溫之子。東晉末權臣。元興元年篡晉,改國號楚。在位三月,劉裕起兵討之,桓玄敗走江陵,被馮遷所殺。',
+    en: 'Style Jingdao, of Longkang in Qiao, son of Huan Wen. Great power-holder at the end of Eastern Jin. In 403 he took the Jin throne and changed the dynasty\'s name to Chu. Three months he reigned; Liu Yu raised troops against him, and Huan Xuan fled to Jiangling, where Feng Qian killed him.',
+  },
+  'hist-liu-yu': {
+    era: { zh: '宋武帝', en: 'Emperor Wu of Liu Song' },
+    zh: '字德輿,小字寄奴,彭城人。南朝劉宋開國皇帝。出身寒微,從軍起家。平桓玄之亂,北伐後秦,克長安。後篡晉建宋。在位三年崩。',
+    en: 'Style Deyu, child-name Jinu, of Pengcheng. Founding emperor of Liu Song in the Southern Dynasties. Of humble birth, he rose through the army. He put down Huan Xuan\'s revolt, marched north against the Later Qin, and took Chang\'an. He then took the Jin throne and founded Song. Three years he reigned.',
+  },
+  'hist-liu-laozhi': {
+    zh: '字道堅,彭城人。東晉北府兵將領。淝水之戰先登破敵,屢立戰功。後事桓玄,桓玄篡晉,劉牢之憂憤自縊。',
+    en: 'Style Daojian, of Pengcheng. A commander of the Beifu troops of Eastern Jin. At Feishui he was first to break the enemy, and won many laurels. He later served Huan Xuan; when Huan Xuan took the Jin throne, Liu Laozhi hanged himself in despair.',
+  },
+  'hist-huan-chong': {
+    zh: '字幼子,譙國龍亢人,桓溫之弟。東晉名將。鎮荊州,治民有方,與謝安共扶晉室,東晉得以維持。',
+    en: 'Style Youzi, of Longkang in Qiao, younger brother of Huan Wen. A famed general of Eastern Jin. Holding Jingzhou he ruled the people well; with Xie An he upheld the Jin house, and Eastern Jin endured.',
+  },
+  'hist-yu-liang': {
+    zh: '字元規,潁川鄢陵人。東晉名臣,晉成帝舅。屢執朝政。性自負,逼蘇峻之亂,京師大破。後憂憤而卒。',
+    en: 'Style Yuangui, of Yanling in Yingchuan. A famed minister of Eastern Jin, uncle of Emperor Cheng. He held the court many times. Proud by nature, he provoked Su Jun\'s revolt and the capital was broken. He died of grief and rage.',
+  },
+  'hist-yu-bing': {
+    zh: '字季堅,庾亮之弟。事東晉成帝、康帝,以中書令掌機要。',
+    en: 'Style Jijian, younger brother of Yu Liang. He served Emperors Cheng and Kang of Eastern Jin as Director of the Imperial Secretariat, holding the state\'s secrets.',
+  },
+  'hist-wang-yan': {
+    era: { zh: '清談誤國', en: 'Pure Talk that Ruined the State' },
+    zh: '字夷甫,琅琊臨沂人。西晉名士。容貌姣麗,清談玄理,身居宰輔而不問政事,以「口中無雌黃」為時尚。八王之亂中為東海王越所重。永嘉之亂,被石勒所擒,石勒築土埋之,曰:「凡為天下計者,豈得以浮華誤蒼生!」',
+    en: 'Style Yifu, of Linyi in Langya. A famed gentleman of Western Jin. Of fair appearance and master of pure conversation, he held the chancellorship without troubling about government — "no orpiment in the mouth" was his fashion. In the War of Eight Princes Prince Yue of Donghai prized him. In the Yongjia chaos Shi Le took him alive and had him buried alive in earth: "He who plans for the realm — should he use empty bloom to mislead the common folk?"',
+  },
+  'hist-wei-jie': {
+    era: { zh: '看殺衛玠', en: '"They Stared Wei Jie to Death"' },
+    zh: '字叔寶,河東安邑人。西晉美男子。容貌絕美,白如玉雪。從建康渡江,觀者如堵牆,目不暫舍,衛玠不堪,病臥而卒,年二十七。世傳「看殺衛玠」。',
+    en: 'Style Shubao, of Anyi in Hedong. The most beautiful man of Western Jin. Of unmatched beauty, white as jade and snow. As he crossed the Yangzi to Jiankang the onlookers stood as a wall, eyes never leaving him; he could not bear it, fell sick, and died at twenty-seven. They say: "They stared Wei Jie to death."',
+  },
+  'hist-li-xiong': {
+    zh: '字仲俊,巴西宕渠人。成漢開國皇帝。在位三十年。建立成漢,定都成都。性節儉,任賢納諫,蜀中得以休養生息。',
+    en: 'Style Zhongjun, of Dangqu in Baxi. Founding emperor of the Cheng Han. Thirty years he reigned. He founded Cheng Han and set the capital at Chengdu. Frugal in life, raising worthies and heeding counsel — Shu rested and grew under him.',
+  },
+  'hist-ji-shao': {
+    era: { zh: '血染御衣', en: 'Blood Across the Imperial Robe' },
+    zh: '字延祖,嵇康之子。父被司馬昭所殺,山濤撫之如子,薦於武帝,事晉。八王之亂,惠帝為亂兵所迫,嵇紹以身翼蔽,被亂兵殺於御前,血濺御衣。亂定,左右欲洗其衣,惠帝曰:「此嵇侍中之血,勿浣!」 千古忠臣之冠。',
+    en: 'Style Yanzu, son of Ji Kang. When his father was killed by Sima Zhao, Shan Tao raised him as his own and recommended him to Emperor Wu. In the War of Eight Princes, when Emperor Hui was beset by mutineers, Ji Shao covered him with his body and was struck down beside the imperial seat, his blood across the robe. When the chaos was over and attendants would wash it out, Emperor Hui said: "This is the blood of Palace Attendant Ji — let it not be washed!" The greatest of loyal ministers for the ages.',
+  },
+  'hist-jia-chong': {
+    zh: '字公閭,平陽襄陵人。司馬昭智囊。高貴鄉公率殿中宿衛攻司馬昭,賈充令成濟弒之。司馬炎即位,封魯郡公,位至太尉。其女賈南風為惠帝皇后,八王之亂禍源。',
+    en: 'Style Gonglü, of Xiangling in Pingyang. Sima Zhao\'s brain. When the Duke of Gaogui led the palace guards out against Sima Zhao, it was Jia Chong who told Cheng Ji to strike the emperor down. When Sima Yan took the throne, Jia Chong was made Duke of Lu commandery and rose to Grand Marshal. His daughter Jia Nanfeng became Empress of Emperor Hui — the wellspring of the War of Eight Princes.',
+  },
+  'hist-jia-nanfeng': {
+    era: { zh: '八王之亂之源', en: 'Wellspring of the War of Eight Princes' },
+    zh: '賈充之女,晉惠帝皇后。性陰險,貌醜悍妒。專權十年,殺楊太后,廢愍懷太子,引諸王相爭。趙王倫廢之為庶人,旋鴆殺於金墉。年四十五。',
+    en: 'Daughter of Jia Chong, empress of Emperor Hui of Jin. Sinister, ugly, fierce, and jealous. Ten years she held power: killed Empress Dowager Yang, deposed Crown Prince Minhuai, and set the princes to fighting. Prince Lun of Zhao reduced her to commoner and soon after poisoned her at Jinyong. Forty-five years old.',
+  },
+  'hist-wang-rong': {
+    zh: '字濬沖,琅琊臨沂人,王戎,竹林七賢中最年少者。父早卒,以孝聞。事晉,位至司徒。性貪吝,自種好李,鬻之而恐人得其種,鑽其核。世以為儉吝之最。',
+    en: 'Style Junchong, of Linyi in Langya, the youngest of the Seven Sages of the Bamboo Grove. His father died young and he was famed for filial piety. Under Jin he rose to Excellency over the Masses. Yet of grasping temper — he grew fine plums, and when he sold them he bored out the pits for fear others would plant his stock. The world held him the meanest miser of the age.',
+  },
 };
