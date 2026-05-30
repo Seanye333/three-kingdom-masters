@@ -2689,6 +2689,286 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字晉卿,德順軍隴幹人。南宋抗金名將。與弟吳璘共守川陝,屢破金兵,使金不能越大散關。封涪王。卒年四十七。',
     en: 'Style Jinqing, of Longgan in Deshun Army. A famed Southern Song general against the Jin. With his brother Wu Lin he held Sichuan and Shaanxi, broke the Jin many times, and the Jin could not cross the Great Sanguan. Made Prince of Fu. He died at forty-seven.',
   },
+  // ─── 歷代名將 新增第九批 (Historical biographies — batch 9: Yuan & Ming) ───
+  'hist-jamuqa': {
+    era: { zh: '札木合', en: 'Jamuqa' },
+    zh: '蒙古札答蘭部首領。鐵木真少時的安答(義兄弟)。後因爭草原霸權,屢與鐵木真戰,終敗於鐵木真。鐵木真求其重歸,札木合請死,鐵木真為之流涕,以無流血禮處死。',
+    en: 'Chief of the Jadaran Mongol tribe. Sworn brother (anda) of Temüjin in their youth. Later, fighting for hegemony of the steppe, he fought Temüjin many times and was at last broken. Temüjin offered to bring him back; Jamuqa asked to die. Temüjin wept and granted him a bloodless death.',
+  },
+  'hist-jebe': {
+    era: { zh: '哲別', en: 'Jebe the Arrow' },
+    zh: '蒙古別速部人。原名只兒豁阿歹。射成吉思汗之馬,被擒。成吉思汗賜名「哲別」(箭頭之意)。為四犬之一,與速不台合作,西征花剌子模、欽察、俄羅斯,所向披靡。',
+    en: 'Of the Besud tribe of the Mongols, personal name Jirqo\'adai. He shot Genghis Khan\'s horse and was taken; the Khan named him "Jebe" (arrowhead). One of the Four Hounds. With Subutai he marched west against Khwarazm, the Cuman, and Russia — and none stood before him.',
+  },
+  'hist-muqali': {
+    era: { zh: '木華黎', en: 'Muqali' },
+    zh: '蒙古札剌兒部人。成吉思汗四傑之一。鐵木真稱帝,封太師、國王,授金國經略之任。鎮華北十年,屢敗金兵。卒於鳳翔軍中,年五十四。',
+    en: 'Of the Jalair tribe of the Mongols. One of the Four Heroes of Genghis Khan. When Temüjin took the imperial title, he was made Grand Tutor and King, charged with the conquest of Jin. Ten years he held north China and broke the Jin armies many times. He died in camp at Fengxiang at fifty-four.',
+  },
+  'hist-jochi': {
+    zh: '成吉思汗長子。性多疑,與父關係不睦。封欽察汗國,東至額爾齊斯河,西至俄羅斯。父在世時即卒。其子拔都繼承欽察汗位。',
+    en: 'Eldest son of Genghis Khan. Of suspicious nature, at odds with his father. Enfeoffed with the Golden Horde, from the Irtysh to Russia. He died in his father\'s lifetime; his son Batu took the Golden Horde\'s throne.',
+  },
+  'hist-chagatai': {
+    zh: '成吉思汗次子。封察合台汗國,中亞之地。性嚴峻,執行成吉思汗札撒不阿。',
+    en: 'Second son of Genghis Khan. Enfeoffed with the Chagatai Khanate of Central Asia. Stern in temper, he enforced the Khan\'s Jasaq without bending.',
+  },
+  'hist-ogedei': {
+    era: { zh: '窩闊台汗', en: 'Ögedei Khan' },
+    zh: '成吉思汗第三子。蒙古第二代大汗。在位十三年。滅金,西征歐羅巴,築哈剌和林城為蒙古都。性寬厚好酒,後因酗酒而卒。',
+    en: 'Third son of Genghis Khan. Second Great Khan of the Mongols. Thirteen years he reigned. He ended the Jin, marched west against Europe, and built Karakorum as the Mongol capital. Broad-hearted and fond of wine, he died of drink.',
+  },
+  'hist-tolui': {
+    zh: '成吉思汗第四子。蒙哥、忽必烈、旭烈兀、阿里不哥之父。守蒙古本土,世稱「監國」。為兄窩闊台代死。',
+    en: 'Fourth son of Genghis Khan. Father of Möngke, Kublai, Hülegü, and Ariq Böke. He held the Mongol homeland — called "Regent." He died in place of his brother Ögedei.',
+  },
+  'hist-mongke': {
+    era: { zh: '蒙哥汗', en: 'Möngke Khan' },
+    zh: '拖雷長子。蒙古第四代大汗。在位八年。發動三次西征,旭烈兀征中亞、波斯,忽必烈征南宋。蒙哥親征南宋,於釣魚城下中流矢而死,世界歷史為之轉折。',
+    en: 'Eldest son of Tolui. Fourth Great Khan of the Mongols. Eight years he reigned. He launched three westward campaigns — Hülegü against Central Asia and Persia, Kublai against the Southern Song. Möngke marched against the Southern Song in person and was struck by a stray arrow at the walls of Diaoyu City and died — and world history turned.',
+  },
+  'hist-hulagu': {
+    era: { zh: '旭烈兀', en: 'Hülegü' },
+    zh: '拖雷之子,蒙哥之弟。蒙古西征軍統帥。1258年攻陷巴格達,滅阿拔斯王朝,屠百萬人,千年伊斯蘭黃金時代終於此。建伊兒汗國。',
+    en: 'Son of Tolui, brother of Möngke. Commander of the Mongol westward armies. In 1258 he took Baghdad, ended the Abbasid Caliphate, and killed a million — the thousand-year golden age of Islam ended there. He founded the Ilkhanate.',
+  },
+  'hist-batu': {
+    era: { zh: '拔都', en: 'Batu Khan' },
+    zh: '朮赤之子。蒙古西征軍統帥。1235年率十五萬大軍西征,征俄羅斯、波蘭、匈牙利,所向披靡,馬蹄至維也納城下,因窩闊台死訊而還。建欽察汗國,即金帳汗國。',
+    en: 'Son of Jochi. Commander of the Mongol westward armies. In 1235 he led a hundred and fifty thousand west — Russia, Poland, Hungary fell before him, his hooves at the walls of Vienna — and only the news of Ögedei\'s death turned him back. He founded the Kipchak Khanate, the Golden Horde.',
+  },
+  'hist-zhang-rou': {
+    zh: '字德剛,易州定興人。元朝漢人世侯。降蒙古後屢立戰功。封蔡國公。其子張弘範後滅宋於崖山。',
+    en: 'Style Degang, of Dingxing in Yizhou. A hereditary Han lord under Yuan. After submitting to the Mongols he won many laurels. Made Duke of Cai. His son Zhang Hongfan would later end the Song at Yashan.',
+  },
+  'hist-zhang-hongfan': {
+    era: { zh: '崖山滅宋', en: 'Ended Song at Yashan' },
+    zh: '張柔之子。元朝大將。崖山之戰,大破宋軍,陸秀夫負衛王跳海,宋遂亡。後勒石「鎮國大將軍張弘範滅宋於此」,千古恥辱。',
+    en: 'Son of Zhang Rou. A great general of Yuan. At Yashan he broke the Song fleet; Lu Xiufu leapt into the sea with the boy emperor, and Song was ended. He cut into stone "Here Great General Zhang Hongfan, Defender of the State, ended Song" — a shame for the ages.',
+  },
+  'hist-toghto': {
+    era: { zh: '脫脫', en: 'Toqto\'a' },
+    zh: '元朝末年宰相。修《宋史》、《遼史》、《金史》三史。後征紅巾軍有功,被讒罷官,流雲南賜死。元失之脫脫,自此一蹶不振。',
+    en: 'Chancellor at the end of Yuan. He oversaw the writing of the Song, Liao, and Jin Histories. He marched against the Red Turbans with credit; on slander he was dismissed, exiled to Yunnan, and given a draught of death. Yuan lost him — and never recovered.',
+  },
+  'hist-yuan-shundi': {
+    zh: '元朝末代皇帝,孛兒只斤·妥懽帖睦爾。在位三十五年。國事大壞,紅巾軍起。朱元璋北伐,順帝棄大都北遁,北元由是始,蒙古退回草原。',
+    en: 'Last emperor of Yuan, Borjigin Toghon Temür. Thirty-five years he reigned. Affairs of state rotted, the Red Turbans rose. When Zhu Yuanzhang marched north, Shundi abandoned Dadu and fled — Northern Yuan began here, and the Mongols pulled back to the steppe.',
+  },
+  'hist-han-liner': {
+    zh: '元末紅巾軍領袖。父韓山童為白蓮教主,起義被殺。劉福通立其為「小明王」,建宋國。後為朱元璋部將廖永忠沉於江中。',
+    en: 'A Red Turban leader of late Yuan. His father Han Shantong was the head of the White Lotus, killed for revolt. Liu Futong set him up as the "Little Bright King" and founded the Song state. He was later drowned in the river by Zhu Yuanzhang\'s captain Liao Yongzhong.',
+  },
+  'hist-liu-futong': {
+    zh: '元末紅巾軍領袖。立韓林兒為小明王。三路北伐,直搗大都,後敗於察罕帖木兒,被殺。',
+    en: 'A Red Turban leader of late Yuan. He set up Han Lin\'er as the Little Bright King. With three armies he marched north straight at Dadu; broken later by Chaghan Temür, he was killed.',
+  },
+  'hist-zhang-shicheng': {
+    zh: '泰州白駒場人。元末群雄之一。原為鹽販,起兵據蘇州,自稱吳王。後降元,又叛元,終為朱元璋所滅,自縊於應天府。',
+    en: 'Of Baijuchang in Taizhou. One of the great rebels of late Yuan. Born a salt-peddler, he raised troops, held Suzhou, and called himself King of Wu. He submitted to Yuan, then rose against Yuan, and was at last destroyed by Zhu Yuanzhang; he hanged himself at Yingtianfu.',
+  },
+  'hist-guan-hanqing': {
+    era: { zh: '元曲之祖', en: 'Father of Yuan Drama' },
+    zh: '號已齋叟,大都人。元代戲曲家。元曲四大家之首。著雜劇六十餘種,以《竇娥冤》、《救風塵》、《單刀會》傳世。中華戲曲史之最。',
+    en: 'Called the Old Man of Yi-zhai, of Dadu. A dramatist of Yuan, first of the Four Great Masters of Yuan drama. He wrote over sixty zaju plays; The Injustice of Dou E, Rescued by a Courtesan, and Single-Blade Meeting survive. The summit of Chinese theatrical history.',
+  },
+  'hist-wang-shifu': {
+    zh: '元代戲曲家。著《西廂記》五本二十一折,中華戲曲之巔峰。',
+    en: 'A Yuan dramatist. He wrote the Romance of the Western Chamber in five books and twenty-one scenes — the summit of Chinese drama.',
+  },
+  'hist-zhao-mengfu': {
+    era: { zh: '元代書畫家', en: 'Master of Calligraphy and Painting of Yuan' },
+    zh: '字子昂,號松雪道人,湖州人。宋宗室,事元為翰林學士。書畫絕世,創「趙體」書法,與顏柳歐並稱楷書四大家。妻管道升亦書畫名家。',
+    en: 'Style Zi\'ang, called the Daoist of Pine and Snow, of Huzhou. A kinsman of the Song house who served Yuan as Hanlin Academician. Peerless in calligraphy and painting, he created the "Zhao style" and stood with Yan, Liu, and Ou as one of the Four Great Masters of Regular Script. His wife Guan Daosheng was also a great painter and calligrapher.',
+  },
+  'hist-huang-gongwang': {
+    zh: '字子久,號大痴道人,常熟人。元四家之首。畫風淡雅清逸。《富春山居圖》傳世,中華山水畫之巔峰。',
+    en: 'Style Zijiu, called the Daoist of Great Foolishness, of Changshu. First of the Four Masters of Yuan. His painting was light and lofty. His Dwelling in the Fuchun Mountains survives — the summit of Chinese landscape painting.',
+  },
+  'hist-ni-zan': {
+    zh: '字元鎮,號雲林,無錫人。元四家之一。出身富豪,後散家財,雲遊太湖,以畫自娛。畫風蕭疏淡遠,千古傳為文人畫之祖。',
+    en: 'Style Yuanzhen, called Yunlin, of Wuxi. One of the Four Masters of Yuan. Born to a rich house, he later scattered his fortune and wandered Lake Tai, painting for his pleasure. His style was spare and far — a founder of the literati painting tradition for the ages.',
+  },
+  'hist-guo-shoujing': {
+    era: { zh: '授時曆', en: 'Author of the Time-Granting Calendar' },
+    zh: '字若思,順德邢台人。元代天文學家、水利學家。製《授時曆》,定一年為365.2425日,與現代曆法僅差26秒,比西方早三百年。又主持郭守敬水利,北引漕運。',
+    en: 'Style Ruosi, of Xingtai in Shunde. An astronomer and hydraulic engineer of Yuan. He compiled the Time-Granting Calendar, fixing the year at 365.2425 days — twenty-six seconds from the modern reckoning, and three hundred years before the West. He also led the great waterworks, opening the northern grain transport.',
+  },
+  'hist-phagpa': {
+    zh: '名八思巴,藏族薩迦派高僧。元世祖忽必烈封為國師、帝師。創八思巴文,蒙古新文字之祖。',
+    en: 'Personal name \'Phags-pa, a great monk of the Tibetan Sakya school. Kublai Khan of Yuan made him State Preceptor and Imperial Preceptor. He created the \'Phags-pa script, ancestor of the new Mongol writing.',
+  },
+  'hist-li-wenzhong': {
+    zh: '字思本,泗州盱眙人,朱元璋外甥。明初名將。隨徐達、常遇春北伐,平定北疆。封曹國公。卒年四十六。',
+    en: 'Style Siben, of Xuyi in Sizhou, nephew of Zhu Yuanzhang through his sister. A famed early-Ming general. With Xu Da and Chang Yuchun he marched north and pacified the borders. Made Duke of Cao. He died at forty-six.',
+  },
+  'hist-feng-sheng': {
+    zh: '安徽定遠人。明初名將。隨朱元璋起兵,北伐元都,平定西北。封宋國公。後因坐藍玉案被賜死。',
+    en: 'Of Dingyuan in Anhui. A famed early-Ming general. He rose with Zhu Yuanzhang, marched on the Yuan capital, and pacified the northwest. Made Duke of Song. Caught up later in the Lan Yu case, he was given a draught of death.',
+  },
+  'hist-wang-baobao': {
+    era: { zh: '擴廓帖木兒', en: 'Köke Temür' },
+    zh: '元末名將,父為察罕帖木兒。鎮河北、山西,抗紅巾軍、抗明軍。朱元璋稱「奇男子」,屢欲招降不可。後北遁,卒於漠北。',
+    en: 'A famed general of late Yuan, son of Chaghan Temür. He held Hebei and Shanxi against the Red Turbans and the Ming. Zhu Yuanzhang called him "a wondrous man" and tried again and again to bring him over — could not. He fled north at last and died in the desert.',
+  },
+  'hist-yao-guangxiao': {
+    era: { zh: '黑衣宰相', en: 'The Black-Robed Chancellor' },
+    zh: '法名道衍,長洲人。明初僧人,謀士。輔朱棣靖難奪位,功成不還俗,號「黑衣宰相」。主編《永樂大典》。卒,賜諡恭靖。',
+    en: 'Dharma name Daoyan, of Changzhou. A monk and counselor of early Ming. He helped Zhu Di of the Yan in the Jingnan war and seizure of the throne; when the work was done he would not return to lay life and was called the "Black-Robed Chancellor." He led the compilation of the Yongle Encyclopedia. At his death he was given the posthumous name Gongjing.',
+  },
+  'hist-xie-jin': {
+    zh: '字大紳,江西吉水人。明朝才子。主編《永樂大典》二萬二千卷。後得罪漢王朱高煦,被陷下獄,埋於雪中凍死,年四十七。',
+    en: 'Style Dashen, of Jishui in Jiangxi. A talent of Ming. He led the compilation of the Yongle Encyclopedia in twenty-two thousand fascicles. He gave offense to Prince Han Zhu Gaoxu, was framed into prison, and was buried in the snow and frozen to death at forty-seven.',
+  },
+  'hist-yang-shiqi': {
+    zh: '字士奇,泰和人。明朝三楊之首,內閣首輔。事建文、永樂、洪熙、宣德、正統五朝四十餘年。國事多依之,有「仁宣之治」之功。',
+    en: 'Style Shiqi, of Taihe. First of the "Three Yangs" of Ming, Grand Secretary. He served Jianwen, Yongle, Hongxi, Xuande, and Zhengtong for over forty years. Affairs of state leaned on him, and the "Reign of Renxuan" owed much to his work.',
+  },
+  'hist-yang-rong': {
+    zh: '字勉仁,建安人。明朝三楊之一。內閣大學士。事永樂、洪熙、宣德、正統四朝。',
+    en: 'Style Mianren, of Jian\'an. One of the "Three Yangs" of Ming, Grand Secretary. He served Yongle, Hongxi, Xuande, and Zhengtong.',
+  },
+  'hist-yang-pu': {
+    zh: '字弘濟,石首人。明朝三楊之一。內閣大學士。性溫和持重,事三朝。',
+    en: 'Style Hongji, of Shishou. One of the "Three Yangs" of Ming, Grand Secretary. Mild and weighty in temper, he served three reigns.',
+  },
+  'hist-yang-tinghe': {
+    zh: '字介夫,新都人。明武宗、世宗兩朝首輔。武宗崩無嗣,楊廷和定策迎興王朱厚熜入繼大統。後因大禮議與世宗不合,辭歸,被籍沒,父子皆貶。',
+    en: 'Style Jiefu, of Xindu. Grand Secretary under both Emperor Wu and Emperor Shi of Ming. When Wuzong died without heir, Yang Tinghe set the plan to bring the Prince of Xing Zhu Houcong to the throne. He later fell out with Shizong in the Great Rites Controversy; he resigned, his house was confiscated, and father and son alike were thrust down.',
+  },
+  'hist-yan-song': {
+    era: { zh: '青詞宰相', en: 'The Green-Ink Chancellor' },
+    zh: '字惟中,分宜人。明嘉靖朝首輔。專權二十年,以善作青詞(道教祭文)得嘉靖帝寵信,號「青詞宰相」。其子嚴世蕃尤奸險。後為徐階所構,父子俱被籍沒,嚴世蕃斬首,嚴嵩餓死於墓側。',
+    en: 'Style Weizhong, of Fenyi. Grand Secretary under Emperor Jiajing of Ming. Twenty years he held power, winning Jiajing\'s favor with his "green-ink" Daoist prayer-texts — the "Green-Ink Chancellor." His son Yan Shifan was even more sinister. Later framed by Xu Jie, father and son were both confiscated, Yan Shifan beheaded, and Yan Song starved to death beside the graves.',
+  },
+  'hist-yan-shifan': {
+    zh: '嚴嵩之子。明嘉靖朝權貴。性陰險,號「鬼影」。專橫跋扈,聚財甚富。後與父同被徐階所構,被斬於市。',
+    en: 'Son of Yan Song. A great power-holder of Jiajing\'s Ming. Sinister, called "ghost-shadow." Wild and overbearing, he gathered great wealth. Later, with his father, framed by Xu Jie, he was beheaded in the marketplace.',
+  },
+  'hist-xu-jie': {
+    zh: '字子昇,松江華亭人。明嘉靖、隆慶兩朝首輔。性沉穩,以柔克剛,終於扳倒嚴嵩父子。提拔張居正,為「隆慶開關」之始。',
+    en: 'Style Zisheng, of Huating in Songjiang. Grand Secretary under Jiajing and Longqing of Ming. Steady in temper, by gentleness he broke the hard — and at last he overthrew Yan Song and his son. He raised Zhang Juzheng, and the "Longqing Opening" began here.',
+  },
+  'hist-gao-gong': {
+    zh: '字肅卿,新鄭人。明隆慶朝首輔。性剛烈,與張居正不睦。萬曆即位,張居正聯馮保構陷高拱,罷歸故里,憂憤而卒。',
+    en: 'Style Suqing, of Xinzheng. Grand Secretary under Longqing of Ming. Stiff in temper, at odds with Zhang Juzheng. When Wanli took the throne, Zhang Juzheng with Feng Bao framed Gao Gong; dismissed to his home, he died of grief and rage.',
+  },
+  'hist-feng-bao': {
+    zh: '深州人。明萬曆朝權宦。與張居正相結,共擔朝政十年。張居正死後,被新閣彈劾,籍沒家產,流南京。',
+    en: 'Of Shenzhou. A great eunuch under Wanli of Ming. He bound himself to Zhang Juzheng and they held the court for ten years. After Zhang Juzheng died, the new cabinet impeached him; his house was confiscated and he was exiled to Nanjing.',
+  },
+  'hist-wei-zhongxian': {
+    era: { zh: '九千歲', en: '"Nine-Thousand-Year Lord"' },
+    zh: '河間肅寧人。明熹宗朝權宦。掌東廠,專權七年,號「九千歲」,僅次於皇帝「萬歲」。殺東林黨,陷楊漣、左光斗等忠臣。崇禎即位,逐之,自縊於阜城。',
+    en: 'Of Suning in Hejian. A great eunuch under Emperor Xi of Ming. He held the Eastern Depot; seven years he held all power and was called the "Nine-Thousand-Year Lord," just below the emperor\'s "Ten-Thousand Years." He killed the Donglin party and framed Yang Lian, Zuo Guangdou, and other loyal ministers. When Chongzhen took the throne he was driven out; he hanged himself at Fucheng.',
+  },
+  'hist-yang-lian': {
+    era: { zh: '東林六君子', en: 'One of the Six Donglin Gentlemen' },
+    zh: '字文孺,湖廣應山人。明熹宗朝御史。上《劾魏忠賢二十四罪疏》,魏忠賢恨之,陷入詔獄,酷刑而死。東林六君子之首。',
+    en: 'Style Wenru, of Yingshan in Huguang. A Censor under Emperor Xi of Ming. He sent up the Memorial Impeaching Wei Zhongxian for Twenty-Four Crimes. Wei Zhongxian hated him, threw him into the imperial prison, and he died under torture. First of the Six Donglin Gentlemen.',
+  },
+  'hist-zuo-guangdou': {
+    zh: '字遺直,桐城人。明熹宗朝御史。與楊漣同劾魏忠賢,被陷入獄,酷刑而死。東林六君子之一。',
+    en: 'Style Yizhi, of Tongcheng. A Censor under Emperor Xi of Ming. With Yang Lian he impeached Wei Zhongxian; framed into prison, he died under torture. One of the Six Donglin Gentlemen.',
+  },
+  'hist-li-shizhen': {
+    era: { zh: '本草綱目', en: 'Author of the Compendium of Materia Medica' },
+    zh: '字東璧,蘄州人。明朝醫學家。歷時二十七年,著《本草綱目》五十二卷,收藥一千八百九十二種,方一萬一千零九十六則。中華醫藥之大成,世界醫學史之珍。',
+    en: 'Style Dongbi, of Qizhou. A Ming physician. For twenty-seven years he laboured on the Compendium of Materia Medica in fifty-two fascicles, containing 1,892 medicines and 11,096 prescriptions — the great gathering of Chinese pharmacology, a treasure of world medical history.',
+  },
+  'hist-xu-guangqi': {
+    zh: '字子先,上海人。明末科學家、政治家。與利瑪竇譯《幾何原本》,中華西學東漸之始。著《農政全書》。位至禮部尚書、內閣大學士。',
+    en: 'Style Zixian, of Shanghai. A scientist and statesman of late Ming. With Matteo Ricci he translated Euclid\'s Elements — the start of Western learning coming east. He wrote the Complete Treatise on Agricultural Administration. He rose to Minister of Rites and Grand Secretary.',
+  },
+  'hist-xu-xiake': {
+    era: { zh: '徐霞客遊記', en: 'Author of the Travel Diaries' },
+    zh: '名宏祖,號霞客,江陰人。明末旅行家、地理學家。三十年遊歷中華山川,著《徐霞客遊記》六十萬言,中華地理之大成,世界地理史之珍。',
+    en: 'Personal name Hongzu, called Xiake, of Jiangyin. A traveler and geographer of late Ming. Thirty years he travelled the mountains and rivers of China and wrote the Travel Diaries of Xu Xiake in six hundred thousand words — the great compendium of Chinese geography, a treasure of world geographical history.',
+  },
+  'hist-song-yingxing': {
+    era: { zh: '天工開物', en: 'Author of the Exploitation of the Works of Nature' },
+    zh: '字長庚,江西奉新人。明末科學家。著《天工開物》十八卷,記中華農業、手工業之全,中華科技史之珍,世界第一部科技百科。',
+    en: 'Style Changgeng, of Fengxin in Jiangxi. A scientist of late Ming. He wrote the Exploitation of the Works of Nature in eighteen fascicles — a complete record of Chinese agriculture and handicrafts, a treasure of Chinese science history, the world\'s first technical encyclopedia.',
+  },
+  'hist-shi-nai’an': {
+    era: { zh: '水滸傳作者', en: 'Author of the Water Margin' },
+    zh: '字耐庵,興化人。元末明初小說家。著《水滸傳》一百二十回,記宋江等一百零八位好漢之事,中華四大名著之一。',
+    en: 'Style Nai\'an, of Xinghua. A novelist of late Yuan and early Ming. He wrote the Water Margin in a hundred and twenty chapters, telling of Song Jiang and the hundred and eight heroes — one of the Four Great Novels of China.',
+  },
+  'hist-wu-cheng’en': {
+    era: { zh: '西遊記作者', en: 'Author of Journey to the West' },
+    zh: '字汝忠,號射陽山人,淮安山陽人。明朝小說家。著《西遊記》一百回,記唐僧、孫悟空、豬八戒、沙僧西天取經之事,中華四大名著之一。',
+    en: 'Style Ruzhong, called the Mountain Recluse of Sheyang, of Shanyang in Huai\'an. A novelist of Ming. He wrote the Journey to the West in a hundred chapters, telling of the Tang monk, Sun Wukong, Zhu Bajie, and Sha Seng on their pilgrimage to the western paradise — one of the Four Great Novels of China.',
+  },
+  'hist-tang-xianzu': {
+    era: { zh: '東方莎士比亞', en: '"The Shakespeare of the East"' },
+    zh: '字義仍,號海若,臨川人。明朝戲曲家。著「臨川四夢」(《牡丹亭》、《紫釵記》、《邯鄲記》、《南柯記》),以《牡丹亭》為魁。世稱「東方莎士比亞」。',
+    en: 'Style Yireng, called Hairuo, of Linchuan. A Ming dramatist. He wrote the "Four Linchuan Dreams" (Peony Pavilion, Purple Hairpin, Handan Dream, Southern Branch Dream); the Peony Pavilion stands above all. The world has called him the "Shakespeare of the East."',
+  },
+  'hist-tang-yin': {
+    era: { zh: '唐伯虎', en: 'Tang Bohu' },
+    zh: '字伯虎,號六如居士,蘇州人。明朝書畫家、詩人。江南四大才子之首。性放達好酒,屢試不第。作詩畫,千古傳誦。「桃花仙人種桃樹,又摘桃花換酒錢」千古絕唱。',
+    en: 'Style Bohu, called the Recluse of the Six As-Ifs, of Suzhou. A Ming calligrapher, painter, and poet. First of the Four Great Talents of Jiangnan. Free and fond of wine, he failed the examinations again and again. His verse and painting are read forever. "The Peach Blossom Immortal plants the peach tree / and plucks the peach blossoms for wine money" rang forever.',
+  },
+  'hist-wen-zhengming': {
+    zh: '字徵明,號衡山居士,蘇州人。明朝書畫家。江南四大才子之一。與沈周、唐寅、仇英並稱「明四家」。',
+    en: 'Style Zhengming, called the Recluse of Mount Heng, of Suzhou. A Ming calligrapher and painter. One of the Four Great Talents of Jiangnan. With Shen Zhou, Tang Yin, and Qiu Ying he made the "Four Masters of Ming."',
+  },
+  'hist-shen-zhou': {
+    zh: '字啟南,號石田,蘇州人。明朝畫家。明四家之首。畫風文雅,開吳門畫派。',
+    en: 'Style Qinan, called Shitian, of Suzhou. A Ming painter. First of the Four Masters of Ming. His style was elegant, founder of the Wumen school.',
+  },
+  'hist-qiu-ying': {
+    zh: '字實父,號十洲,太倉人。明朝畫家。明四家之一。出身寒微,以畫為生。工筆人物畫尤精。',
+    en: 'Style Shifu, called Shizhou, of Taicang. A Ming painter, one of the Four Masters of Ming. Of humble birth, he lived by his painting. He was peerless in gongbi figure work.',
+  },
+  'hist-yu-dayou': {
+    zh: '字志輔,泉州晉江人。明朝抗倭名將。與戚繼光齊名,世稱「俞戚」。一生破倭百餘戰,皆勝。性剛直,屢遭讒言,屢起屢落。',
+    en: 'Style Zhifu, of Jinjiang in Quanzhou. A famed Ming general against the Wokou pirates. Ranked with Qi Jiguang as "Yu and Qi." A hundred fights with the pirates and a hundred victories. Stiff and upright, he was slandered often, raised and cast down again and again.',
+  },
+  'hist-li-chengliang': {
+    zh: '字汝契,鐵嶺人。明萬曆朝遼東名將。鎮遼東三十年,屢破女真、蒙古。然其子李如松等驕橫,且李成梁姑息努爾哈赤,埋清入關之禍根。',
+    en: 'Style Ruqi, of Tieling. A famed general of Liaodong under Wanli of Ming. Thirty years he held Liaodong and broke the Jurchen and Mongols many times. But his son Li Rusong and others were proud, and Li Chengliang spared Nurhaci — laying the seed of the Qing\'s entry through the wall.',
+  },
+  'hist-hong-chengchou': {
+    zh: '字彥演,南安人。明末抗清名將,後降清。崇禎時鎮遼東,松錦之戰被擒,降清。為清開國重臣,主持平定西南。世以為大節有虧。',
+    en: 'Style Yanyan, of Nan\'an. A famed late-Ming general against the Qing, who later submitted. Under Chongzhen he held Liaodong; at Songjin he was taken and yielded. A great founding minister of Qing, he led the pacification of the southwest. The world held his great virtue broken.',
+  },
+  'hist-xiong-tingbi': {
+    zh: '字飛百,湖廣江夏人。明末遼東經略。屢敗女真,然不見容於朝。後因王化貞失廣寧之罪,被斬於市,傳首九邊,千古冤案。',
+    en: 'Style Feibai, of Jiangxia in Huguang. Commissioner of Liaodong at the end of Ming. He broke the Jurchen many times — but found no place in the court. Later, on Wang Huazhen\'s loss of Guangning he was beheaded in the marketplace and his head shown along the nine frontiers — a great injustice of the ages.',
+  },
+  'hist-sun-chengzong': {
+    zh: '字稚繩,保定高陽人。明末薊遼督師。鎮關寧四年,築關寧錦防線,選練關寧鐵騎,為明朝抗清之屏障。後罷歸高陽,清兵攻之,孫承宗率家人抗清而死,夷其家。',
+    en: 'Style Zhisheng, of Gaoyang in Baoding. Commander of the Ji-Liao region at the end of Ming. Four years he held Guan-Ning, building the Guan-Ning-Jin defense line and drilling the Guan-Ning Iron Cavalry — the screen of Ming against the Qing. Later dismissed to Gaoyang, when the Qing came against it, Sun Chengzong fought with his household to death — his clan was exterminated.',
+  },
+  'hist-chongzhen': {
+    era: { zh: '崇禎帝', en: 'The Chongzhen Emperor' },
+    zh: '名朱由檢,明思宗。光宗第五子。十七歲嗣位,誅魏忠賢。在位十七年,內憂外患,東有清兵,西有李自成。崇禎十七年三月十九日,李自成入北京,崇禎自縊於煤山,以髮覆面,衣襟書「朕涼德藐躬,上干天咎,然皆諸臣誤朕。任賊分裂朕屍,勿傷百姓一人」,年三十四,明亡。',
+    en: 'Personal name Zhu Youjian, Emperor Si of Ming. Fifth son of Emperor Guang. At seventeen he took the throne and killed Wei Zhongxian. Seventeen years he reigned with troubles within and without — Qing in the east, Li Zicheng in the west. On the 19th day of the 3rd month of 1644 Li Zicheng entered Beijing; Chongzhen hanged himself on Mount Mei, his hair across his face, and wrote on his lapel: "Of cold virtue and slight body, I have offended Heaven, but it was the ministers who misled me. Let the rebels tear my body — but harm not one of the common people." Thirty-four years old, and Ming was ended.',
+  },
+  'hist-li-dingguo': {
+    zh: '字鴻遠,陝西延安人。明末張獻忠養子。張獻忠死後,率部歸南明永曆帝,連敗清軍,殺清將孔有德、尼堪二王,號「兩蹶名王」。後被吳三桂所破,永曆帝被俘,李定國憂憤而卒於緬甸,年四十二。',
+    en: 'Style Hongyuan, of Yan\'an in Shaanxi. An adopted son of Zhang Xianzhong at the end of Ming. When Zhang Xianzhong died he led his men to the Southern Ming Yongli emperor, broke the Qing many times, and killed two Qing princes Kong Youde and Nikan — "broke two famous princes." Later broken by Wu Sangui, the Yongli emperor was taken; Li Dingguo died of grief and rage in Burma at forty-two.',
+  },
+  'hist-zheng-keshuang': {
+    zh: '鄭成功之孫。台灣鄭氏政權末代王。康熙二十二年,施琅率水師渡海,鄭克塽出降,台灣入清版圖。',
+    en: 'Grandson of Zheng Chenggong. Last ruler of the Zheng house in Taiwan. In 1683 Shi Lang led the Qing fleet across the sea, and Zheng Keshuang yielded; Taiwan came into Qing.',
+  },
+  'hist-zhu-yousong': {
+    era: { zh: '南明弘光帝', en: 'Emperor Hongguang of Southern Ming' },
+    zh: '萬曆之孫,福王朱常洵之子。崇禎死,馬士英、阮大鋮立為帝,即南明弘光帝。在位一年,沉湎酒色。清兵渡江,被擒,押北京斬之。',
+    en: 'Grandson of Wanli, son of the Prince of Fu Zhu Changxun. After Chongzhen died, Ma Shiying and Ruan Dacheng set him on the throne as the Hongguang emperor of Southern Ming. One year he reigned, drowning in wine and women. The Qing crossed the river, took him, and beheaded him at Beijing.',
+  },
+  'hist-zhu-youlang': {
+    era: { zh: '永曆帝', en: 'The Yongli Emperor' },
+    zh: '萬曆之孫,桂王。南明永曆帝。在位十六年,輾轉雲貴緬甸抗清。後吳三桂攻入緬甸,永曆帝被緬王獻於吳三桂,絞死於昆明,南明遂亡。',
+    en: 'Grandson of Wanli, Prince of Gui. The Yongli emperor of Southern Ming. Sixteen years he reigned, fleeing through Yunnan, Guizhou, and Burma against the Qing. Wu Sangui at last marched into Burma; the king of Burma gave the Yongli emperor up, and he was strangled at Kunming — the Southern Ming was ended.',
+  },
+  'hist-yan-shi': {
+    zh: '元朝漢人世侯。降蒙古,鎮東平,以漢法治民,蒙元時山東之主。',
+    en: 'A hereditary Han lord of Yuan. He submitted to the Mongols and held Dongping, ruling by Chinese law — lord of Shandong under Mongol-Yuan.',
+  },
   'hist-meng-gong': {
     zh: '字璞玉,隨州棗陽人。南宋抗蒙古名將。連敗蒙古軍,收復襄陽,抵抗四十年。卒於官,蒙古聞之大喜。',
     en: 'Style Puyu, of Zaoyang in Suizhou. A famed Southern Song general against the Mongols. He broke the Mongols many times, recovered Xiangyang, and resisted for forty years. He died in office, and the Mongols rejoiced when they heard.',
