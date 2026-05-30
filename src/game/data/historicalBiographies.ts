@@ -3511,6 +3511,307 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字伯山,鉅鹿宋子人。東漢光武帝二十八將之一。從征戰立功,封東光侯。',
     en: 'Style Boshan, of Songzi in Julu. One of the Twenty-Eight Cloud Terrace Generals of Emperor Guangwu of the Eastern Han. He marched and won credit, made Marquis of Dongguang.',
   },
+  // ─── 歷代名將 新增第十三批 (Historical biographies — batch 13: Jin / S-N / Sui / Tang) ───
+  // Jin
+  'hist-sima-rui': {
+    era: { zh: '晉元帝', en: 'Emperor Yuan of Jin' },
+    zh: '字景文,司馬覲之子。西晉末南渡,於建康即位,建東晉。王導輔之,「王與馬,共天下」。在位六年崩,壽四十七。',
+    en: 'Style Jingwen, son of Sima Jin. At the end of Western Jin he crossed south, took the throne at Jiankang, and founded Eastern Jin. With Wang Dao as regent — "Wang and Sima share the realm." Six years he reigned and died at forty-seven.',
+  },
+  'hist-sima-shao': {
+    era: { zh: '晉明帝', en: 'Emperor Ming of Jin' },
+    zh: '字道畿,司馬睿長子。性聰穎,有大略。在位三年,平王敦之亂,東晉得以維持。年二十七早卒。',
+    en: 'Style Daoji, eldest son of Sima Rui. Sharp and bold in counsel. Three years he reigned; he put down Wang Dun\'s revolt and Eastern Jin held. He died young at twenty-seven.',
+  },
+  'hist-sima-yue': {
+    zh: '東海王,司馬泰之子。八王之亂中最後勝者。挾持惠帝,專權數年。後憂憤而卒。',
+    en: 'Prince of Donghai, son of Sima Tai. The last victor of the War of Eight Princes. He held Emperor Hui and ruled for several years, then died of grief and rage.',
+  },
+  'hist-sima-wei': {
+    zh: '楚王,武帝之子。八王之亂中早期參與者。矯詔殺司馬亮、衛瓘,後賈后又以矯詔之罪殺之。',
+    en: 'Prince of Chu, son of Emperor Wu. An early actor in the War of Eight Princes. By forged edict he killed Sima Liang and Wei Guan; Empress Jia then killed him for the same crime of forgery.',
+  },
+  'hist-sima-teng': {
+    zh: '東贏公。司馬越之弟。鎮鄴,後敗於石勒。',
+    en: 'Duke of Dongying, younger brother of Sima Yue. He held Ye and was later broken by Shi Le.',
+  },
+  'hist-sima-dewen': {
+    era: { zh: '晉恭帝', en: 'Emperor Gong of Jin' },
+    zh: '東晉末代皇帝。劉裕篡晉,廢為零陵王,旋鴆殺之,東晉遂亡。',
+    en: 'Last emperor of Eastern Jin. When Liu Yu took the Jin throne, he was reduced to Prince of Lingling and soon poisoned — and Eastern Jin was ended.',
+  },
+  'hist-sima-dezong': {
+    era: { zh: '晉安帝', en: 'Emperor An of Jin' },
+    zh: '東晉皇帝。性愚鈍,寒暑不知。在位二十二年,實權盡操於桓玄、劉裕。後為劉裕所縊,立其弟司馬德文。',
+    en: 'Emperor of Eastern Jin. So dull he could not tell heat from cold. Twenty-two years he reigned, all real power in Huan Xuan and Liu Yu. Liu Yu later strangled him and set up his brother Sima Dewen.',
+  },
+  'hist-wang-dun': {
+    zh: '字處仲,琅琊臨沂人,王導從兄。東晉初權臣。鎮荊州,後反晉,圍建康,逼晉元帝憂憤而卒。後欲再叛,病死於軍中,夷其族。',
+    en: 'Style Chuzhong, of Linyi in Langya, cousin of Wang Dao. A great power-holder in early Eastern Jin. He held Jingzhou, then rose against Jin, besieged Jiankang, and forced Emperor Yuan to die of grief and rage. Meaning to rise again, he died of illness in camp; his clan was exterminated.',
+  },
+  'hist-tao-kan': {
+    era: { zh: '陶侃搬磚', en: 'Tao Kan and the Bricks' },
+    zh: '字士行,潯陽人。東晉名將。少時即勤,日搬磚百塊以勵志。鎮荊州、廣州,平蘇峻之亂,東晉柱石。卒,贈大司馬。',
+    en: 'Style Shixing, of Xunyang. A famed Eastern Jin general. Diligent from youth — daily he moved a hundred bricks to spur himself on. Holding Jingzhou and Guangzhou, he put down Su Jun\'s revolt — a pillar of Eastern Jin. At his death he was granted the title Grand Marshal.',
+  },
+  'hist-su-jun': {
+    zh: '東晉初武將。鎮歷陽,後反晉,陷建康。陶侃、溫嶠合力討之,蘇峻戰死。',
+    en: 'A military man of early Eastern Jin. Holding Liyang, he rose against Jin and took Jiankang. Tao Kan and Wen Jiao together put him down; Su Jun died in battle.',
+  },
+  'hist-ruan-ji': {
+    era: { zh: '竹林七賢', en: 'One of the Seven Sages of the Bamboo Grove' },
+    zh: '字嗣宗,陳留尉氏人,阮瑀之子。竹林七賢之首。喜長嘯,能青白眼,凡所惡者以白眼相向,所善者以青眼。著《詠懷詩》,寄意深遠,千古傳誦。',
+    en: 'Style Sizong, of Weishi in Chenliu, son of Ruan Yu. First of the Seven Sages of the Bamboo Grove. He loved to whistle long and could turn the eye to dark or pale — those he disliked got the pale eye, those he loved the dark. His Songs of My Heart, deep in meaning, are read to this day.',
+  },
+  'hist-ruan-xian': {
+    zh: '字仲容,阮籍之姪。竹林七賢之一。以琴名世,創阮咸樂器。性放達,與群豬共飲於甕。',
+    en: 'Style Zhongrong, nephew of Ruan Ji. One of the Seven Sages of the Bamboo Grove, famed as a qin master, creator of the ruanxian lute. So free in spirit he once drank from a wine-vat with a herd of pigs.',
+  },
+  'hist-shan-tao': {
+    zh: '字巨源,河內懷縣人。竹林七賢之一。事司馬氏,位至司徒。嵇康臨刑,以子託之,曰:「巨源在,汝不孤矣。」',
+    en: 'Style Juyuan, of Huai county in Henei. One of the Seven Sages. He served the Sima house and rose to Excellency over the Masses. Before going to the block, Ji Kang entrusted his son to him: "While Juyuan lives, you shall not be orphaned."',
+  },
+  'hist-liu-ling': {
+    zh: '字伯倫,沛國人。竹林七賢之一。好酒。常坐鹿車,攜一壺酒,使人荷鋤隨之,曰:「死便埋我!」 著《酒德頌》。',
+    en: 'Style Bolun, of Pei. One of the Seven Sages. Fond of wine — he would ride out in a deer-cart with a jar of wine, a servant with a spade behind him: "If I die, bury me where I fall!" The Praise of the Virtue of Wine is his.',
+  },
+  'hist-shan-jian': {
+    zh: '山濤之子。事司馬氏,鎮襄陽。性嗜酒。「日夕傾倒載歸來」之語出此。',
+    en: 'Son of Shan Tao. He served the Sima house and held Xiangyang. Fond of drink — "day and night he comes home tipping over" comes from him.',
+  },
+  'hist-shi-hu': {
+    era: { zh: '後趙石虎', en: 'Shi Hu of Later Zhao' },
+    zh: '後趙第三代皇帝。石勒之姪。性殘暴。在位十四年,大興土木,百姓不堪。卒,諸子相殘,後趙遂亡。',
+    en: 'Third emperor of the Later Zhao, nephew of Shi Le. Of cruel temper. Fourteen years he reigned, raising great works of building, and the people could not bear it. At his death his sons devoured each other, and the Later Zhao fell.',
+  },
+  'hist-liu-kun': {
+    era: { zh: '聞雞起舞', en: 'Roused at the Cock\'s Crow' },
+    zh: '字越石,中山魏昌人。西晉名將。與祖逖少年知交,共處一床,夜半聞雞鳴,起而舞劍,以勵志。鎮幷州,以孤軍拒匈奴漢國十年。後段匹磾構陷,被害,年四十八。',
+    en: 'Style Yueshi, of Weichang in Zhongshan. A famed general of Western Jin. In youth he and Zu Ti slept in one bed; when the cock crowed they rose and danced with the sword. He held Bing province with one lone force against the Han-Xiongnu for ten years. Duan Pidi later framed him; he died at forty-eight.',
+  },
+  'hist-zhou-yi': {
+    zh: '字伯仁,汝南安成人。東晉名臣。性磊落,飲酒過度,號「三日僕射」。王敦之亂,被王敦所殺。臨終曰:「殺我者,孤負伯仁也!」',
+    en: 'Style Boren, of Ancheng in Runan. A famed minister of Eastern Jin. Open and bold in temper, fond of wine — they called him "the Three-Day Vice Director." In Wang Dun\'s revolt Wang Dun killed him. His last words: "He who killed me has failed Boren!"',
+  },
+  'hist-zhou-chu': {
+    era: { zh: '改過自新', en: 'Reformed Man' },
+    zh: '字子隱,義興陽羡人,周魴之子。少時凶橫,鄉里以南山虎、長橋蛟、周處並稱三害。後悟,獨殺虎斬蛟,折節讀書,終為晉名將。元康七年從夏侯駿征齊萬年,孤軍力戰而死。',
+    en: 'Style Ziyin, of Yangxian in Yixing, son of Zhou Fang. In his wild youth the countryside named "Three Evils": the tiger of the southern hills, the dragon of the long bridge, and Zhou Chu. He awakened, slew the tiger and dragon, bent his neck to study, and rose to be a famed general of Jin. In 297 he campaigned with Xiahou Jun against Qi Wannian; left alone he fought to the death.',
+  },
+  'hist-yin-hao': {
+    era: { zh: '咄咄怪事', en: '"How Strange!"' },
+    zh: '字深源,陳郡長平人。東晉名士。北伐失敗,被廢為庶人。終日書空作字「咄咄怪事」,千古傳為俗語。',
+    en: 'Style Shenyuan, of Changping in Chenjun. A famed gentleman of Eastern Jin. After his northern campaign failed he was reduced to commoner. All day he wrote in the air the words "How strange! How strange!" — a saying for the ages.',
+  },
+  'hist-he-zeng': {
+    zh: '字穎考,陳國陽夏人。西晉宰相。性奢侈,日食萬錢,猶曰「無下箸處」。位至太尉。',
+    en: 'Style Yingkao, of Yangxia in Chen. A Western Jin chancellor. So extravagant that he spent ten thousand cash a day on his table and still said "there is nowhere to lay the chopsticks." He rose to Grand Marshal.',
+  },
+  // Southern-Northern Dynasties
+  'hist-tan-daoji': {
+    era: { zh: '檀公三十六策', en: 'Tan\'s Thirty-Six Strategies' },
+    zh: '南朝劉宋名將。北伐有功,世稱「檀公三十六策,走為上計」,即「三十六計,走為上策」之祖。後為宋文帝所忌,被殺。臨刑投幘於地,瞋目而立曰:「乃壞汝萬里長城!」',
+    en: 'A famed general of Liu Song in the Southern Dynasties. He had merit in the northern campaigns; the saying ran "Lord Tan\'s thirty-six strategies — running away is the best" — ancestor of "the thirty-six stratagems, running away is the best." Later distrusted by Emperor Wen of Song he was killed. At the block he flung his headcloth to the ground, glared, and said: "So you wreck your own Ten-Thousand-Li Wall!"',
+  },
+  'hist-shen-yue': {
+    zh: '字休文,吳興武康人。南朝齊梁間史學家、文學家。著《宋書》一百卷,記劉宋一朝。又創「四聲八病」之說,中國音韻學之祖。',
+    en: 'Style Xiuwen, of Wukang in Wuxing. A historian and writer of the Southern Qi and Liang. He wrote the Book of Song in a hundred fascicles, recording the Liu Song. He also propounded the doctrine of the "Four Tones and Eight Faults" — an ancestor of Chinese phonology.',
+  },
+  'hist-tuoba-jun': {
+    era: { zh: '北魏文成帝', en: 'Emperor Wencheng of Northern Wei' },
+    zh: '北魏第五代皇帝。十三歲嗣位。在位十四年,任陸麗,平亂後復興佛教,造雲岡石窟。',
+    en: 'Fifth emperor of Northern Wei. Took the throne at thirteen. Fourteen years he reigned, raising Lu Li; after the chaos he revived Buddhism and ordered the carving of the Yungang Grottoes.',
+  },
+  'hist-tuoba-si': {
+    era: { zh: '北魏明元帝', en: 'Emperor Mingyuan of Northern Wei' },
+    zh: '北魏第二代皇帝。拓跋珪之子。在位十五年。鎮南北方,定柔然之亂。',
+    en: 'Second emperor of Northern Wei, son of Tuoba Gui. Fifteen years he reigned, holding north and south and settling the Rouran revolt.',
+  },
+  'hist-yuwen-shenju': {
+    zh: '北周名將。隨周武帝滅北齊,功冠群臣。後事周宣帝,被讒被殺。',
+    en: 'A famed general of Northern Zhou. With Emperor Wu he ended Northern Qi, his merit above all. Under Emperor Xuan, slander brought him death.',
+  },
+  'hist-yuwen-yu': {
+    era: { zh: '北周明帝', en: 'Emperor Ming of Northern Zhou' },
+    zh: '北周第二代皇帝。宇文泰之子。在位三年,被宇文護所毒殺。',
+    en: 'Second emperor of Northern Zhou, son of Yuwen Tai. Three years he reigned and was poisoned by Yuwen Hu.',
+  },
+  'hist-dugu-xin': {
+    era: { zh: '三朝國丈', en: 'Three-Dynasty Imperial Father-in-Law' },
+    zh: '字期彌頭,雲中人。西魏、北周名將。性風流,容貌絕世。三女皆為皇后:長女北周明敬后,四女唐元貞皇后(李淵之母),七女隋文獻皇后。中華歷史唯一三朝國丈。',
+    en: 'Style Qimitou, of Yunzhong. A famed general of Western Wei and Northern Zhou. Of dashing bearing and unmatched looks. Three of his daughters became empresses: the eldest Empress Mingjing of Northern Zhou, the fourth Empress Yuanzhen of Tang (mother of Li Yuan), the seventh Empress Wenxian of Sui — the only man in Chinese history to be imperial father-in-law of three dynasties.',
+  },
+  'hist-hulu-guang': {
+    zh: '北齊名將。出身行伍,善射,號「落雕都督」。鎮邊禦北周,以一戰之威使北周不敢南顧。後周武帝離間之,北齊後主誅之,北齊由是衰。',
+    en: 'A famed general of Northern Qi. Born to the ranks, a master archer — "the Falcon-Felling Commandant." Holding the border against Northern Zhou, by his name alone he kept Zhou from looking south. Emperor Wu of Zhou sowed slander, the last emperor of Qi killed him, and Northern Qi declined from there.',
+  },
+  'hist-wu-mingche': {
+    zh: '陳朝名將。鎮淮南,北伐北齊有功,後北伐北周失敗,被擒,終於長安。',
+    en: 'A famed general of Chen. Holding Huainan he marched against Northern Qi with credit, then marched against Northern Zhou and failed; taken, he ended his days at Chang\'an.',
+  },
+  'hist-yang-dayan': {
+    era: { zh: '萬人敵', en: '"Match for Ten Thousand"' },
+    zh: '北魏名將,鮮卑族。武勇絕倫,有「萬人敵」之號。屢從魏軍南征北討,所向披靡。',
+    en: 'A famed Xianbei general of Northern Wei. Of unmatched prowess — "match for ten thousand." He marched in many of Wei\'s campaigns and none stood before him.',
+  },
+  'hist-xiao-gang': {
+    era: { zh: '梁簡文帝', en: 'Emperor Jianwen of Liang' },
+    zh: '蕭衍三子。昭明太子早卒,立蕭綱為太子。後梁武帝餓死台城,蕭綱即位,旋為侯景所殺。',
+    en: 'Third son of Xiao Yan. After Crown Prince Zhaoming died young, Xiao Gang was set up. When Emperor Wu starved to death at Taicheng, Xiao Gang took the throne — and Hou Jing killed him soon after.',
+  },
+  'hist-xiao-ziliang': {
+    zh: '南齊竟陵王。蕭道成之孫。喜文學,招集學者,號「竟陵八友」(沈約、謝朓、王融、范雲、蕭衍、蕭琛、任昉、陸倕)。',
+    en: 'Prince of Jingling of Southern Qi, grandson of Xiao Daocheng. Fond of letters, he gathered scholars — the "Eight Friends of Jingling" (Shen Yue, Xie Tiao, Wang Rong, Fan Yun, Xiao Yan, Xiao Chen, Ren Fang, Lu Chui).',
+  },
+  'hist-yang-zhong': {
+    zh: '字揜于,弘農華陰人。隋文帝楊堅之父。西魏、北周名將。封隨國公,卒後追封太祖武元皇帝。',
+    en: 'Style Yanyu, of Huayin in Hongnong. Father of Yang Jian of Sui. A famed general of Western Wei and Northern Zhou. Made Duke of Sui; after his death honored as the founding Emperor Wuyuan.',
+  },
+  'hist-shen-qingzhi': {
+    zh: '南朝劉宋名將。出身寒微,從征戰立功,鎮雍州,北伐有功。卒於官。',
+    en: 'A famed Liu Song general. Of humble birth, he rose by war, held Yongzhou, and earned credit in the northern campaigns. He died in office.',
+  },
+  'hist-su-chuo': {
+    zh: '字令綽,京兆武功人。西魏名臣。佐宇文泰行府兵制、立六條詔書,為西魏、北周強盛之本。卒於宇文泰之先。',
+    en: 'Style Lingchuo, of Wugong in the metropolitan region. A famed minister of Western Wei. With Yuwen Tai he set up the Garrison Militia and the Six-Item Edicts — the foundation of the rise of Western Wei and Northern Zhou. He died before Yuwen Tai.',
+  },
+  'hist-liu-yilong': {
+    era: { zh: '宋文帝', en: 'Emperor Wen of Liu Song' },
+    zh: '劉裕三子。在位三十年,「元嘉之治」,劉宋最盛之時。後被太子劉劭所弒。',
+    en: 'Third son of Liu Yu. Thirty years he reigned — the "Reign of Yuanjia," the height of Liu Song. He was killed by the Crown Prince Liu Shao.',
+  },
+  // Sui
+  'hist-he-ruobi': {
+    era: { zh: '隋平陳第一功', en: 'First Credit of the Sui Conquest of Chen' },
+    zh: '字輔伯,河南洛陽人。隋朝大將。平陳之役,與韓擒虎分軍渡江,首破陳軍於蔣山,生擒陳將魯廣達。封宋國公。後與賀若諼共謗朝廷,被煬帝所殺。',
+    en: 'Style Fubo, of Luoyang in Henan. A great general of Sui. In the conquest of Chen, with Han Qinhu he divided the host across the river and first broke the Chen army at Mount Jiang, taking the Chen general Lu Guangda alive. Made Duke of Song. Later, with He Ruoxuan, he slandered the court and Emperor Yang killed him.',
+  },
+  'hist-mai-tiezhang': {
+    zh: '隋朝名將。號「鐵杖」。從楊素征戰,以勇悍稱。後從楊廣征高句麗,於遼水之戰中,死戰殿後,壯烈犧牲。',
+    en: 'A famed general of Sui, called "Iron-Staff." Under Yang Su he marched with credit, known for fierceness. He marched with Yang Guang against Goguryeo and at the Liao River fought to the death covering the rearguard, falling in glory.',
+  },
+  'hist-shi-wansui': {
+    era: { zh: '萬歲', en: 'Ten Thousand Years' },
+    zh: '隋朝名將。京兆櫟陽人。從楊素破突厥達頭可汗,大破之。後為楊素所讒,被煬帝所殺。其名「萬歲」千古傳為佳話。',
+    en: 'A famed general of Sui, of Liyang in the metropolitan region. With Yang Su he broke the Türk Tardu Khan utterly. Later slandered by Yang Su, Emperor Yang killed him. His personal name "Ten Thousand Years" rang down the ages.',
+  },
+  'hist-zhang-xutuo': {
+    zh: '隋末名將。鎮齊郡,屢破瓦崗、群盜,為隋朝末年柱石。後於滎陽之戰,中李密之伏,大敗,自殺。',
+    en: 'A famed general of late Sui. Holding Qijun, he broke the Wagang and the bandit hosts many times — a pillar at the end of Sui. At Xingyang he walked into Li Mi\'s ambush, was broken, and killed himself.',
+  },
+  'hist-empress-xiao': {
+    zh: '蕭岿之女,隋煬帝皇后。江都之變後,被宇文化及挾持,後落入竇建德之手,再入突厥。唐太宗滅突厥,迎其歸長安,以禮待之。',
+    en: 'Daughter of Xiao Kui, empress of Yang Guang of Sui. After the Jiangdu mutiny she was held by Yuwen Huaji, then fell to Dou Jiande, then to the Türks. When Taizong of Tang destroyed the Türks he brought her back to Chang\'an and received her with rite.',
+  },
+  'hist-yang-tong': {
+    zh: '隋煬帝之孫。煬帝被弒後,王世充立為皇帝,旋廢之鴆殺。',
+    en: 'Grandson of Yang Guang of Sui. After Yang Guang was killed, Wang Shichong set him on the throne and soon deposed and poisoned him.',
+  },
+  'hist-pei-ju': {
+    zh: '字弘大,聞喜人。隋朝重臣。出使西域,著《西域圖記》三卷。後事唐,任民部尚書。',
+    en: 'Style Hongda, of Wenxi. A great minister of Sui. Sent as envoy to the Western Regions, he wrote the Illustrated Record of the Western Regions in three fascicles. He later served Tang as Minister of Civil Administration.',
+  },
+  'hist-su-wei': {
+    zh: '字無畏,京兆武功人。隋朝重臣。與高熲、楊素、賀若弼並稱「四貴」。事文帝、煬帝,屢有諫言。煬帝怒,黜為庶人。',
+    en: 'Style Wuwei, of Wugong in the metropolitan region. A great minister of Sui, with Gao Jiong, Yang Su, and He Ruobi the "Four Nobles." Under Wendi and Yangdi he often remonstrated; Yangdi in fury reduced him to commoner.',
+  },
+  // Tang
+  'hist-li-xiaogong': {
+    zh: '唐宗室。隨李靖平蕭銑、輔公祏,功冠群臣。封河間郡王。凌煙閣二十四功臣之一。',
+    en: 'A kinsman of the Tang house. With Li Jing he pacified Xiao Xian and Fu Gongshi, his merit above all. Made Prince of Hejian commandery. One of the Twenty-Four Meritorious Officers of the Lingyan Pavilion.',
+  },
+  'hist-li-daozong': {
+    zh: '唐宗室。從李世民征戰,有功。封江夏王。後為長孫無忌所構,流象州而卒。',
+    en: 'A kinsman of the Tang house. He marched with Li Shimin with credit, made Prince of Jiangxia. Later framed by Zhangsun Wuji, he was exiled to Xiangzhou and died.',
+  },
+  'hist-li-su': {
+    era: { zh: '雪夜入蔡州', en: 'Snowy Night into Caizhou' },
+    zh: '字符直,洮州臨潭人。中唐名將。元和十二年雪夜入蔡州,生擒淮西節度使吳元濟,平淮西之亂,功冠唐朝中興。封涼國公。卒年四十九。',
+    en: 'Style Yuanzhi, of Lintan in Taozhou. A famed mid-Tang general. In a snowy night of 817 he marched into Caizhou and took alive Wu Yuanji, Military Governor of Huaixi — pacifying Huaixi, his merit above the Tang restoration. Made Duke of Liang. He died at forty-nine.',
+  },
+  'hist-li-tai': {
+    zh: '唐太宗第四子。封魏王。與太子李承乾爭嫡,事敗,被貶為東萊郡王。',
+    en: 'Fourth son of Taizong, Prince of Wei. He contested the heirship with Crown Prince Li Chengqian; broken, he was reduced to Prince of Donglai commandery.',
+  },
+  'hist-li-xian': {
+    era: { zh: '章懷太子', en: 'Crown Prince Zhanghuai' },
+    zh: '唐高宗第六子,武則天之子。立為太子。性聰穎,為《後漢書》作注。後被武則天廢為庶人,流巴州,被逼自殺,年三十一。',
+    en: 'Sixth son of Gaozong, born of Wu Zetian. Made crown prince. Sharp in mind, he annotated the Book of the Later Han. Wu Zetian later reduced him to commoner, exiled him to Bazhou, and forced him to take his own life at thirty-one.',
+  },
+  'hist-empress-wei': {
+    zh: '唐中宗皇后韋氏。中宗復位後,韋后臨朝預政,欲效武則天。後被李隆基(玄宗)發動唐隆政變所殺,夷其黨。',
+    en: 'Empress Wei of Emperor Zhongzong. After Zhongzong\'s restoration she took part in government, hoping to follow Wu Zetian. Li Longji (the future Emperor Xuanzong) struck in the Tanglong incident, killed her, and wiped out her faction.',
+  },
+  'hist-shangguan-yi': {
+    zh: '字游韶,陝州陝縣人。唐高宗時宰相。性恪守禮法,反對武則天預政,被武則天構陷,夷三族。其孫女上官婉兒後為一代女才人。',
+    en: 'Style Youshao, of Shaan county in Shaanzhou. A chancellor under Gaozong of Tang. Strict to the rites and against Wu Zetian\'s share in government; Wu Zetian framed him and his clan was exterminated to three branches. His granddaughter Shangguan Wan\'er would later be a talent of the age.',
+  },
+  'hist-wu-sansi': {
+    zh: '武則天之姪。中宗時權臣,與韋后通,陷張柬之等五王。後為李隆基所殺。',
+    en: 'A nephew of Wu Zetian. Under Zhongzong a great power-holder, in liaison with Empress Wei, he framed Zhang Jianzhi and the other Five Kings. Li Longji later killed him.',
+  },
+  'hist-wang-xuance': {
+    era: { zh: '一人滅一國', en: 'One Man Destroyed a Kingdom' },
+    zh: '唐使。出使天竺,值天竺大亂,新主拒絕通好,反劫王玄策。王玄策獨身脫險,北借吐蕃、泥婆羅兵八千,大破天竺,擒其王。千古「一人滅一國」之典。',
+    en: 'A Tang envoy. Sent to India in a time of chaos, the new ruler refused friendship and robbed him. Wang Xuance escaped alone, borrowed eight thousand from Tibet and Nepal, broke India, and took its king alive. The model for the ages of "one man destroying a kingdom."',
+  },
+  'hist-gao-xianzhi': {
+    era: { zh: '怛羅斯之戰', en: 'The Battle of Talas' },
+    zh: '高麗人,生於唐。盛唐名將。鎮安西都護府,屢平西域諸國。天寶十年怛羅斯之戰,被大食(阿拉伯帝國)所破,中華勢力自此退出中亞,造紙術傳入西方。後安史之亂中為宦官邊令誠所讒,被殺。',
+    en: 'Of Goguryeo, born under Tang. A famed High Tang general. He held the Anxi Protectorate and pacified the Western Regions many times. In 751 at Talas he was broken by the Abbasid Caliphate — China withdrew from Central Asia and papermaking passed to the west. In the An Lushan rebellion the eunuch Bian Lingcheng slandered him to death.',
+  },
+  'hist-feng-changqing': {
+    zh: '蒲州猗氏人。盛唐名將。從高仙芝鎮安西,屢立戰功。安史之亂,守洛陽,城陷退守潼關,與高仙芝同被宦官邊令誠所讒,被殺。',
+    en: 'Of Yishi in Puzhou. A famed High Tang general. With Gao Xianzhi he held Anxi with many laurels. In the An Lushan rebellion he held Luoyang; when the city fell he retreated to Tongguan and with Gao Xianzhi was slandered by Bian Lingcheng to death.',
+  },
+  'hist-geshu-han': {
+    era: { zh: '北斗七星高,哥舒夜帶刀', en: '"The Big Dipper Hangs High, Geshu Wears the Blade at Night"' },
+    zh: '突騎施部人。盛唐名將。鎮河西,屢破吐蕃。安史之亂,守潼關,中楊國忠之計出戰,大敗,被擒,降安祿山,後被安慶緒所殺。「北斗七星高,哥舒夜帶刀」千古傳誦。',
+    en: 'Of the Türgesh. A famed High Tang general. Holding Hexi, he broke the Tibetans many times. In the An Lushan rebellion he held Tongguan; fooled by Yang Guozhong\'s plan he went out and was broken, taken, and yielded to An Lushan. An Qingxu later killed him. "The Big Dipper hangs high, Geshu wears the blade at night" rang forever.',
+  },
+  'hist-heichi-changzhi': {
+    zh: '百濟人,唐高宗時降唐。在唐征突厥、吐蕃皆有功,封燕國公。後被周興所構,被武則天所殺。',
+    en: 'Of Baekje, he submitted to Tang under Gaozong. In Tang\'s wars against the Türks and Tibetans he won credit, made Duke of Yan. Later framed by Zhou Xing, Wu Zetian killed him.',
+  },
+  'hist-fan-lihua': {
+    era: { zh: '樊梨花', en: 'Fan Lihua' },
+    zh: '演義人物。唐高宗時西涼女將。後降唐,嫁薛仁貴之子薛丁山。傳助唐平西涼,功著一時。',
+    en: 'A figure of Romance. A western Liang woman general under Gaozong of Tang. She submitted to Tang and married Xue Dingshan, son of Xue Rengui. Tradition says she helped Tang pacify western Liang with great merit.',
+  },
+  'hist-zhu-ci': {
+    zh: '唐德宗時藩鎮。涇原兵變後,自稱大秦皇帝,圍長安,德宗奔奉天。後李晟收復長安,朱泚被殺。',
+    en: 'A military governor under Emperor De of Tang. After the Jingyuan mutiny he called himself Emperor of Great Qin, besieged Chang\'an, and the emperor fled to Fengtian. Li Sheng recovered Chang\'an and Zhu Ci was killed.',
+  },
+  'hist-li-jifu': {
+    zh: '字弘憲,趙郡贊皇人。中唐宰相。憲宗朝主削藩,平淮西、淄青之亂,中華中興。其子即李德裕。',
+    en: 'Style Hongxian, of Zanhuang in Zhaojun. A chancellor of mid-Tang. Under Xianzong he led the cutting down of military governors, pacifying Huaixi and Ziqing — the Tang restoration. His son was Li Deyu.',
+  },
+  'hist-liu-yuxi': {
+    zh: '字夢得,洛陽人。中唐詩人。與柳宗元共倡新樂府運動。屢遭貶謫。「沉舟側畔千帆過,病樹前頭萬木春」、「東邊日出西邊雨,道是無晴卻有晴」千古絕唱。',
+    en: 'Style Mengde, of Luoyang. A mid-Tang poet. With Liu Zongyuan he led the New Music Bureau movement. Sent down again and again. "Beside the sunken boat a thousand sails pass / before the sick tree ten thousand greet the spring" and "On the east, the sun shines; on the west, the rain falls / they say no sun (sentiment) — and yet there is" rang forever.',
+  },
+  'hist-li-heng': {
+    era: { zh: '唐肅宗', en: 'Emperor Suzong of Tang' },
+    zh: '玄宗第三子。安史之亂中於靈武即位,號肅宗。任郭子儀、李光弼平叛,收復長安、洛陽。在位七年崩。',
+    en: 'Third son of Xuanzong. In the An Lushan rebellion he took the throne at Lingwu — Suzong. He raised Guo Ziyi and Li Guangbi to put down the revolt, recovered Chang\'an and Luoyang. Seven years he reigned and died.',
+  },
+  'hist-yang-yan': {
+    zh: '字公南,鳳翔天興人。唐德宗朝宰相。創「兩稅法」,改革賦稅制度,中華稅制之大革新。後因奸臣構陷,被殺。',
+    en: 'Style Gongnan, of Tianxing in Fengxiang. Chancellor under Emperor De of Tang. He created the Two-Taxes Law, the great revolution of Chinese tax. Framed later by wicked ministers, he was killed.',
+  },
+  'hist-yuan-jie': {
+    zh: '字次山,河南人。中唐文學家。古文運動之先驅。著《篋中集》,選盛唐之詩。',
+    en: 'Style Cishan, of Henan. A mid-Tang writer, a forerunner of the Classical Prose Movement. He compiled the Anthology from the Box, selecting the verse of the High Tang.',
+  },
+  'hist-yuan-zai': {
+    zh: '字公輔,鳳翔岐山人。唐代宗時宰相。專權十餘年,貪贓枉法,後被代宗賜死。',
+    en: 'Style Gongfu, of Qishan in Fengxiang. Chancellor under Daizong of Tang. Ten years he held power, grasping and crooked; Daizong gave him a draught of death.',
+  },
+  'hist-chen-zi’ang': {
+    era: { zh: '前不見古人', en: '"Before Me, I See No Ancient"' },
+    zh: '字伯玉,梓州射洪人。初唐詩人。古文運動先驅。「前不見古人,後不見來者,念天地之悠悠,獨愴然而涕下」千古絕唱,《登幽州台歌》出此。',
+    en: 'Style Boyu, of Shehong in Zizhou. An early-Tang poet, a forerunner of the Classical Prose Movement. "Before me, I see no ancient; behind me, no one to come / I think of the vastness of heaven and earth, and alone in grief I shed tears" rang forever — from the Song on Climbing Youzhou Tower.',
+  },
   // ─── 歷代名將 新增第十批 (Historical biographies — batch 10: Qing) ───
   'hist-hong-taiji': {
     zh: '參見「hist-huangtaiji」。',
