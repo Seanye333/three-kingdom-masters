@@ -2575,6 +2575,286 @@ export const BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字子衡,汝南細陽人。袁術舊部,後事孫策、孫權。鎮丹陽,撫山越,屢有功。位至大司馬。',
     en: 'Style name Ziheng, of Xiyang in Runan. Originally with Yuan Shu, he later served Sun Ce and Sun Quan. Holding Danyang, he soothed the Shan Yue and earned many laurels. He rose to Marshal of State.',
   },
+  // ─── 三國新增列傳 第九批 (Three Kingdoms — batch 9) ───
+  'liu-xie': {
+    era: { zh: '漢獻帝', en: 'Emperor Xian of Han' },
+    zh: '名劉協,字伯和,漢靈帝幼子。中平六年董卓廢少帝,立協為帝,年九歲。在位三十一年,身不能制朝政,先後為董卓、李傕、楊奉、曹操所挾。建安元年迎曹操於許,密令董承衣帶詔,事敗。延康元年禪位於曹丕,廢為山陽公。在山陽行醫救民,百姓愛之。青龍二年崩於封地,年五十四,謚孝獻。',
+    en: 'Personal name Liu Xie, style name Bohe, youngest son of Emperor Ling of Han. In 189 Dong Zhuo deposed the Young Emperor and set him on the throne at nine. Thirty-one years he reigned, with no power over his own government — held in turn by Dong Zhuo, Li Jue, Yang Feng, and Cao Cao. In 196 he received Cao Cao at Xu and gave Dong Cheng the secret sash-edict, which failed. In 220 he yielded the throne to Cao Pi and was reduced to Duke of Shanyang. There he practiced medicine and healed the people, who loved him. He died in his fief in 234 at fifty-four, posthumous name Xiaoxian — "Filial and Devoted."',
+  },
+  'shi-xie': {
+    era: { zh: '交州士王', en: 'King of Jiaozhou' },
+    zh: '字威彥,蒼梧廣信人。漢末交州牧。世為交州大姓,四世為刺史。在交州四十年,以文教治蠻夷,中原士人避亂南奔皆依之,袁徽稱其「德教大行」。後降孫權,封龍編侯。年九十卒。',
+    en: 'Style name Weiyan, of Guangxin in Cangwu. Inspector of Jiao province in late Han. His house was the great clan of Jiao for four generations as inspectors. Forty years he held Jiao province, civilizing the tribes through letters; the gentry of the central plains fleeing the chaos all turned to him, and Yuan Hui said "his teaching and grace ran far." Later he yielded to Sun Quan and was made Marquis of Longbian. He died at ninety.',
+  },
+  'sun-yi': {
+    zh: '字叔弼,孫堅第三子,孫策、孫權之弟。性烈似兄。為丹陽太守。為部將邊洪所殺,妻徐氏假意嫁邊洪,於婚禮上殺之,以全夫仇。',
+    en: 'Style name Shubi, third son of Sun Jian and younger brother of Sun Ce and Sun Quan. Fierce in temper like his eldest brother. Governor of Danyang. He was killed by his captain Bian Hong; his wife Lady Xu pretended to wed Bian Hong and killed him at the wedding, keeping faith with her husband\'s vengeance.',
+  },
+  'sun-yu': {
+    zh: '字仲異,孫堅之姪,孫靜次子。事孫權,位至奮威將軍。性沉毅,屢從征戰,為江東宿將。',
+    en: 'Style name Zhongyi, nephew of Sun Jian and second son of Sun Jing. Under Sun Quan he rose to General Who Stirs Up Might. Deep and steady, in many campaigns he stood as a veteran of Jiangdong.',
+  },
+  'sun-fu': {
+    zh: '字國儀,孫堅之姪,孫賁之弟。事孫權,鎮廬陵。性樸厚,有將才。',
+    en: 'Style name Guoyi, nephew of Sun Jian and younger brother of Sun Ben. Under Sun Quan he held Luling. Simple and steady, of generalship.',
+  },
+  'sun-ben': {
+    zh: '字伯陽,孫堅之姪,孫賁字。事孫策、孫權,鎮豫章,撫山越。位至征虜將軍。',
+    en: 'Style name Boyang, nephew of Sun Jian; Sun Ben. He served Sun Ce and Sun Quan, holding Yuzhang and soothing the Shan Yue. He rose to General Who Subdues the Rebels.',
+  },
+  'sun-shao': {
+    zh: '字公禮,孫策之子。孫策卒於二十六歲,孫紹年幼,孫權繼立。孫紹封吳侯,後改封上虞侯。',
+    en: 'Style name Gongli, son of Sun Ce. Sun Ce died at twenty-six and Sun Shao was still a boy; Sun Quan took the seat. Sun Shao was made Marquis of Wu, then later Marquis of Shangyu.',
+  },
+  'sun-shao-wu': {
+    zh: '字公禮,北海人。事孫權,位至中書令。性沉雅,有政事才。',
+    en: 'Style name Gongli, of Beihai. Under Sun Quan he rose to Director of the Imperial Secretariat. Deep and refined, a man of administration.',
+  },
+  'sun-kuang': {
+    zh: '字季佐,孫堅幼子,孫策、孫權之弟。早卒,曹氏為兒娶之,後與曹氏絕婚。',
+    en: 'Style name Jizuo, youngest son of Sun Jian, younger brother of Sun Ce and Sun Quan. He died young. The Cao house had betrothed a daughter to him; afterwards the match was broken.',
+  },
+  'sun-huan': {
+    zh: '字叔武,孫權族子。事孫權,鎮夏口。後位至前將軍,從征戰立功。',
+    en: 'Style name Shuwu, a clansman of Sun Quan. He served him and held Xiakou. He rose to General of the Vanguard with credit in many campaigns.',
+  },
+  'sun-li': {
+    zh: '魏將。鎮幽州,平烏桓、鮮卑。性嚴明,有名於北疆。',
+    en: 'A Wei general. He held You province and put down the Wuhuan and Xianbei. Stern and clear in conduct, of name on the northern frontier.',
+  },
+  'sun-zhong': {
+    zh: '黃巾餘黨。中平元年攻北海,孫仲與管亥共圍孔融,後被劉備、關羽、張飛所敗,陣亡。',
+    en: 'A leftover Yellow Turban. In 184 he attacked Beihai, besieging Kong Rong with Guan Hai. Liu Bei, Guan Yu, and Zhang Fei broke them, and Sun Zhong was killed in the line.',
+  },
+  'wei-zhao': {
+    era: { zh: '吳國史官', en: 'Historian of Wu' },
+    zh: '字弘嗣,吳郡雲陽人。事孫權、孫亮、孫休,以博學掌史。著《吳書》、《漢書音義》、《辨釋名》等。孫皓即位,韋昭直諫不阿,觸怒孫皓,被害,年七十。',
+    en: 'Style name Hongsi, of Yunyang in Wujun. He served Sun Quan, Sun Liang, and Sun Xiu, holding the office of history through his learning. He wrote the History of Wu, the Sound and Meaning of the Han History, and the Distinctions of the Names of Things. When Sun Hao took the throne, Wei Zhao remonstrated straight and would not flatter; Sun Hao took the affront and had him killed at seventy.',
+  },
+  'wei-kang': {
+    zh: '字元將,京兆杜陵人。涼州刺史。馬超圍冀城,韋康守八月,糧盡開城,馬超殺之。楊阜、姜敘為其報仇,大破馬超於冀城。',
+    en: 'Style name Yuanjiang, of Duling in the metropolitan region. Inspector of Liang province. When Ma Chao laid siege to Jicheng, Wei Kang held for eight months until grain ran out and opened the gate; Ma Chao killed him. Yang Fu and Jiang Xu took up his vengeance and broke Ma Chao at Jicheng.',
+  },
+  'wei-feng': {
+    zh: '字子京,沛國人。事曹操,以才辯見稱。建安二十四年密謀反曹,事洩,被誅,牽連數十家。',
+    en: 'Style name Zijing, of Pei. Under Cao Cao, known for talent and speech. In 219 he plotted secretly against Cao Cao; the plot leaked, he was killed, and dozens of houses were dragged in.',
+  },
+  'tao-huang': {
+    zh: '字世英,丹陽秣陵人。吳國將。鎮交州,屢平叛亂。吳亡,陶璜歸晉,武帝以為交州牧,治民有方,夷漢咸服。',
+    en: 'Style name Shiying, of Moling in Danyang. A Wu general. He held Jiao province and put down many risings. When Wu fell he submitted to Jin; Emperor Wu made him Inspector of Jiao province. He governed the people well, and tribes and Han alike obeyed.',
+  },
+  'xue-zong': {
+    zh: '字敬文,沛郡竹邑人。吳國儒臣。事孫權四十年,博學能文,鎮交州,撫蠻夷有方。位至太子少傅。',
+    en: 'Style name Jingwen, of Zhuyi in Pei. A Confucian minister of Wu, he served Sun Quan forty years; broadly learned and a writer. Holding Jiao province he gentled the tribes well. He rose to Junior Tutor of the Crown Prince.',
+  },
+  'shen-dan': {
+    zh: '字義舉,房陵太守。本劉璋部,降劉備。後孟達叛蜀降魏,申耽從之。',
+    en: 'Style name Yiju, Governor of Fangling. Originally with Liu Zhang, he submitted to Liu Bei. When Meng Da turned from Shu to Wei, Shen Dan went with him.',
+  },
+  'shen-yi': {
+    zh: '申耽之弟,西城太守。孟達歸魏,司馬懿襲新城,申儀預其謀,反殺孟達。',
+    en: 'Younger brother of Shen Dan, Governor of Xicheng. When Meng Da turned back to Wei and Sima Yi struck at Xincheng, Shen Yi was part of the plot and killed Meng Da in turn.',
+  },
+  'shen-ying': {
+    zh: '吳郡盛澤人。事孫權,以勇略稱。',
+    en: 'Of Shengze in Wujun. Under Sun Quan, known for boldness.',
+  },
+  'niu-jin': {
+    zh: '曹仁部將。從征戰多年。襄樊之役,牛金率三百人迎戰關羽,被關羽包圍。曹仁親率騎兵殺入重圍,救出牛金。後被司馬懿所忌,憂憤而死。',
+    en: 'A captain under Cao Ren. He campaigned with him for years. In the Xiangfan battle he led three hundred against Guan Yu and was surrounded; Cao Ren rode in personally with cavalry and cut him out. Later Sima Yi grew suspicious of him, and he died of grief and rage.',
+  },
+  'tian-chou': {
+    zh: '字子泰,右北平無終人。漢末名士。劉虞使其入長安朝獻帝,以盡漢室之忠。歸而劉虞已被殺,田疇率部隱於徐無山,五千餘家賴以存活。曹操北征烏桓,田疇為嚮導,大破之。曹操欲封侯,田疇辭不受。',
+    en: 'Style name Zitai, of Wuzhong in Youbeiping. A famed gentleman of late Han. Liu Yu sent him to Chang\'an to render tribute to Emperor Xian — the duty of a Han loyalist. When he came back, Liu Yu was dead; he led his men into Mount Xuwu where over five thousand households lived under his protection. When Cao Cao marched against the Wuhuan, Tian Chou was his guide and helped break them. Cao Cao would have made him a marquis; Tian Chou refused.',
+  },
+  'tian-kai': {
+    zh: '公孫瓚部將。從公孫瓚與袁紹爭河北。公孫瓚敗,田楷死於亂中。',
+    en: 'A captain of Gongsun Zan. He fought with him for the north against Yuan Shao. When Gongsun Zan fell, Tian Kai died in the chaos.',
+  },
+  'tian-xu': {
+    zh: '魏將。鎮東北邊塞,擊鮮卑,有功。',
+    en: 'A Wei officer who held the northeastern frontier and struck the Xianbei with credit.',
+  },
+  'xiang-lang': {
+    zh: '字巨達,襄陽宜城人。蜀漢儒臣。位至左將軍。坐馬謖之事被免,後復用。博覽群書,以德高見尊。卒於延熙十年。',
+    en: 'Style name Juda, of Yicheng in Xiangyang. A Confucian minister of Shu, General of the Left. Caught up in Ma Su\'s affair he was dismissed and later restored. Broadly read and held in honor for his virtue. He died in 247.',
+  },
+  'xing-cai': {
+    zh: '邢道榮之另寫。零陵將。趙雲、張飛取零陵,邢道榮出戰被斬。',
+    en: 'Alternate writing for Xing Daorong. A captain of Lingling. When Zhao Yun and Zhang Fei took Lingling, Xing Daorong rode out and was beheaded.',
+  },
+  'jia-fan': {
+    zh: '蜀漢將。隨諸葛亮北伐。',
+    en: 'A Shu officer who marched in Zhuge Liang\'s northern campaigns.',
+  },
+  'jia-mi-jin': {
+    zh: '賈充之女賈午之子。事晉。',
+    en: 'A son of Jia Wu, daughter of Jia Chong. He served Jin.',
+  },
+  'huang-chong': {
+    zh: '字未詳,黃權之子。蜀漢將。鄧艾入蜀,黃崇隨諸葛瞻禦於綿竹,慷慨陳辭,激勵將士,陣亡。',
+    en: 'Son of Huang Quan. A Shu officer. When Deng Ai broke in, Huang Chong went with Zhuge Zhan to Mianzhu, spoke with great spirit to rouse the men, and died in the fight.',
+  },
+  'huang-rang': {
+    zh: '黃忠之子。蜀漢將。早卒於父之先。',
+    en: 'A son of Huang Zhong. A Shu officer who died before his father.',
+  },
+  'lu-fu': {
+    zh: '蜀漢使者。先主、後主時往來吳國,以辭令稱。',
+    en: 'A Shu envoy. Under both emperors he went back and forth to Wu, known for his speech.',
+  },
+  'lu-yu': {
+    zh: '字偉則,曹魏將。鎮西涼,擊鮮卑、羌人有功。',
+    en: 'Style name Weize, a Wei officer. He held the western marches and struck the Xianbei and Qiang with credit.',
+  },
+  'lu-yun-jin': {
+    zh: '陸機之弟陸雲,字士龍。西晉文人,與兄齊名,世稱「二陸」。八王之亂中與兄同被孟玖讒,被殺。',
+    en: 'Lu Yun, younger brother of Lu Ji, style name Shilong. A literary man of Western Jin, ranked with his brother as the "Two Lu." In the War of Eight Princes Meng Jiu\'s slander brought both brothers to death.',
+  },
+  'lu-mao': {
+    zh: '陸遜族子。事孫權,鎮邊。',
+    en: 'A clansman of Lu Xun. Under Sun Quan he held the border.',
+  },
+  'lu-jing': {
+    zh: '魯肅之姪。事孫權,以才幹見稱。',
+    en: 'A nephew of Lu Su. Under Sun Quan, known for his ability.',
+  },
+  'lu-wan': {
+    zh: '字子鴻,曹魏中書監。事曹丕、曹叡,掌機密。',
+    en: 'Style name Zihong, Director of the Imperial Secretariat under Wei. He served Cao Pi and Cao Rui, holding the state\'s secrets.',
+  },
+  'lu-xiang': {
+    zh: '陸抗之子。事孫皓,鎮西陵。吳亡入晉,任尚書郎。',
+    en: 'A son of Lu Kang. He served Sun Hao at Xiling. When Wu fell he came into Jin as Secretariat Officer.',
+  },
+  'lu-yi-wu': {
+    zh: '陸氏吳人,事孫權,以政事稱。',
+    en: 'A man of the Lu clan of Wu, who served Sun Quan with administrative merit.',
+  },
+  'lu-ji-wu': {
+    zh: '陸績,字公紀,陸康之子。少時於袁術席上懷橘三枚以遺母,六歲已有孝名。事孫權,任鬱林太守。博通天文歷算,著《渾天圖》、《周易注》。卒年三十二。',
+    en: 'Lu Ji, style name Gongji, son of Lu Kang. At six, at Yuan Shu\'s table, he tucked three oranges in his sleeve for his mother — and was famed a filial child. Under Sun Quan he was Governor of Yulin. Broadly learned in astronomy and arithmetic, he wrote a Diagram of the Whole Heavens and a Commentary on the Book of Changes. He died at thirty-two.',
+  },
+  'lu-jun-wu': {
+    zh: '陸俊,陸遜族姪。事孫權,鎮邊。',
+    en: 'Lu Jun, a clansman-nephew of Lu Xun. Under Sun Quan he held the border.',
+  },
+  'lu-kuang': {
+    zh: '陸康之姪。事孫權。',
+    en: 'A nephew of Lu Kang. Under Sun Quan.',
+  },
+  'ma-bing': {
+    zh: '蜀漢將。',
+    en: 'A Shu officer.',
+  },
+  'ma-qi': {
+    zh: '字承伯,巴西閬中人。蜀漢人,博學能文。位至尚書,著《讖緯》數卷。',
+    en: 'Style name Chengbo, of Langzhong in Baxi. A man of Shu, broadly learned and a writer. He rose to Director of the Imperial Secretariat and wrote several fascicles of apocrypha.',
+  },
+  'ma-zun': {
+    zh: '魏將。鎮關中,從郭淮、王雙拒蜀。',
+    en: 'A Wei officer who held Guanzhong and fought Shu under Guo Huai and Wang Shuang.',
+  },
+  'man-wei': {
+    zh: '滿寵之子。事曹魏,從父鎮淮南。',
+    en: 'Son of Man Chong. Under Wei he held Huainan with his father.',
+  },
+  'mei-cheng': {
+    zh: '袁術部將。守潛山,後與陳蘭、雷薄共拒曹軍,事敗被斬。',
+    en: 'A captain of Yuan Shu. Holding Mount Qian, he stood with Chen Lan and Lei Bo against Cao\'s host; the fight failed and he was beheaded.',
+  },
+  'mu-shun': {
+    zh: '南蠻將。隨孟獲拒蜀,被馬岱所擒。',
+    en: 'A captain of the southern tribes. He fought Shu under Meng Huo and was taken by Ma Dai.',
+  },
+  'nan-lou': {
+    zh: '烏桓大人。漢末右北平烏桓首領之一。與蹋頓、蘇仆延共助袁尚,曹操北征,被張遼斬於白狼山。',
+    en: 'A Great Chief of the Wuhuan. In late Han, one of the leaders of the You-Beiping Wuhuan. With Taduan and Supuyan he helped Yuan Shang; when Cao Cao marched north, Zhang Liao cut him down at White Wolf Mountain.',
+  },
+  'peng-yang': {
+    zh: '字永年,廣漢人。蜀漢人,自負其才。劉備入蜀,法正薦之,劉備拜為治中從事。後與馬超有不平之言,被諸葛亮告於劉備,下獄被殺,年三十七。',
+    en: 'Style name Yongnian, of Guanghan. A man of Shu, proud of his talent. When Liu Bei came into Shu, Fa Zheng recommended him and Liu Bei made him Aide in the Office of Administration. Later he gave Ma Chao words of discontent; Zhuge Liang reported it to Liu Bei, and he was thrown into prison and killed at thirty-seven.',
+  },
+  'qiao-mao': {
+    zh: '字元偉,梁國睢陽人。漢末東郡太守。十八路諸侯討董卓,橋瑁與曹操、袁紹並起,後為部將劉岱所殺。',
+    en: 'Style name Yuanwei, of Suiyang in Liang. Governor of Dongjun in late Han. When the eighteen princes marched against Dong Zhuo, Qiao Mao rose with Cao Cao and Yuan Shao. He was later killed by his captain Liu Dai.',
+  },
+  'qin-lang': {
+    zh: '字元明,新興雲中人。從父呂布,後事曹魏,鎮西將軍。鎮關中,擊鮮卑、羌人有功。',
+    en: 'Style name Yuanming, of Yunzhong in Xinxing. He served Lü Bu first, then Wei as General Who Guards the West. He held Guanzhong and struck the Xianbei and Qiang with credit.',
+  },
+  'quan-duan': {
+    zh: '全琮之子。事孫權,後在二宮之爭中附孫霸,被孫皓所黜。',
+    en: 'A son of Quan Cong. Under Sun Quan, in the Strife of the Two Palaces he stood with Sun Ba and was later dismissed by Sun Hao.',
+  },
+  'quan-ji': {
+    zh: '全琮之子。事孫權,鎮邊。',
+    en: 'A son of Quan Cong. Under Sun Quan he held the border.',
+  },
+  'quan-yi': {
+    zh: '全琮之子。後降晉。',
+    en: 'A son of Quan Cong. He later surrendered to Jin.',
+  },
+  'shang-sheng': {
+    zh: '字德高,曹魏將。鎮邊有功。',
+    en: 'Style name Degao, a Wei officer of merit on the borders.',
+  },
+  'tao-shang': {
+    zh: '陶謙長子。早卒,父陶謙以徐州托於劉備。',
+    en: 'Eldest son of Tao Qian. He died young — Tao Qian gave Xuzhou over to Liu Bei.',
+  },
+  'tao-ying': {
+    zh: '陶謙次子。父陶謙死,陶應隨家避亂,後事孫策、孫權。',
+    en: 'Second son of Tao Qian. After his father died, Tao Ying went with the household into exile and later served Sun Ce and Sun Quan.',
+  },
+  'tao-ji': {
+    zh: '陶謙族子。從父鎮徐州。',
+    en: 'A clansman-nephew of Tao Qian. He held Xuzhou with his uncle.',
+  },
+  'tao-jun': {
+    zh: '陶謙從子。從征戰。',
+    en: 'A nephew of Tao Qian who marched in his campaigns.',
+  },
+  'teng-yin': {
+    zh: '字承嗣,北海人。吳國丞相。與諸葛恪同輔孫亮,後諸葛恪敗,滕胤亦被誅,夷三族。',
+    en: 'Style name Chengsi, of Beihai. Chancellor of Wu. He served as co-regent with Zhuge Ke under Sun Liang; when Zhuge Ke was killed, Teng Yin was killed too, and three branches of his clan were extinguished.',
+  },
+  'teng-xiu': {
+    zh: '滕胤之子。父被誅後,滕修出奔,後事孫休。',
+    en: 'A son of Teng Yin. When his father was killed he fled, and later served Sun Xiu.',
+  },
+  'yan-rou': {
+    zh: '幽州人。漢末為烏桓校尉。鮮于輔起兵討公孫瓚,閻柔率烏桓共擊之。後事曹操,封關內侯。',
+    en: 'Of You province. In late Han Colonel-Protector of the Wuhuan. When Xianyu Fu rose against Gongsun Zan, Yan Rou led the Wuhuan into the war. He later served Cao Cao and was made Marquis within the Pass.',
+  },
+  'bian-zhang': {
+    zh: '羌人。中平元年起兵涼州,與北宮伯玉、韓遂共反,後被韓遂所殺。',
+    en: 'A Qiang chieftain. In 184 he raised troops in Liang province with Beigong Boyu and Han Sui, and was later killed by Han Sui.',
+  },
+  'wu-can': {
+    zh: '字孔休,吳郡人。吳國將。',
+    en: 'Style name Kongxiu, of Wujun. A captain of Wu.',
+  },
+  'xue-li': {
+    zh: '丹陽人。漢末守秣陵。笮融奔之,薛禮被笮融所殺。',
+    en: 'Of Danyang. In late Han he held Moling. When Ze Rong came over, Ze Rong killed him.',
+  },
+  'xue-xu': {
+    zh: '蜀漢人,薛綜之子。事孫權,出使蜀漢。',
+    en: 'A son of Xue Zong, of Wu. He went as envoy to Shu.',
+  },
+  'xue-ying': {
+    zh: '薛綜之子。事孫權,博學能文。',
+    en: 'A son of Xue Zong. Under Sun Quan, broadly learned and a writer.',
+  },
+  'yang-hong': {
+    zh: '字季休,犍為武陽人。蜀漢人。事劉備、後主,以政事稱。位至越騎校尉。',
+    en: 'Style name Jixiu, of Wuyang in Qianwei. A man of Shu. Under Liu Bei and his son, known for administration. He rose to Colonel of the Yue Cavalry.',
+  },
+  'yu-huan': {
+    zh: '字未詳,京兆人。曹魏史官。著《魏略》,後散佚,裴松之注《三國志》多引之。',
+    en: 'Style name unknown, of the metropolitan region. A Wei historian. He wrote the Records of Wei, lost in the centuries; Pei Songzhi\'s commentary on the Records of the Three Kingdoms draws much from it.',
+  },
   // ─── 歷代名將 (Historical Officers, 14 dynasties) ───
   ...HISTORICAL_BIOGRAPHIES,
 };
