@@ -2959,6 +2959,267 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '元朝漢人世侯。降蒙古,鎮東平,以漢法治民,蒙元時山東之主。',
     en: 'A hereditary Han lord of Yuan. He submitted to the Mongols and held Dongping, ruling by Chinese law — lord of Shandong under Mongol-Yuan.',
   },
+  // ─── 歷代名將 新增第十批 (Historical biographies — batch 10: Qing) ───
+  'hist-hong-taiji': {
+    zh: '參見「hist-huangtaiji」。',
+    en: 'See hist-huangtaiji.',
+  },
+  'hist-dodo': {
+    era: { zh: '多鐸', en: 'Dodo' },
+    zh: '努爾哈赤第十五子,多爾袞之弟。清初名將。隨多爾袞入關,平江南。揚州十日、嘉定三屠皆多鐸所為。封豫親王。卒於天花,年三十六。',
+    en: 'Fifteenth son of Nurhaci, younger brother of Dorgon. A famed early-Qing general. With Dorgon he came through the wall and pacified the south. The Ten Days at Yangzhou and the Three Slaughters at Jiading were his work. Made Prince of Yu. He died of smallpox at thirty-six.',
+  },
+  'hist-ajige': {
+    zh: '努爾哈赤第十二子,多爾袞之兄。隨多爾袞、多鐸入關,平四川。封英親王。後因爭立順治帝失敗,被多爾袞所抑。多爾袞死後被誣謀反,賜死。',
+    en: 'Twelfth son of Nurhaci, elder brother of Dorgon. With Dorgon and Dodo he came through the wall and pacified Sichuan. Made Prince of Ying. Defeated in the contest over Shunzhi\'s accession, he was held down by Dorgon. After Dorgon died he was framed with revolt and given a draught of death.',
+  },
+  'hist-shunzhi': {
+    era: { zh: '順治帝', en: 'The Shunzhi Emperor' },
+    zh: '名福臨,皇太極第九子。六歲嗣位,多爾袞攝政。多爾袞死後親政。性多情,寵愛董鄂妃,妃死後傷悼成疾。在位十八年,卒於養心殿,年二十四(或言出家五臺山)。',
+    en: 'Personal name Fulin, ninth son of Hongtaiji. He took the throne at six, with Dorgon as regent. After Dorgon died he took up rule himself. Of strong feeling, he doted on Consort Donggo; when she died he sickened in grief. Eighteen years he reigned and died at the Yangxin Palace at twenty-four — or, the tale runs, became a monk on Mount Wutai.',
+  },
+  'hist-xiaozhuang': {
+    era: { zh: '孝莊文太后', en: 'Empress Dowager Xiaozhuang Wen' },
+    zh: '名布木布泰,蒙古博爾濟吉特氏。皇太極莊妃。生順治帝。皇太極崩,扶順治、康熙兩代幼帝臨朝。歷四朝,輔成清初基業,千古賢后之典。壽七十五。',
+    en: 'Personal name Bumbutai, of the Mongol Borjigit clan. Consort Zhuang of Hongtaiji. Mother of the Shunzhi emperor. When Hongtaiji died, she raised both Shunzhi and Kangxi to the throne as boy-emperors. Through four reigns she helped found the early Qing — a model worthy empress for the ages. She lived to seventy-five.',
+  },
+  'hist-oboi': {
+    era: { zh: '鰲拜', en: 'Oboi' },
+    zh: '滿洲鑲黃旗人。清初名將,號「滿洲第一勇士」。順治帝託孤四輔政之一,後專權跋扈。康熙智擒鰲拜於南書房,囚死於獄,千古少年皇帝智擒權臣之典。',
+    en: 'Of the Manchu Bordered Yellow Banner. A famed early-Qing general, called "first warrior of Manchuria." One of the four regents appointed by Shunzhi for his son. He grew overbearing and held all power. Kangxi cleverly seized him in the Southern Study and he died in prison — a model for the ages of a boy-emperor taking down a great power-holder.',
+  },
+  'hist-suksaha': {
+    zh: '滿洲正白旗人。順治帝託孤四輔政之一。後鰲拜陷之,被誅,夷其家。',
+    en: 'Of the Manchu Plain White Banner. One of the four regents appointed by Shunzhi. Later framed by Oboi, he was killed and his household exterminated.',
+  },
+  'hist-ebilun': {
+    zh: '滿洲鑲黃旗人。順治帝託孤四輔政之一。性懦弱,從鰲拜行事,鰲拜既擒,亦被免官。',
+    en: 'Of the Manchu Bordered Yellow Banner. One of the four regents appointed by Shunzhi. Weak in temper, he followed Oboi. When Oboi was taken he too was dismissed.',
+  },
+  'hist-tuhai': {
+    zh: '滿洲正黃旗人。康熙時名將。平三藩之亂,鎮西北,屢有戰功。封一等公,謚文襄。',
+    en: 'Of the Manchu Plain Yellow Banner. A famed general under Kangxi. He put down the Three Feudatories\' revolt, held the northwest, and won many laurels. Made a Duke of the First Class, posthumous name Wenxiang.',
+  },
+  'hist-songgotu': {
+    zh: '滿洲正黃旗人。康熙時權臣。與明珠相鬥。康熙親征噶爾丹,索額圖預軍政。後與太子黨相結,被康熙圈禁而死。',
+    en: 'Of the Manchu Plain Yellow Banner. A great minister under Kangxi. He contested power with Mingju. When Kangxi marched against Galdan in person, Songgotu joined the planning. Later, bound to the crown prince\'s faction, he was confined by Kangxi and died.',
+  },
+  'hist-mingju': {
+    zh: '葉赫那拉氏。康熙時權臣。與索額圖相鬥。後因結黨被康熙罷職。其子納蘭性德為清代第一詞人。',
+    en: 'Of the Yehenara clan. A great minister under Kangxi. He contested power with Songgotu. Later dismissed by Kangxi for faction-building. His son Nalan Xingde was the first ci poet of the Qing.',
+  },
+  'hist-nalan-xingde': {
+    era: { zh: '清代第一詞人', en: 'First Ci Poet of the Qing' },
+    zh: '字容若,葉赫那拉氏,明珠之子。康熙朝詞人。生於富貴,然以悲愴為詞,「人生若只如初見」、「當時只道是尋常」千古絕唱。年三十一早卒,世人惜之。',
+    en: 'Style Rongruo, of the Yehenara clan, son of Mingju. A ci poet of the Kangxi reign. Born to wealth and rank, his verse was full of grief. "If life were only as the first meeting" and "back then I thought it ordinary" rang forever. He died at thirty-one, and the world mourned.',
+  },
+  'hist-shang-kexi': {
+    zh: '遼東人。原明朝將,降清為三藩之一,封平南王,鎮廣東。康熙削藩,尚可喜上書請歸老遼東,然其子尚之信叛清,可喜遂憂憤而卒。',
+    en: 'Of Liaodong. An old Ming general who submitted to Qing as one of the Three Feudatories — made Prince of Pingnan, holding Guangdong. When Kangxi cut down the feudatories he asked to retire to Liaodong; but his son Shang Zhixin rose against Qing, and Shang Kexi died of grief and rage.',
+  },
+  'hist-geng-jingzhong': {
+    zh: '原明朝將耿仲明之孫。三藩之一,封靖南王,鎮福建。康熙削藩,耿精忠起兵反清。後敗降清,被凌遲處死。',
+    en: 'Grandson of the old Ming general Geng Zhongming. One of the Three Feudatories, made Prince of Jingnan, holding Fujian. When Kangxi cut down the feudatories he rose against Qing. Broken and submitting, he was torn apart.',
+  },
+  'hist-zhaohui': {
+    zh: '滿洲正黃旗人。乾隆時名將。隨乾隆征準噶爾、回部,平定新疆,功冠群臣。封一等武毅謀勇公。',
+    en: 'Of the Manchu Plain Yellow Banner. A famed general under Qianlong. With Qianlong he campaigned against the Dzungars and the Hui, pacified Xinjiang, his merit above all. Made a Duke of the First Class — "Bold, Resolute, Skilled, and Brave."',
+  },
+  'hist-hailancha': {
+    zh: '滿洲鑲黃旗人。乾隆時名將。隨阿桂、福康安征大小金川、廓爾喀,功著一時。',
+    en: 'Of the Manchu Bordered Yellow Banner. A famed general under Qianlong. With Agui and Fukanggan he campaigned against the Greater and Lesser Jinchuan and the Gurkha — his fame in his age.',
+  },
+  'hist-agui': {
+    zh: '滿洲正白旗人。乾隆朝名將。平大小金川、回部,鎮邊有功。位至武英殿大學士。乾隆四十大功臣之一。',
+    en: 'Of the Manchu Plain White Banner. A famed general under Qianlong. He pacified the Greater and Lesser Jinchuan and the Hui with merit on the borders. He rose to Grand Secretary of the Wuying Hall. One of the Forty Meritorious Officers of Qianlong.',
+  },
+  'hist-fukanggan': {
+    zh: '滿洲鑲黃旗人,富察氏。乾隆時名將,孝賢純皇后之姪。征大小金川、台灣林爽文、廓爾喀,所向披靡。封嘉勇郡王。',
+    en: 'Of the Manchu Bordered Yellow Banner, of the Fucha clan. A famed general under Qianlong, nephew of the Pure Empress Xiaoxian. He marched on the Greater and Lesser Jinchuan, on Lin Shuangwen of Taiwan, on the Gurkhas — none stood before him. Made Prince of Jiayong commandery.',
+  },
+  'hist-nian-gengyao': {
+    zh: '漢軍鑲黃旗人。雍正寵臣。平青海羅卜藏丹津,功冠群臣。封一等公。後恃寵驕橫,被雍正以九十二大罪賜死。',
+    en: 'Of the Han Bordered Yellow Banner. A favored minister of Yongzheng. He put down Lobzang Danjin in Qinghai, his merit above all. Made a Duke of the First Class. Later proud and overbearing on his lord\'s favor, Yongzheng listed ninety-two great crimes and gave him a draught of death.',
+  },
+  'hist-ortai': {
+    zh: '滿洲鑲藍旗人,西林覺羅氏。雍正朝重臣。主持「改土歸流」,改西南土司為流官,大行漢化。位至保和殿大學士。',
+    en: 'Of the Manchu Bordered Blue Banner, of the Silin Gioro clan. A great minister of Yongzheng. He led the policy of "replacing native chieftains with regular officials," sinicizing the southwest. He rose to Grand Secretary of the Baohe Hall.',
+  },
+  'hist-zhang-tingyu': {
+    zh: '字衡臣,安徽桐城人。雍正、乾隆兩朝重臣。主編《明史》、《大清會典》。歷三朝五十年,清朝唯一配享太廟之漢臣。',
+    en: 'Style Hengchen, of Tongcheng in Anhui. A great minister of Yongzheng and Qianlong. He led the compilation of the Ming History and the Qing Statutes. For fifty years across three reigns — the only Han minister honored with offerings at the Imperial Ancestral Temple under Qing.',
+  },
+  'hist-chen-tingjing': {
+    zh: '字子端,山西澤州人。康熙時名臣。主編《康熙字典》,中華第一部漢字字典,收四萬七千字。位至文淵閣大學士。',
+    en: 'Style Ziduan, of Zezhou in Shanxi. A famed minister under Kangxi. He led the compilation of the Kangxi Dictionary — the first great Chinese character dictionary, with 47,000 entries. He rose to Grand Secretary of the Wenyuan Hall.',
+  },
+  'hist-tian-wenjing': {
+    zh: '漢軍正黃旗人。雍正朝名臣,模範總督。鎮河南,清查積弊,以嚴明著稱。雍正譽為「模範督撫」。卒,雍正親臨弔唁。',
+    en: 'Of the Han Plain Yellow Banner. A famed minister under Yongzheng, the model Governor-General. Holding Henan he investigated old abuses, known for strict clarity. Yongzheng called him a "model governor-general." At his death Yongzheng came in person to mourn.',
+  },
+  'hist-gu-yanwu': {
+    era: { zh: '清初三大儒', en: 'One of the Three Great Confucians of Early Qing' },
+    zh: '字寧人,號亭林,蘇州崑山人。明末清初大儒。著《日知錄》、《天下郡國利病書》。倡實學,反對空談。與黃宗羲、王夫之並稱清初三大儒。「天下興亡,匹夫有責」千古絕唱。',
+    en: 'Style Ningren, called Tinglin, of Kunshan in Suzhou. A great Confucian of the late Ming and early Qing. He wrote the Daily Knowledge Record and the Treatise on the Geography and Statecraft of the Realm. He urged practical learning against empty talk. With Huang Zongxi and Wang Fuzhi he was one of the Three Great Confucians of early Qing. "The rise and fall of the realm — every common man has a share in it" rang forever.',
+  },
+  'hist-huang-zongxi': {
+    era: { zh: '清初三大儒', en: 'One of the Three Great Confucians of Early Qing' },
+    zh: '字太沖,號梨洲,浙江餘姚人。明末清初大儒。著《明夷待訪錄》,提出「天下為主,君為客」之說,啟蒙之先聲。又著《宋元學案》、《明儒學案》,中華第一部學術史。',
+    en: 'Style Taichong, called Lizhou, of Yuyao in Zhejiang. A great Confucian of the late Ming and early Qing. He wrote the Mingyi Daifang Lu, propounding "the realm is the host, the lord is the guest" — an early voice of enlightenment. He also wrote the Cases of Song and Yuan Learning and the Cases of Ming Confucians, the first connected academic history of China.',
+  },
+  'hist-wang-fuzhi': {
+    era: { zh: '清初三大儒', en: 'One of the Three Great Confucians of Early Qing' },
+    zh: '字而農,號薑齋,湖南衡陽人。明末清初大儒。明亡後隱居衡山,著書四十年。集中華古代唯物論之大成。著《讀通鑑論》、《宋論》,千古史學之珍。',
+    en: 'Style Erung, called Jiangzhai, of Hengyang in Hunan. A great Confucian of the late Ming and early Qing. After Ming fell he hid on Mount Heng and wrote for forty years. He gathered the materialist thought of ancient China into one. The Discourses on the Comprehensive Mirror and the Discourses on Song are his, a treasure of historical learning.',
+  },
+  'hist-zhu-shunshui': {
+    zh: '字魯嶼,號舜水,浙江餘姚人。明末大儒。明亡後流亡日本二十年,授徒講學,日本水戶藩主德川光圀奉為國師,日本朱子學由是大興,影響明治維新。',
+    en: 'Style Luyu, called Shunshui, of Yuyao in Zhejiang. A great Confucian of the late Ming. After Ming fell he wandered in Japan twenty years, teaching disciples. Tokugawa Mitsukuni of the Mito domain honored him as State Preceptor; Japanese Zhu Xi learning flourished from him, and shaped the Meiji Restoration.',
+  },
+  'hist-dai-zhen': {
+    zh: '字東原,安徽休寧人。清代考據學大師。著《孟子字義疏證》,反對宋明理學「以理殺人」,主張義理寓於訓詁。',
+    en: 'Style Dongyuan, of Xiuning in Anhui. A great master of evidential scholarship in the Qing. He wrote the Annotated Glosses on the Mencius, against the Song-Ming neo-Confucian "killing men with principle"; he held that meaning rests in glossing the words.',
+  },
+  'hist-duan-yucai': {
+    zh: '字若膺,號茂堂,江蘇金壇人。清代文字學家。著《說文解字注》,中華文字學之大成,千古不刊。',
+    en: 'Style Ruoying, called Maotang, of Jintan in Jiangsu. A philologist of the Qing. He wrote the Notes on the Shuowen Jiezi — the great gathering of Chinese philology, never to be undone.',
+  },
+  'hist-ruan-yuan': {
+    zh: '字伯元,號芸臺,江蘇儀徵人。清乾隆、嘉慶、道光三朝重臣。主編《經籍籑詁》、《十三經注疏》。倡「樸學」,清代考據學集大成。位至體仁閣大學士。',
+    en: 'Style Boyuan, called Yuntai, of Yizheng in Jiangsu. A great minister of Qianlong, Jiaqing, and Daoguang. He led the compilation of the Glosses of the Classics and the Thirteen Classics with Subcommentary. He championed "plain learning" — the great synthesizer of Qing evidential scholarship. He rose to Grand Secretary of the Tiren Hall.',
+  },
+  'hist-gong-zizhen': {
+    zh: '字璱人,號定盦,浙江仁和人。清代思想家、詩人。倡更法、改革,「九州生氣恃風雷,萬馬齊喑究可哀。我勸天公重抖擻,不拘一格降人才」千古絕唱。',
+    en: 'Style Seren, called Ding\'an, of Renhe in Zhejiang. A thinker and poet of the Qing. He urged reform: "The nine provinces\' breath rests on wind and thunder / when ten thousand horses fall silent it is grief — / I beg of Heaven to shake itself / and send down talent in every shape, unbound." Rang forever.',
+  },
+  'hist-wei-yuan': {
+    zh: '字默深,湖南邵陽人。清代思想家。著《海國圖志》一百卷,介紹世界地理形勢,倡「師夷長技以制夷」,中華睜眼看世界之先聲。',
+    en: 'Style Moshen, of Shaoyang in Hunan. A thinker of the Qing. He wrote the Illustrated Treatise on the Maritime Kingdoms in a hundred fascicles, telling of the geography of the world, and held: "Take up the foreigner\'s long art to control the foreigner" — the first voice of China opening her eyes upon the world.',
+  },
+  'hist-wu-jingzi': {
+    era: { zh: '儒林外史', en: 'Author of The Scholars' },
+    zh: '字敏軒,安徽全椒人。清代小說家。著《儒林外史》五十六回,中國第一部諷刺小說,刻畫科舉制度下士林之百態。',
+    en: 'Style Minxuan, of Quanjiao in Anhui. A Qing novelist. He wrote The Scholars in fifty-six chapters — the first Chinese satirical novel, drawing the gentry under the examination system in every aspect.',
+  },
+  'hist-yuan-mei': {
+    era: { zh: '隨園老人', en: 'The Old Man of Sui Garden' },
+    zh: '字子才,號隨園老人,浙江錢塘人。清代詩人、文學家。性情詩派之祖。著《隨園詩話》、《子不語》。築隨園於南京,游樂終身。',
+    en: 'Style Zicai, called the Old Man of Sui Garden, of Qiantang in Zhejiang. A Qing poet and writer, founder of the Spirit-and-Temper school of poetry. He wrote the Sui Garden Talks on Poetry and the Things Confucius Did Not Speak Of. He built the Sui Garden at Nanjing and made merry all his days.',
+  },
+  'hist-zhang-binglin': {
+    zh: '字枚叔,號太炎,浙江餘杭人。清末民初思想家、革命家。同盟會領袖。主編《民報》。後因袁世凱稱帝,憤而著文反袁。文宗復古,訓詁學集大成,弟子魯迅、黃侃等皆名家。',
+    en: 'Style Meishu, called Taiyan, of Yuhang in Zhejiang. A thinker and revolutionary of late Qing and early Republic. A leader of the Tongmenghui, editor of Min Bao. When Yuan Shikai took the imperial title, he wrote in fury against him. His prose looked to antiquity; he gathered the philological learning into one, and his disciples — Lu Xun, Huang Kan, and others — all became great men.',
+  },
+  'hist-kang-youwei': {
+    era: { zh: '戊戌變法', en: 'Leader of the Hundred Days\' Reform' },
+    zh: '字廣廈,號長素,廣東南海人。清末維新派領袖。倡君主立憲,公車上書。光緒帝重之,行戊戌變法,百日而敗。康有為流亡海外十六年,辛亥革命後反對共和,保皇終身。',
+    en: 'Style Guangsha, called Changsu, of Nanhai in Guangdong. Leader of the reformist school in late Qing. He urged constitutional monarchy and led the Memorial of the Examination Carts. Emperor Guangxu valued him and led the Hundred Days\' Reform — a hundred days and it failed. Kang Youwei wandered abroad sixteen years; after the Xinhai Revolution he opposed the republic and was a monarchist to the end.',
+  },
+  'hist-liang-qichao': {
+    zh: '字卓如,號任公,廣東新會人。清末民初思想家。康有為弟子。戊戌變法後流亡日本,著《新民說》、《飲冰室合集》,啟蒙中華近代思想。後在民國任財政總長,辭職後專事學術,死於協和醫院。',
+    en: 'Style Zhuoru, called Rengong, of Xinhui in Guangdong. A thinker of late Qing and early Republic, pupil of Kang Youwei. After the Hundred Days\' Reform he wandered in Japan and wrote On the New Citizen and the Ice-Drinker\'s Studio Collected Works, awakening modern Chinese thought. Under the Republic he served as Finance Minister; resigning, he turned to scholarship, and died at the PUMC hospital.',
+  },
+  'hist-yang-shenxiu': {
+    zh: '字儀村,陝西蒲城人。戊戌六君子之一。慷慨就義於菜市口。',
+    en: 'Style Yicun, of Pucheng in Shaanxi. One of the Six Gentlemen of the Wuxu Reform. He went bold-voiced to death at Caishikou.',
+  },
+  'hist-liu-guangdi': {
+    zh: '字裴村,四川富順人。戊戌六君子之一。慷慨就義於菜市口。',
+    en: 'Style Peicun, of Fushun in Sichuan. One of the Six Gentlemen of the Wuxu Reform. He went bold-voiced to death at Caishikou.',
+  },
+  'hist-lin-xu': {
+    zh: '字暾穀,福建侯官人。戊戌六君子之一。年僅二十四,慷慨就義於菜市口。',
+    en: 'Style Tungu, of Houguan in Fujian. One of the Six Gentlemen of the Wuxu Reform. Just twenty-four, he went bold-voiced to death at Caishikou.',
+  },
+  'hist-yang-rui': {
+    zh: '字叔嶠,四川綿竹人。戊戌六君子之一。慷慨就義於菜市口。',
+    en: 'Style Shuqiao, of Mianzhu in Sichuan. One of the Six Gentlemen of the Wuxu Reform. He went bold-voiced to death at Caishikou.',
+  },
+  'hist-qiu-jin': {
+    era: { zh: '鑑湖女俠', en: 'The Woman Knight of Lake Jian' },
+    zh: '字璿卿,號鑑湖女俠,浙江紹興人。清末女革命家。留學日本,加入同盟會。回國後在紹興主大通學堂,謀光復軍起義。事敗被執,寫「秋風秋雨愁煞人」一句而死,年三十二。中華第一女革命家。',
+    en: 'Style Xuanqing, called the Woman Knight of Lake Jian, of Shaoxing in Zhejiang. A woman revolutionary of late Qing. She studied in Japan and joined the Tongmenghui. Back in Shaoxing she led the Datong Academy and plotted the Guangfu army rising. Taken when the plot failed, she wrote a single line — "the autumn wind, the autumn rain, kill me with sorrow" — and died at thirty-two. The first woman revolutionary of China.',
+  },
+  'hist-zou-rong': {
+    era: { zh: '革命軍', en: 'Author of The Revolutionary Army' },
+    zh: '字蔚丹,四川巴縣人。清末革命家。年十八著《革命軍》二萬言,號召驅除韃虜,建立中華共和國。蘇報案被囚於上海西牢,年二十二死於獄中。',
+    en: 'Style Weidan, of Ba county in Sichuan. A revolutionary of late Qing. At eighteen he wrote the Revolutionary Army in twenty thousand words, calling for the expulsion of the Manchus and the founding of a Chinese republic. Imprisoned in the Shanghai Western Jail in the Subao case, he died there at twenty-two.',
+  },
+  'hist-yuan-shikai': {
+    era: { zh: '洪憲帝', en: 'Emperor Hongxian' },
+    zh: '字慰亭,河南項城人。清末民初軍政人物。小站練兵,建北洋新軍。戊戌變法告密於慈禧,致變法失敗。武昌起義後,逼清帝退位,任中華民國臨時大總統。後復辟稱帝,號洪憲,八十三日而崩。年五十八。',
+    en: 'Style Weiting, of Xiangcheng in Henan. A military and political figure of late Qing and early Republic. At Xiaozhan he drilled the Beiyang New Army. In the Hundred Days\' Reform he betrayed the plot to Cixi, bringing it down. After the Wuchang Uprising he forced the Qing emperor to abdicate and became Provisional President of the Republic of China. He then took the imperial title as Emperor Hongxian — eighty-three days and the throne fell. He died at fifty-eight.',
+  },
+  'hist-huang-xing': {
+    zh: '字克強,湖南長沙人。中華民國開國元勳,孫中山之副。發動黃花崗起義、武昌起義,中華民國之建,黃興功不可沒。後與孫中山主張不同,病卒於上海,年四十二。',
+    en: 'Style Keqiang, of Changsha in Hunan. A founding hero of the Republic of China, second to Sun Yat-sen. He led the Yellow Flower Mound and the Wuchang Uprisings; the founding of the Republic owed much to him. Differing later with Sun Yat-sen, he died of illness at Shanghai at forty-two.',
+  },
+  'hist-zhan-tianyou': {
+    era: { zh: '中國鐵路之父', en: 'Father of Chinese Railways' },
+    zh: '字眷誠,廣東南海人。清末工程師,中華鐵路之父。留學美國耶魯。主持京張鐵路,獨創「人字形」鐵路克服八達嶺險峻,中華第一條完全由華人自主修築之鐵路。',
+    en: 'Style Juancheng, of Nanhai in Guangdong. An engineer of late Qing, the father of Chinese railways. He studied at Yale. He led the Beijing-Zhangjiakou Railway and devised the unique "zigzag" line to overcome the steep Badaling — the first railway in China built entirely by Chinese hands.',
+  },
+  'hist-cai-e': {
+    era: { zh: '護國將軍', en: 'Defender of the Republic' },
+    zh: '字松坡,湖南邵陽人。中華民國名將。袁世凱稱帝,蔡鍔以「為國民爭人格」起兵雲南,號護國軍,逼袁世凱取消帝制。後病死日本,年三十五。',
+    en: 'Style Songpo, of Shaoyang in Hunan. A famed general of the Republic of China. When Yuan Shikai took the imperial title, Cai E raised troops in Yunnan, calling his force the Army to Protect the Country, and forced Yuan Shikai to undo the title. He died of illness in Japan at thirty-five.',
+  },
+  'hist-feng-zicai': {
+    era: { zh: '鎮南關大捷', en: 'Victor of Zhennan Pass' },
+    zh: '字翠亭,廣西博白人。清末名將。中法戰爭中,馮子材年近七十,率軍於鎮南關大破法軍,扭轉戰局。傳云「七十老翁猶執銳」,千古傳為國魂。',
+    en: 'Style Cuiting, of Bobai in Guangxi. A famed general of late Qing. In the Sino-French War, near seventy years old, Feng Zicai led his troops to break the French at Zhennan Pass, turning the tide. "An old man of seventy still bearing the sharp blade" rang as the spirit of the nation.',
+  },
+  'hist-deng-shichang': {
+    era: { zh: '甲午海戰', en: 'Hero of the Battle of the Yellow Sea' },
+    zh: '字正卿,廣東番禺人。清北洋海軍致遠艦管帶。甲午海戰,致遠艦中彈將沉,鄧世昌命衝撞日艦吉野,中魚雷沉沒。鄧世昌與全艦二百四十六人共沉於海,年四十六。',
+    en: 'Style Zhengqing, of Panyu in Guangdong. Captain of the Zhiyuan in the Qing Beiyang fleet. In the Battle of the Yellow Sea, when the Zhiyuan was hit and sinking, Deng Shichang ordered her to ram the Japanese Yoshino; struck by a torpedo, she went down. Deng Shichang and all 246 of the crew sank with the ship; he was forty-six.',
+  },
+  'hist-ding-ruchang': {
+    zh: '字禹廷,安徽廬江人。清北洋海軍提督。甲午戰爭,北洋艦隊敗於黃海。威海衛之戰,丁汝昌守劉公島,糧盡援絕,服鴉片自盡,以保全艦官兵之命。',
+    en: 'Style Yuting, of Lujiang in Anhui. Commander of the Qing Beiyang fleet. In the Sino-Japanese War the fleet was broken in the Yellow Sea. At Weihaiwei, holding Liugong Island, Ding Ruchang ran out of grain and relief failed; he took opium to die, that the lives of his officers and men might be kept whole.',
+  },
+  'hist-zuo-bao gui': {
+    zh: '參見「hist-zuo-baogui」(若已錄)。',
+    en: 'See hist-zuo-baogui.',
+  },
+  'hist-sengge-rinchen': {
+    zh: '蒙古族,科爾沁人。咸豐朝名將。第二次鴉片戰爭中,大破英法聯軍於大沽口。後在山東剿捻軍,中流矢而死。',
+    en: 'Of the Mongol Khorchin. A famed general under Xianfeng. In the Second Opium War he broke the Anglo-French army at the mouth of the Dagu River. Later in Shandong against the Nian, he was struck by a stray arrow and died.',
+  },
+  'hist-shen-baozhen': {
+    zh: '字幼丹,福建侯官人,林則徐婿。清末名臣。創福州船政局,中華第一所近代海軍學校。後任兩江總督,治民有方。',
+    en: 'Style Youdan, of Houguan in Fujian, son-in-law of Lin Zexu. A famed minister of late Qing. He founded the Fuzhou Naval Yard, the first modern naval academy of China. He later served as Governor-General of the Two Jiangs and ruled the people well.',
+  },
+  'hist-yikuang': {
+    zh: '愛新覺羅·奕劻,慶親王。清末權貴,皇族內閣首席。貪贓枉法,世稱「慶記公司」。武昌起義後辭職,移居天津。',
+    en: 'Aisin Gioro Yikuang, Prince Qing. A great power-holder of late Qing, head of the imperial-clan cabinet. Greedy and crooked, the world called his household "the Qing-Brand Company." After the Wuchang Uprising he resigned and moved to Tianjin.',
+  },
+  'hist-yixin': {
+    era: { zh: '恭親王', en: 'Prince Gong' },
+    zh: '愛新覺羅·奕訢,道光帝第六子。咸豐之弟。咸豐死後與慈禧合謀辛酉政變,擁同治。主持洋務運動,設總理衙門,興辦近代工業。光緒朝被慈禧逐出朝堂。卒於戊戌年。',
+    en: 'Aisin Gioro Yixin, sixth son of Daoguang. Younger brother of Xianfeng. After Xianfeng\'s death he joined Cixi in the Xinyou coup that set up Tongzhi. He led the Self-Strengthening Movement, set up the Zongli Yamen, and opened modern industry. Under Guangxu, Cixi drove him from court. He died in the Wuxu year.',
+  },
+  'hist-weng-tonghe': {
+    zh: '字叔平,江蘇常熟人。同治、光緒兩朝帝師。狀元出身。戊戌變法時力主新政,被慈禧逐歸故里,憂憤而卒。',
+    en: 'Style Shuping, of Changshu in Jiangsu. Tutor to two emperors, Tongzhi and Guangxu. A zhuangyuan (first-place graduate) of his time. In the Wuxu reform he pressed for the new policies; Cixi drove him home, where he died of grief and rage.',
+  },
+  'hist-tongzhi': {
+    era: { zh: '同治帝', en: 'The Tongzhi Emperor' },
+    zh: '名載淳,咸豐帝獨子。在位十三年。慈安、慈禧兩太后垂簾聽政,後恭親王奕訢輔政,稱「同治中興」。年十九早卒,世傳死於天花或梅毒。',
+    en: 'Personal name Zaichun, only son of Xianfeng. Thirteen years he reigned, with both Empresses Dowager Ci\'an and Cixi ruling from behind the curtain, and Prince Gong Yixin as regent — the "Tongzhi Restoration." He died young at nineteen, of smallpox or syphilis, the tradition says.',
+  },
+  'hist-yang-xiuqing': {
+    zh: '原為廣西燒炭工。太平天國東王,實際軍政首腦。智略過人,組織嚴密,太平軍前期勝利賴其多。後恃功驕橫,要求洪秀全封其為「萬歲」。洪秀全與北王韋昌輝合謀,於天京之變誅之,夷家屬部下二萬餘人。',
+    en: 'Originally a charcoal-burner of Guangxi. East King of the Taiping Heavenly Kingdom, in truth the head of its army and government. Of fine wits and tight order, the early Taiping victories owed much to him. Proud later on his merit, he asked Hong Xiuquan to make him a "Ten-Thousand-Year Lord." Hong Xiuquan and the North King Wei Changhui plotted together, killed him in the Tianjing incident, and slaughtered over twenty thousand of his household and following.',
+  },
+  'hist-liu-mingchuan': {
+    zh: '字省三,安徽肥西人。淮軍出身,清末名將。中法戰爭中,守台灣有功。後任首任台灣巡撫,興建鐵路、電報、煤礦,號「台灣近代化之父」。',
+    en: 'Style Xingsan, of Feixi in Anhui. Of Huai Army stock, a famed general of late Qing. In the Sino-French War he held Taiwan with merit. He later became the first Governor of Taiwan, building railways, telegraphs, and coal mines — the "father of Taiwan\'s modernization."',
+  },
+  'hist-liu-yongfu': {
+    zh: '字淵亭,廣東欽州人。黑旗軍領袖。中法戰爭中,大破法軍於越南。後守台灣,日本割台,劉永福組臺灣民主國抗日。終敗走廈門。',
+    en: 'Style Yuanting, of Qinzhou in Guangdong. Leader of the Black Flag Army. In the Sino-French War he broke the French in Vietnam. Later he held Taiwan; when Japan took Taiwan, Liu Yongfu organized the Republic of Taiwan in resistance. He was at last broken and fled to Xiamen.',
+  },
   'hist-meng-gong': {
     zh: '字璞玉,隨州棗陽人。南宋抗蒙古名將。連敗蒙古軍,收復襄陽,抵抗四十年。卒於官,蒙古聞之大喜。',
     en: 'Style Puyu, of Zaoyang in Suizhou. A famed Southern Song general against the Mongols. He broke the Mongols many times, recovered Xiangyang, and resisted for forty years. He died in office, and the Mongols rejoiced when they heard.',
