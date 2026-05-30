@@ -1842,6 +1842,54 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   'hist-lu-zhaolin':  'chang-an-gu-yi',     // 長安古意
   'hist-li-deyu':     'li-deyu-xiang',      // 李德裕宰相
   'hist-liu-yuxi':    'lou-shi-ming',       // 陋室銘 — 劉禹錫
+  // ─── 名品擴充第九批 (Phase 39 — TK literati, late Ming heroes) ───
+  // 三國
+  'mi-heng':          'ying-wu-fu',         // 鸚鵡賦 — 禰衡
+  'guo-jia':          'guo-jia-yi-ce',      // 郭嘉遺策
+  'cai-mao':          'jingzhou-shui-jun',  // 荊州水軍
+  'zhang-yun':        'shui-jun-fu-jiang',  // 水軍副將印
+  'kuai-yue':         'kuai-yue-mou',       // 蒯越謀
+  'kuai-liang':       'kuai-liang-ce',      // 蒯良策
+  'hua-xin':          'hua-xin-jue-xi',     // 華歆絕席
+  'wang-lang':        'wang-lang-fu',       // 王朗辭
+  'jiang-ji':         'jiang-ji-yi',        // 蔣濟議
+  'huan-fan':         'zhi-nang-wang',      // 智囊往矣
+  'he-yan':           'he-yan-fen',         // 何晏五石散
+  'xiahou-shang':     'xiahou-shang-zhe-jian',// 夏侯尚折節
+  'xiahou-ba':        'xiahou-ba-tou-shu',  // 夏侯霸投蜀
+  'xiahou-xuan':      'xuan-tan-zhi-zu',    // 玄談之祖
+  'ruan-yu':          'ruan-yu-jian-an',    // 阮瑀為書
+  'bian-rang':        'bian-rang-lun',      // 邊讓論
+  // 春秋戰國
+  'hist-liezi':       'lie-zi-shu',         // 列子書
+  'hist-gongsun-long':'bai-ma-fei-ma',      // 白馬非馬
+  // 漢
+  'hist-zhao-chongguo':'tun-tian-shi-ce',   // 屯田十二策
+  'hist-sang-hongyang':'yan-tie-lun',       // 鹽鐵論
+  'hist-zhu-maichen': 'ma-qian-po-shui',    // 馬前潑水
+  'hist-huang-ba':    'xun-li-shou',        // 循吏首
+  // 晉
+  'hist-wei-jie':     'kan-sha-wei-jie',    // 看殺衛玠
+  'hist-wang-rong':   'wang-rong-jian-yao', // 王戎簡要
+  // 南北朝
+  'hist-jiang-yan':   'jiang-lang-cai-jin', // 江郎才盡
+  'hist-bao-zhao':    'ni-xing-lu-nan',     // 擬行路難
+  'hist-shen-yue':    'ba-bing-shuo',       // 八病說 — 沈約
+  // 隋
+  'hist-zhai-rang':   'wa-gang-zhai',       // 瓦崗寨
+  // 宋
+  'hist-shao-yong':   'huang-ji-jing-shi',  // 皇極經世
+  'hist-he-zhu':      'qing-yu-an',         // 青玉案 — 賀鑄
+  // 明
+  'hist-yuan-chonghuan':'yuan-du-shi',      // 袁督師
+  'hist-shi-kefa':    'shi-ge-bu',          // 史閣部
+  'hist-huang-daozhou':'shi-zhai-ji',       // 石齋集
+  'hist-sun-chengzong':'guan-ning-tie-qi',  // 關寧鐵騎
+  'hist-xiong-tingbi':'xiong-jing-lue',     // 熊經略疏
+  'hist-mao-yuanyi':  'wu-bei-zhi',         // 武備志
+  // 清
+  'hist-nalan-xingde':'yin-shui-ci',        // 飲水詞
+  'hist-wang-shizhen-qing':'shen-yun-shuo', // 神韻說
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
