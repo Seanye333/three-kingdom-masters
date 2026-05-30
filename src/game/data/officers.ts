@@ -1936,6 +1936,61 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   'hist-feng-zicai':  'zhen-nan-guan',     // 鎮南關大捷
   'hist-lu-xiufu':    'ya-shan-fu-di',     // 崖山負帝
   'hist-cai-e':       'tao-yuan-jun',      // 討袁軍
+  // ─── 名品擴充第十一批 (Phase 41 — ancient ministers, Yuan/Qing additions) ───
+  // 春秋戰國
+  'hist-yi-yin':      'yi-yin-xiang-tang', // 伊尹相湯
+  'hist-sunshu-ao':   'sunshu-ao-fa',      // 孫叔敖三相
+  'hist-shen-baoxu':  'ku-qin-ting',       // 哭秦庭
+  'hist-tian-heng':   'tian-heng-wu-bai-shi',// 田橫五百士
+  'hist-taizi-dan':   'taizi-dan-yi-shui', // 太子丹易水
+  'hist-nie-zheng':   'nie-zheng-ci-xia',  // 聶政刺俠累
+  'hist-qing-ji':     'qing-ji-zhi-ke',    // 慶忌之刺
+  'hist-qin-xiaogong':'qin-xiao-bian-fa',  // 秦孝公變法
+  'hist-sima-cuo':    'sima-cuo-qu-shu',   // 司馬錯取蜀
+  // 漢
+  'hist-peng-yue':    'peng-yue-you-ji',   // 彭越游擊
+  'hist-ma-rong':     'ma-rong-tong-ru',   // 馬融絳帳
+  'hist-princess-pingyang':'ping-yang-jin',// 平陽公主印
+  'hist-qi-furen':    'qi-furen-ren-zhi',  // 戚夫人人彘
+  'hist-wu-guang':    'wu-guang-da-ze',    // 吳廣大澤鄉
+  // 晉/南北朝
+  'hist-sima-yan':    'jin-wu-di-zhao',    // 晉武帝詔
+  'hist-sima-rui':    'jin-yuan-di-zhao',  // 晉元帝詔
+  'hist-tuoba-tao':   'tai-wu-mie-xia',    // 太武滅夏
+  'hist-tan-daoji':   'tan-daoji-bing-fa', // 唱籌量沙
+  'hist-xiao-daocheng':'qi-gao-di-zhao',   // 齊高帝詔
+  'hist-xie-lingyun': 'shan-shui-shi-zu',  // 山水詩祖
+  // 唐
+  'hist-tang-gaozong':'yong-hui-zhi-zhi',  // 永徽之治
+  'hist-yao-chong':   'jiu-shi-zai-xiang', // 救時宰相
+  'hist-yang-yan':    'liang-shui-fa',     // 兩稅法
+  'hist-xiao-yu':     'xiao-yu-zhi-chen',  // 蕭瑀直臣
+  'hist-xie-jin':     'jie-jin-da-dian',   // 解縉編典筆
+  // 五代/宋
+  'hist-qian-liu':    'wu-yue-wang-yin',   // 吳越王
+  'hist-shi-jingtang':'er-huang-di',       // 兒皇帝
+  'hist-yu-yunwen':   'cai-shi-zhi-zhan',  // 采石之戰
+  'hist-zhang-jianzhi':'shen-long-zheng-bian',// 神龍政變
+  'hist-zhang-xun':   'sui-yang-shou-cheng',// 睢陽守城
+  // 遼/金/元
+  'hist-subutai':     'subutai-xi-zheng',  // 速不台西征
+  'hist-muqali':      'muqali-jing-lue',   // 木華黎經略
+  'hist-ogedei':      'wo-kuotai-li-fa',   // 窩闊台法度
+  'hist-tolui':       'tuolei-jiansheng',  // 拖雷監國
+  'hist-toghto':      'tuotuo-zhi-li',     // 脫脫改革
+  'hist-wanyan-liang':'hailing-fan-song',  // 海陵伐宋
+  // 明
+  'hist-yang-shen':   'yang-shen-zui-jia', // 楊慎滾滾長江
+  'hist-yang-shiqi':  'san-yang-ge-zhi',   // 三楊閣治
+  'hist-yang-lian':   'yang-lian-xue-shu', // 楊漣血疏
+  'hist-wu-sangui':   'wu-sangui-shan-hai',// 吳三桂開關
+  // 清
+  'hist-shunzhi':     'shun-zhi-ru-guan',  // 順治入關
+  'hist-shi-lang':    'shi-lang-qu-tai',   // 施琅取台
+  'hist-yu-chenglong':'yu-chenglong-qing-guan',// 于成龍清官
+  'hist-zhang-tingyu':'zhang-tingyu-pei-tai',// 張廷玉配太廟
+  'hist-zhang-binglin':'zhang-taiyan',     // 章太炎國故
+  'hist-weng-tonghe': 'weng-wengong',      // 翁文恭日記
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
