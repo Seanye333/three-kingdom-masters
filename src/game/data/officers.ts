@@ -2083,6 +2083,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-bai-juyi': [
     'pipa-xing',           // 琵琶行
+    'mai-tan-weng',        // 賣炭翁
   ],
   'hist-wang-xianzhi': [
     'yu-ban-shi-san-xing', // 玉版十三行
@@ -2311,8 +2312,95 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-qianlong': [
     'shi-quan-wu-gong',    // 十全武功
   ],
-  // 姜子牙 extra (合入原條目 — 釣魚渭水)
-  // (jiang-ziya 原 secondary 只有 feng-shen-bang;由於 key 不能重複, 把 diao-yu-wei-shui 加在原條目)
+  // ─── batch 15 — even more multi-artifact heroes ───
+  'lady-huang': [
+    'kong-ming-shan',      // 孔明扇
+  ],
+  'lady-sun': [
+    'jie-jiang-duo-dou',   // 截江奪斗
+    'lady-sun-gong-ma',    // 弓馬刀槍
+  ],
+  'da-qiao': [
+    'er-qiao-zhi-jie',     // 二喬姊妹
+  ],
+  'xiao-qiao': [
+    'xiao-qiao-fu-qin',    // 小喬撫琴
+  ],
+  'dian-wei': [
+    'shuang-tie-ji-ba-shi',// 雙鐵戟八十斤
+    'wan-cheng-zhi-si',    // 宛城之死
+  ],
+  'xu-chu': [
+    'luo-yi-dou-ma-chao',  // 裸衣鬥馬超
+    'hu-chi-zhi-ming',     // 虎癡之名
+  ],
+  'ling-tong': [
+    'hu-zhu-jiu-quan',     // 護主救權
+  ],
+  'gan-ning': [
+    'bai-qi-jie-wei-ying', // 百騎劫魏營
+    'ling-dang-dao',       // 鈴鐺刀
+  ],
+  'huang-gai': [
+    'ku-rou-ji',           // 苦肉計
+    'zha-xiang-shu',       // 詐降書
+  ],
+  'chen-deng': [
+    'yuan-long-hu-hai',    // 元龍湖海
+  ],
+  'zhang-song': [
+    'fan-xian-xi-chuan-tu',// 反獻西川圖
+  ],
+  'fa-zheng': [
+    'han-zhong-ce',        // 漢中策
+    'xiao-zhi-yi-hui',     // 孝直一恚
+  ],
+  'huo-jun': [
+    'jia-meng-shou-cheng', // 葭萌守城
+  ],
+  // 春秋戰國
+  'hist-han-fei': [
+    'shuo-nan',            // 說難
+    'wu-du',               // 五蠹
+  ],
+  'hist-fan-li': [
+    'ji-ran-zhi-ce',       // 計然之策
+    'fan-li-fu-hai',       // 范蠡浮海
+  ],
+  'hist-zhang-yi': [
+    'lian-heng-zhi-shu',   // 連橫之術
+  ],
+  'hist-su-qin': [
+    'he-zong-liu-guo',     // 合縱六國
+  ],
+  'hist-zhuan-zhu': [
+    'zhuan-zhu-ci-wang',   // 專諸刺王僚
+  ],
+  'hist-helu': [
+    'mo-ye-jian-yu-jian',  // 莫邪鴛鴦劍
+  ],
+  // 唐
+  'hist-han-yu': [
+    'jian-ying-fo-gu-biao',// 諫迎佛骨表
+  ],
+  'hist-liu-zongyuan': [
+    'jiang-xue',           // 江雪
+    'bu-she-zhe-shuo',     // 捕蛇者說
+  ],
+  // 明清
+  'hist-zheng-he': [
+    'qi-xia-xi-yang',      // 七下西洋
+  ],
+  'hist-zhu-yuanzhang': [
+    'huang-ming-zu-xun',   // 皇明祖訓
+  ],
+  'hist-kangxi': [
+    'ping-san-fan',        // 平三藩
+  ],
+  'hist-zhu-xi': [
+    'zhu-zi-jia-xun',      // 朱子家訓
+  ],
+  // 補入 bai-juyi (原已有 pipa-xing)
 };
 
 // Pre-220 canonical items reassign on death. We'll keep this simple
