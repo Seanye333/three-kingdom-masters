@@ -1616,6 +1616,77 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   // 宋
   'hist-su-zhe':      'luan-cheng-ji',      // 欒城集 — 蘇轍
   'hist-huang-tingjian':'shan-gu-shi-tie',  // 山谷詩帖 — 黃庭堅
+  // ─── 名品擴充第五批 (Phase 35 — advisors, masters, more poets) ───
+  // 三國
+  'jia-xu':           'jia-xu-du-ji',       // 賈詡毒計
+  'xun-yu':           'xun-ling-xiang',     // 荀令留香
+  'xun-you':          'xun-gong-da-ce',     // 荀公達策
+  'cheng-yu':         'cheng-yu-mou',       // 程昱謀
+  'man-chong':        'man-chong-shou-cheng',// 滿寵守城法
+  'sima-hui':         'shui-jing-ji',       // 水鏡集
+  'zhou-cang':        'qing-long-dao-jia',  // 青龍刀架 — 周倉
+  'liao-hua':         'liao-hua-laodao',    // 蜀漢長者刀 — 廖化
+  // 春秋
+  'hist-zhou-wenwang':'yi-jing',            // 周易 — 文王演卦
+  'hist-yan-ying':    'er-tao-sha-san-shi', // 二桃殺三士 — 晏嬰
+  'hist-mencius':     'meng-zi',            // 孟子七篇
+  'hist-xunzi':       'xun-zi',             // 荀子
+  // 戰國
+  'hist-fan-ju':      'yuan-jiao-jin-gong', // 遠交近攻 — 范雎
+  'hist-wang-jian':   'wang-jian-mie-chu',  // 王翦六十萬伐楚
+  // 秦/楚漢
+  'hist-zhang-han':   'zhang-han-xing-tu',  // 章邯刑徒軍
+  'hist-fusu':        'fusu-bei-ge',        // 扶蘇悲歌
+  'hist-xiang-liang': 'jiang-dong-zi-di',   // 江東八千子弟 — 項梁
+  'hist-ying-bu':     'ying-bu-ci-mian',    // 黥布刺面
+  // 漢
+  'hist-guan-ying':   'guan-ying-qi-bing',  // 灌嬰騎兵
+  'hist-xiahou-ying': 'tai-pu-jin-jian',    // 太僕金鑑 — 夏侯嬰
+  'hist-wang-ling':   'wang-ling-mu',       // 王陵母
+  'hist-lou-jing':    'he-qin-ce',          // 和親策 — 婁敬
+  'hist-wang-mang':   'wang-mang-gai-zhi',  // 王莽改制
+  'hist-wu-han':      'wu-han-bing',        // 吳漢治軍
+  'hist-kuai-tong':   'kuai-tong-san-fen',  // 蒯通三分天下
+  'hist-gongsun-hong':'gongsun-hong-xiang', // 公孫弘布被
+  // 晉
+  'hist-wang-dao':    'wang-yu-ma',         // 王與馬共天下
+  'hist-huan-wen':    'huan-gong-jiu-xi',   // 桓公九錫
+  'hist-zhou-chu':    'san-hai-chu',        // 除三害 — 周處
+  'hist-ruan-ji':     'qing-bai-yan',       // 青白眼 — 阮籍
+  'hist-shan-tao':    'shan-tao-qishi',     // 山公啟事
+  // 南北朝
+  'hist-tuoba-gui':   'dao-wu-jian-wei',    // 道武建魏
+  'hist-feng-taihou': 'tai-he-gai-zhi',     // 太和改制 — 馮太后
+  'hist-fu-jian':     'tou-bian-duan-liu',  // 投鞭斷流 — 苻堅
+  // 隋
+  'hist-he-ruobi':    'he-ruobi-ping-chen', // 賀若弼平陳
+  'hist-han-qinhu':   'han-qinhu-fu',       // 韓擒虎金虎符
+  'hist-gao-jiong':   'gao-jiong-mou',      // 高熲方略
+  // 唐
+  'hist-wang-xuance': 'yi-ren-mie-guo',     // 一人滅一國 — 王玄策
+  'hist-he-zhizhang': 'yong-liu',           // 詠柳 — 賀知章
+  'hist-wang-zhihuan':'deng-guanque-lou',   // 登鸛雀樓
+  'hist-gao-shi':     'bie-dong-da',        // 別董大 — 高適
+  'hist-cen-shen':    'bai-xue-ge',         // 白雪歌 — 岑參
+  // 五代
+  'hist-chai-rong':   'xian-de-xin-zheng',  // 顯德新政 — 周世宗
+  // 宋
+  'hist-yan-shu':     'huan-xi-sha-shi',    // 浣溪沙 — 晏殊
+  'hist-su-song':     'shui-yun-yi-xiang-tai',// 水運儀象台 — 蘇頌
+  // (黃天蕩盾 stays in catalog — 韓世忠 already holds 雙鐧)
+  // 元
+  'hist-guo-shoujing':'shou-shi-li',        // 授時曆 — 郭守敬
+  'hist-ni-zan':      'rong-xi-zhai-tu',    // 容膝齋圖 — 倪瓚
+  // 明
+  'hist-chang-yuchun':'chang-shi-wan-yin',  // 常十萬印 — 常遇春
+  'hist-xu-guangqi':  'nong-zheng-quanshu', // 農政全書 — 徐光啟
+  'hist-wen-zhengming':'heng-shan-shu',     // 衡山書冊 — 文徵明
+  // 清
+  'hist-gu-yanwu':    'ri-zhi-lu',          // 日知錄 — 顧炎武
+  'hist-huang-zongxi':'ming-yi-dai-fang-lu',// 明夷待訪錄 — 黃宗羲
+  'hist-wang-fuzhi':  'chuan-shan-yi-shu',  // 船山遺書 — 王夫之
+  'hist-duan-yucai':  'shuowen-jiezi-zhu',  // 說文解字注 — 段玉裁
+  'hist-yongzheng':   'zhu-pi-yu-zhi',      // 硃批諭旨 — 雍正
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
