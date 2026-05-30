@@ -1818,4 +1818,202 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '秦末隱者。下邳橋上以履授張良,張良跪取之,黃石公遂授以《太公兵法》,曰:「讀此則為王者師矣。」 後張良果以此佐劉邦定天下。',
     en: 'A recluse of late Qin. On the bridge at Xiapi he dropped his shoe to Zhang Liang; Zhang Liang knelt to fetch it, and the Yellow Stone Lord gave him the Taigong Bingfa: "Read this and you shall be teacher to a king." With it Zhang Liang would later help Liu Bang gain the realm.',
   },
+  // ─── 歷代名將 新增第五批 (Historical biographies — batch 5: Western/Eastern Han) ───
+  'hist-dong-zhongshu': {
+    era: { zh: '罷黜百家', en: 'Dismisser of All Schools' },
+    zh: '廣川人。事漢武帝,獻《天人三策》,主張「罷黜百家,獨尊儒術」,奠定儒學為國教之基。又倡「天人感應」、「君權神授」之說,影響中國二千年。三年不窺園,治學之精嚴,世以為楷模。',
+    en: 'Of Guangchuan. Under Emperor Wu he submitted the Three Memorials on Heaven and Man, urging "dismiss the hundred schools, honor only the Confucian" — laying Confucianism\'s foundation as the state teaching. He also propounded "the response between Heaven and Man" and "the divine grant of imperial right," teachings that shaped China for two thousand years. Three years he did not so much as glance into his garden — the world held his discipline as a model.',
+  },
+  'hist-jia-yi': {
+    era: { zh: '過秦論', en: 'Author of the Faults of Qin' },
+    zh: '洛陽人。漢文帝時博士,二十餘歲入朝。著《過秦論》、《治安策》,陳秦亡之因、漢治之道,文采瑰麗,千古傳誦。後為長沙王太傅,憂憤而卒,年三十三。「賈生才調更無倫」千古惜之。',
+    en: 'Of Luoyang. A scholar at the court of Emperor Wen of Han, he entered the court at twenty. He wrote the Faults of Qin and the Treatise on Peace, setting out the cause of Qin\'s fall and the Way of Han\'s rule; his prose was splendid and is read forever. Later sent as Tutor to the King of Changsha, he died of grief and rage at thirty-three. "No one matched Jia Sheng\'s talent" — the ages have grieved him.',
+  },
+  'hist-chao-cuo': {
+    zh: '潁川人。漢景帝智囊。獻《削藩策》,削吳楚諸侯之地。七國之亂起,景帝斬晁錯以謝諸侯,然亂未止,終賴周亞夫平之。',
+    en: 'Of Yingchuan. The brain of Emperor Jing of Han. He gave the Memorial on Cutting Down the Feudatories, taking lands from Wu, Chu, and the rest. The Revolt of the Seven Kingdoms broke out; the emperor beheaded Chao Cuo to placate the lords. The revolt did not end, but Zhou Yafu at last put it down.',
+  },
+  'hist-jia-shan': {
+    zh: '潁川人。漢文帝時上《至言》,以秦亡為鑒。文帝賢之,後遷至少府。',
+    en: 'Of Yingchuan. Under Emperor Wen of Han he sent up the "Words Reaching the Throne," taking the fall of Qin as a warning. The emperor honored him; he later rose to Junior Treasurer.',
+  },
+  'hist-sima-xiangru': {
+    era: { zh: '辭賦聖手', en: 'Master of Rhapsody' },
+    zh: '字長卿,蜀郡成都人。漢賦聖手。少時以才名於蜀。在臨邛,以琴聲挑卓文君,文君夜奔。後著《子虛賦》、《上林賦》獻於漢武帝,武帝大悅,拜為郎。又出使西南夷,平之。中國第一辭賦大家。',
+    en: 'Style Changqing, of Chengdu in Shu. Master of the Han rhapsody. From youth a name in Shu by his talent. At Linqiong he played the qin to win Zhuo Wenjun, who eloped to him by night. He wrote the Sir Vacuous Rhapsody and the Shanglin Rhapsody for Emperor Wu; the emperor was delighted and made him a Gentleman. He was later sent as envoy to the southwestern Yi and pacified them. The first great master of Chinese rhapsody.',
+  },
+  'hist-zhuo-wenjun': {
+    zh: '蜀郡臨邛富人卓王孫之女。寡居,聞司馬相如琴聲挑之,夜奔相如。父怒,斷其供給。文君當壚賣酒,「文君當壚」千古傳為佳話。',
+    en: 'Daughter of Zhuo Wangsun, a rich man of Linqiong in Shu. Widowed young, she heard Sima Xiangru\'s qin call to her and eloped to him by night. Her father in anger cut off her allowance, and Wenjun stood at the wine-counter selling drinks. "Wenjun at the counter" is told down the ages as a fine tale.',
+  },
+  'hist-gongsun-hong': {
+    zh: '字次卿,菑川薛人。漢武帝丞相。年六十始入朝,以《公羊春秋》學顯。性節儉,日食一肉,夜寢布被。漢相之中以布衣起家者,公孫弘為始。',
+    en: 'Style Ciqing, of Xue in Zichuan. Chancellor under Emperor Wu of Han. At sixty he entered the court, raised up by his learning of the Gongyang Annals. Frugal — one dish of meat a day, a cloth coverlet at night. He was the first chancellor of Han to rise from common cloth.',
+  },
+  'hist-zhufu-yan': {
+    era: { zh: '推恩令', en: 'The Edict of Grace' },
+    zh: '齊國臨菑人。漢武帝謀士。獻「推恩令」之策,使諸侯王分封子弟為侯,諸侯之地由是日削,而朝廷無削藩之名。又屢進奇策。後為齊王所恨,被趙王所訟,夷三族。',
+    en: 'Of Linzi in Qi. A counselor of Emperor Wu of Han. He gave the strategy of the "Edict of Grace" — having princes enfeoff their younger sons as marquises, so the princely lands shrank day by day without the court bearing the name of "cutting down feudatories." He gave many other bold counsels. Later hated by the King of Qi and sued by the King of Zhao, he was wiped out to three branches of his clan.',
+  },
+  'hist-sang-hongyang': {
+    zh: '洛陽人。漢武帝財政大臣。獻鹽鐵專賣、均輸平準之策,使漢室財用充實。武帝崩,為霍光所殺。',
+    en: 'Of Luoyang. Finance minister of Emperor Wu of Han. He gave the strategy of the salt and iron monopolies, the equable transport and price-stabilization — the Han treasury was filled. When Emperor Wu died, Huo Guang killed him.',
+  },
+  'hist-li-guangli': {
+    zh: '李夫人之兄。漢武帝舅。封貳師將軍,西征大宛,取汗血馬,有功。後征匈奴,大敗,降匈奴,被殺。',
+    en: 'Elder brother of Lady Li, brother-in-law to Emperor Wu of Han. Made General of Ershi, he marched west against Dayuan and brought back the blood-sweating horses with merit. Later sent against the Xiongnu, he was utterly broken, surrendered, and was killed.',
+  },
+  'hist-wei-zifu': {
+    zh: '漢武帝皇后。原平陽公主家歌伎。武帝幸之,生子劉據,即戾太子。後巫蠱之禍,衛皇后、戾太子皆被誣自殺。其姪衛青、外甥霍去病皆為名將。',
+    en: 'Empress of Emperor Wu of Han. Originally a singing-girl at Princess Pingyang\'s house, the emperor took her in. She bore the prince Liu Ju, who became the Crown Prince — later the "Wronged" Crown Prince. In the witchcraft disaster the empress and the crown prince were both slandered to suicide. Her nephew Wei Qing and grandnephew Huo Qubing both became famous generals.',
+  },
+  'hist-tian-fen': {
+    zh: '漢武帝舅。王太后弟。為丞相,奢侈專橫,與灌夫、竇嬰相爭。後構陷竇嬰、灌夫,皆被殺。田蚡尋亦病卒。',
+    en: 'Uncle of Emperor Wu of Han, brother of Empress Dowager Wang. As chancellor, lavish and overbearing, he contended with Guan Fu and Dou Ying. Later he framed both to death — and soon after fell ill and died himself.',
+  },
+  'hist-dou-ying': {
+    zh: '字王孫,漢文帝竇皇后之姪。七國之亂中為大將軍,平亂有功,封魏其侯。與田蚡相鬥,被田蚡構陷,棄市於渭城。',
+    en: 'Style Wangsun, nephew of Empress Dou of Emperor Wen of Han. In the Revolt of the Seven Kingdoms he was Grand Marshal with credit, made Marquis of Weiqi. He clashed with Tian Fen, who framed him; he was put to death in the marketplace at Weicheng.',
+  },
+  'hist-su-zhang': {
+    zh: '蘇武之兄。漢武帝時奉車都尉,坐法自殺。',
+    en: 'Elder brother of Su Wu. Under Emperor Wu of Han he served as Driver of the Imperial Carriage; convicted under the law, he took his own life.',
+  },
+  'hist-yan-zhu': {
+    zh: '會稽吳人。漢武帝時侍中。文學之臣,與司馬相如齊名。後坐淮南王案,被殺。',
+    en: 'Of Wu in Kuaiji. Palace Attendant under Emperor Wu of Han. A man of letters, ranked with Sima Xiangru. He was killed in the case of the King of Huainan.',
+  },
+  'hist-zhu-maichen': {
+    era: { zh: '覆水難收', en: '"Water Spilt Cannot Be Recovered"' },
+    zh: '會稽吳人。漢武帝時會稽太守。少貧,賣柴自給,讀書不輟。其妻不堪貧苦,離之。後朱買臣富貴歸鄉,前妻乞復合,朱買臣潑水於地,曰:「若能收此水,則可復合。」 「覆水難收」千古絕唱。',
+    en: 'Of Wu in Kuaiji. Governor of Kuaiji under Emperor Wu of Han. Poor in youth, he sold firewood for his keep and never put down his books. His wife could not bear the poverty and left him. Later he came home rich and high; his former wife begged to be reunited. Zhu Maichen poured water on the ground and said: "If you can gather this water, we may be reunited." "Water spilt cannot be recovered" rings forever.',
+  },
+  'hist-jun-buyi': {
+    zh: '渤海人。漢昭帝京兆尹。執法公正,以治安名於世。卒,百姓哭之至慟。',
+    en: 'Of Bohai. Intendant of the metropolitan region under Emperor Zhao of Han. Upright in the law, famed throughout the realm for peace and order. At his death the people wept till their voices broke.',
+  },
+  'hist-zhao-chongguo': {
+    zh: '字翁孫,隴西上邽人。漢宣帝名將。年七十而西擊羌人,以屯田之策定西陲。為將先計而後戰,謀深略遠,封營平侯。卒年八十六。',
+    en: 'Style Wengsun, of Shanggui in Longxi. A famed general of Emperor Xuan of Han. At seventy he marched west against the Qiang and pacified the western marches with the strategy of agricultural colonies. As a general he planned first and fought after, deep in counsel; made Marquis of Yingping. He died at eighty-six.',
+  },
+  'hist-huang-ba': {
+    zh: '字次公,淮陽陽夏人。漢宣帝名臣。為潁川太守,以治民見稱。在郡八年,獄無冤訴,號「天下第一賢吏」。位至丞相,封建成侯。',
+    en: 'Style Cigong, of Yangxia in Huaiyang. A famed minister of Emperor Xuan of Han. As Governor of Yingchuan he was known for ruling the people; in eight years no unjust complaint left his prison — he was called the "first worthy official of the realm." He rose to chancellor and was made Marquis of Jiancheng.',
+  },
+  'hist-er-kuan': {
+    zh: '字仲翁,千乘人。漢武帝時御史大夫。從董仲舒學《春秋》,知禮法。為人寬厚,有古名臣之風。',
+    en: 'Style Zhongweng, of Qiansheng. Imperial Secretary under Emperor Wu of Han. He studied the Spring and Autumn under Dong Zhongshu and knew rites and laws. Broad and gentle, with the air of a famed minister of old.',
+  },
+  'hist-liu-xiang': {
+    zh: '字子政,沛人,漢室宗親。漢成帝時大學者。校勘宮中書籍,著《別錄》、《新序》、《說苑》、《列女傳》。中華目錄學之祖。',
+    en: 'Style Zizheng, of Pei, kinsman of the Han house. A great scholar under Emperor Cheng of Han. He collated the palace books and wrote the Bielu, the Xinxu, the Shuoyuan, and the Lienü Zhuan. The founder of Chinese bibliographic learning.',
+  },
+  'hist-wang-mang': {
+    era: { zh: '篡漢之主', en: 'Usurper of the Han' },
+    zh: '字巨君,東平陵人。漢元帝皇后王政君之姪。性偽飾,博士儒生皆譽之。元始五年,毒殺漢平帝,初始元年篡漢自立,建新朝。行「王田制」、改幣制、屢更地名,百姓苦之。地皇四年,綠林、赤眉起義,長安陷,王莽被斬於漸臺,新朝亡。',
+    en: 'Style Jujun, of Donglingling. Nephew of Empress Wang Zhengjun of Emperor Yuan of Han. A man of false bearing, the scholars and Confucians all praised him. In 5 he poisoned Emperor Ping; in 9 he took the Han throne and founded the Xin dynasty. He set the "royal field" system, recoined the money, kept changing place-names — and the people groaned. In 23 the Green Forest and the Red Brows rose; Chang\'an fell, and Wang Mang was beheaded at the Jian Tower, the Xin ended.',
+  },
+  'hist-ma-yuan': {
+    era: { zh: '馬革裹屍', en: '"Horse-Hide Shroud"' },
+    zh: '字文淵,扶風茂陵人。東漢光武帝名將。平交趾,立銅柱為界。曰:「男兒要當死於邊野,以馬革裹屍還葬耳,何能臥床上在兒女子手中邪!」 後征武陵五溪蠻,病卒於軍中,年六十二。',
+    en: 'Style Wenyuan, of Maoling in Fufeng. A famed general under Emperor Guangwu of the Eastern Han. He pacified Jiaozhi and set up bronze pillars as the boundary. He said: "A man should die in the field beyond the wall, wrapped in horse-hide and brought home for burial — how can he die in his bed under the hands of women and children?" Later on the campaign against the Wuxi tribes of Wuling he died of illness in camp at sixty-two.',
+  },
+  'hist-deng-yu': {
+    era: { zh: '雲台第一', en: 'First of the Cloud Terrace' },
+    zh: '字仲華,南陽新野人。光武帝二十八將之首,雲台二十八將位居第一。年十三即從光武帝起兵。平河北,定關中,為東漢開國第一功臣。封高密侯,壽五十七。',
+    en: 'Style Zhonghua, of Xinye in Nanyang. First of the Twenty-Eight Generals of Emperor Guangwu, foremost on the Cloud Terrace. At thirteen he marched with the emperor. He pacified the north of the river and settled Guanzhong, the first founding minister of the Eastern Han. Made Marquis of Gaomi, he lived to fifty-seven.',
+  },
+  'hist-wu-han': {
+    zh: '字子顏,南陽宛人。光武帝二十八將之一。性沉毅,為將剛勇,曾與光武戰於昆陽,以三千破王莽四十二萬之眾。封廣平侯。',
+    en: 'Style Ziyan, of Wan in Nanyang. One of the Twenty-Eight Generals of Emperor Guangwu. Steady and bold; at Kunyang with three thousand he broke Wang Mang\'s four hundred and twenty thousand at the emperor\'s side. Made Marquis of Guangping.',
+  },
+  'hist-kou-xun': {
+    zh: '字子翼,上谷昌平人。光武帝二十八將之一。鎮潁川,平赤眉,屢立戰功。封雍奴侯。',
+    en: 'Style Ziyi, of Changping in Shanggu. One of the Twenty-Eight Generals of Emperor Guangwu. Holding Yingchuan, he put down the Red Brows and won many laurels. Made Marquis of Yongnu.',
+  },
+  'hist-jia-fu': {
+    zh: '字君文,潁川冠軍人。光武帝二十八將之一。性勇悍,從征戰立功。封膠東侯。',
+    en: 'Style Junwen, of Guanjun in Yingchuan. One of the Twenty-Eight Generals of Emperor Guangwu. Bold in temper, he marched and won credit. Made Marquis of Jiaodong.',
+  },
+  'hist-feng-yi': {
+    era: { zh: '大樹將軍', en: 'The General of the Great Tree' },
+    zh: '字公孫,潁川父城人。光武帝二十八將之一。性謙退,諸將並坐論功時,馮異獨立樹下,故號「大樹將軍」。鎮關中,平赤眉,封陽夏侯。',
+    en: 'Style Gongsun, of Fucheng in Yingchuan. One of the Twenty-Eight Generals of Emperor Guangwu. Modest by nature — when the generals sat together to claim merit, Feng Yi alone stood under a tree, and so was called "the General of the Great Tree." Holding Guanzhong he put down the Red Brows and was made Marquis of Yangxia.',
+  },
+  'hist-cen-peng': {
+    zh: '字君然,南陽棘陽人。光武帝二十八將之一。武勇敢戰,征隴西、伐公孫述,皆有功。後為刺客所殺。',
+    en: 'Style Junran, of Jiyang in Nanyang. One of the Twenty-Eight Generals of Emperor Guangwu. Bold and quick in war, he marched on Longxi and Gongsun Shu with credit. He was later killed by an assassin.',
+  },
+  'hist-geng-yan': {
+    zh: '字伯昭,扶風茂陵人。光武帝二十八將之一。鎮山東,平張步,大破之於臨菑。封好畤侯。',
+    en: 'Style Bozhao, of Maoling in Fufeng. One of the Twenty-Eight Generals of Emperor Guangwu. Holding Shandong he put down Zhang Bu, breaking him utterly at Linzi. Made Marquis of Haozhi.',
+  },
+  'hist-geng-gong': {
+    era: { zh: '十三將士歸玉門', en: '"Thirteen Soldiers Returned to Jade Gate"' },
+    zh: '字伯宗,耿弇之姪。漢明帝時鎮疏勒。北匈奴圍之,城中糧盡,鑿井十五丈無水,煮鎧弩食筋革。後援軍至,殘卒十三人歸玉門關,鬚髮盡白。「十三將士歸玉門」千古絕唱。',
+    en: 'Style Bozong, nephew of Geng Yan. Under Emperor Ming of Han he held Shule. The Northern Xiongnu besieged him; the city\'s grain failed and they dug fifteen zhang and struck no water, boiled their armor and bowstrings and ate the sinews and leather. When relief came at last, thirteen survivors returned to the Jade Gate Pass, their hair and beards wholly white. "Thirteen soldiers returned to Jade Gate" rings forever.',
+  },
+  'hist-ren-guang': {
+    zh: '字伯卿,南陽宛人。光武帝二十八將之一。鎮信都,從征戰立功。封阿陵侯。',
+    en: 'Style Boqing, of Wan in Nanyang. One of the Twenty-Eight Generals of Emperor Guangwu. Holding Xindu, he marched and won credit. Made Marquis of Aling.',
+  },
+  'hist-ma-wu': {
+    zh: '字子張,南陽湖陽人。光武帝二十八將之一。性勇悍,從征戰立功。封楊虛侯。',
+    en: 'Style Zizhang, of Huyang in Nanyang. One of the Twenty-Eight Generals of Emperor Guangwu. Bold in temper, he marched and won credit. Made Marquis of Yangxu.',
+  },
+  'hist-deng-taihou': {
+    era: { zh: '鄧太后', en: 'Empress Dowager Deng' },
+    zh: '名鄧綏,鄧禹之孫女。漢和帝皇后。和帝崩,連立殤帝、安帝。臨朝二十年,任賢納諫,平羌亂,救水旱,東漢得以維持。其行儉省,憂國憂民,千古賢后之典。',
+    en: 'Personal name Deng Sui, granddaughter of Deng Yu. Empress of Emperor He of Han. When He died she set up in turn the infant Shang and then An, holding court for twenty years. She raised worthies and heard counsel, put down the Qiang revolt, relieved floods and droughts — the Eastern Han endured through her. Frugal in life, troubled for state and people, she stands as the model of worthy empresses for the ages.',
+  },
+  'hist-yin-lihua': {
+    zh: '南陽新野人。光武帝皇后。性恭儉,光武帝早年所愛,曰:「仕宦當作執金吾,娶妻當得陰麗華。」 後立為皇后,母儀天下。',
+    en: 'Of Xinye in Nanyang. Empress of Emperor Guangwu. Modest and frugal, the emperor\'s love from his youth — he had said: "If one would take office, let him be Chief of the Imperial Insignia; if one would take a wife, let her be Yin Lihua." She was made empress and bore the dignity of the mother of state.',
+  },
+  'hist-mingde-mahuanghou': {
+    zh: '馬援之女,漢明帝皇后。性節儉,雖貴為皇后,不衣綾羅。撫養章帝為己子。臨朝不阿,千古賢后之典。',
+    en: 'Daughter of Ma Yuan, empress of Emperor Ming of Han. Frugal in life — though empress, she wore no silk brocade. She raised the future Emperor Zhang as her own. At court she did not flatter — a model of worthy empresses for the ages.',
+  },
+  'hist-ma-rong': {
+    zh: '字季長,扶風茂陵人。東漢大儒。註《五經》、《老子》、《淮南子》。門徒四百人,鄭玄、盧植皆其弟子。',
+    en: 'Style Jichang, of Maoling in Fufeng. A great Confucian of the Eastern Han. He annotated the Five Classics, the Daodejing, and the Huainanzi. Four hundred disciples — Zheng Xuan and Lu Zhi were both his pupils.',
+  },
+  'hist-huan-rong': {
+    zh: '字春卿,沛郡龍亢人。東漢大儒。光武帝時博士,以《歐陽尚書》學顯。為漢明帝之師,以師道見禮。',
+    en: 'Style Chunqing, of Longkang in Pei. A great Confucian of the Eastern Han. A scholar at the court of Emperor Guangwu, raised up by his learning of the Ouyang Documents. Teacher of Emperor Ming, who honored him with the rite of master and disciple.',
+  },
+  'hist-wang-chong': {
+    era: { zh: '論衡', en: 'Author of the Lunheng' },
+    zh: '字仲任,會稽上虞人。東漢哲學家。著《論衡》八十五篇,以理駁讖緯,反對神學迷信,中華唯物論之一大家。',
+    en: 'Style Zhongren, of Shangyu in Kuaiji. A philosopher of the Eastern Han. He wrote the Lunheng in eighty-five pieces, refuting the apocrypha by reason and standing against theological superstition — a great voice of Chinese materialism.',
+  },
+  'hist-yang-xiong': {
+    zh: '字子雲,蜀郡成都人。西漢辭賦家、哲學家。著《太玄》、《法言》,擬《周易》、《論語》。又作《甘泉賦》、《羽獵賦》,文采華麗。後事王莽,世以為玷。',
+    en: 'Style Ziyun, of Chengdu in Shu. A rhapsodist and philosopher of the Western Han. He wrote the Great Mystery and the Model Words, imitating the Changes and the Analects. The Ganquan Rhapsody and the Yulie Rhapsody are also his, splendid in style. He later served Wang Mang — and the world held it a stain.',
+  },
+  'hist-yan-guang': {
+    era: { zh: '富春江釣翁', en: 'Fisherman of the Fuchun River' },
+    zh: '字子陵,會稽餘姚人。少與光武帝同學。光武帝即位,屢徵不至。後勉強入京,光武帝同榻而眠,光以足加帝腹,次日太史奏:「客星犯御座甚急!」 後辭歸富春江,垂釣終身,千古高士之典。',
+    en: 'Style Ziling, of Yuyao in Kuaiji. In youth he studied with the future Emperor Guangwu. When the emperor took the throne, he called Yan again and again — Yan would not come. Forced at last to the capital, the emperor had him sleep in the same bed; Yan laid his foot on the emperor\'s belly. The next day the Grand Astrologer reported: "A guest-star has gravely violated the imperial seat!" He took his leave, returned to the Fuchun River, and fished out his days — the model of the high recluse for the ages.',
+  },
+  'hist-zhuo-mao': {
+    zh: '字子康,南陽宛人。東漢光武帝雲台二十八將之一。性溫雅,以德服人。封宣德侯。',
+    en: 'Style Zikang, of Wan in Nanyang. One of the Twenty-Eight Cloud Terrace Generals of Emperor Guangwu of the Eastern Han. Mild and refined, he ruled men by virtue. Made Marquis of Xuande.',
+  },
+  'hist-diwu-lun': {
+    zh: '字伯魚,京兆長陵人。東漢光武、明、章三朝大臣。性剛直,屢諫不阿,以清節聞於世。位至司空。',
+    en: 'Style Boyu, of Changling in the metropolitan region. A great minister of three reigns — Guangwu, Ming, Zhang — of the Eastern Han. Stiff and upright, he remonstrated without flattery and was known for clean conduct. He rose to Excellency over the Works.',
+  },
+  'hist-he-xiu': {
+    zh: '字邵公,任城樊人。東漢經學家。專治《公羊春秋》,著《公羊解詁》,千古公羊學之祖。',
+    en: 'Style Shaogong, of Fan in Rencheng. A classical scholar of the Eastern Han. He specialized in the Gongyang Annals and wrote the Gongyang Interpretive Notes — the founding work of Gongyang studies for the ages.',
+  },
+  'hist-huan-kuan': {
+    zh: '字次公,汝南南頓人。漢宣帝時諫議大夫。著《鹽鐵論》六十篇,記漢昭帝時鹽鐵會議,千古經濟思想史之珍。',
+    en: 'Style Cigong, of Nandun in Runan. A counselor under Emperor Xuan of Han. He wrote the Discourses on Salt and Iron in sixty pieces, recording the salt-and-iron council under Emperor Zhao — a treasure of the history of economic thought.',
+  },
+  'hist-jia-kui': {
+    zh: '字景伯,扶風平陵人。東漢經學家。注《左傳》、《國語》、《周官》。為馬融、鄭玄之師,東漢古文經學之祖。',
+    en: 'Style Jingbo, of Pingling in Fufeng. A classical scholar of the Eastern Han. He annotated the Zuo Tradition, the Discourses of the States, and the Rites of Zhou. Teacher of Ma Rong and Zheng Xuan, founder of the Ancient-Script learning of the Eastern Han.',
+  },
 };
