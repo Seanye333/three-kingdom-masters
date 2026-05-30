@@ -2109,6 +2109,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-sima-guang': [
     'su-shui-ji-wen',      // 涑水紀聞
+    'sima-guang-za-gang',  // 司馬光砸缸
   ],
   'hist-yue-fei': [
     'man-jiang-hong',      // 滿江紅
@@ -2141,9 +2142,11 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'zhao-yun': [
     'chang-ban-po',        // 長坂坡七進七出
+    'han-shui-kong-ying',  // 漢水空營計
   ],
   'ma-chao': [
     'xi-liang-tie-qi',     // 西涼鐵騎
+    'wei-shui-dou-xu-chu', // 渭水鬥許褚
   ],
   'lu-bu': [
     'bai-men-lou',         // 白門樓
@@ -2162,16 +2165,21 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-zhang-liang': [
     'li-xia-qu-lü',        // 圯下取履
     'yun-chou-wei-wo',     // 運籌帷幄
+    'bo-lang-sha',         // 博浪沙刺秦
   ],
   'hist-xiao-he': [
     'yue-xia-zhui-han-xin',// 月下追韓信
   ],
   'hist-han-xin': [
     'shi-mian-mai-fu',     // 十面埋伏
+    'kua-xia-zhi-ru',      // 跨下之辱
+    'bei-shui-yi-zhan',    // 背水一戰
+    'ming-xiu-zhan-dao',   // 明修棧道暗渡陳倉
   ],
   'hist-xiang-yu': [
     'ba-wang-bie-ji',      // 霸王別姬
     'gai-xia-ge',          // 垓下歌
+    'po-fu-chen-zhou',     // 破釜沉舟
   ],
   'hist-su-wu': [
     'mu-yang-bei-hai',     // 牧羊北海十九年
@@ -2200,6 +2208,8 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-sun-bin': [
     'wei-wei-jiu-zhao',    // 圍魏救趙
+    'gui-ling-zhi-zhan',   // 桂陵之戰
+    'sun-bin-bin-jiao',    // 孫臏臏腳
   ],
   'hist-shang-yang': [
     'xi-mu-li-xin',        // 徙木立信
@@ -2289,6 +2299,8 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   // 唐
   'hist-tang-taizong': [
     'zhen-guan-zheng-yao', // 貞觀政要
+    'tian-ke-han',         // 天可汗
+    'hu-lao-zhi-zhan',     // 虎牢之戰
   ],
   'hist-wu-zetian': [
     'shang-guan-wan-er',   // 上官婉兒
@@ -2311,6 +2323,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-qianlong': [
     'shi-quan-wu-gong',    // 十全武功
+    'kang-qian-sheng-shi', // 康乾盛世
   ],
   // ─── batch 15 — even more multi-artifact heroes ───
   'lady-huang': [
@@ -2400,7 +2413,73 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-zhu-xi': [
     'zhu-zi-jia-xun',      // 朱子家訓
   ],
-  // 補入 bai-juyi (原已有 pipa-xing)
+  // ─── batch 16 — more multi-artifact heroes ───
+  'zhang-liao': [
+    'ba-bai-po-shi-wan',   // 八百破十萬
+    'zhang-liao-zhi-ti',   // 張遼止啼
+  ],
+  'yu-jin': [
+    'fan-cheng-shi-jie',   // 樊城失節
+  ],
+  'zhang-he': [
+    'jie-ting-po-ma-su',   // 街亭破馬謖
+  ],
+  'xu-huang': [
+    'xu-huang-chang-qu',   // 徐晃長驅
+  ],
+  'le-jin': [
+    'le-jin-zhe-chong',    // 樂進折衝
+  ],
+  'li-dian': [
+    'li-dian-juan-si-xian',// 李典捐私嫌
+  ],
+  'zhou-tai': [
+    'zhou-tai-shu-shi-chuang',// 周泰數十創
+  ],
+  'ding-feng': [
+    'ding-feng-xue-ye',    // 丁奉雪夜
+  ],
+  'zhuge-jin': [
+    'zi-yu-mian-chang',    // 子瑜面長
+  ],
+  'wang-ping': [
+    'xing-shi-zhi-zhan',   // 興勢之戰
+  ],
+  'deng-ai': [
+    'tou-du-yin-ping',     // 偷渡陰平
+  ],
+  // 春秋戰國
+  'hist-yang-youji': [
+    'bai-bu-chuan-yang',   // 百步穿楊
+  ],
+  'hist-wang-jian': [
+    'wang-jian-zi-wu',     // 王翦自污
+  ],
+  'hist-tian-dan': [
+    'ji-mo-jian-shou',     // 即墨堅守
+  ],
+  // 漢
+  'hist-liu-bang': [
+    'da-feng-ge',          // 大風歌
+    'yue-fa-san-zhang',    // 約法三章
+  ],
+  'hist-huo-qubing': [
+    'feng-lang-ju-xu',     // 封狼居胥
+  ],
+  'hist-li-guang': [
+    'tao-li-bu-yan',       // 桃李不言下自成蹊
+  ],
+  // 唐
+  'hist-zhao-kuangyin': [
+    'bei-jiu-shi-bing-quan',// 杯酒釋兵權
+  ],
+  'hist-qi-jiguang': [
+    'yuan-yang-zhen',      // 鴛鴦陣
+  ],
+  'hist-zheng-chenggong': [
+    'shou-fu-tai-wan',     // 收復台灣
+  ],
+  // 合併到既有條目
 };
 
 // Pre-220 canonical items reassign on death. We'll keep this simple
