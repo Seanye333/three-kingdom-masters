@@ -564,4 +564,129 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '字留仙,號柳泉居士,淄川人。屢試不第,設帳教書。著《聊齋誌異》四百餘篇,「孤憤之書」也,鬼狐故事千古傳唱。',
     en: 'Style Liuxian, called "Lay Buddhist of the Willow Spring," of Zichuan. Failed the exams repeatedly and lived as a tutor. Author of "Strange Tales from the Studio of Leisure" — over 400 pieces, "a book of lonely indignation," whose ghost-fox stories endure.',
   },
+
+  // ─── Phase 24 — additional biographies for gap-fill ───
+  'hist-wang-xianzhi': {
+    era: { zh: '小聖', en: 'Lesser Sage' },
+    zh: '字子敬,王羲之第七子。書法承父衣鉢,世稱「二王」。年方七歲學書,父抽筆不脫,即知其志。',
+    en: 'Style Zijing, seventh son of Wang Xizhi. Inherited his father\'s calligraphy — the two are called "the Two Wangs." At seven Wang Xizhi tried to pull the brush from his grip and could not — his father knew the boy\'s will was set.',
+  },
+  'hist-fu-jian': {
+    era: { zh: '前秦天王', en: 'Heavenly King of Former Qin' },
+    zh: '字永固,氐族。十年統一北方。淝水之戰投鞭斷流,卻為東晉謝玄八千破八十萬,「風聲鶴唳」「草木皆兵」之典皆出於此。',
+    en: 'Style Yonggu, of the Di people. In ten years he unified the north. At the Fei River he boasted that his "whips could dam the stream" — and was broken by Xie Xuan\'s 8,000 against his 800,000. "The wind in the rushes" and "every grass a soldier" both came from this disaster.',
+  },
+  'hist-murong-chui': {
+    era: { zh: '後燕世祖', en: 'World-Ancestor of Later Yan' },
+    zh: '字道明,鮮卑慕容皝第五子。淝水之戰後逃出長安,復興燕國。文武兼資,馬上得天下,為十六國時期第一名將。',
+    en: 'Style Daoming, fifth son of Murong Huang. After the Fei River disaster he escaped Chang\'an and restored Yan. Equally adept in arms and letters, he won an empire from the saddle — the foremost general of the Sixteen Kingdoms era.',
+  },
+  'hist-tuoba-tao': {
+    era: { zh: '北魏太武帝', en: 'Emperor Taiwu of Northern Wei' },
+    zh: '北魏第三主,鮮卑拓跋燾。十二歲即位,西平赫連,北滅柔然,東破馮跋,南陷青齊,統一北方。',
+    en: 'Third sovereign of Northern Wei, of the Xianbei Tuoba clan. Crowned at twelve, he conquered the Helian, broke the Rouran, smashed Feng Ba, took Qi province from the south — and unified the north.',
+  },
+  'hist-yuan-hong': {
+    era: { zh: '北魏孝文帝', en: 'Emperor Xiaowen of Northern Wei' },
+    zh: '名拓跋宏,後改元宏。遷都洛陽,禁鮮卑語,改漢姓,著漢服,促鮮卑漢化。中華民族大融合奠基者。',
+    en: 'Personal name Tuoba Hong, later Yuan Hong. Moved the capital to Luoyang, banned the Xianbei language, took Chinese surnames, donned Han robes — driving the Xianbei into the Chinese fold. Foundational architect of ethnic fusion.',
+  },
+  'hist-xiao-yan': {
+    era: { zh: '梁武帝', en: 'Emperor Wu of Liang' },
+    zh: '字叔達,蘭陵人。代齊建梁,在位四十八年。崇佛三次捨身同泰寺,著《淨業賦》。侯景之亂被困臺城,餓死。',
+    en: 'Style Shuda, of Lanling. Replaced Qi and founded Liang, reigning 48 years. Thrice "renounced the throne" to enter the Tongtai Monastery. During the Hou Jing rebellion he was besieged in Taicheng and starved to death.',
+  },
+  'hist-feng-taihou': {
+    era: { zh: '北魏馮太后', en: 'Empress Dowager Feng of Northern Wei' },
+    zh: '北燕馮弘孫女,北魏文成帝皇后。獻文、孝文兩朝臨朝聽政二十年,推行均田制、三長制,孝文帝漢化改革之奠基。',
+    en: 'Granddaughter of Feng Hong of Northern Yan, empress to Emperor Wencheng of Northern Wei. Held court "behind the curtain" for twenty years under Xianwen and Xiaowen, implementing the equal-field and three-elder systems — the foundation of Xiaowen\'s sinicization.',
+  },
+  'hist-anlu-shan': {
+    era: { zh: '安史之亂', en: 'The An–Shi Rebellion' },
+    zh: '營州柳城雜種胡人。玄宗朝節度使,身兼平盧、范陽、河東三鎮。天寶十四載起兵反唐,陷兩京,稱大燕皇帝。後被其子安慶緒所殺。',
+    en: 'A mixed-blood Sogdian of Liucheng. Under Emperor Xuanzong he held three frontier commands at once. In 755 he raised the great rebellion, took both capitals, proclaimed himself Emperor of Great Yan — and was murdered by his own son An Qingxu.',
+  },
+  'hist-huang-chao': {
+    era: { zh: '黃巢之亂', en: 'The Huang Chao Rebellion' },
+    zh: '曹州冤句人,鹽商出身。乾符二年起義,流動作戰,陷洛陽長安,稱大齊皇帝。雖敗,動搖唐祚根基。「待到秋來九月八,我花開後百花殺」。',
+    en: 'A salt smuggler of Yuanju in Caozhou. Rose in 875, fought a mobile campaign that took Luoyang and Chang\'an, and proclaimed himself Emperor of Great Qi. He failed — but the Tang foundation was shaken. "When September the eighth comes round, my flowers will bloom and kill all others."',
+  },
+  'hist-zhu-wen': {
+    era: { zh: '後梁太祖', en: 'Emperor Taizu of Later Liang' },
+    zh: '字全忠,宋州碭山人。黃巢部將降唐,進封梁王。天祐四年篡唐建梁,結束唐祚二百八十九年,開五代之亂。',
+    en: 'Style Quanzhong, of Dangshan in Songzhou. A general of Huang Chao who surrendered to Tang and was enfeoffed Prince of Liang. In 907 he usurped the throne and founded Liang, ending Tang\'s 289 years and beginning the chaos of the Five Dynasties.',
+  },
+  'hist-meng-tian-qin': {
+    era: { zh: '蒙恬', en: 'Meng Tian' },
+    zh: '齊國人。秦始皇大將,率三十萬眾北擊匈奴。築長城西起臨洮東至遼東,跨幽州、燕、代、塞,萬餘里。秦二世時遭趙高陷害自盡。',
+    en: 'Of Qi. Senior commander under the First Emperor, leading 300,000 against the Xiongnu. Built the Great Wall from Lintao to Liaodong, over ten thousand li across Yan, Dai, and Sai. Forced to suicide by Zhao Gao under the Second Emperor.',
+  },
+  'hist-zhao-gao': {
+    era: { zh: '指鹿為馬', en: 'Pointing to a Deer and Calling it a Horse' },
+    zh: '秦宦官,任中車府令。秦始皇崩,矯詔殺扶蘇、立胡亥,擅權朝政。「指鹿為馬」之典出此。後被子嬰所殺。',
+    en: 'A eunuch and superintendent of carriages. When the First Emperor died, he forged the testament to kill Fusu and enthrone Huhai, then ruled the court. The famous "point to a deer and call it a horse" loyalty test was his. Killed by Ziying.',
+    quote: { zh: '指鹿為馬。', en: 'Point to a deer and call it a horse.' },
+  },
+  'hist-zhu-xi': {
+    era: { zh: '朱子', en: 'Master Zhu' },
+    zh: '字元晦,徽州婺源人。南宋理學集大成者。「存天理,滅人欲」,作《四書集注》,奠定七百年科舉教本之基。',
+    en: 'Style Yuanhui, of Wuyuan in Huizhou. The Southern Song master of Neo-Confucianism. "Preserve heavenly principle, eliminate human desire." His "Collected Commentaries on the Four Books" anchored seven hundred years of the imperial examination curriculum.',
+  },
+  'hist-bai-juyi': {
+    era: { zh: '香山居士', en: 'Layman of Xiangshan' },
+    zh: '字樂天,號香山居士。中唐詩人,主張「文章合為時而著,歌詩合為事而作」。著《長恨歌》《琵琶行》,平易近人,老嫗能解。',
+    en: 'Style Letian, called "Layman of Xiangshan." Middle-Tang poet who held that "writing must serve its age, songs must serve their occasion." Wrote "Song of Everlasting Sorrow" and "Pipa Lute" — so plain that an old woman could understand.',
+  },
+  'hist-zhao-feiyan': {
+    era: { zh: '掌上輕燕', en: 'Featherweight on the Palm' },
+    zh: '漢成帝皇后。體輕善舞,傳能立於人掌之上。與妹合德並寵,姊妹獨擅後宮十年。',
+    en: 'Empress to Emperor Cheng of Han. So light and graceful she could supposedly dance on a man\'s palm. With her sister Hede she monopolized the harem for a decade.',
+  },
+  'hist-wang-zhaojun': {
+    era: { zh: '昭君出塞', en: 'Wang Zhaojun Leaves the Pass' },
+    zh: '名嬙,字昭君,南郡秭歸人。漢元帝宮女,自願和親嫁呼韓邪單于。「沉魚落雁」之雁即昭君。',
+    en: 'Personal name Qiang, style Zhaojun, of Zigui in Nanjun. A palace woman under Emperor Yuan of Han, she volunteered to marry the Chanyu of the Xiongnu. The "fallen geese" of "fish sink, geese fall" refers to her — geese forgot to fly at the sight of her face.',
+  },
+  'hist-shi-le': {
+    era: { zh: '後趙明帝', en: 'Emperor Ming of Later Zhao' },
+    zh: '羯族,出身奴隸。佐劉淵,後自立為帝。一生不識字而通史書,以人講授而能評議。十六國時期罕見梟雄。',
+    en: 'A Jie tribesman, born a slave. Served Liu Yuan, then proclaimed himself emperor. Could not read a character — yet had histories read aloud to him and judged them with insight. A rare ruler of the Sixteen Kingdoms era.',
+  },
+  'hist-mu-guiying': {
+    era: { zh: '楊家將女將', en: 'Yang-Family Heroine' },
+    zh: '楊宗保之妻,降龍木破天門陣。後楊家男丁盡死於遼,百歲掛帥西征,平西夏。',
+    en: 'Wife of Yang Zongbao. Wielded the Subdue-Dragon Wood to break the Heavenly Gate Formation. When all the Yang men had fallen to the Liao, at a hundred years old she took the standard and led the campaign west against Western Xia.',
+  },
+  'hist-bian-que': {
+    era: { zh: '神醫', en: 'Divine Healer' },
+    zh: '名秦越人,渤海郡鄭人。中華醫學之祖。傳能洞見人臟腑,望色聞聲即知病。蔡桓公諱疾忌醫,五日後骨髓侵骨,病入膏肓。',
+    en: 'Personal name Qin Yueren, of Zheng in Bohai. Father of Chinese medicine. Said to see straight into the viscera; from face and voice he knew the illness. Duke Huan of Cai concealed his disease — five days later it had penetrated the marrow, and could not be cured.',
+  },
+  'hist-mencius': {
+    era: { zh: '亞聖', en: 'Sub-Sage' },
+    zh: '名軻,字子輿,鄒人。受業於子思之門人。提出「性善論」「民貴君輕」「仁政」之說,與孔子並稱「孔孟」。',
+    en: 'Personal name Ke, style Ziyu, of Zou. Studied under disciples of Zisi (Confucius\' grandson). Proposed the theories of "innate goodness," "the people are precious, the ruler is light," and "benevolent government." Paired with Confucius as "Kong–Meng."',
+    quote: { zh: '民為貴,社稷次之,君為輕。', en: 'The people are most precious, the altars of state come next, the ruler is light.' },
+  },
+  'hist-xunzi': {
+    era: { zh: '荀子', en: 'Master Xun' },
+    zh: '名況,字卿,趙國人。先秦最後一位儒學大師。提出「性惡論」,主張隆禮重法。弟子李斯、韓非皆法家集大成者。',
+    en: 'Personal name Kuang, style Qing, of Zhao. The last great Confucian of the pre-Qin era. Proposed the theory of "innate human evil"; advocated honoring ritual and emphasizing law. His disciples Li Si and Han Fei became the founders of Legalism.',
+  },
+  'hist-mozi': {
+    era: { zh: '墨子', en: 'Master Mo' },
+    zh: '名翟,魯國人。墨家學派創始人。主張「兼愛」「非攻」「節用」「尚賢」。與儒家並稱「儒墨顯學」。',
+    en: 'Personal name Di, of Lu. Founder of the Mohist school. Advocated "universal love," "non-aggression," "frugality," and "promotion of the worthy." With the Confucians, his school was one of the two "prominent learnings" of the pre-Qin.',
+  },
+  'hist-wei-zheng': {
+    era: { zh: '人鏡', en: 'Mirror of Men' },
+    zh: '字玄成,巨鹿人。唐太宗時諫議大夫,屢諫太宗,前後二百餘事,太宗從之而不違。死後,太宗嘆「人鏡亡矣」。',
+    en: 'Style Xuancheng, of Julu. Remonstrator under Emperor Taizong, who pressed over 200 admonitions on the throne — and Taizong followed without resistance. At his death the emperor sighed: "My mirror of men is gone."',
+    quote: { zh: '兼聽則明,偏信則暗。', en: 'Listening to many makes one wise; trusting one makes one blind.' },
+  },
+  'hist-yang-guifei': {
+    era: { zh: '羞花', en: 'Shaming Flowers' },
+    zh: '名玉環,蒲州永樂人。唐玄宗貴妃。「回眸一笑百媚生,六宮粉黛無顏色」。安史之亂中縊死馬嵬坡,年三十八。',
+    en: 'Personal name Yuhuan, of Yongle in Puzhou. Imperial Consort of Emperor Xuanzong. "A glance back, a smile, a hundred charms born; in the six palaces no painted face had color." Hanged at Mawei Slope in the An Lushan rebellion at 38.',
+  },
 };

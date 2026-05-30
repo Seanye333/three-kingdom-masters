@@ -266,7 +266,169 @@ const RANK_THRESHOLDS: Array<{ minStat: number; rank: MilitaryRankId }> = [
   { minStat: 55, rank: 'captain' },
 ];
 
-export function deriveInitialRank(stats: OfficerStats): MilitaryRankId {
+/**
+ * Curated rank overrides for famous historical figures whose actual historical
+ * title is well above what max(war, leadership) would derive — chancellors,
+ * grand chancellors, founding emperors who held the highest civilian post.
+ * Looked up by `deriveInitialRank` with id; falls back to stat-derived rank.
+ */
+export const OFFICER_RANKS: Record<string, MilitaryRankId> = {
+  // ─── 三國 — chancellors who'd otherwise rank as general ───
+  'cao-cao':       'chancellor',     // 漢丞相
+  'zhuge-liang':   'chancellor',     // 蜀漢丞相
+  'sima-yi':       'chancellor',     // 西晉宣帝
+  'sima-shi':      'chancellor',
+  'sima-zhao':     'chancellor',
+  'cao-pi':        'chancellor',     // 魏文帝
+  'jiang-wan':     'chancellor',     // 蜀漢
+  'lu-su':         'chancellor',     // 大都督
+  // ─── 歷代名將 — chancellors / 丞相 / 太宰 ───
+  'hist-jiang-ziya':   'chancellor',
+  'hist-zhou-gong':    'chancellor',
+  'hist-yi-yin':       'chancellor',
+  'hist-guan-zhong':   'chancellor',
+  'hist-zi-chan':      'chancellor',
+  'hist-yan-ying':     'chancellor',
+  'hist-confucius':    'chancellor',  // honorary — 至聖
+  'hist-shang-yang':   'chancellor',  // 大良造 → chancellor-equivalent
+  'hist-su-qin':       'chancellor',  // 六國相印
+  'hist-zhang-yi':     'chancellor',  // 秦相
+  'hist-fan-ju':       'chancellor',
+  'hist-lu-buwei':     'chancellor',
+  'hist-xinling-jun':  'chancellor',
+  'hist-pingyuan-jun': 'chancellor',
+  'hist-chunshen-jun': 'chancellor',
+  'hist-mengchang-jun':'chancellor',
+  'hist-li-si':        'chancellor',  // 秦丞相
+  'hist-feng-quji':    'chancellor',
+  'hist-xiao-he':      'chancellor',  // 漢相
+  'hist-cao-can':      'chancellor',  // 漢相
+  'hist-chen-ping':    'chancellor',  // 漢相
+  'hist-wang-ling':    'chancellor',
+  'hist-zhou-bo':      'chancellor',
+  'hist-shentu-jia':   'chancellor',
+  'hist-gongsun-hong': 'chancellor',
+  'hist-huo-guang':    'chancellor',  // 大將軍輔政
+  'hist-zhai-fangjin': 'chancellor',
+  'hist-xiao-wangzhi': 'chancellor',
+  'hist-wang-jia':     'chancellor',
+  'hist-deng-yu':      'chancellor',
+  'hist-han-xin':      'grand-general',
+  'hist-wei-qing':     'grand-general',
+  'hist-huo-qubing':   'grand-general',
+  'hist-zhou-yafu':    'chancellor',
+  'hist-zhang-liang':  'chancellor',  // 留侯 — 國師等同
+  'hist-bai-qi':       'grand-general',
+  'hist-wang-jian':    'grand-general',
+  'hist-meng-tian':    'grand-general',
+  'hist-li-mu':        'grand-general',
+  'hist-lian-po':      'grand-general',
+  'hist-yue-yi':       'chancellor',
+  'hist-tian-dan':     'chancellor',
+  'hist-wang-meng':    'chancellor',  // 前秦丞相
+  'hist-xie-an':       'chancellor',  // 東晉太傅
+  'hist-wang-dao':     'chancellor',
+  'hist-yu-liang':     'chancellor',
+  'hist-yang-yin':     'chancellor',
+  'hist-su-chuo':      'chancellor',
+  'hist-fang-xuanling':'chancellor',  // 唐相
+  'hist-du-ruhui':     'chancellor',
+  'hist-wei-zheng':    'chancellor',
+  'hist-changsun-wuji':'chancellor',
+  'hist-zhang-jiuling':'chancellor',
+  'hist-yao-chong':    'chancellor',
+  'hist-song-jing':    'chancellor',
+  'hist-di-renjie':    'chancellor',
+  'hist-li-linfu':     'chancellor',
+  'hist-yang-guozhong':'chancellor',
+  'hist-li-deyu':      'chancellor',
+  'hist-niu-sengru':   'chancellor',
+  'hist-li-bi':        'chancellor',
+  'hist-lu-zhi-tang':  'chancellor',
+  'hist-yang-yan':     'chancellor',
+  'hist-zhang-jianzhi':'chancellor',
+  'hist-li-jing':      'grand-general',
+  'hist-li-ji':        'grand-general',
+  'hist-su-dingfang':  'grand-general',
+  'hist-xue-rengui':   'grand-general',
+  'hist-guo-ziyi':     'grand-general',
+  'hist-li-guangbi':   'grand-general',
+  'hist-gao-xianzhi':  'grand-general',
+  'hist-geshu-han':    'grand-general',
+  'hist-feng-dao':     'chancellor',  // 五代五朝元老
+  'hist-zhao-pu':      'chancellor',  // 宋初宰相
+  'hist-kou-zhun':     'chancellor',
+  'hist-han-qi':       'chancellor',
+  'hist-fu-bi':        'chancellor',
+  'hist-fan-zhongyan': 'chancellor',
+  'hist-wen-yanbo':    'chancellor',
+  'hist-sima-guang':   'chancellor',
+  'hist-wang-anshi':   'chancellor',
+  'hist-zhang-dun':    'chancellor',
+  'hist-cai-jing':     'chancellor',  // 北宋奸相
+  'hist-qin-hui':      'chancellor',  // 南宋奸相
+  'hist-zhao-ding':    'chancellor',
+  'hist-zhang-jun-song-prime':'chancellor',
+  'hist-shi-miyuan':   'chancellor',
+  'hist-han-tuozhou':  'chancellor',
+  'hist-jia-sidao':    'chancellor',
+  'hist-yu-yunwen':    'chancellor',
+  'hist-yue-fei':      'grand-general',
+  'hist-han-shizhong': 'grand-general',
+  'hist-wen-tianxiang':'chancellor',
+  'hist-lu-yijian':    'chancellor',
+  'hist-du-yan':       'chancellor',
+  'hist-zhao-ruyu':    'chancellor',
+  'hist-chen-kangbo':  'chancellor',
+  'hist-yelu-chucai':  'chancellor',
+  'hist-toghto':       'chancellor',
+  'hist-li-meng':      'chancellor',
+  'hist-bayan':        'grand-general',
+  'hist-muqali':       'grand-general',
+  'hist-subutai':      'grand-general',
+  'hist-jebe':         'grand-general',
+  'hist-tolui':        'grand-general',
+  'hist-hulagu':       'grand-general',
+  'hist-batu':         'grand-general',
+  'hist-liu-bowen':    'chancellor',
+  'hist-yao-guangxiao':'chancellor',
+  'hist-yang-shiqi':   'chancellor',  // 三楊
+  'hist-yang-rong':    'chancellor',
+  'hist-yang-pu':      'chancellor',
+  'hist-yan-song':     'chancellor',  // 嘉靖朝首輔
+  'hist-xu-jie':       'chancellor',
+  'hist-gao-gong':     'chancellor',
+  'hist-shen-shixing': 'chancellor',
+  'hist-zhang-juzheng':'chancellor',  // 萬曆首輔
+  'hist-shi-kefa':     'chancellor',
+  'hist-ye-xianggao':  'chancellor',
+  'hist-li-tingji':    'chancellor',
+  'hist-xu-da':        'grand-general',
+  'hist-chang-yuchun': 'grand-general',
+  'hist-qi-jiguang':   'grand-general',
+  'hist-yu-dayou':     'grand-general',
+  'hist-lan-yu':       'grand-general',
+  'hist-fan-wencheng': 'chancellor',
+  'hist-zhang-tingyu': 'chancellor',  // 雍正首輔
+  'hist-ortai':        'chancellor',
+  'hist-chen-tingjing':'chancellor',
+  'hist-heshen':       'chancellor',  // 乾隆朝權相
+  'hist-fukanggan':    'grand-general',
+  'hist-agui':         'grand-general',
+  'hist-zhaohui':      'grand-general',
+  'hist-zeng-guofan':  'chancellor',  // 武英殿大學士
+  'hist-zuo-zongtang': 'chancellor',
+  'hist-li-hongzhang': 'chancellor',  // 文華殿大學士
+  'hist-lin-zexu':     'chancellor',
+  'hist-hu-linyi':     'general',
+  'hist-yixin':        'chancellor',  // 議政王
+  'hist-wenxiang':     'chancellor',
+  'hist-weng-tonghe':  'chancellor',
+  'hist-yuan-shikai':  'chancellor',
+};
+
+export function deriveInitialRank(stats: OfficerStats, id?: string): MilitaryRankId {
+  if (id && OFFICER_RANKS[id]) return OFFICER_RANKS[id];
   const best = Math.max(stats.war, stats.leadership);
   for (const { minStat, rank } of RANK_THRESHOLDS) {
     if (best >= minStat) return rank;

@@ -18,7 +18,7 @@ import {
 
 const resolveSkillsAndRank = (t: OfficerTemplate) => {
   const skills = OFFICER_SKILLS[t.id] ?? deriveDefaultSkills(t.stats);
-  const rank = deriveInitialRank(t.stats);
+  const rank = deriveInitialRank(t.stats, t.id);
   const traits = OFFICER_TRAITS[t.id] ?? deriveTraitsFromStats(t.stats);
   const doctrine = deriveDoctrine(t.stats, t.id);
   const formations = deriveFormations(t.stats, t.id);
@@ -1577,7 +1577,7 @@ export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>
       // stat-derived defaults. Historical officers can now share the same
       // OFFICER_TRAITS / OFFICER_SKILLS maps as their Three Kingdoms cousins.
       const skills = OFFICER_SKILLS[t.id] ?? deriveDefaultSkills(t.stats);
-      const rank = deriveInitialRank(t.stats);
+      const rank = deriveInitialRank(t.stats, t.id);
       const traits = OFFICER_TRAITS[t.id] ?? deriveTraitsFromStats(t.stats);
       const doctrine = deriveDoctrine(t.stats, t.id);
       const formations = deriveFormations(t.stats, t.id);
