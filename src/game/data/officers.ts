@@ -1365,6 +1365,48 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   // 清
   'hist-zeng-guofan': 'zeng-jiaxun',        // 曾文正公家書
   'hist-lin-zexu':    'fenglu-shen-shou',   // 銷煙劍
+  // ─── 名品擴充 (Phase 31 — historically-attested gear assignments) ───
+  // 三國新增
+  'hua-tuo':         'qing-nang-shu',       // 青囊書 — 華佗醫聖
+  'cai-yong':        'jiao-wei-qin',        // 焦尾琴 — 蔡邕救桐木所斲
+  'xiahou-en':       'qing-gang-jian',      // 青釭劍 — 夏侯恩背之,趙雲奪
+  'lady-huang':      'lian-nu',             // 諸葛連弩 — 黃月英巧思
+  // 春秋戰國新增
+  'hist-qu-yuan':    'li-sao',              // 離騷 — 屈原所作
+  'hist-yu-ji':      'yu-mei-ren-jian',     // 虞美人劍 — 垓下自刎
+  // 漢
+  'hist-liu-bang':   'chixiao-jian',        // 赤霄劍 — 漢高祖斬白蛇
+  'hist-su-wu':      'su-wu-han-jie',       // 漢節 — 蘇武牧羊
+  'hist-li-guang':   'fei-jiang-bow',       // 飛將軍弓 — 李廣神射
+  'hist-wang-zhaojun':'zhao-jun-pipa',      // 昭君琵琶 — 出塞和親
+  'hist-ban-chao':   'tou-bi-cong-rong',    // 投筆 — 班超從戎
+  'hist-yang-xiong': 'jiu-deyou',           // 太玄經 — 揚雄所作
+  // 晉
+  'hist-ji-kang':    'lanke-jian',          // 廣陵散 — 嵇康絕響
+  // 南北朝
+  'hist-xiao-tong':  'wenxuan',             // 昭明文選 — 蕭統所編
+  // 唐
+  'hist-li-bai':     'li-bai-poem-scroll',  // 青蓮詩稿 — 李白
+  'hist-du-fu':      'du-fu-poem-scroll',   // 少陵詩史 — 杜甫
+  'hist-wang-bo':    'teng-wang-ge-xu',     // 滕王閣序 — 王勃
+  // 宋
+  'hist-sima-guang': 'zizhi-tongjian',      // 資治通鑑 — 司馬光
+  'hist-fan-zhongyan':'yueyang-lou-ji',     // 岳陽樓記 — 范仲淹
+  'hist-shen-kuo':   'menxi-bitan',         // 夢溪筆談 — 沈括
+  'hist-bao-zheng':  'longtou-zha',         // 龍頭鍘 — 包公
+  'hist-di-qing':    'di-qing-mian-ju',     // 銅面具 — 狄青
+  'hist-zhu-xi':     'sishu-jizhu',         // 四書集注 — 朱熹
+  // 明
+  'hist-luo-guanzhong':'sanguo-yanyi',      // 三國演義 — 羅貫中
+  'hist-shi-nai’an':  'shuihu-zhuan',       // 水滸傳 — 施耐庵
+  'hist-wu-cheng’en': 'xiyou-ji',           // 西遊記 — 吳承恩
+  'hist-li-shizhen':  'bencao-gangmu',      // 本草綱目 — 李時珍
+  'hist-song-yingxing':'tiangong-kaiwu',    // 天工開物 — 宋應星
+  'hist-xu-xiake':   'xia-ke-youji',        // 徐霞客遊記
+  'hist-wang-shouren':'chuanxi-lu',         // 傳習錄 — 王陽明 (王守仁)
+  // 清
+  'hist-cao-xueqin':  'honglou-meng',       // 紅樓夢 — 曹雪芹
+  'hist-pu-songling': 'liaozhai-zhiyi',     // 聊齋志異 — 蒲松齡
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
@@ -1584,6 +1626,14 @@ export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>
       const tactics = deriveTactics(t.stats, t.id);
       const policies = derivePolicies(t.stats, t.id);
       const level = deriveLevel(t.stats);
+      // Pick up canonical historical items (eg. 諸葛連弩 for 黃月英,
+      // 紅樓夢 for 曹雪芹, 漢節 for 蘇武). Chains are scenario-time-
+      // dependent so we only resolve the primary direct assignment here.
+      const equipment: string[] = [];
+      const primaryItem = CANONICAL_ITEMS_PRIMARY[t.id];
+      if (primaryItem && ITEMS_BY_ID[primaryItem]) {
+        equipment.push(primaryItem);
+      }
       return {
         id: t.id,
         name: t.name,
@@ -1596,7 +1646,7 @@ export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>
         forceId: null,
         status: 'unsearched',
         task: null,
-        equipment: [],
+        equipment,
         skills,
         rank,
         traits,
