@@ -1515,8 +1515,25 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     en: 'Crown prince of Duke Xian of Jin, son of Lady Qi Jiang. Duke Xian doted on Lady Li, who slandered him. Shen Sheng would not defend himself and hanged himself at Quwo. He was posthumously named the Reverent Crown Prince.',
   },
   'hist-li-ji': {
+    era: { zh: '英國公', en: 'Duke of Ying' },
+    zh: '本姓徐,名世勣,字懋功,曹州離狐人。唐初名將,凌煙閣二十四功臣之一。原瓦崗李密部,後歸唐。賜姓李,避唐太宗諱改名李勣。事高祖、太宗、高宗三朝,平東突厥、薛延陀、高句麗,鎮邊三十年,號「常勝將軍」。位至司空,封英國公。壽七十六。',
+    en: 'Originally surnamed Xu, personal name Shiji, style Maogong, of Lihu in Caozhou. A famed founding Tang general, one of the Twenty-Four Officers of the Lingyan Pavilion. Originally with Li Mi of the Wagang army, he came to Tang and was granted the imperial surname Li; to avoid the taboo of Emperor Taizong\'s name he changed his to Li Ji. He served three reigns — Gaozu, Taizong, Gaozong — pacifying the Eastern Türks, the Xueyantuo, and Goguryeo; thirty years on the frontier he was called "the Ever-Victorious." He rose to Excellency over the Works, made Duke of Ying. He lived seventy-six years.',
+  },
+  'hist-li-ji-jin': {
     zh: '驪姬,晉獻公寵妃。譖太子申生,逼申生自縊,又逼重耳、夷吾出奔,晉國大亂二十年。後被殺。',
     en: 'Lady Li, favorite of Duke Xian of Jin. She slandered the heir Shen Sheng to suicide and drove Chong\'er and Yiwu into exile, throwing Jin into chaos for twenty years. She was at last killed.',
+  },
+  'hist-li-yuan-ws': {
+    zh: '楚國人,春申君門客。獻其妹於春申君,有娠後使春申君獻於楚考烈王,生悍,立為太子。考烈王崩,李園恐春申君洩之,於棘門埋伏殺春申君,夷其族。',
+    en: 'Of Chu, a retainer of Chunshen-jun. He gave his sister to Chunshen-jun; when she was with child, he had Chunshen-jun present her to King Kaolie of Chu. She bore Han, who was made crown prince. When the king died, Li Yuan, fearing Chunshen-jun would speak, laid an ambush at the Ji gate, killed Chunshen-jun, and wiped out his clan.',
+  },
+  'hist-wang-rong-fd': {
+    zh: '五代趙國王鎔。鎮成德軍三十餘年。後梁朱溫圍之,得契丹援而免。後為養子王德明所弒,夷其族。',
+    en: 'Wang Rong of Zhao in the Five Dynasties. He held the Chengde army for over thirty years. Zhu Wen of Later Liang besieged him; he was saved by Khitan relief. Later his adopted son Wang Deming killed him and his clan was exterminated.',
+  },
+  'hist-zhou-ke-2': {
+    zh: '楚漢之際人,周珂。與周苛同名異字。事項羽,後事漢。',
+    en: 'A figure of the Chu-Han transition, Zhou Ke (different character from Zhou Ke the chancellor). He served Xiang Yu and later Han.',
   },
   'hist-wen-jiang': {
     zh: '魯桓公夫人,齊襄公之妹。與兄通姦,使彭生殺魯桓公於齊,千古宮闈醜聞。',
