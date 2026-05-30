@@ -2959,6 +2959,262 @@ export const HISTORICAL_BIOGRAPHIES: Record<string, OfficerBiography> = {
     zh: '元朝漢人世侯。降蒙古,鎮東平,以漢法治民,蒙元時山東之主。',
     en: 'A hereditary Han lord of Yuan. He submitted to the Mongols and held Dongping, ruling by Chinese law — lord of Shandong under Mongol-Yuan.',
   },
+  // ─── 歷代名將 新增第十一批 (Historical biographies — batch 11: Chu-Han) ───
+  'hist-xiang-liang': {
+    zh: '楚國下相人,項羽叔父。楚將項燕之子。秦末於會稽起兵,立楚懷王孫熊心為楚懷王。屢破秦軍,於定陶為章邯所敗,中流矢而死。',
+    en: 'Of Xiaxiang in Chu, uncle of Xiang Yu, son of the Chu general Xiang Yan. In late Qin he raised troops at Kuaiji and set up the grandson of King Huai of Chu as the new King Huai. He broke the Qin army many times, but at Dingtao he was beaten by Zhang Han and struck down by a stray arrow.',
+  },
+  'hist-xiang-bo': {
+    zh: '名纏,字伯,項羽叔父。鴻門宴上以身翼蔽劉邦,使劉邦得脫。後降劉邦,封射陽侯,賜姓劉。',
+    en: 'Personal name Chan, style Bo, uncle of Xiang Yu. At the Hongmen Banquet he covered Liu Bang with his own body and Liu Bang escaped. He later submitted to Liu Bang, was made Marquis of Sheyang, and given the surname Liu.',
+  },
+  'hist-wu-guang': {
+    era: { zh: '陳勝吳廣', en: 'Chen Sheng and Wu Guang' },
+    zh: '陽夏人。秦末戍卒。與陳勝於大澤鄉揭竿起義,號為「魚腹丹書」、「篝火狐鳴」,中華第一次農民大起義。後為部將田臧所殺。',
+    en: 'Of Yangxia. A conscript soldier of late Qin. With Chen Sheng at Daze he raised the cudgel — using "the red writing in the fish belly" and "the fox-cry by the bonfire" — the first great peasant rising of China. He was later killed by his captain Tian Zang.',
+  },
+  'hist-zhou-wen': {
+    zh: '陳勝部將。率十萬大軍直撲咸陽,至戲下,為章邯所敗,退至曹陽。再敗,自刎而死。',
+    en: 'A captain of Chen Sheng. He led a hundred thousand straight at Xianyang. At Xi he was broken by Zhang Han and fell back to Caoyang. Beaten again, he cut his own throat.',
+  },
+  'hist-zhou-shi': {
+    zh: '陳勝部將。受命略魏地,立魏咎為魏王。後章邯破之,周市死於亂中。',
+    en: 'A captain of Chen Sheng, charged with seizing the lands of Wei; he set up Wei Jiu as King of Wei. Zhang Han later broke him and Zhou Shi died in the chaos.',
+  },
+  'hist-wu-chen': {
+    zh: '陳勝部將。略趙地,自立為趙王。後為部將李良所殺。',
+    en: 'A captain of Chen Sheng who seized the lands of Zhao and made himself King of Zhao. He was killed by his captain Li Liang.',
+  },
+  'hist-han-cheng': {
+    zh: '韓國貴族,韓王。陳勝起義,張良立韓成為韓王,項羽不令之國,後殺之於彭城,張良由是歸劉邦。',
+    en: 'Of the Han nobility, King of Han. When Chen Sheng rose, Zhang Liang set up Han Cheng as king of Han; Xiang Yu would not let him return to his land and later killed him at Pengcheng — and Zhang Liang from then turned to Liu Bang.',
+  },
+  'hist-wei-jiu': {
+    zh: '魏國貴族。陳勝部將周市立為魏王。後章邯圍臨濟,魏咎自焚而死。',
+    en: 'Of the Wei nobility. The Chen Sheng captain Zhou Shi set him up as King of Wei. When Zhang Han besieged Linji, Wei Jiu burned himself to death.',
+  },
+  'hist-wei-bao': {
+    zh: '魏咎之弟。兄死後立為魏王。後降漢,又叛漢從楚,被韓信擒於河東,送長安,周苛斬之。',
+    en: 'Younger brother of Wei Jiu. After his brother died he was set up as King of Wei. He submitted to Han, then turned from Han back to Chu; Han Xin took him at Hedong, sent him to Chang\'an, and Zhou Ke beheaded him.',
+  },
+  'hist-tian-rong': {
+    zh: '齊國貴族。陳勝起義,田儋立為齊王,儋死,田榮繼之。後與項羽交惡,起兵反楚,被項羽破殺於平原。其弟田橫繼之。',
+    en: 'Of the Qi nobility. When Chen Sheng rose, Tian Dan was set up as King of Qi; when Dan died, Tian Rong took up the line. Falling out with Xiang Yu, he rose against Chu; Xiang Yu broke and killed him at Pingyuan. His brother Tian Heng took the line.',
+  },
+  'hist-tian-heng': {
+    era: { zh: '田橫五百士', en: '"The Five Hundred of Tian Heng"' },
+    zh: '齊國貴族,田榮之弟。兄死後立為齊王,與項羽戰。漢定天下,田橫與五百士逃海島。劉邦召之入京,田橫於途中羞憤自殺。五百士聞之,皆自刎於海島,千古傳為氣節之絕唱。',
+    en: 'Of the Qi nobility, brother of Tian Rong. After his brother died he was made King of Qi and fought Xiang Yu. When Han settled the realm, Tian Heng with five hundred men fled to a sea island. Liu Bang called him to the capital; on the road, in shame and rage, he killed himself. The five hundred heard, and every one of them cut his own throat on the island — a peerless song of honor for the ages.',
+  },
+  'hist-tian-dan-chu': {
+    zh: '齊國貴族。陳勝起義時起兵,自立為齊王。後為章邯所殺於臨菑。',
+    en: 'Of the Qi nobility. He rose with Chen Sheng and made himself King of Qi. Zhang Han later killed him at Linzi.',
+  },
+  'hist-tian-guang': {
+    zh: '田榮之子。父死,韓信平齊,田廣與田橫共拒漢。後敗於高密。',
+    en: 'Son of Tian Rong. When his father died and Han Xin pacified Qi, Tian Guang with Tian Heng stood against Han. He was broken at Gaomi.',
+  },
+  'hist-tian-jia': {
+    zh: '齊國貴族。陳勝起義時立為齊王,後讓位於田儋。',
+    en: 'Of the Qi nobility. When Chen Sheng rose he was made King of Qi and later yielded to Tian Dan.',
+  },
+  'hist-zhang-er': {
+    zh: '大梁人。陳勝部將,後立為趙王。與陳餘為刎頸之交,後兩人交惡,張耳歸劉邦,韓信、張耳破陳餘於井陘,陳餘被斬。漢定,張耳封趙王,其子張敖娶劉邦女魯元公主。',
+    en: 'Of Daliang. A captain of Chen Sheng, later made King of Zhao. He and Chen Yu were sworn-life friends; later they fell out, Zhang Er went over to Liu Bang, and at Jingxing, Han Xin and Zhang Er broke Chen Yu, who was beheaded. When Han was set, Zhang Er was made King of Zhao, and his son Zhang Ao wed Liu Bang\'s daughter Princess Luyuan.',
+  },
+  'hist-chen-yu': {
+    zh: '大梁人,儒生。與張耳為刎頸之交,後因兩人意見不合而相絕。陳餘立趙歇為趙王,自為大將軍。井陘之戰,被韓信、張耳所破,死於泜水。',
+    en: 'Of Daliang, a Confucian scholar. He and Zhang Er were sworn-life friends; later, falling out in opinion, they broke off. Chen Yu set up Zhao Xie as King of Zhao and made himself Grand Marshal. At Jingxing Han Xin and Zhang Er broke him, and he died at the Zhi River.',
+  },
+  'hist-zhang-ao': {
+    zh: '張耳之子。襲趙王。劉邦過趙,張敖以子婿之禮事之,劉邦坐而辱之。張敖之相貫高怒,密謀殺劉邦,事敗,貫高自殺,張敖被廢為宣平侯。',
+    en: 'Son of Zhang Er, who succeeded as King of Zhao. When Liu Bang passed through Zhao, Zhang Ao served him with the rite of a son-in-law; Liu Bang sat carelessly and insulted him. Zhang Ao\'s chancellor Guan Gao in fury plotted to kill Liu Bang; the plot leaked, Guan Gao killed himself, and Zhang Ao was reduced to Marquis of Xuanping.',
+  },
+  'hist-liyiji': {
+    era: { zh: '高陽酒徒', en: 'The Drunkard of Gaoyang' },
+    zh: '名酈食其,陳留高陽人。漢初謀士。原為儒生,自稱「高陽酒徒」,獻計於劉邦取陳留、下齊七十餘城。後齊王田廣以酈食其賣己,烹之於齊。',
+    en: 'Personal name Li Yiji, of Gaoyang in Chenliu. A counselor of early Han. Originally a Confucian, he called himself "the Drunkard of Gaoyang." He counseled Liu Bang to take Chenliu and lay down seventy cities of Qi. King Guang of Qi, thinking Li Yiji had sold him out, boiled him alive in Qi.',
+  },
+  'hist-li-zuoche': {
+    zh: '趙國謀士。井陘之戰,獻計於陳餘,陳餘不用。韓信破陳餘後,千金求李左車,以師禮事之,問策破燕齊。後從韓信征戰。',
+    en: 'A counselor of Zhao. At Jingxing he gave counsel to Chen Yu, who did not use it. After Han Xin had broken Chen Yu, Han Xin sought Li Zuoche with a reward of a thousand gold pieces, served him with the rite of a master, and asked counsel for the breaking of Yan and Qi. He then marched with Han Xin.',
+  },
+  'hist-kuai-tong': {
+    era: { zh: '三分天下', en: '"Divided the Realm in Three"' },
+    zh: '齊國辯士。獻策於韓信,勸其背漢自立,「三分天下,鼎足而立」。韓信不忍,終被呂后所害。蒯通聞之,佯狂為巫。劉邦欲烹之,蒯通辯「狗各吠其主」,終被釋。',
+    en: 'A diviner of Qi. He counseled Han Xin to turn from Han and stand alone, "divide the realm in three, stand as a tripod." Han Xin could not bring himself to do it and was at last killed by Empress Lü. When Kuai Tong heard, he pretended madness as a shaman. Liu Bang would have boiled him; Kuai Tong argued: "Each dog barks for its own master," and he was at last set free.',
+  },
+  'hist-ji-bu': {
+    era: { zh: '一諾千金', en: '"A Single Promise Worth a Thousand Gold"' },
+    zh: '楚國人。項羽部將,以勇義稱,「得黃金百斤,不如得季布一諾」,千古傳為俗語。楚亡,劉邦懸賞千金捕之,夏侯嬰薦於劉邦,赦之,終為郎中。',
+    en: 'Of Chu. A captain of Xiang Yu, famed for courage and honor — "a hundred jin of gold is not worth a single promise of Ji Bu" became a saying for the ages. When Chu fell, Liu Bang set a thousand-gold price on his head; Xiahou Ying spoke for him and Liu Bang pardoned him; he became a Gentleman of the Palace.',
+  },
+  'hist-ji-xin': {
+    era: { zh: '紀信誑楚', en: '"Ji Xin Deceived Chu"' },
+    zh: '劉邦部將。容貌與劉邦相似。滎陽之圍,糧盡兵疲。紀信假扮劉邦,駕黃屋車出降楚,使劉邦得脫。項羽察覺,怒焚紀信於滎陽城下。',
+    en: 'A captain of Liu Bang, of like face to him. In the siege of Yingyang, when grain and men failed, Ji Xin disguised himself as Liu Bang, drove out in the imperial yellow carriage to surrender to Chu, and Liu Bang slipped away. When Xiang Yu found out, in fury he burned Ji Xin at the wall of Yingyang.',
+  },
+  'hist-zhongli-mei': {
+    zh: '楚國伊廬人。項羽部將,與韓信為友。楚亡,逃匿於韓信家。劉邦詔捕之,韓信欲解之,鍾離昧曰:「公非長者!」 自刎而死。劉邦因此疑韓信,終致韓信之禍。',
+    en: 'Of Yilu in Chu. A captain of Xiang Yu, friend to Han Xin. When Chu fell he hid in Han Xin\'s house. When Liu Bang ordered his arrest and Han Xin meant to deliver him, Zhongli Mei said: "You are no man of stature!" and cut his own throat. Through this Liu Bang grew suspicious of Han Xin — and at last the disaster of Han Xin came.',
+  },
+  'hist-long-qu': {
+    zh: '楚國名將。項羽愛將,號「龍翥鳳翔」。韓信下齊,長龍且率二十萬眾救齊。濰水之戰,韓信決水半渡而擊之,龍且陣亡,楚軍盡覆。',
+    en: 'A famed general of Chu, beloved of Xiang Yu, called "Dragon Soaring, Phoenix Flying." When Han Xin pacified Qi, Long Qu led two hundred thousand to relieve it. At the Wei River Han Xin broke the dam and struck them mid-crossing; Long Qu died in the line and the Chu host was utterly destroyed.',
+  },
+  'hist-cao-jiu': {
+    zh: '原秦獄吏,項梁、項羽之恩人。項羽封塞王,守成皋。劉邦激之出戰,曹咎大怒出戰,中漢軍埋伏,大敗,自刎於汜水。',
+    en: 'Originally a Qin prison clerk, benefactor of Xiang Liang and Xiang Yu. Xiang Yu made him King of Sai, holding Chenggao. Liu Bang taunted him out; Cao Jiu in fury rode out, walked into the Han ambush, was utterly broken, and cut his throat at the Si River.',
+  },
+  'hist-huan-chu': {
+    zh: '楚國人。項羽部將,以勇略稱。劉邦遣陸賈說之,桓楚不肯降。後事不詳。',
+    en: 'Of Chu. A captain of Xiang Yu, famed for bold counsel. Liu Bang sent Lu Jia to talk him over; Huan Chu would not submit. His later end is unknown.',
+  },
+  'hist-yu-ji': {
+    era: { zh: '虞美人', en: 'The Beautiful Lady Yu' },
+    zh: '項羽寵姬。垓下之圍,四面楚歌,項羽悲歌曰:「力拔山兮氣蓋世,時不利兮騅不逝。騅不逝兮可奈何,虞兮虞兮奈若何!」 虞姬和歌而舞,自刎於帳前,以絕項羽之顧念。千古絕唱「霸王別姬」由此而起。',
+    en: 'Beloved consort of Xiang Yu. In the encirclement at Gaixia, with Chu songs on every side, Xiang Yu sang in grief: "My strength could pluck up mountains, my breath cover the world / now the times go against me and my Zhui-horse will not run. / Zhui will not run — what shall I do? / Yu! Yu! What shall I do with you?" Lady Yu sang in answer, danced, and cut her own throat before his tent, that Xiang Yu need not look back. The peerless song of "the Conqueror Parts with Yu" comes from her.',
+  },
+  'hist-xiahou-ying': {
+    era: { zh: '滕公', en: 'Duke Teng' },
+    zh: '沛縣人。劉邦同鄉之友。為劉邦御車,封滕公。彭城之敗,劉邦欲棄子女,夏侯嬰收之車上而還。漢定,封汝陰侯。歷事高祖、惠帝、文帝三朝。',
+    en: 'Of Pei county. Friend from the same village as Liu Bang. He drove the carriage for Liu Bang and was made Duke Teng. After the defeat at Pengcheng, when Liu Bang would have cast off his own children, Xiahou Ying picked them up onto the carriage and carried them back. When Han was set he was made Marquis of Ruyin. He served three reigns — Gaozu, Hui, and Wen.',
+  },
+  'hist-lu-wan': {
+    era: { zh: '燕王', en: 'King of Yan' },
+    zh: '沛縣豐邑人。劉邦同里同日生之友。劉邦寵之,封燕王。漢定後,劉邦疑諸異姓王,盧綰懼,陳豨之亂中暗通匈奴,劉邦怒,盧綰奔匈奴而死。',
+    en: 'Of Fengyi in Pei county. A friend of Liu Bang, born on the same day in the same village. Liu Bang doted on him and made him King of Yan. After Han was set, Liu Bang grew suspicious of the kings of other surnames. Lu Wan in fear had secret dealings with the Xiongnu through Chen Xi\'s revolt; Liu Bang in anger pursued him. Lu Wan fled to the Xiongnu and died there.',
+  },
+  'hist-wang-ling': {
+    zh: '沛縣人。漢初名臣。性剛直。呂后欲立諸呂為王,問王陵,陵曰:「高皇帝與群臣白馬之盟,非劉氏不王。今欲立諸呂,非約也。」 呂后怒,遷王陵為太傅,實奪其相權,陵稱病不朝,終卒於家。',
+    en: 'Of Pei county. A famed early-Han minister. Stiff and upright. When Empress Lü would make the Lü princes kings, she asked Wang Ling; he said: "Gaozu and his ministers swore the White Horse Oath — none who is not of the Liu shall be king. To enthrone the Lü now would break the oath." Empress Lü in anger moved him to Grand Tutor, stripping his chancellorship in truth. He pleaded illness and would not come to court, and died at home.',
+  },
+  'hist-zhou-chang': {
+    era: { zh: '期期艾艾', en: '"Stammering Out Every Word"' },
+    zh: '沛縣人。漢初御史大夫。性剛直,口吃。劉邦欲廢太子,周昌入諫,口吃曰:「臣口不能言,然臣期期知其不可。陛下欲廢太子,臣期期不奉詔!」 劉邦笑而止。「期期艾艾」千古為俗語。',
+    en: 'Of Pei county. Imperial Secretary of early Han. Stiff and upright, and a stammerer. When Liu Bang wished to depose the crown prince, Zhou Chang came to remonstrate, stammering: "Your servant\'s tongue cannot — cannot speak well, but your servant — your servant knows it cannot be done. Your Majesty wishes to depose the crown prince — your servant — your servant will not obey the edict!" Liu Bang laughed and let it drop. "Stammering and stuttering" became a saying for the ages.',
+  },
+  'hist-zhou-ke': {
+    zh: '周昌之弟。守滎陽,城陷被項羽所擒。項羽欲降之,周苛罵曰:「若不趨降漢,今為虜矣!」 項羽怒,烹之。',
+    en: 'Younger brother of Zhou Chang. He held Yingyang; when the city fell he was taken by Xiang Yu. Xiang Yu would have brought him over; Zhou Ke cursed: "You had better hurry and surrender to Han, or you will be a captive!" Xiang Yu in fury boiled him alive.',
+  },
+  'hist-sui-he': {
+    zh: '漢初辯士。劉邦遣其說九江王英布反楚降漢,隨何以言激之,使英布起兵,項羽腹背受敵。漢定,封護軍中尉。',
+    en: 'A diviner of early Han. Liu Bang sent him to persuade King Ying Bu of Jiujiang to turn from Chu to Han; Sui He spurred him with words, and Ying Bu rose — Xiang Yu was caught front and back. When Han was set he was made Commandant Protector of the Army.',
+  },
+  'hist-luan-bu': {
+    zh: '梁人,彭越故友。彭越被誅夷三族,首級懸於洛陽,詔曰「敢有收視者輒捕之」。欒布獨往哭祭,劉邦怒欲烹之,欒布從容陳辭,劉邦感其忠義,釋之,封欒布為都尉。',
+    en: 'Of Liang, an old friend of Peng Yue. When Peng Yue was killed and his clan exterminated, his head was hung at Luoyang with the edict: "Whoever dares to gather or look on him shall be caught." Luan Bu alone went to mourn. Liu Bang in fury would have boiled him; Luan Bu set forth the case calmly, and Liu Bang, moved by his loyalty, freed him and made him Commandant.',
+  },
+  'hist-ji-xin-chu': {
+    zh: '楚國季信,項羽部將,與紀信同名而異姓。',
+    en: 'Ji Xin of Chu, a captain of Xiang Yu — different surname, same personal name as Ji Xin of Liu Bang\'s side.',
+  },
+  'hist-qi-furen': {
+    era: { zh: '人彘', en: '"The Human Pig"' },
+    zh: '定陶人。漢高祖劉邦寵姬,生趙王劉如意。劉邦欲廢太子立如意,賴張良、商山四皓而止。劉邦死後,呂后陷之為「人彘」,斬手足,去眼,熏聾,飲瘖藥,棄於廁中,千古宮闈第一慘事。',
+    en: 'Of Dingtao. The beloved consort of Han Gaozu Liu Bang, mother of Prince Liu Ruyi of Zhao. Liu Bang would have deposed the crown prince to set up Ruyi; only Zhang Liang and the Four Hoaries of Shang Mountain stopped him. After Liu Bang died, Empress Lü made her a "human pig" — cut off her hands and feet, gouged out her eyes, blasted her ears, gave her a mute draught, and threw her in the latrine — the first great horror of the inner palace for the ages.',
+  },
+  'hist-liu-ruyi': {
+    zh: '劉邦寵姬戚夫人之子。封趙王。劉邦欲廢太子立之,未果。呂后毒殺於長安,年僅十二。',
+    en: 'Son of Liu Bang\'s beloved Consort Qi. Made Prince of Zhao. Liu Bang would have deposed the crown prince to set him up — could not. Empress Lü poisoned him at Chang\'an at only twelve.',
+  },
+  'hist-liu-fei': {
+    zh: '劉邦庶長子。封齊王。為人謹厚。呂后宴之,以毒酒欲害,賴齊內史獻計,獻城陽郡為呂后女魯元公主湯沐邑,得免。卒於高后元年。',
+    en: 'Eldest natural son of Liu Bang. Made King of Qi. Cautious and kind. Empress Lü meant to poison him at a banquet; on the counsel of the Qi Inspector he ceded Chengyang commandery as the bathing-village of Princess Luyuan, and was saved. He died in the first year of Empress Lü.',
+  },
+  'hist-liu-jiao': {
+    zh: '劉邦四弟。封楚王。性好書,招賢士甚多。後與穆生、白生、申公講論《詩經》,以文教稱。在位二十三年。',
+    en: 'Fourth brother of Liu Bang. Made King of Chu. Fond of books, he gathered many worthies. With Mu Sheng, Bai Sheng, and Master Shen he discoursed on the Book of Odes, famed for letters and teaching. He reigned twenty-three years.',
+  },
+  'hist-zhou-yin': {
+    zh: '項羽部將。守九江。隨何說九江王英布反楚,周殷亦從之,以九江降漢。垓下之圍,周殷率舒、六之兵會合於垓下。',
+    en: 'A captain of Xiang Yu, holding Jiujiang. When Sui He persuaded King Ying Bu of Jiujiang to turn from Chu, Zhou Yin went with him and gave Jiujiang to Han. In the encirclement at Gaixia, Zhou Yin brought the troops of Shu and Liu to the meeting.',
+  },
+  'hist-pu-jiangjun': {
+    zh: '陳勝部將,後事項羽。其名不詳,世稱「蒲將軍」。從項羽渡江入關,有戰功。',
+    en: 'A captain of Chen Sheng, who later served Xiang Yu. His personal name is unknown — the world called him "General Pu." He crossed the river into Guanzhong with Xiang Yu, with credit in war.',
+  },
+  'hist-sima-ang': {
+    zh: '原趙國將,項羽部下。項羽封殷王,鎮河內。後劉邦東征,降漢,韓信破之,被殺。',
+    en: 'Originally a general of Zhao under Xiang Yu. Xiang Yu made him King of Yin, holding Henei. When Liu Bang marched east, he submitted; Han Xin later broke him and he was killed.',
+  },
+  'hist-shen-yang': {
+    zh: '原趙國上將軍,項羽封河南王。後降劉邦。',
+    en: 'Originally Senior General of Zhao; Xiang Yu made him King of Henan. He later submitted to Liu Bang.',
+  },
+  'hist-ren-ao': {
+    zh: '沛縣人。劉邦同鄉之友。漢定,封陽都侯。性公正,任御史大夫,以執法稱。',
+    en: 'Of Pei county, friend of Liu Bang from his village. When Han was set, made Marquis of Yangdu. Upright in temper, as Imperial Secretary he was famed for applying the law.',
+  },
+  'hist-shentu-jia': {
+    zh: '梁人。漢文帝、景帝兩朝丞相。性剛直,屢諫不阿。卒於相位。',
+    en: 'Of Liang. Chancellor under both Emperors Wen and Jing of Han. Stiff and upright, he remonstrated without flattery. He died in office.',
+  },
+  'hist-zhao-yao': {
+    zh: '漢文帝時方士。獻禳災之術,文帝後悔之。',
+    en: 'A Daoist adept under Emperor Wen of Han. He offered the art of warding off disasters; the emperor later regretted using him.',
+  },
+  'hist-zhao-ping': {
+    zh: '秦東陵侯。秦亡,布衣為民,於長安城東種瓜,以瓜美聞,世稱「東陵瓜」。',
+    en: 'Marquis of Dongling under Qin. When Qin fell he became a commoner and grew melons east of Chang\'an. His melons were the best — the world called them the "Dongling melons."',
+  },
+  'hist-wang-lingmu': {
+    zh: '王陵之母。劉邦圍項羽於成皋,王陵欲歸劉邦,項羽執其母為質。母私見漢使,曰:「願告王陵,善事漢王,漢王長者也,毋以老妾故,持二心。」 言畢自刎。項羽怒烹其屍。王陵卒從劉邦。',
+    en: 'Mother of Wang Ling. When Liu Bang besieged Xiang Yu at Chenggao and Wang Ling would have gone to Liu Bang, Xiang Yu held his mother as hostage. She met the Han envoy in secret: "Tell Wang Ling to serve the King of Han well; the King of Han is a man of stature. Do not waver in heart for the sake of an old woman." She cut her own throat. Xiang Yu in fury boiled the corpse. Wang Ling at last followed Liu Bang.',
+  },
+  'hist-han-ying': {
+    zh: '漢初辯士。曾與晁錯共學《尚書》於伏生。事漢景帝,主削藩。',
+    en: 'A diviner of early Han. With Chao Cuo he studied the Book of Documents under Master Fu. He served Emperor Jing of Han and urged the cutting down of the feudatories.',
+  },
+  'hist-yongchi': {
+    zh: '沛縣人。劉邦之同鄉,然與劉邦素有嫌。劉邦欲殺之,張良勸先封以安群臣。漢定,封什邡侯。',
+    en: 'Of Pei county. A fellow villager of Liu Bang, but at odds with him from the start. Liu Bang would have killed him; Zhang Liang urged him to enfeoff this enemy first to ease the ministers\' fears. When Han was set, he was made Marquis of Shifang.',
+  },
+  'hist-loufan': {
+    zh: '楚國神箭手。項羽部將。鴻溝之約後,項羽使樓煩射劉邦,連射三人皆中。劉邦怒罵項羽,項羽不能勝。',
+    en: 'A peerless archer of Chu, captain of Xiang Yu. After the truce of the Hong Canal, Xiang Yu had Loufan shoot at Liu Bang; he hit three men in a row. Liu Bang cursed at Xiang Yu, and Xiang Yu could not bear him.',
+  },
+  'hist-wu-she': {
+    zh: '楚國令尹,伍子胥之父。楚平王聽費無忌之讒,殺伍奢、伍尚父子。伍子胥奔吳,終引吳師伐楚以雪父兄之仇。',
+    en: 'Chancellor of Chu, father of Wu Zixu. When King Ping of Chu heeded Fei Wuji\'s slander, he killed Wu She and Wu Shang father and son. Wu Zixu fled to Wu and at last led the Wu army against Chu to wash out the grudge.',
+  },
+  'hist-wu-rui': {
+    zh: '番陽令。秦末從項羽,後降漢,封長沙王,中華第一漢室異姓王。傳子吳臣,五世而絕。',
+    en: 'Prefect of Poyang. In late Qin he joined Xiang Yu, then submitted to Han and was made King of Changsha — the first king of a non-Liu surname under Han. The line passed to his son Wu Chen and ended after five generations.',
+  },
+  'hist-hanxin-king': {
+    zh: '韓王信,韓國貴族,劉邦所立韓王。後叛降匈奴,劉邦親征,白登之圍由是而起。後死於匈奴。與漢初三傑韓信非一人。',
+    en: 'Han Xin, King of Han — a noble of the old Han state set up by Liu Bang as King. He later turned and went over to the Xiongnu; Liu Bang took the field in person, and the encirclement at Baideng came from this. He died among the Xiongnu. Not the same as Han Xin one of the Three Heroes.',
+  },
+  'hist-tian-diao': {
+    zh: '齊國貴族,田榮之姪。',
+    en: 'Of the Qi nobility, nephew of Tian Rong.',
+  },
+  'hist-tian-ken': {
+    zh: '齊國謀士。劉邦定齊,田肯獻策曰:「陛下治秦中,如秦得齊也,則永世之計矣。」',
+    en: 'A counselor of Qi. When Liu Bang settled Qi, Tian Ken gave counsel: "Your Majesty rules the Qin region; if you can hold it as Qin once held Qi, then the plan is for ten thousand generations."',
+  },
+  'hist-zhuang-bushi': {
+    zh: '齊國辯士。漢武帝時人。',
+    en: 'A diviner of Qi under Emperor Wu of Han.',
+  },
+  'hist-ge-ying': {
+    zh: '秦末東陽人。陳嬰起兵,葛嬰亦舉兵,被陳勝所殺。',
+    en: 'Of Dongyang in late Qin. When Chen Ying raised troops, Ge Ying too rose; Chen Sheng killed him.',
+  },
+  'hist-gong-ao': {
+    zh: '楚國將。項羽封臨江王,鎮南郡。後降漢。',
+    en: 'A general of Chu. Xiang Yu made him King of Linjiang, holding Nanjun. He later submitted to Han.',
+  },
+  'hist-guan-he': {
+    zh: '漢初將。隨韓信征戰,封信武侯。',
+    en: 'A general of early Han. He marched with Han Xin and was made Marquis of Xinwu.',
+  },
+  'hist-xiao-duoli': {
+    zh: '匈奴單于。漢初冒頓單于之另寫。',
+    en: 'A Xiongnu Chanyu; an alternate writing for Modu Chanyu of early Han.',
+  },
   // ─── 歷代名將 新增第十批 (Historical biographies — batch 10: Qing) ───
   'hist-hong-taiji': {
     zh: '參見「hist-huangtaiji」。',
