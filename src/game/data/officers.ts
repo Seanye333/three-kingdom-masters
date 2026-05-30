@@ -2040,6 +2040,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
     'chu-shi-biao',        // 出師表
     'jie-zi-shu',          // 誡子書
     'kong-ming-deng',      // 孔明燈
+    'kong-cheng-ji',       // 空城計
   ],
   'cao-cao': [
     'jue-ying',            // 絕影馬
@@ -2118,6 +2119,100 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-jiang-ziya': [
     'feng-shen-bang',      // 封神榜
   ],
+  // ─── batch 13 — more multi-artifact heroes ───
+  'liu-shan': [
+    'tou-xiang-biao',      // 蜀漢降表
+  ],
+  'cao-zhi': [
+    'luo-shen-fu',         // 洛神賦
+    'bai-ma-pian',         // 白馬篇
+    'cao-zhi-tong-que-fu', // 銅雀台賦
+  ],
+  'sima-yi': [
+    'gao-ping-ling-mou',   // 高平陵之變
+  ],
+  'huang-zhong': [
+    'lao-dang-yi-zhuang',  // 老當益壯
+  ],
+  'zhao-yun': [
+    'chang-ban-po',        // 長坂坡七進七出
+  ],
+  'ma-chao': [
+    'xi-liang-tie-qi',     // 西涼鐵騎
+  ],
+  'lu-bu': [
+    'bai-men-lou',         // 白門樓
+  ],
+  'xu-shu': [
+    'lao-mu-shou-shu',     // 徐母手書
+  ],
+  'lu-su': [
+    'ta-shang-ce',         // 榻上策
+  ],
+  'hua-tuo': [
+    'wu-qin-xi',           // 五禽戲
+    'ma-fei-san',           // 麻沸散
+  ],
+  // 歷代
+  'hist-zhang-liang': [
+    'li-xia-qu-lü',        // 圯下取履
+    'yun-chou-wei-wo',     // 運籌帷幄
+  ],
+  'hist-xiao-he': [
+    'yue-xia-zhui-han-xin',// 月下追韓信
+  ],
+  'hist-han-xin': [
+    'shi-mian-mai-fu',     // 十面埋伏
+  ],
+  'hist-xiang-yu': [
+    'ba-wang-bie-ji',      // 霸王別姬
+    'gai-xia-ge',          // 垓下歌
+  ],
+  'hist-su-wu': [
+    'mu-yang-bei-hai',     // 牧羊北海十九年
+  ],
+  'hist-ban-chao': [
+    'bu-ru-hu-xue',        // 不入虎穴
+  ],
+  'hist-sima-qian': [
+    'bao-ren-an-shu',      // 報任安書
+  ],
+  'hist-tao-yuanming': [
+    'tao-hua-yuan-ji',     // 桃花源記
+  ],
+  'hist-ji-kang': [
+    'yang-sheng-lun',      // 養生論
+    'yu-shan-jue-jiao',    // 與山巨源絕交書
+  ],
+  'hist-hua-mulan': [
+    'mu-lan-ci',           // 木蘭辭
+  ],
+  'hist-li-jing': [
+    'wei-gong-bing-fa',    // 衛公兵法
+  ],
+  'hist-wen-tianxiang': [
+    'guo-ling-ding-yang',  // 過零丁洋
+  ],
+  'hist-sun-bin': [
+    'wei-wei-jiu-zhao',    // 圍魏救趙
+  ],
+  'hist-shang-yang': [
+    'xi-mu-li-xin',        // 徙木立信
+  ],
+  'hist-mencius': [
+    'she-sheng-qu-yi',     // 捨生取義
+  ],
+  'hist-zhuangzi': [
+    'zhuang-zhou-meng-die',// 莊周夢蝶
+  ],
+  'hist-laozi': [
+    'zi-qi-dong-lai',      // 紫氣東來
+  ],
+  'hist-yan-ying': [
+    'yan-zi-shi-chu',      // 晏子使楚
+  ],
+  // 諸葛亮 extra secondary (合併到原本的條目 — 加 空城計)
+  // 由於物件字面量不能重複 key，這個我們得手動把空城計加到原本 zhuge-liang 條目
 };
 
 // Pre-220 canonical items reassign on death. We'll keep this simple
