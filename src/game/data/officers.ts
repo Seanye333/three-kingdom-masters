@@ -1407,6 +1407,65 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   // 清
   'hist-cao-xueqin':  'honglou-meng',       // 紅樓夢 — 曹雪芹
   'hist-pu-songling': 'liaozhai-zhiyi',     // 聊齋志異 — 蒲松齡
+  // ─── 名品擴充第二批 (Phase 32 — more attested gear) ───
+  // 三國新增
+  'taishi-ci':        'shenzi-bingfa',      // 慎子兵法 — 太史慈所讀兵書
+  'zhou-tai':         'zhouqiao-shuangdao', // 周泰雙刀
+  'yan-liang':        'yanliang-dadao',     // 顏良大刀
+  'wen-chou':         'wenchou-tieqi-maoshe',// 文丑鐵騎矛槊
+  'ma-chao':          'machao-yinlong-qiang',// 馬超銀龍槍
+  'ma-dai':           'majia-qiang',        // 馬家槍
+  'du-yu':            'duyu-chunqiu',       // 春秋左氏經傳集解 — 杜預
+  'wang-jun':         'lou-chuan',          // 樓船 — 王濬伐吳
+  'hist-wang-jun':    'lou-chuan',          // (historical entry of same person)
+  'wen-yang':         'wenyang-shuang-jian',// 文鴦雙劍
+  'ling-tong':        'ling-tong-twin-cudgels',// 凌統雙短戟
+  'huang-quan':       'huang-quan-chuan',   // 黃權水戰戰船
+  'ma-su':            'majing-bingfa',      // 馬謖兵書策論
+  // 春秋戰國
+  'hist-zhou-gong':   'zhou-li',            // 周禮 — 周公旦
+  'hist-wu-qi':       'wuzi-bingfa',        // 吳子兵法 — 吳起
+  'hist-yue-yi':      'yueyi-lun',          // 樂毅論 — 樂毅
+  // 秦
+  'hist-meng-tian':   'meng-tian-brush',    // 蒙恬筆 — 改良毛筆
+  // 漢
+  'hist-xiao-he':     'han-lv-jiu-zhang',   // 九章律 — 蕭何制定
+  'hist-wei-qing':    'wei-qing-yin',       // 大將軍印 — 衛青
+  'hist-huo-qubing':  'huo-mobei-jian',     // 漠北劍 — 霍去病封狼居胥
+  'hist-ban-zhao':    'nü-jie',             // 女誡 — 班昭
+  // 晉
+  'hist-gu-kaizhi':   'nushizhen-tu',       // 女史箴圖 — 顧愷之
+  'hist-tao-yuanming':'guiqulai-ci',        // 歸去來辭 — 陶淵明
+  // 唐
+  'hist-xuanzang':    'datang-xiyu-ji',     // 大唐西域記 — 玄奘
+  'hist-jianzhen':    'jian-zhen-jielu',    // 鑒真戒律 — 東渡日本
+  'hist-wu-zetian':   'wuzi-bei',           // 無字碑 — 武則天
+  'hist-wei-zheng':   'jian-taizong-shisi-shu',// 諫太宗十思疏 — 魏徵
+  'hist-yang-guifei': 'nichang-yuyi',       // 霓裳羽衣曲 — 楊貴妃
+  'hist-han-yu':      'shishuo-tang',       // 師說 — 韓愈
+  'hist-bai-juyi':    'changhen-ge',        // 長恨歌 — 白居易
+  'hist-liu-zongyuan':'yongzhou-baji',      // 永州八記 — 柳宗元
+  // 宋
+  'hist-li-qingzhao': 'shuyu-ci',           // 漱玉詞 — 李清照
+  'hist-xin-qiji':    'meiqin-shilun',      // 美芹十論 — 辛棄疾
+  'hist-ouyang-xiu':  'zui-weng-ting-ji',   // 醉翁亭記 — 歐陽修
+  'hist-wen-tianxiang':'zhengqi-ge',        // 正氣歌 — 文天祥
+  // 元
+  'hist-huang-gongwang':'fuchun-shanju-tu', // 富春山居圖 — 黃公望
+  'hist-zhao-mengfu': 'zhao-ti',            // 趙體書法 — 趙孟頫
+  'hist-ma-zhiyuan':  'tianjingsha-qiusi',  // 天淨沙·秋思 — 馬致遠
+  'hist-guan-hanqing':'dou-e-yuan',         // 竇娥冤 — 關漢卿
+  // 明
+  'hist-zhu-yuanzhang':'da-ming-lu',        // 大明律 — 朱元璋
+  'hist-yongle':      'yongle-dadian',      // 永樂大典 — 永樂帝
+  'hist-hai-rui':     'hairui-zhi-an-shu',  // 海瑞治安疏 — 罵嘉靖
+  'hist-zhang-juzheng':'yitiao-bian-fa',    // 一條鞭法 — 張居正
+  // 清
+  'hist-kangxi':      'kangxi-zidian',      // 康熙字典
+  'hist-qianlong':    'siku-quanshu',       // 四庫全書 — 乾隆
+  'hist-ji-xiaolan':  'yuewei-caotang',     // 閱微草堂筆記 — 紀曉嵐
+  'hist-yuan-mei':    'suiyuan-shihua',     // 隨園詩話 — 袁枚
+  'hist-nurhaci':     'baqi-zhi',           // 八旗制度 — 努爾哈赤
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
