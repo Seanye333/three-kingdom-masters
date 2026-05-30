@@ -1545,6 +1545,77 @@ const CANONICAL_ITEMS_PRIMARY: Record<string, string> = {
   'hist-li-hongzhang':'bei-yang-yin',       // 北洋艦隊 — 李鴻章
   'hist-zheng-banqiao':'nan-de-hu-tu',      // 難得糊塗 — 鄭板橋
   'hist-gong-zizhen': 'ji-hai-zashi',       // 己亥雜詩 — 龔自珍
+  // ─── 名品擴充第四批 (Phase 34 — strategists, lords, poets) ───
+  // 三國
+  'sima-zhao':        'si-ma-zhao-zhi-xin', // 司馬昭之心
+  'zhuge-ke':         'zhuge-ke-lun',       // 諸葛恪論
+  'chen-gong':        'chen-gong-ce',       // 陳宮策
+  'tian-feng':        'tian-feng-shu',      // 田豐疏
+  'ju-shou':          'ju-shou-jian-yi',    // 沮授諫議
+  'yang-xiu':         'yi-he-su',           // 一合酥
+  'zuo-ci':           'zuo-ci-fu',          // 左慈符
+  'zhu-ran':          'zhu-ran-bingfa',     // 朱然守備
+  'yan-yan':          'yan-yan-laodao',     // 嚴顏老將軍刀
+  'wang-ping':        'wu-dang-fei-jun',    // 無當飛軍 — 王平
+  // 春秋
+  'hist-qi-huan-gong':'jiu-he-zhuhou',      // 九合諸侯 — 齊桓公
+  'hist-jin-wen-gong':'tui-bi-san-she',     // 退避三舍 — 晉文公
+  'hist-chu-zhuang-wang':'yi-ming-jing-ren',// 一鳴驚人 — 楚莊王
+  'hist-wu-zixu':     'shu-lou-jian',       // 屬鏤劍 — 伍子胥
+  'hist-xishi':       'huan-sha',           // 浣紗石 — 西施
+  'hist-wen-zhong':   'wen-zhong-fa',       // 文種九術
+  // 戰國
+  'hist-mengchang-jun':'ji-ming-gou-dao',   // 雞鳴狗盜 — 孟嘗君
+  'hist-xinling-jun': 'qie-fu-jiu-zhao',    // 竊符救趙 — 信陵君
+  'hist-pingyuan-jun':'mao-sui-zi-jian',    // 毛遂自薦 — 平原君
+  'hist-chunshen-jun':'chunshen-yin',       // 春申君印 — 黃歇
+  'hist-yan-zhaowang':'huang-jin-tai',      // 黃金台 — 燕昭王
+  'hist-zhao-she':    'e-yu-da-jie',        // 閼與大捷 — 趙奢
+  'hist-pang-juan':   'ma-ling-zhi-jian',   // 馬陵之箭 — 龐涓
+  'hist-li-mu':       'li-mu-bei-bian',     // 李牧北邊兵
+  // 秦
+  'hist-zhao-gao':    'zhi-lu-wei-ma',      // 指鹿為馬 — 趙高
+  'hist-chen-sheng':  'hong-hu-zhi-zhi',    // 鴻鵠之志 — 陳勝
+  'hist-fan-zeng':    'fan-zeng-yu-dou',    // 范增玉斗
+  'hist-zhou-yafu':   'xi-liu-ying',        // 細柳營 — 周亞夫
+  // 漢
+  'hist-han-wudi':    'tui-en-ling',        // 推恩令 — 武帝
+  'hist-liu-xiu':     'yun-tai-ershiba-jiang',// 雲台二十八將 — 光武
+  'hist-feng-yi':     'da-shu-jiang-jun',   // 大樹將軍 — 馮異
+  'hist-deng-yu':     'yun-tai-shou-gong',  // 雲台首功 — 鄧禹
+  'hist-sima-xiangru':'zi-xu-fu',           // 子虛賦 — 司馬相如
+  'hist-zhuo-wenjun': 'feng-qiu-huang',     // 鳳求凰 — 卓文君
+  'hist-zhou-bo':     'zhou-bo-jian-tian',  // 周勃安劉
+  'hist-chen-ping':   'liu-chu-qi-ji',      // 六出奇計 — 陳平
+  'hist-fan-kuai':    'fan-kuai-dun',       // 樊噲盾
+  'hist-ji-bu':       'yi-nuo-qian-jin',    // 一諾千金 — 季布
+  // 晉
+  'hist-wang-xianzhi':'zhong-qiu-tie',      // 中秋帖 — 王獻之
+  'hist-tao-kan':     'tao-kan-yun-pi',     // 陶侃運甓
+  'hist-zu-ti':       'zhong-liu-ji-ji',    // 中流擊楫 — 祖逖
+  'hist-liu-kun':     'liu-kun-xiao',       // 劉琨胡笳
+  'hist-ge-hong':     'bao-pu-zi',          // 抱朴子 — 葛洪
+  // 南北朝
+  'hist-lanlingwang': 'lan-ling-wang-mian', // 蘭陵王面具
+  'hist-yu-xin':      'ai-jiang-nan-fu',    // 哀江南賦 — 庾信
+  'hist-yan-zhitui':  'yan-shi-jia-xun',    // 顏氏家訓
+  'hist-xiao-yan':    'liang-wu-tong-tai',  // 同泰寺 — 梁武帝
+  // 隋
+  'hist-yang-su':     'yue-gong-bing-shu',  // 越國公兵印 — 楊素
+  'hist-li-mi-sui':   'pu-shan-gong-yin',   // 蒲山公 — 李密
+  // 唐
+  'hist-fang-xuanling':'fang-mou-yin',      // 房謀 — 房玄齡
+  'hist-cheng-yaojin':'san-ban-fu',         // 三板斧 — 程咬金
+  'hist-su-dingfang': 'ping-xi-tu-jue-yin', // 平西突厥 — 蘇定方
+  'hist-li-guangbi':  'wu-zhong-di-yi',     // 武中第一 — 李光弼
+  'hist-luo-binwang': 'tao-wu-zhao-xi',     // 討武曌檄 — 駱賓王
+  'hist-meng-haoran': 'guo-gu-ren-zhuang',  // 過故人莊 — 孟浩然
+  'hist-wang-changling':'chu-sai-shi',      // 出塞 — 王昌齡
+  'hist-yuan-zhen':   'ying-ying-zhuan',    // 鶯鶯傳 — 元稹
+  'hist-wen-tingyun': 'pu-sa-man',          // 菩薩蠻 — 溫庭筠
+  // 宋
+  'hist-su-zhe':      'luan-cheng-ji',      // 欒城集 — 蘇轍
+  'hist-huang-tingjian':'shan-gu-shi-tie',  // 山谷詩帖 — 黃庭堅
 };
 
 // Sun family sword passes Sun Jian → Sun Ce → Sun Quan.
