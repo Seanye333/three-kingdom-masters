@@ -1972,6 +1972,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
     'zhuahuang-feidian',   // 爪黃飛電
     'tongque-token',       // 銅雀符
     'duan-ge-xing',        // 短歌行
+    'cao-cao-wei-wang-fu',
   ],
   'guan-yu': [
     'spring-autumn',       // 春秋
@@ -1979,9 +1980,11 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'liu-bei': [
     'bi-rou-fu-sheng',     // 髀肉復生
+    'liu-bei-shu-ji',
   ],
   'sun-quan': [
     'er-zhang-mou',        // 二張之謀(張昭張紘)
+    'sun-quan-zi-shu',
   ],
   'cao-pi': [
     'dian-lun',            // 典論論文
@@ -2042,9 +2045,11 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-wang-anshi': [
     'bo-chuan-gua-zhou',   // 泊船瓜洲
+    'wang-anshi-shi-ji',
   ],
   'hist-fan-zhongyan': [
     'yu-jia-ao',           // 漁家傲·秋思
+    'fan-zhongyan-yan',
   ],
   'hist-sima-guang': [
     'su-shui-ji-wen',      // 涑水紀聞
@@ -2080,9 +2085,11 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'zhao-yun': [
     'han-shui-kong-ying',  // 漢水空營計
     'zhao-yun-yin-jia',    // 趙雲銀鎧
+    'zhao-yun-bai-pao',
   ],
   'ma-chao': [
     'xi-liang-tie-qi',     // 西涼鐵騎
+    'ma-chao-shi-zi-kui',
   ],
   'lu-bu': [
     'bai-men-lou',         // 白門樓
@@ -2114,6 +2121,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-xiang-yu': [
     'ba-wang-bie-ji',      // 霸王別姬
     'gai-xia-ge',          // 垓下歌
+    'xiang-yu-bing-fu',
   ],
   'hist-su-wu': [
     'mu-yang-bei-hai',     // 牧羊北海十九年
@@ -2130,6 +2138,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-tao-yuanming': [
     'tao-hua-yuan-ji',     // 桃花源記
+    'tao-yuanming-jiu-bei',
   ],
   'hist-ji-kang': [
     'yang-sheng-lun',      // 養生論
@@ -2154,6 +2163,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
     'shang-yang-bian-fa-shi',// 商鞅變法石
   ],
   'hist-mencius': [
+    'mengzi-shu-jian',
   ],
   'hist-zhuangzi': [
     'zhuang-zhou-meng-die',// 莊周夢蝶
@@ -2178,6 +2188,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
     'ma-dai-tie-jia',      // 馬岱西涼鐵鎧
   ],
   'zhang-fei': [
+    'zhang-fei-zhuo-jia',
   ],
   'sun-jian': [
     'sun-jian-jin-pao',    // 孫堅錦戰袍
@@ -2231,6 +2242,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-mi-fu': [
     'mi-fu-yan-shi',       // 米芾拜石
+    'mi-fu-shu-su-tie',
   ],
   'hist-yongle': [
     'yongle-long-pao',     // 永樂龍袍
@@ -2250,6 +2262,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-mozi': [
     'zhi-chu-gong-song',   // 止楚攻宋
     'mo-zi-shou-cheng-qi', // 墨子守城器
+    'mo-zi-tong-ren',
   ],
   'hist-lu-ban': [
     'lu-ban-mu-yuan',      // 魯班木鳶
@@ -2278,6 +2291,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-lin-zexu': [
     'hu-men-xiao-yan',     // 虎門銷煙
     'lin-zexu-jia-shu',    // 林則徐家書
+    'lin-zexu-mo-yan',
   ],
   'hist-zeng-guofan': [
     'xiang-jun-zhi-fa',    // 湘軍治法
@@ -2374,9 +2388,11 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-zhu-yuanzhang': [
     'huang-ming-zu-xun',   // 皇明祖訓
     'hong-wu-bao-jian',    // 洪武寶劍
+    'hong-wu-yu-yin',
   ],
   'hist-kangxi': [
     'ping-san-fan',        // 平三藩
+    'kangxi-shu-tie',
   ],
   'hist-zhu-xi': [
     'zhu-zi-jia-xun',      // 朱子家訓
@@ -2402,6 +2418,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
     'zhou-tai-xuan-jia',   // 周泰玄甲
   ],
   'zhuge-jin': [
+    'zhuge-jin-yu-shu',
   ],
   'he-jin': [
     'tu-hu-wei-xiang',     // 屠戶為相
@@ -2454,6 +2471,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-jia-yi': [
     'diao-qu-yuan-fu',     // 弔屈原賦
+    'jia-yi-shu-jian',
   ],
   'hist-zhang-heng': [
     'hun-tian-yi',         // 渾天儀
@@ -2483,6 +2501,7 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   'hist-liu-bang': [
     'da-feng-ge',          // 大風歌
     'yue-fa-san-zhang',    // 約法三章
+    'han-gaozu-zhao',
   ],
   'hist-huo-qubing': [
     'feng-lang-ju-xu',     // 封狼居胥
@@ -2502,6 +2521,51 @@ const CANONICAL_ITEMS_SECONDARY: Record<string, string[]> = {
   ],
   'hist-zheng-chenggong': [
     'shou-fu-tai-wan',     // 收復台灣
+  ],
+  'wang-yun': [
+    'wang-yun-yu-pei',
+  ],
+  'jia-xu': [
+    'jia-xu-jun-shi-yin',
+  ],
+  'hist-zhou-gong': [
+    'zhou-gong-yu-ce',
+  ],
+  'hist-shao-gong-shi': [
+    'shao-gong-jin-yin',
+  ],
+  'zheng-xuan': [
+    'zheng-xuan-jing-shu',
+  ],
+  'cai-yong': [
+    'cai-yong-shi-jing',
+  ],
+  'hist-xie-an': [
+    'xie-an-wei-qi',
+  ],
+  'hist-wang-meng': [
+    'wang-meng-bu-yi',
+  ],
+  'hist-wang-bo': [
+    'wang-bo-shi-ji',
+  ],
+  'hist-yang-guifei': [
+    'yang-guifei-jin-an',
+  ],
+  'hist-li-shangyin': [
+    'li-shangyin-shi-ji',
+  ],
+  'hist-ouyang-xiu': [
+    'liu-yi-yan',
+  ],
+  'hist-huang-tingjian': [
+    'huang-tingjian-shan-gu-yan',
+  ],
+  'hist-li-shizhen': [
+    'li-shizhen-yao-cao',
+  ],
+  'hist-yongzheng': [
+    'yongzheng-mi-zhe',
   ],
 };
 
