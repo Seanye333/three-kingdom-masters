@@ -38,10 +38,8 @@ export function internalAffairsMultiplier(
   let mul = 1.0;
   if (hasAny(officer, INTERNAL_BOOST_TRAITS)) mul += 0.20;
   if (hasAny(officer, INTERNAL_PENALTY_TRAITS)) mul -= 0.20;
-  if ((type === 'develop-commerce' || type === 'major-commerce')
-      && hasAny(officer, COMMERCE_BOOST)) mul += 0.20;
-  if ((type === 'build-defense' || type === 'major-defense' || type === 'upgrade-wall')
-      && hasAny(officer, DEFENSE_BOOST)) mul += 0.20;
+  if (type === 'develop-commerce' && hasAny(officer, COMMERCE_BOOST)) mul += 0.20;
+  if (type === 'build-defense' && hasAny(officer, DEFENSE_BOOST)) mul += 0.20;
   if (type === 'improve-loyalty' && hasAny(officer, LOYALTY_BOOST)) mul += 0.25;
   return Math.max(0.4, Math.min(2.0, mul));
 }

@@ -29,8 +29,11 @@ export function BuildingsPanel({ cityId }: Props) {
 
   return (
     <div style={{ background: '#1a1410', border: '1px solid #4a3520', padding: '0.6rem', marginTop: '0.6rem' }}>
-      <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+      <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
         {t('建設', 'Buildings')}
+      </div>
+      <div style={{ fontSize: '0.62rem', color: '#8a7050', marginBottom: '0.35rem', letterSpacing: '0.05rem' }}>
+        {t('需數季完工 — 永久倍率，長期投資。', 'Multi-season construction — permanent multipliers; the long-term play.')}
       </div>
       <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.7rem', color: '#c0a878', marginBottom: '0.5rem' }}>
         {t('徵兵', 'Recruit')} ×{bonuses.recruitMul.toFixed(2)} · {t('商業', 'Commerce')} ×{bonuses.commerceMul.toFixed(2)} · {t('糧草', 'Food')} ×{bonuses.agricultureMul.toFixed(2)} · {t('民忠', 'Loyalty')} +{bonuses.loyaltyPerSeason}/{t('季', 'season')} · {t('守備', 'Defense')} +{bonuses.defenseAdd}
