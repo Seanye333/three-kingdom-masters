@@ -20,57 +20,29 @@ export interface BuildingTickContext {
 
 export interface BuildingTickOutput {
   buildings: Building[];
-  cities: Record<EntityId, City>;
   entries: ReportEntry[];
-}
-
-/**
- * Wall building level → wallTier mapping. Lv.3 city wall becomes inner-wall
- * tier 2; Lv.4 becomes citadel tier 3 (like 合肥/長安/洛陽).
- */
-function wallTierForLevel(level: number): 1 | 2 | 3 {
-  if (level >= 4) return 3;
-  if (level >= 3) return 2;
-  return 1;
 }
 
 export function tickBuildings(ctx: BuildingTickContext): BuildingTickOutput {
   const entries: ReportEntry[] = [];
-  let cities = ctx.cities;
   const updated = ctx.buildings.map((b) => {
     const def = BUILDING_DEFS_BY_ID[b.id];
     if (!def) return b;
     if (b.level >= def.maxLevel) return b;
     const nextProgress = b.progress + 1;
     if (nextProgress >= def.seasonsPerLevel) {
-      const city = cities[b.cityId];
-      const newLevel = b.level + 1;
+      const city = ctx.cities[b.cityId];
       entries.push({
         cityId: b.cityId,
         kind: 'command-success',
-        text: `${def.name.en} in ${city?.name.en ?? '?'} reached level ${newLevel}.`,
-        textZh: `${city?.name.zh ?? '?'}的${def.name.zh}達到 ${newLevel} 級。`,
+        text: `${def.name.en} in ${city?.name.en ?? '?'} reached level ${b.level + 1}.`,
+        textZh: `${city?.name.zh ?? '?'}的${def.name.zh}達到 ${b.level + 1} 級。`,
       });
-      // Wall completion may bump the city's wallTier (Lv.3 → tier 2, Lv.4 → tier 3).
-      if (b.id === 'wall' && city) {
-        const nextTier = wallTierForLevel(newLevel);
-        const curTier = city.wallTier ?? 1;
-        if (nextTier > curTier) {
-          cities = { ...cities, [city.id]: { ...city, wallTier: nextTier } };
-          const tierLabel = nextTier === 3 ? '堅城 (citadel)' : '內城 (inner wall)';
-          entries.push({
-            cityId: city.id,
-            kind: 'command-success',
-            text: `${city.name.en} walls upgraded to tier ${nextTier} — ${tierLabel}.`,
-            textZh: `${city.name.zh}城壁升為 ${nextTier} 級 — ${nextTier === 3 ? '堅城' : '內城'}。`,
-          });
-        }
-      }
-      return { ...b, level: newLevel, progress: 0 };
+      return { ...b, level: b.level + 1, progress: 0 };
     }
     return { ...b, progress: nextProgress };
   });
-  return { buildings: updated, cities, entries };
+  return { buildings: updated, entries };
 }
 
 /**
@@ -106,28 +78,28 @@ export function buildingBonuses(
     if (l === 0) continue;
     switch (b.id) {
       case 'barracks':
-        recruitMul *= 1 + 0.2 * l;
-        troopCapMul *= 1 + 0.08 * l;
+        recruitMul *= 1 + 0.1 * l;
+        troopCapMul *= 1 + 0.05 * l;
         break;
       case 'market':
-        commerceMul *= 1 + 0.2 * l;
+        commerceMul *= 1 + 0.12 * l;
         break;
       case 'foundry':
-        recruitMul *= 1 + 0.12 * l;
-        commerceMul *= 1 + 0.05 * l;
+        recruitMul *= 1 + 0.08 * l;
+        commerceMul *= 1 + 0.03 * l;
         break;
       case 'academy':
-        xpMul *= 1 + 0.2 * l;
+        xpMul *= 1 + 0.15 * l;
         break;
       case 'temple':
-        loyaltyPerSeason += 3 * l;
-        instigateResistance += 0.35 * l;
+        loyaltyPerSeason += 2 * l;
+        instigateResistance += 0.3 * l;
         break;
       case 'farm':
-        agricultureMul *= 1 + 0.2 * l;
+        agricultureMul *= 1 + 0.15 * l;
         break;
       case 'wall':
-        defenseAdd += 15 * l;
+        defenseAdd += 10 * l;
         break;
       case 'shipyard':
         shipyardLevel = Math.max(shipyardLevel, l);

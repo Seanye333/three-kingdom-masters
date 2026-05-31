@@ -1070,10 +1070,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         postCities = aiBuild.cities;
         if (aiBuild.entries.length > 0) result.report.entries.push(...aiBuild.entries);
 
-        // Buildings tick (player + AI projects both progress). Wall building
-        // milestones (Lv.3 / Lv.4) bump city wallTier, so we accept updated cities back.
+        // Buildings tick (player + AI projects both progress).
         const bld = tickBuildings({ buildings: aiBuild.buildings, cities: postCities });
-        postCities = bld.cities;
         if (bld.entries.length > 0) result.report.entries.push(...bld.entries);
 
         // Family tick (births + activations) — only on year boundary roughly.

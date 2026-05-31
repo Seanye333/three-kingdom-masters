@@ -1,15 +1,19 @@
 import type { EntityId } from './common';
 
 export type InternalAffairsType =
-  // Quick officer actions — small immediate boost, costs gold + officer-season.
-  // Long-term agriculture/commerce/defense come from Buildings instead.
-  | 'develop-agriculture'  // 勸農 — short-term ag bump
-  | 'develop-commerce'     // 興商 — short-term commerce bump
-  | 'build-defense'        // 修牆 — short-term defense bump
-  | 'recruit-troops'       // 徵兵
-  | 'improve-loyalty'      // 撫民
-  | 'search'               // 探訪
-  | 'encourage-migration'; // 招撫流民 — boost population
+  | 'develop-agriculture'
+  | 'develop-commerce'
+  | 'build-defense'
+  | 'recruit-troops'
+  | 'improve-loyalty'
+  | 'search'
+  // ── Tier-2 mass development (requires city tier ≥ 城) ──
+  | 'major-agriculture'   // 大農政 — heavy ag investment
+  | 'major-commerce'      // 大商政 — heavy commerce
+  | 'major-defense'       // 大築城 — heavy fortification
+  // ── Specialist actions ──
+  | 'encourage-migration' // 招撫流民 — boost population
+  | 'upgrade-wall';       // 城壁強化 — upgrade wallTier 1→2→3
 
 export type CommandType = InternalAffairsType | 'march';
 
