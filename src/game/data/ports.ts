@@ -44,13 +44,13 @@ export const PORT_TEMPLATES: Array<Omit<Port, 'ownerForceId' | 'hp'> & {
     id: 'port-jianye',    name: { zh: '建業港', en: 'Jianye Port' },
     coords: { lon: 118.7, lat: 32.2 }, maxHp: 2000,
     linkedCityId: 'jianye', defaultOwnerHint: 'jianye',
-    connectedPortIds: ['port-guangling', 'port-wuhu', 'port-kuaiji'],
+    connectedPortIds: ['port-guangling', 'port-wuhu', 'port-kuaiji', 'port-wu', 'port-ruxu'],
   },
   {
     id: 'port-kuaiji',    name: { zh: '會稽港', en: 'Kuaiji Port' },
     coords: { lon: 122.0, lat: 30.3 }, maxHp: 1400,
     linkedCityId: 'kuaiji', defaultOwnerHint: 'kuaiji',
-    connectedPortIds: ['port-jianye', 'port-guangling', 'port-yongning'],
+    connectedPortIds: ['port-jianye', 'port-guangling', 'port-yongning', 'port-wu'],
   },
   {
     id: 'port-yongning',  name: { zh: '永寧港', en: 'Yongning Port' },
@@ -87,32 +87,66 @@ export const PORT_TEMPLATES: Array<Omit<Port, 'ownerForceId' | 'hp'> & {
     id: 'port-wulin',     name: { zh: '烏林港', en: 'Wulin Port' },
     coords: { lon: 113.5, lat: 29.85 }, maxHp: 800,
     linkedCityId: 'jiangling',
-    connectedPortIds: ['port-jiangling', 'port-xiakou'],
+    connectedPortIds: ['port-jiangling', 'port-xiakou', 'port-chibi'],
   },
   {
     id: 'port-xiakou',    name: { zh: '夏口港', en: 'Xiakou Port' },
     coords: { lon: 114.5, lat: 30.4 }, maxHp: 1500,
     linkedCityId: 'jiangxia', defaultOwnerHint: 'jiangxia',
-    connectedPortIds: ['port-wulin', 'port-chaisang'],
+    connectedPortIds: ['port-wulin', 'port-chaisang', 'port-wuchang', 'port-chibi'],
   },
   {
     id: 'port-chaisang',  name: { zh: '柴桑港', en: 'Chaisang Port' },
     coords: { lon: 116.1, lat: 29.55 }, maxHp: 1300,
     linkedCityId: 'chaisang', defaultOwnerHint: 'chaisang',
-    connectedPortIds: ['port-xiakou', 'port-wuhu'],
+    connectedPortIds: ['port-xiakou', 'port-wuhu', 'port-wuchang'],
   },
   {
     id: 'port-wuhu',      name: { zh: '蕪湖港', en: 'Wuhu Port' },
     coords: { lon: 118.5, lat: 31.15 }, maxHp: 1100,
     linkedCityId: 'danyang',
-    connectedPortIds: ['port-chaisang', 'port-jianye', 'port-hefei'],
+    connectedPortIds: ['port-chaisang', 'port-jianye', 'port-hefei', 'port-ruxu'],
   },
   // Chao Lake spur
   {
     id: 'port-hefei',     name: { zh: '合肥港', en: 'Hefei Port' },
     coords: { lon: 117.4, lat: 31.5 }, maxHp: 1200,
     linkedCityId: 'hefei', defaultOwnerHint: 'hefei',
-    connectedPortIds: ['port-wuhu'],
+    connectedPortIds: ['port-wuhu', 'port-ruxu'],
+  },
+
+  // ── D-set additions ──
+
+  // Ruxu naval fortress — Wei-Wu battlefield between Hefei and Jianye
+  {
+    id: 'port-ruxu',      name: { zh: '濡須港', en: 'Ruxu Port' },
+    coords: { lon: 117.8, lat: 31.3 }, maxHp: 1400,
+    linkedCityId: 'ruxu', defaultOwnerHint: 'ruxu',
+    connectedPortIds: ['port-hefei', 'port-jianye', 'port-wuhu'],
+  },
+
+  // Wuchang — Sun Quan's mid-Yangtze capital
+  {
+    id: 'port-wuchang',   name: { zh: '武昌港', en: 'Wuchang Port' },
+    coords: { lon: 114.9, lat: 30.4 }, maxHp: 1600,
+    linkedCityId: 'wuchang', defaultOwnerHint: 'wuchang',
+    connectedPortIds: ['port-xiakou', 'port-chaisang', 'port-chibi'],
+  },
+
+  // Chibi — site of the famous 208 AD battle, south bank of Yangtze
+  {
+    id: 'port-chibi',     name: { zh: '赤壁港', en: 'Chibi Port' },
+    coords: { lon: 113.95, lat: 29.7 }, maxHp: 1100,
+    linkedCityId: 'chibi', defaultOwnerHint: 'chibi',
+    connectedPortIds: ['port-wulin', 'port-xiakou', 'port-wuchang'],
+  },
+
+  // Wu — Yangtze delta, Sun family ancestral seat
+  {
+    id: 'port-wu',        name: { zh: '吳郡港', en: 'Wu Port' },
+    coords: { lon: 120.6, lat: 31.3 }, maxHp: 1500,
+    linkedCityId: 'wu', defaultOwnerHint: 'wu',
+    connectedPortIds: ['port-jianye', 'port-kuaiji'],
   },
 ];
 
