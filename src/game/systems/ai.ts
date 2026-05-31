@@ -505,8 +505,13 @@ function decideCommand(
   prefectId: EntityId | null = null,
 ): Decision | null {
   const ownRulerId = forces[forceId]?.rulerOfficerId;
-  // (Food crises no longer have a quick-fix command — agriculture lives in
-  // Buildings now. AI relies on the auto-build queue / migration command.)
+  // 1. Food crisis — develop agriculture
+  if (city.food < city.troops * 0.6) {
+    const o = bestForCommand(officersHere, 'politics', 'develop-agriculture', prefectId);
+    if (o && canAfford(city, 'develop-agriculture')) {
+      return internalDecision('develop-agriculture', city, o);
+    }
+  }
 
   // 2. Troop crisis — recruit
   if (city.troops < 3000) {
@@ -602,19 +607,18 @@ function decideCommand(
     }
   }
 
-  // 5. Routine — pacify the city if loyalty isn't already topped out, or
-  // search for talent. Dev work (agri/commerce/defense) is handled by the
-  // building auto-queue, not by per-season commands.
+  // 5. Routine — develop the lowest of agriculture/commerce/defense
+  const devType = lowestDevCommand(city);
+  const o = bestBy(officersHere, 'politics', prefectId);
+  if (o && canAfford(city, devType)) {
+    return internalDecision(devType, city, o);
+  }
+
+  // 6. Pacify if we can afford it (cheap fallback)
   if (city.loyalty < 90) {
     const fb = bestBy(officersHere, 'charisma', prefectId);
     if (fb && canAfford(city, 'improve-loyalty')) {
       return internalDecision('improve-loyalty', city, fb);
-    }
-  }
-  if (city.population < 100_000) {
-    const m = bestBy(officersHere, 'charisma', prefectId);
-    if (m && canAfford(city, 'encourage-migration')) {
-      return internalDecision('encourage-migration', city, m);
     }
   }
 
@@ -673,3 +677,17 @@ function bestForCommand(
   })[0];
 }
 
+function lowestDevCommand(
+  city: City,
+): 'develop-agriculture' | 'develop-commerce' | 'build-defense' {
+  const stats: Array<[
+    'develop-agriculture' | 'develop-commerce' | 'build-defense',
+    number,
+  ]> = [
+    ['develop-agriculture', city.agriculture],
+    ['develop-commerce', city.commerce],
+    ['build-defense', city.defense],
+  ];
+  stats.sort((a, b) => a[1] - b[1]);
+  return stats[0][0];
+}

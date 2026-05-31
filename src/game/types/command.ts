@@ -1,16 +1,15 @@
 import type { EntityId } from './common';
 
-/**
- * Officer-only actions. Anything that can be expressed as a permanent
- * building bonus (agriculture / commerce / defense / walls) lives in the
- * Buildings system instead — this list is just for actions that genuinely
- * require a person to do them.
- */
 export type InternalAffairsType =
-  | 'recruit-troops'        // 徵兵 — turn population into soldiers
-  | 'improve-loyalty'       // 撫民 — talk down a restless city
-  | 'search'                // 人材探訪 — find hidden talent
-  | 'encourage-migration';  // 招撫流民 — bring in refugees
+  // Quick officer actions — small immediate boost, costs gold + officer-season.
+  // Long-term agriculture/commerce/defense come from Buildings instead.
+  | 'develop-agriculture'  // 勸農 — short-term ag bump
+  | 'develop-commerce'     // 興商 — short-term commerce bump
+  | 'build-defense'        // 修牆 — short-term defense bump
+  | 'recruit-troops'       // 徵兵
+  | 'improve-loyalty'      // 撫民
+  | 'search'               // 探訪
+  | 'encourage-migration'; // 招撫流民 — boost population
 
 export type CommandType = InternalAffairsType | 'march';
 

@@ -23,6 +23,8 @@ function hasAny(officer: Officer, ids: ReadonlySet<TraitId>): boolean {
 
 const INTERNAL_BOOST_TRAITS = new Set(['diligent']);
 const INTERNAL_PENALTY_TRAITS = new Set(['lazy']);
+const COMMERCE_BOOST = new Set(['frugal']);
+const DEFENSE_BOOST = new Set(['fortress-keeper']);
 const LOYALTY_BOOST = new Set(['compassionate', 'benevolent', 'noble', 'lenient', 'generous']);
 
 /**
@@ -36,6 +38,8 @@ export function internalAffairsMultiplier(
   let mul = 1.0;
   if (hasAny(officer, INTERNAL_BOOST_TRAITS)) mul += 0.20;
   if (hasAny(officer, INTERNAL_PENALTY_TRAITS)) mul -= 0.20;
+  if (type === 'develop-commerce' && hasAny(officer, COMMERCE_BOOST)) mul += 0.20;
+  if (type === 'build-defense' && hasAny(officer, DEFENSE_BOOST)) mul += 0.20;
   if (type === 'improve-loyalty' && hasAny(officer, LOYALTY_BOOST)) mul += 0.25;
   return Math.max(0.4, Math.min(2.0, mul));
 }

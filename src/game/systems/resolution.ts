@@ -420,16 +420,26 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
 function applyDelta(
   city: City,
   delta: Partial<{
+    agriculture: number;
+    commerce: number;
+    defense: number;
     troops: number;
     population: number;
     loyalty: number;
+    wallTier: 1 | 2 | 3;
   }>,
 ): City {
+  // Stat caps grow with city tier — use cityStatCap (1000 as buffer since
+  // we clamp by size separately in commands.ts).
   return {
     ...city,
+    agriculture: Math.max(0, Math.min(200, city.agriculture + (delta.agriculture ?? 0))),
+    commerce: Math.max(0, Math.min(200, city.commerce + (delta.commerce ?? 0))),
+    defense: Math.max(0, Math.min(200, city.defense + (delta.defense ?? 0))),
     troops: Math.max(0, city.troops + (delta.troops ?? 0)),
     population: Math.max(0, city.population + (delta.population ?? 0)),
     loyalty: clamp(city.loyalty + (delta.loyalty ?? 0), 0, 100),
+    wallTier: delta.wallTier ?? city.wallTier,
   };
 }
 

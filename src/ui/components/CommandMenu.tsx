@@ -17,12 +17,15 @@ interface Props {
 }
 
 const INTERNAL_ORDER: InternalAffairsType[] = [
-  // Only things that genuinely need an officer. City development
-  // (agriculture / commerce / defense / walls) is all in Buildings now.
+  // Quick officer actions — small immediate gains. Long-term growth comes
+  // from Buildings (屯田 / 市場 / 城壁 / 兵營 …).
+  'develop-agriculture',
+  'develop-commerce',
+  'build-defense',
   'recruit-troops',
   'improve-loyalty',
-  'encourage-migration',
   'search',
+  'encourage-migration',
 ];
 
 type ModalState =
@@ -99,7 +102,7 @@ export function CommandMenu({ cityId, onOpenCityMap }: Props) {
       )}
 
       <div style={{ fontSize: '0.62rem', color: '#8a7050', padding: '0.25rem 0.5rem 0.15rem', letterSpacing: '0.05rem' }}>
-        {t('武將動作 — 徵兵、撫民、探訪、招撫。城市發展請用建設。', 'Officer actions — recruit, pacify, search, migration. City growth lives in Buildings.')}
+        {t('武將即時行動 — 本季見效，效果小。長期成長請用建設。', 'Quick officer actions — immediate but small. Use Buildings for long-term growth.')}
       </div>
       <div className={styles.menu}>
         {INTERNAL_ORDER.map((type) => {
