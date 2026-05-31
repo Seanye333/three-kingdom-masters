@@ -7,7 +7,7 @@ import type {
   ReportEntry,
 } from '../types';
 import { ITEMS_BY_ID } from '../data/items';
-import { cityStatCap, citySize, CITY_SIZES, type CitySize } from './citySize';
+import { citySize, CITY_SIZES, type CitySize } from './citySize';
 import { internalAffairsMultiplier } from './traitEffects';
 
 export interface CommandDef {
@@ -30,30 +30,6 @@ export function meetsMinSize(citySizeId: CitySize, minSize?: CitySize): boolean 
 }
 
 export const COMMAND_DEFS: Record<CommandType, CommandDef> = {
-  'develop-agriculture': {
-    type: 'develop-agriculture',
-    label: { en: 'Encourage Farming', zh: '勸農' },
-    stat: 'politics',
-    goldCost: 300,
-    description:
-      '勸農 — Quick officer action: small immediate agriculture bump this season. For long-term growth, build 屯田.',
-  },
-  'develop-commerce': {
-    type: 'develop-commerce',
-    label: { en: 'Boost Markets', zh: '興商' },
-    stat: 'politics',
-    goldCost: 300,
-    description:
-      '興商 — Quick officer action: small immediate commerce bump this season. For long-term growth, build 市場.',
-  },
-  'build-defense': {
-    type: 'build-defense',
-    label: { en: 'Patch Walls', zh: '修牆' },
-    stat: 'politics',
-    goldCost: 400,
-    description:
-      '修牆 — Quick officer action: small immediate defense bump this season. For long-term fortification, build 城壁.',
-  },
   'recruit-troops': {
     type: 'recruit-troops',
     label: { en: 'Recruit Troops', zh: '徴兵' },
@@ -99,13 +75,9 @@ export const COMMAND_DEFS: Record<CommandType, CommandDef> = {
 export interface CommandResult {
   success: boolean;
   delta: Partial<{
-    agriculture: number;
-    commerce: number;
-    defense: number;
     troops: number;
     population: number;
     loyalty: number;
-    wallTier: 1 | 2 | 3;
   }>;
   message: string;
   messageZh: string;
@@ -130,51 +102,8 @@ export function resolveInternalAffairs(
   const statValue = Math.round(officer.stats[def.stat] * traitMul * titleMul);
 
   const size = citySize(city);
-  const cap = cityStatCap(city);
 
   switch (type) {
-    case 'develop-agriculture': {
-      const gain = applyDevelopment(city.agriculture, statValue, rng, cap);
-      const capHit = city.agriculture + gain >= cap && gain === 0;
-      return {
-        success: gain > 0,
-        delta: { agriculture: gain },
-        message: capHit
-          ? `${officer.name.en}: Agriculture already at ${size.name.zh}'s cap (${cap}). Promote the city first.`
-          : `${officer.name.en} raised Agriculture by ${gain} (now ${city.agriculture + gain}/${cap}).`,
-        messageZh: capHit
-          ? `${officer.name.zh}:農業已達${size.name.zh}上限 (${cap}),需先升城。`
-          : `${officer.name.zh}勸農 +${gain} (現 ${city.agriculture + gain}/${cap})。`,
-      };
-    }
-    case 'develop-commerce': {
-      const gain = applyDevelopment(city.commerce, statValue, rng, cap);
-      const capHit = city.commerce + gain >= cap && gain === 0;
-      return {
-        success: gain > 0,
-        delta: { commerce: gain },
-        message: capHit
-          ? `${officer.name.en}: Commerce already at ${size.name.zh}'s cap (${cap}).`
-          : `${officer.name.en} raised Commerce by ${gain} (now ${city.commerce + gain}/${cap}).`,
-        messageZh: capHit
-          ? `${officer.name.zh}:商業已達${size.name.zh}上限 (${cap})。`
-          : `${officer.name.zh}興商 +${gain} (現 ${city.commerce + gain}/${cap})。`,
-      };
-    }
-    case 'build-defense': {
-      const gain = applyDevelopment(city.defense, statValue, rng, cap);
-      const capHit = city.defense + gain >= cap && gain === 0;
-      return {
-        success: gain > 0,
-        delta: { defense: gain },
-        message: capHit
-          ? `${officer.name.en}: Defense already at ${size.name.zh}'s cap (${cap}).`
-          : `${officer.name.en} reinforced Defense by ${gain} (now ${city.defense + gain}/${cap}).`,
-        messageZh: capHit
-          ? `${officer.name.zh}:城防已達${size.name.zh}上限 (${cap})。`
-          : `${officer.name.zh}築城 +${gain} (現 ${city.defense + gain}/${cap})。`,
-      };
-    }
     case 'recruit-troops': {
       const max = Math.floor(statValue * 20) + 200;
       // City size also limits the per-action max so a Hamlet can't recruit huge armies.
@@ -212,13 +141,6 @@ export function resolveInternalAffairs(
       };
     }
   }
-}
-
-function applyDevelopment(current: number, stat: number, rng: () => number, cap: number): number {
-  if (current >= cap) return 0;
-  const base = Math.floor(stat / 20);
-  const variance = Math.floor(rng() * 3);
-  return Math.min(cap - current, base + variance + 1);
 }
 
 export interface LostItemRef {
