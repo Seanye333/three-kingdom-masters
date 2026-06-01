@@ -126,6 +126,18 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     const blended = pool.reduce((s, o) => s + o.stats.war * 0.6 + o.stats.leadership * 0.4, 0) / pool.length;
     return { blended, power: blended * Math.sqrt(Math.max(1, cmd.troops)) };
   };
+  // Build a field BattleDetail; `atk` is the victor side, `def` the loser.
+  type FieldSide = {
+    forceId: EntityId | null; commanderId: EntityId; companionIds: EntityId[];
+    troops: number; blended: number; power: number; losses: number;
+  };
+  const makeFieldBattle = (cityId: EntityId, atk: FieldSide, def: FieldSide) => ({
+    cityId,
+    attacker: { forceId: atk.forceId, commanderId: atk.commanderId, companionIds: atk.companionIds, troops: atk.troops, bondBonus: 0, blendedStat: Math.round(atk.blended * 10) / 10, power: Math.round(atk.power) },
+    defender: { forceId: def.forceId, commanderId: def.commanderId, companionIds: def.companionIds, troops: def.troops, bondBonus: 0, blendedStat: Math.round(def.blended * 10) / 10, power: Math.round(def.power) },
+    cityDefense: 0, defenseFactor: 1, attackerWins: true, cityFalls: false,
+    attackerLosses: atk.losses, defenderLosses: def.losses, field: true,
+  });
   const cancelledMarchOfficers = new Set<EntityId>();
   const troopOverride: Record<EntityId, number> = {};
   const INTERCEPT_DIST = 45;
@@ -208,6 +220,83 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         text: `Field clash: ${wName.en} intercepted ${lName.en} on the march and routed them (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`,
         textZh: `野戰：${wName.zh}於行軍途中截擊${lName.zh}並擊潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`,
         battle: fieldBattle,
+      });
+    }
+  }
+
+  // ── Garrison sally interception ──────────────────────────────────
+  // A column marching through hostile territory can be engaged by the
+  // garrison of a defended city it passes near (not its own target). The
+  // city sallies part of its garrison under its best warrior for a field
+  // battle, so you can't waltz an army past a defended stronghold.
+  const SALLY_DIST = 55;
+  const SALLY_MIN_GARRISON = 4000;
+  for (const a of allMarches) {
+    if (cancelledMarchOfficers.has(a.officerId)) continue;
+    const oa = officers[a.officerId];
+    if (!oa?.forceId) continue;
+    const pos = armyPosition(a);
+    if (!pos) continue;
+    // Nearest hostile, non-target city within sally range.
+    let bestCity: City | null = null;
+    let bestD = SALLY_DIST;
+    for (const city of Object.values(cities)) {
+      if (!city.ownerForceId || city.ownerForceId === oa.forceId) continue;
+      if (city.id === a.targetCityId || city.id === a.cityId) continue;
+      if (!isHostilePermitted(input.diplomacy, city.ownerForceId, oa.forceId)) continue;
+      if (city.troops < SALLY_MIN_GARRISON) continue;
+      const d = Math.hypot(pos.x - city.coords.x, pos.y - city.coords.y);
+      if (d < bestD) { bestD = d; bestCity = city; }
+    }
+    if (!bestCity) continue;
+    // Sally leader = strongest idle officer garrisoned in the city.
+    const leader = Object.values(officers)
+      .filter((o) => o.locationCityId === bestCity!.id && o.forceId === bestCity!.ownerForceId
+        && o.status !== 'dead' && o.status !== 'unsearched' && !o.task)
+      .sort((p, q) => (q.stats.war * 0.6 + q.stats.leadership * 0.4) - (p.stats.war * 0.6 + p.stats.leadership * 0.4))[0];
+    if (!leader) continue;
+    const sallyTroops = Math.floor(bestCity.troops * 0.5);
+    const sallyBlended = leader.stats.war * 0.6 + leader.stats.leadership * 0.4;
+    const sallyPower = sallyBlended * Math.sqrt(Math.max(1, sallyTroops));
+    const marchStats = fieldStats(a);
+    const defWins = sallyPower >= marchStats.power;
+    const marchCmdr = officers[a.officerId];
+    const mName = marchCmdr?.name ?? { en: '?', zh: '？' };
+    if (defWins) {
+      // Column routed: heavy losses, march cancelled, sally takes light losses.
+      const marchLoss = Math.floor(a.troops * 0.55);
+      const defLoss = Math.floor(sallyTroops * 0.2);
+      const mSrc = cities[a.cityId];
+      if (mSrc) cities[mSrc.id] = { ...mSrc, troops: Math.max(0, mSrc.troops - marchLoss) };
+      cities[bestCity.id] = { ...cities[bestCity.id], troops: Math.max(0, cities[bestCity.id].troops - defLoss) };
+      cancelledMarchOfficers.add(a.officerId);
+      for (const id of [a.officerId, ...(a.additionalOfficerIds ?? [])]) {
+        const o = officers[id];
+        if (o) officers[id] = { ...o, task: null, status: 'idle' };
+      }
+      entries.push({
+        cityId: bestCity.id, kind: 'battle',
+        text: `${leader.name.en} sallied from ${bestCity.name.en} and broke ${mName.en}'s column on the march (−${marchLoss} vs −${defLoss}).`,
+        textZh: `${leader.name.zh}自${bestCity.name.zh}出擊,於途中擊潰${mName.zh}之軍（敵 −${marchLoss}，我 −${defLoss}）。`,
+        battle: makeFieldBattle(bestCity.id,
+          { forceId: leader.forceId ?? null, commanderId: leader.id, companionIds: [], troops: sallyTroops, blended: sallyBlended, power: sallyPower, losses: defLoss },
+          { forceId: oa.forceId ?? null, commanderId: a.officerId, companionIds: a.additionalOfficerIds ?? [], troops: a.troops, blended: marchStats.blended, power: marchStats.power, losses: marchLoss }),
+      });
+    } else {
+      // Column fights through: sally repulsed, both bleed, march continues.
+      const defLoss = Math.floor(sallyTroops * 0.5);
+      const marchLoss = Math.floor(a.troops * 0.2);
+      cities[bestCity.id] = { ...cities[bestCity.id], troops: Math.max(0, cities[bestCity.id].troops - defLoss) };
+      const mSrc = cities[a.cityId];
+      if (mSrc) cities[mSrc.id] = { ...mSrc, troops: Math.max(0, mSrc.troops - marchLoss) };
+      troopOverride[a.officerId] = Math.max(0, (troopOverride[a.officerId] ?? a.troops) - marchLoss);
+      entries.push({
+        cityId: bestCity.id, kind: 'battle',
+        text: `${leader.name.en} sallied from ${bestCity.name.en} but was repulsed by ${mName.en}'s column (−${defLoss} vs −${marchLoss}).`,
+        textZh: `${leader.name.zh}自${bestCity.name.zh}出擊,反為${mName.zh}之軍所卻（我 −${defLoss}，敵 −${marchLoss}）。`,
+        battle: makeFieldBattle(bestCity.id,
+          { forceId: oa.forceId ?? null, commanderId: a.officerId, companionIds: a.additionalOfficerIds ?? [], troops: a.troops, blended: marchStats.blended, power: marchStats.power, losses: marchLoss },
+          { forceId: leader.forceId ?? null, commanderId: leader.id, companionIds: [], troops: sallyTroops, blended: sallyBlended, power: sallyPower, losses: defLoss }),
       });
     }
   }
