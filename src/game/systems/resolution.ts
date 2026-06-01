@@ -249,6 +249,30 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
 
   const seasonBoundary = input.seasonBoundary ?? true;
 
+  // Phase 3g — territory income: precompute satellite cells per city so the
+  // economy tick can add +TERRITORY_GOLD per cell the city still controls.
+  // Captured cells stop paying their parent city, so losing ground = losing
+  // income (on top of the supply-pressure drain below).
+  const TERRITORY_GOLD = 5;
+  const satellitesByCity: Record<EntityId, Territory[]> = {};
+  if (seasonBoundary) {
+    for (const ter of generateTerritories(Object.values(cities))) {
+      if (ter.id.endsWith('-0')) continue; // cell 0 is the city itself
+      (satellitesByCity[ter.parentCityId] ??= []).push(ter);
+    }
+  }
+  const controlledSatellites = (city: City): number => {
+    const sats = satellitesByCity[city.id] ?? [];
+    let held = 0;
+    for (const ter of sats) {
+      const owner = territoryOwnership[ter.id];
+      // Held if no override (defaults to parent city's force) or override
+      // explicitly equals this city's force.
+      if (owner == null || owner === city.ownerForceId) held++;
+    }
+    return held;
+  };
+
   // 2. Economy tick per city — only on season boundary (every 9 periods).
   if (seasonBoundary)
   for (const city of Object.values(cities)) {
@@ -257,9 +281,12 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       (o) => o.locationCityId === city.id && o.status !== 'dead' && o.status !== 'unsearched',
     );
     const tick = tickCityEconomy(city, input.date.season, cityOfficers);
+    const territoryGold = city.ownerForceId
+      ? controlledSatellites(city) * TERRITORY_GOLD
+      : 0;
     const updated: City = {
       ...city,
-      gold: city.gold + tick.goldIncome,
+      gold: city.gold + tick.goldIncome + territoryGold,
       food: Math.max(0, city.food + tick.foodIncome - tick.foodUpkeep),
       troops: Math.max(0, city.troops - tick.desertion),
       loyalty: Math.max(0, Math.min(100, city.loyalty + tick.loyaltyDelta)),
@@ -318,17 +345,9 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // troops + gold each season from supply disruption / morale damage.
   // Captured cells around an enemy city → enemy city slowly starves.
   if (seasonBoundary) {
-    const territoriesForSupply = generateTerritories(Object.values(cities));
-    const byCity: Record<EntityId, Territory[]> = {};
-    for (const ter of territoriesForSupply) {
-      // Skip cell 0 — it's the city itself, ownership tied to the city
-      // by definition. Only satellites count for supply pressure.
-      if (ter.id.endsWith('-0')) continue;
-      (byCity[ter.parentCityId] ??= []).push(ter);
-    }
     for (const city of Object.values(cities)) {
       if (!city.ownerForceId) continue;
-      const sats = byCity[city.id] ?? [];
+      const sats = satellitesByCity[city.id] ?? [];
       if (sats.length === 0) continue;
       let enemyCount = 0;
       for (const ter of sats) {
