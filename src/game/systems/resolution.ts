@@ -10,6 +10,7 @@ import type {
   SeasonReport,
 } from '../types';
 import { OATH_BONDS, type OathBond } from '../data/bonds';
+import { generateTerritories, computeMarchRoute } from '../data/territories';
 import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
 import { handleSearch, resolveInternalAffairs, type LostItemRef } from './commands';
@@ -29,6 +30,9 @@ export interface ResolutionInput {
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
   lostItems: LostItemRef[];
+  /** Phase 3c — current per-territory owner overrides (null/missing
+   *  means inherit from parent city). */
+  territoryOwnership?: Record<EntityId, EntityId | null>;
   /** Runtime family relations — flow through into combat for kinship bonuses. */
   family?: import('../types/family').FamilyRelation[];
   /** Civic-title appointments — drive force-wide bonuses in commands + combat. */
@@ -61,6 +65,8 @@ export interface ResolutionOutput {
    * the usual {} reset, so the army keeps marching.
    */
   keptCommands?: Record<EntityId, Command>;
+  /** Phase 3c — territory ownership map after capture stamps applied. */
+  territoryOwnership?: Record<EntityId, EntityId | null>;
   /** Pending delayed effects from stratagems (e.g. 截糧 troop drain). */
   delayedEffects?: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }>;
   /**
@@ -100,6 +106,68 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       ...cmd,
       seasonsRemaining: (cmd.seasonsRemaining ?? 1) - 1,
     };
+  }
+
+  // Phase 3c — territory capture stamps. Every army on the road this
+  // season claims the cells along the slice of route it physically
+  // covered. Both in-transit and arriving marches contribute.
+  const territoryOwnership: Record<EntityId, EntityId | null> = {
+    ...(input.territoryOwnership ?? {}),
+  };
+  const stampRouteSlice = (cmd: Extract<Command, { type: 'march' }>, tStart: number, tEnd: number) => {
+    const src = cities[cmd.cityId];
+    const dst = cities[cmd.targetCityId];
+    const cmdr = officers[cmd.officerId];
+    if (!src || !dst || !cmdr || !cmdr.forceId) return;
+    const territories = generateTerritories(Object.values(cities));
+    const route = computeMarchRoute(
+      territories,
+      { id: src.id, coords: src.coords },
+      { id: dst.id, coords: dst.coords },
+    );
+    if (route.length < 2) return;
+    // For each territory whose centroid projects between [tStart, tEnd]
+    // along the polyline length, claim it for the marching force.
+    const segLens: number[] = [];
+    let total = 0;
+    for (let i = 0; i < route.length - 1; i++) {
+      const sl = Math.hypot(route[i + 1].x - route[i].x, route[i + 1].y - route[i].y);
+      segLens.push(sl); total += sl;
+    }
+    const sliceStart = tStart * total;
+    const sliceEnd = tEnd * total;
+    for (const ter of territories) {
+      // Distance of this territory's centroid from the polyline, plus its
+      // projected arc length. Reject anything not close to the road.
+      let acc = 0;
+      let bestArc = -1;
+      let bestPerp = Infinity;
+      for (let i = 0; i < segLens.length; i++) {
+        const a = route[i], b = route[i + 1];
+        const sl = segLens[i];
+        if (sl < 1) { acc += sl; continue; }
+        const dx = (b.x - a.x) / sl, dy = (b.y - a.y) / sl;
+        const rx = ter.coords.x - a.x, ry = ter.coords.y - a.y;
+        const proj = Math.max(0, Math.min(sl, rx * dx + ry * dy));
+        const perp = Math.abs(rx * (-dy) + ry * dx);
+        if (perp < bestPerp) {
+          bestPerp = perp;
+          bestArc = acc + proj;
+        }
+        acc += sl;
+      }
+      if (bestArc < 0 || bestPerp > 22) continue;
+      if (bestArc < sliceStart || bestArc > sliceEnd) continue;
+      territoryOwnership[ter.id] = cmdr.forceId;
+    }
+  };
+  for (const cmd of allMarches) {
+    const total = Math.max(1, cmd.totalSeasons ?? 1);
+    const remainingAfter = Math.max(0, (cmd.seasonsRemaining ?? 1) - 1);
+    const remainingBefore = cmd.seasonsRemaining ?? 1;
+    const tStart = (total - remainingBefore) / total;
+    const tEnd = (total - remainingAfter) / total;
+    stampRouteSlice(cmd, tStart, tEnd);
   }
 
   const delayedEffects: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }> = [];
@@ -430,6 +498,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     lostItems,
     report: { date: { year: input.date.year, season: input.date.season }, entries },
     keptCommands: Object.keys(keptCommands).length > 0 ? keptCommands : undefined,
+    territoryOwnership,
     delayedEffects: delayedEffects.length > 0 ? delayedEffects : undefined,
     deedDeltas: deedDeltas.length > 0 ? deedDeltas : undefined,
   };

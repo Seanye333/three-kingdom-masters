@@ -117,6 +117,10 @@ export interface GameState {
   ports: Record<EntityId, Port>;
   /** Forts: historical 砦/關 + player-built 塢/壘. */
   forts: Record<EntityId, Fort>;
+  /** Phase 3c — territory ownership keyed by territory id. Null/missing
+   *  means the cell inherits from its parent city. Set explicitly when
+   *  an army marches through it, regardless of march outcome. */
+  territoryOwnership: Record<EntityId, EntityId | null>;
   /** Family relationships. */
   family: FamilyRelation[];
   /** Pending heirs that will activate when they come of age. */
@@ -253,6 +257,7 @@ export const EMPTY_STATE: GameState = {
   shipOrders: [],
   ports: {},
   forts: {},
+  territoryOwnership: {},
   family: [],
   pendingHeirs: [],
   officerWishes: [],
@@ -428,6 +433,7 @@ export function loadScenario(
     forts: buildInitialForts(
       Object.fromEntries(scaledCities.map((c) => [c.id, c.ownerForceId])),
     ),
+    territoryOwnership: {},
     // Pre-populate canonical Three Kingdoms family lineages — filtered
     // to entries where BOTH officers are in the loaded roster.
     family: (() => {

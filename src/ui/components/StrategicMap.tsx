@@ -42,6 +42,7 @@ export function StrategicMap() {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const officers = useGameStore((s) => s.officers);
+  const territoryOwnership = useGameStore((s) => s.territoryOwnership);
   const selectedCityId = useGameStore((s) => s.selectedCityId);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectCity = useGameStore((s) => s.selectCity);
@@ -114,7 +115,7 @@ export function StrategicMap() {
         const ov = coordOverrides[c.id];
         effectiveCities[c.id] = ov ? { ...c, coords: ov } : c;
       }
-      drawMap(ctx, effectiveCities, forces, officers, selectedCityId, pendingCommands, date, bgImageRef.current);
+      drawMap(ctx, effectiveCities, forces, officers, territoryOwnership, selectedCityId, pendingCommands, date, bgImageRef.current);
       if (overlayMode !== 'none') {
         drawHeatmap(ctx, effectiveCities, overlayMode);
       }
@@ -144,7 +145,7 @@ export function StrategicMap() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [cities, forces, officers, selectedCityId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities]);
+  }, [cities, forces, officers, territoryOwnership, selectedCityId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities]);
 
   // Convert canvas (CSS px) coords → world (map) coords.
   const toWorld = (cx: number, cy: number) => ({
@@ -799,6 +800,7 @@ function drawMap(
   cities: Record<EntityId, City>,
   forces: Record<EntityId, Force>,
   officers: Record<EntityId, Officer>,
+  territoryOwnership: Record<EntityId, EntityId | null>,
   selectedCityId: EntityId | null,
   pendingCommands: Record<EntityId, Command>,
   date: GameDate,
@@ -815,7 +817,7 @@ function drawMap(
     // — the photo already has all of those. Jump straight to the overlays.
     drawSeasonTint(ctx, date.season);
     drawCloudShadows(ctx);
-    drawTerritoryOverlay(ctx, cities, forces);
+    drawTerritoryOverlay(ctx, cities, forces, territoryOwnership);
     drawProvinceTints(ctx, cities);
     drawTerrainGlyphs(ctx, cities);
     // Roads + march arrows + cities are drawn by the shared block below.
@@ -960,7 +962,7 @@ function drawMap(
   drawCloudShadows(ctx);
 
   // ── Territory ownership tint (Phase 3a — Voronoi by territory) ──
-  drawTerritoryOverlay(ctx, cities, forces);
+  drawTerritoryOverlay(ctx, cities, forces, territoryOwnership);
 
   // ── Province color tints (RTK13PK-style soft regional shading) ──
   drawProvinceTints(ctx, cities);

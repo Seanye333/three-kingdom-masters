@@ -582,9 +582,11 @@ function buildNormalMap(): THREE.Texture {
 function TerritoryGroundLayer({
   cities,
   forces,
+  territoryOwnership,
 }: {
   cities: Record<string, City>;
   forces: Record<string, Force>;
+  territoryOwnership: Record<string, string | null>;
 }) {
   // Same displaced geometry as MapTerrain — keep them in lockstep.
   const geom = useMemo(() => {
@@ -604,9 +606,9 @@ function TerritoryGroundLayer({
 
   // CanvasTexture wrapping the cached Voronoi image. Rebuild only when
   // the ownership signature changes.
-  const sig = getTerritorySignature(cities);
+  const sig = getTerritorySignature(cities, territoryOwnership);
   const texture = useMemo(() => {
-    const tex = new THREE.CanvasTexture(getTerritoryCanvas(cities, forces));
+    const tex = new THREE.CanvasTexture(getTerritoryCanvas(cities, forces, territoryOwnership));
     tex.flipY = true;
     tex.needsUpdate = true;
     return tex;
@@ -1857,6 +1859,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const officers = useGameStore((s) => s.officers);
+  const territoryOwnership = useGameStore((s) => s.territoryOwnership);
   const selectedCityId = useGameStore((s) => s.selectedCityId);
   const selectCity = useGameStore((s) => s.selectCity);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
@@ -1920,7 +1923,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
 
       <Suspense fallback={null}>
         <MapTerrain />
-        <TerritoryGroundLayer cities={cities} forces={forces} />
+        <TerritoryGroundLayer cities={cities} forces={forces} territoryOwnership={territoryOwnership} />
       </Suspense>
       <Ocean />
       <RiverRibbons />

@@ -31,14 +31,19 @@ function hexToRgb(hex: string): [number, number, number] {
 function buildSignature(
   territories: Territory[],
   cities: Record<EntityId, City>,
+  territoryOwnership: Record<EntityId, EntityId | null> = {},
 ): string {
-  // Signature = ownership of each parent city (other state — names, coords
-  // — is constant within a session). Re-computed whenever this string
-  // changes; otherwise we blit the cached canvas as-is.
+  // Signature = effective owner of each territory: explicit override
+  // (3c — set by march capture) wins, otherwise the parent city's owner.
   const parts: string[] = [];
   for (const t of territories) {
-    const c = cities[t.parentCityId];
-    parts.push(c?.ownerForceId ?? '_');
+    const override = territoryOwnership[t.id];
+    if (override !== undefined && override !== null) {
+      parts.push(override);
+    } else {
+      const c = cities[t.parentCityId];
+      parts.push(c?.ownerForceId ?? '_');
+    }
   }
   return parts.join('|');
 }
@@ -52,6 +57,7 @@ function computeOverlay(
   territories: Territory[],
   cities: Record<EntityId, City>,
   forces: Record<EntityId, Force>,
+  territoryOwnership: Record<EntityId, EntityId | null> = {},
 ): HTMLCanvasElement {
   const off = document.createElement('canvas');
   off.width = W;
@@ -61,18 +67,19 @@ function computeOverlay(
   const img = octx.createImageData(W, H);
   const px = img.data;
 
+  // Effective owner per territory: 3c override wins, else parent city.
+  const effectiveOwner: Array<EntityId | null> = territories.map((t) => {
+    const override = territoryOwnership[t.id];
+    if (override !== undefined && override !== null) return override;
+    return cities[t.parentCityId]?.ownerForceId ?? null;
+  });
   // Pre-resolve each territory's RGB triple — avoids a hex parse per pixel.
-  const colorRgb: Array<[number, number, number]> = territories.map((t) => {
-    const city = cities[t.parentCityId];
-    const force = city?.ownerForceId ? forces[city.ownerForceId] : null;
+  const colorRgb: Array<[number, number, number]> = effectiveOwner.map((id) => {
+    const force = id ? forces[id] : null;
     return hexToRgb(force?.color ?? NEUTRAL_COLOR);
   });
-  // Group by parent city — the EDGE is between cells with *different
-  // parent forces*, not between same-force sub-cells of the same city.
-  const forceKey: string[] = territories.map((t) => {
-    const city = cities[t.parentCityId];
-    return city?.ownerForceId ?? '_';
-  });
+  // Edges are between cells with *different effective forces*.
+  const forceKey: string[] = effectiveOwner.map((id) => id ?? '_');
   const tx = territories.map((t) => t.coords.x);
   const ty = territories.map((t) => t.coords.y);
   const a = Math.round(FILL_ALPHA * 255);
@@ -133,12 +140,13 @@ function computeOverlay(
 export function getTerritoryCanvas(
   cities: Record<EntityId, City>,
   forces: Record<EntityId, Force>,
+  territoryOwnership: Record<EntityId, EntityId | null> = {},
 ): HTMLCanvasElement {
   const cityList = Object.values(cities);
   const territories = generateTerritories(cityList);
-  const sig = buildSignature(territories, cities);
+  const sig = buildSignature(territories, cities, territoryOwnership);
   if (!cachedCanvas || sig !== cachedSignature) {
-    cachedCanvas = computeOverlay(territories, cities, forces);
+    cachedCanvas = computeOverlay(territories, cities, forces, territoryOwnership);
     cachedSignature = sig;
   }
   return cachedCanvas;
@@ -148,9 +156,10 @@ export function getTerritoryCanvas(
  *  decide whether to rebuild its CanvasTexture this frame. */
 export function getTerritorySignature(
   cities: Record<EntityId, City>,
+  territoryOwnership: Record<EntityId, EntityId | null> = {},
 ): string {
   const territories = generateTerritories(Object.values(cities));
-  return buildSignature(territories, cities);
+  return buildSignature(territories, cities, territoryOwnership);
 }
 
 /**
@@ -161,6 +170,7 @@ export function drawTerritoryOverlay(
   ctx: CanvasRenderingContext2D,
   cities: Record<EntityId, City>,
   forces: Record<EntityId, Force>,
+  territoryOwnership: Record<EntityId, EntityId | null> = {},
 ) {
-  ctx.drawImage(getTerritoryCanvas(cities, forces), 0, 0);
+  ctx.drawImage(getTerritoryCanvas(cities, forces, territoryOwnership), 0, 0);
 }
