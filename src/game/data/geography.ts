@@ -65,3 +65,33 @@ export function landSDF(x: number, y: number): number {
 export function isLand(x: number, y: number, margin = 0): boolean {
   return landSDF(x, y) > margin;
 }
+
+// ── Hex grid geometry (pointy-top, odd-r offset) ──────────────────
+// Shared by the territory overlay (which draws the grid) and the army
+// movement code (which snaps units to hex centres), so they always
+// agree on cell positions.
+export const HEX_SIZE = 19;                       // centre → corner
+export const HEX_W = Math.sqrt(3) * HEX_SIZE;     // horizontal spacing
+export const HEX_V = 1.5 * HEX_SIZE;              // vertical (row) spacing
+
+/** Six pointy-top corners of the hex centred at (cx, cy). */
+export function hexCorners(cx: number, cy: number): Array<[number, number]> {
+  const pts: Array<[number, number]> = [];
+  for (let i = 0; i < 6; i++) {
+    const ang = (Math.PI / 180) * (60 * i - 90);
+    pts.push([cx + HEX_SIZE * Math.cos(ang), cy + HEX_SIZE * Math.sin(ang)]);
+  }
+  return pts;
+}
+
+/**
+ * Snap an arbitrary pixel to the centre of the hex that contains it,
+ * on the same odd-r grid the overlay draws. Used to make marching units
+ * sit on cells and step cell-to-cell instead of gliding.
+ */
+export function snapToHexCenter(px: number, py: number): { x: number; y: number } {
+  const r = Math.round(py / HEX_V);
+  const xOff = (((r % 2) + 2) % 2) === 1 ? HEX_W / 2 : 0;
+  const q = Math.round((px - xOff) / HEX_W);
+  return { x: q * HEX_W + xOff, y: r * HEX_V };
+}

@@ -12,6 +12,7 @@ import type {
 import type { Weather } from '../../game/systems/weather';
 import { drawTerritoryOverlay } from './territoryOverlay';
 import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../../game/data/territories';
+import { snapToHexCenter, hexCorners } from '../../game/data/geography';
 
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 720;
@@ -1026,9 +1027,12 @@ function drawCityLayer(
       const total = Math.max(1, cmd.totalSeasons ?? 1);
       const remaining = cmd.seasonsRemaining ?? 1;
       const elapsed = total - remaining;
-      const wobble = Math.sin(Date.now() / 800) * 0.02;
-      const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / total + wobble));
-      const { x: ux, y: uy } = positionAlongRoute(route, t);
+      // Snap the army to the hex it occupies this season — it sits on a
+      // cell and steps cell-to-cell across seasons (RTK-XIV grid march).
+      const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / total));
+      const raw = positionAlongRoute(route, t);
+      const { x: ux, y: uy } = snapToHexCenter(raw.x, raw.y);
+      drawOccupiedHex(ctx, ux, uy, color);
       drawMarchUnit(ctx, ux, uy, color, commander.name.zh, cmd.troops, remaining, total);
     }
   }
@@ -1314,6 +1318,34 @@ function drawRoutePolyline(
              tipY - uy * headSize + ux * headSize * 0.5);
   ctx.closePath();
   ctx.fill();
+  ctx.restore();
+}
+
+/** Highlight the hex cell an army currently occupies (Phase 格子走). */
+function drawOccupiedHex(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  color: string,
+) {
+  const c = hexCorners(cx, cy);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(c[0][0], c[0][1]);
+  for (let i = 1; i < 6; i++) ctx.lineTo(c[i][0], c[i][1]);
+  ctx.closePath();
+  // Pulsing fill + bright rim so the occupied cell pops.
+  const pulse = 0.18 + 0.10 * (0.5 + 0.5 * Math.sin(Date.now() / 350));
+  ctx.globalAlpha = pulse;
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.globalAlpha = 0.95;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 8;
+  ctx.stroke();
   ctx.restore();
 }
 

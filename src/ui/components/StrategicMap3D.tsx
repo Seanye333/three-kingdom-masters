@@ -2,7 +2,8 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
-import { computeMarchRoute, generateTerritories } from '../../game/data/territories';
+import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../../game/data/territories';
+import { snapToHexCenter } from '../../game/data/geography';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
@@ -1343,27 +1344,37 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   }, [naval, fx, fz, tx, tz, landRoute]);
 
   const groupRef = useRef<THREE.Group>(null);
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (!groupRef.current) return;
-    // Real season-based position: army is at (elapsed + 0.5) / total along
-    // the road, plus a tiny wobble so it doesn't look frozen.
     const elapsed = totalSeasons - seasonsRemaining;
-    const wobble = Math.sin(clock.elapsedTime * 0.6) * 0.04;
-    const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / totalSeasons + wobble));
-    // All paths are piecewise linear now (naval = 3 segments via ports;
-    // land = ~5-8 segments through territory waypoints). Find which
-    // segment t lands in and interpolate locally — uniform speed across
-    // total path length would be nicer but constant-speed-per-segment is
-    // close enough at human read distance.
-    const segCount = path.pts.length - 1;
-    const segT = t * segCount;
-    const segIdx = Math.min(segCount - 1, Math.floor(segT));
-    const localT = segT - segIdx;
-    const [ax, az] = path.pts[segIdx];
-    const [bx, bz] = path.pts[segIdx + 1];
-    const x = ax + (bx - ax) * localT;
-    const z = az + (bz - az) * localT;
-    const heading = Math.atan2(bx - ax, bz - az);
+    const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / totalSeasons));
+    let x: number, z: number, heading: number;
+    if (naval) {
+      // Naval marches glide across open water — no hex snapping.
+      const segCount = path.pts.length - 1;
+      const segT = t * segCount;
+      const segIdx = Math.min(segCount - 1, Math.floor(segT));
+      const localT = segT - segIdx;
+      const [ax, az] = path.pts[segIdx];
+      const [bx, bz] = path.pts[segIdx + 1];
+      x = ax + (bx - ax) * localT;
+      z = az + (bz - az) * localT;
+      heading = Math.atan2(bx - ax, bz - az);
+    } else {
+      // Land — snap to the hex the army occupies this season so it sits
+      // on a cell and steps cell-to-cell (RTK-XIV grid march). Heading
+      // points toward the next hex along the route.
+      const raw = positionAlongRoute(landRoute, t);
+      const s = snapToHexCenter(raw.x, raw.y);
+      const [wx, wz] = pxToWorld(s.x, s.y);
+      const rawAhead = positionAlongRoute(landRoute, Math.min(0.99, t + 0.06));
+      const sAhead = snapToHexCenter(rawAhead.x, rawAhead.y);
+      const [wx2, wz2] = pxToWorld(sAhead.x, sAhead.y);
+      x = wx; z = wz;
+      heading = (wx2 !== wx || wz2 !== wz)
+        ? Math.atan2(wx2 - wx, wz2 - wz)
+        : groupRef.current.rotation.y;
+    }
     groupRef.current.position.set(x, sampleTerrainHeight(x, z) + 0.05, z);
     groupRef.current.rotation.y = heading;
   });

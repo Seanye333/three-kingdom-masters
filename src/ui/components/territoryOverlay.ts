@@ -8,31 +8,15 @@
 
 import type { City, EntityId, Force } from '../../game/types';
 import { generateTerritories, type Territory } from '../../game/data/territories';
-import { isLand } from '../../game/data/geography';
+import { isLand, hexCorners, HEX_W, HEX_V, HEX_SIZE } from '../../game/data/geography';
 
 const W = 1000;
 const H = 720;
 const NEUTRAL_COLOR = '#5a4530';
 const FILL_ALPHA = 0.4;
 
-// Hex grid geometry (pointy-top). HEX_SIZE = centre→corner.
-const HEX_SIZE = 19;
-const SQRT3 = Math.sqrt(3);
-const HEX_W = SQRT3 * HEX_SIZE;        // horizontal centre spacing
-const HEX_V = 1.5 * HEX_SIZE;          // vertical centre spacing
-
 let cachedCanvas: HTMLCanvasElement | null = null;
 let cachedSignature = '';
-
-/** Six pointy-top corners of a hex centred at (cx, cy). */
-function hexCorners(cx: number, cy: number): Array<[number, number]> {
-  const pts: Array<[number, number]> = [];
-  for (let i = 0; i < 6; i++) {
-    const ang = (Math.PI / 180) * (60 * i - 90);
-    pts.push([cx + HEX_SIZE * Math.cos(ang), cy + HEX_SIZE * Math.sin(ang)]);
-  }
-  return pts;
-}
 
 function buildSignature(
   territories: Territory[],
