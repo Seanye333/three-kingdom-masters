@@ -10,7 +10,8 @@ import type {
   SeasonReport,
 } from '../types';
 import { OATH_BONDS, type OathBond } from '../data/bonds';
-import { generateTerritories, computeMarchRoute, type Territory } from '../data/territories';
+import { isHostilePermitted } from '../types';
+import { generateTerritories, computeMarchRoute, positionAlongRoute, type Territory } from '../data/territories';
 import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
 import { handleSearch, resolveInternalAffairs, type LostItemRef } from './commands';
@@ -97,9 +98,93 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   const allMarches = allCmds.filter((c): c is Extract<Command, { type: 'march' }> =>
     c.type === 'march',
   );
-  const marches = allMarches.filter((c) => (c.seasonsRemaining ?? 1) <= 1);
-  const inTransit = allMarches.filter((c) => (c.seasonsRemaining ?? 1) > 1);
   const internals = allCmds.filter((c) => c.type !== 'march');
+
+  // Phase 3i — mid-route interception. Two hostile armies whose current
+  // map positions overlap this season clash in the field before either
+  // reaches its destination. Loser's march is cancelled (survivors stream
+  // back to source); winner takes lighter losses and marches on.
+  const interceptTerritories = generateTerritories(Object.values(cities));
+  const armyPosition = (cmd: Extract<Command, { type: 'march' }>) => {
+    const src = cities[cmd.cityId];
+    const dst = cities[cmd.targetCityId];
+    if (!src || !dst) return null;
+    const route = computeMarchRoute(
+      interceptTerritories,
+      { id: src.id, coords: src.coords },
+      { id: dst.id, coords: dst.coords },
+    );
+    const total = Math.max(1, cmd.totalSeasons ?? 1);
+    const remaining = cmd.seasonsRemaining ?? 1;
+    const elapsed = total - remaining;
+    const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / total));
+    return positionAlongRoute(route, t);
+  };
+  const blendedFieldPower = (cmd: Extract<Command, { type: 'march' }>) => {
+    const cmdr = officers[cmd.officerId];
+    if (!cmdr) return 0;
+    const pool = [cmdr, ...(cmd.additionalOfficerIds ?? [])
+      .map((id) => officers[id])
+      .filter((o): o is Officer => !!o)];
+    const avg = pool.reduce((s, o) => s + o.stats.war * 0.6 + o.stats.leadership * 0.4, 0) / pool.length;
+    return avg * Math.sqrt(Math.max(1, cmd.troops));
+  };
+  const cancelledMarchOfficers = new Set<EntityId>();
+  const troopOverride: Record<EntityId, number> = {};
+  const INTERCEPT_DIST = 45;
+  for (let i = 0; i < allMarches.length; i++) {
+    for (let j = i + 1; j < allMarches.length; j++) {
+      const a = allMarches[i];
+      const b = allMarches[j];
+      if (cancelledMarchOfficers.has(a.officerId) || cancelledMarchOfficers.has(b.officerId)) continue;
+      const oa = officers[a.officerId];
+      const ob = officers[b.officerId];
+      if (!oa?.forceId || !ob?.forceId || oa.forceId === ob.forceId) continue;
+      if (!isHostilePermitted(input.diplomacy, oa.forceId, ob.forceId)) continue;
+      const pa = armyPosition(a);
+      const pb = armyPosition(b);
+      if (!pa || !pb) continue;
+      if (Math.hypot(pa.x - pb.x, pa.y - pb.y) > INTERCEPT_DIST) continue;
+
+      // Field clash — higher blended power wins (ties to first army).
+      const powerA = blendedFieldPower(a);
+      const powerB = blendedFieldPower(b);
+      const aWins = powerA >= powerB;
+      const winner = aWins ? a : b;
+      const loser = aWins ? b : a;
+      const winnerCmdr = officers[winner.officerId];
+      const loserCmdr = officers[loser.officerId];
+      const winnerCasualty = Math.floor(winner.troops * 0.2);
+      const loserCasualty = Math.floor(loser.troops * 0.6);
+      // Casualties are drawn from each army's source city (troops are
+      // notionally still there until the march resolves).
+      const winSrc = cities[winner.cityId];
+      const loseSrc = cities[loser.cityId];
+      if (winSrc) cities[winSrc.id] = { ...winSrc, troops: Math.max(0, winSrc.troops - winnerCasualty) };
+      if (loseSrc) cities[loseSrc.id] = { ...loseSrc, troops: Math.max(0, loseSrc.troops - loserCasualty) };
+      troopOverride[winner.officerId] = Math.max(0, winner.troops - winnerCasualty);
+      cancelledMarchOfficers.add(loser.officerId);
+      // Free the loser's commander + companions so they idle at source.
+      for (const id of [loser.officerId, ...(loser.additionalOfficerIds ?? [])]) {
+        const o = officers[id];
+        if (o) officers[id] = { ...o, task: null, status: 'idle' };
+      }
+      const wName = winnerCmdr?.name ?? { en: '?', zh: '？' };
+      const lName = loserCmdr?.name ?? { en: '?', zh: '？' };
+      entries.push({
+        cityId: winner.targetCityId,
+        kind: 'battle',
+        text: `Field clash: ${wName.en} intercepted ${lName.en} on the march and routed them (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`,
+        textZh: `野戰：${wName.zh}於行軍途中截擊${lName.zh}並擊潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`,
+      });
+    }
+  }
+
+  const liveMarches = allMarches.filter((c) => !cancelledMarchOfficers.has(c.officerId));
+  const withTroops = (c: Extract<Command, { type: 'march' }>) =>
+    troopOverride[c.officerId] !== undefined ? { ...c, troops: troopOverride[c.officerId] } : c;
+  const marches = liveMarches.filter((c) => (c.seasonsRemaining ?? 1) <= 1).map(withTroops);
+  const inTransit = liveMarches.filter((c) => (c.seasonsRemaining ?? 1) > 1).map(withTroops);
   const keptCommands: Record<EntityId, Command> = {};
   for (const cmd of inTransit) {
     keptCommands[cmd.officerId] = {
@@ -161,7 +246,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       territoryOwnership[ter.id] = cmdr.forceId;
     }
   };
-  for (const cmd of allMarches) {
+  for (const cmd of liveMarches) {
     const total = Math.max(1, cmd.totalSeasons ?? 1);
     const remainingAfter = Math.max(0, (cmd.seasonsRemaining ?? 1) - 1);
     const remainingBefore = cmd.seasonsRemaining ?? 1;
