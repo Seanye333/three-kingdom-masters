@@ -138,32 +138,41 @@ function computeOverlay(
     grid.push(line);
   }
 
-  const tracePath = (cx: number, cy: number) => {
+  // Append a hex outline to a Path2D (batched drawing — far fewer canvas
+  // calls than stroking each hex individually, so even a very fine grid
+  // recomputes fast).
+  const addHex = (path: Path2D, cx: number, cy: number) => {
     const c = hexCorners(cx, cy);
-    ctx.beginPath();
-    ctx.moveTo(c[0][0], c[0][1]);
-    for (let i = 1; i < 6; i++) ctx.lineTo(c[i][0], c[i][1]);
-    ctx.closePath();
+    path.moveTo(c[0][0], c[0][1]);
+    for (let i = 1; i < 6; i++) path.lineTo(c[i][0], c[i][1]);
+    path.closePath();
   };
 
-  // Pass 1 — fills + thin per-hex grid line.
+  // Pass 1 — fills batched by colour + a single grid-line path.
   ctx.lineJoin = 'round';
+  const fillPaths = new Map<string, Path2D>();
+  const gridPath = new Path2D();
   for (const line of grid) {
     for (const h of line) {
       if (!h.painted) continue;
-      tracePath(h.cx, h.cy);
-      ctx.globalAlpha = FILL_ALPHA;
-      ctx.fillStyle = colorOf(h.owner);
-      ctx.fill();
-      ctx.globalAlpha = 0.16;
-      ctx.lineWidth = 0.4;
-      ctx.strokeStyle = '#1a120a';
-      ctx.stroke();
+      const c = colorOf(h.owner);
+      let fp = fillPaths.get(c);
+      if (!fp) { fp = new Path2D(); fillPaths.set(c, fp); }
+      addHex(fp, h.cx, h.cy);
+      addHex(gridPath, h.cx, h.cy);
     }
   }
+  ctx.globalAlpha = FILL_ALPHA;
+  for (const [color, fp] of fillPaths) { ctx.fillStyle = color; ctx.fill(fp); }
+  ctx.globalAlpha = 0.16;
+  ctx.lineWidth = 0.4;
+  ctx.strokeStyle = '#1a120a';
+  ctx.stroke(gridPath);
 
-  // Collect frontier hexes (any odd-r neighbour has a different owner).
-  const frontier: Hex[] = [];
+  // Frontier hexes (any odd-r neighbour has a different owner), batched:
+  // one dark base path + per-colour bright core paths.
+  const basePath = new Path2D();
+  const corePaths = new Map<string, Path2D>();
   for (let r = 0; r < grid.length; r++) {
     const even = r % 2 === 0;
     const deltas = even
@@ -172,28 +181,29 @@ function computeOverlay(
     for (let q = 0; q < grid[r].length; q++) {
       const h = grid[r][q];
       if (!h.painted) continue;
+      let isFrontier = false;
       for (const [dq, dr] of deltas) {
         const nb = grid[r + dr]?.[q + dq];
-        if (!nb || !nb.painted || nb.owner !== h.owner) { frontier.push(h); break; }
+        if (!nb || !nb.painted || nb.owner !== h.owner) { isFrontier = true; break; }
       }
+      if (!isFrontier) continue;
+      addHex(basePath, h.cx, h.cy);
+      const core = lighten(colorOf(h.owner), 0.45);
+      let cp = corePaths.get(core);
+      if (!cp) { cp = new Path2D(); corePaths.set(core, cp); }
+      addHex(cp, h.cx, h.cy);
     }
   }
-
-  // Pass 2a — dark base seam under every frontier hex (the "carved" edge).
+  // 2a — dark base seam (the "carved" edge).
   ctx.globalAlpha = 0.82;
   ctx.lineWidth = 1.2;
   ctx.strokeStyle = '#120b05';
-  for (const h of frontier) { tracePath(h.cx, h.cy); ctx.stroke(); }
-
-  // Pass 2b — bright force-tinted core on top, so each frontier reads as a
-  // crisp coloured border with a dark outline (RTK-style official lines).
+  ctx.stroke(basePath);
+  // 2b — bright force-tinted core on top.
   ctx.globalAlpha = 0.9;
   ctx.lineWidth = 0.6;
-  for (const h of frontier) {
-    ctx.strokeStyle = lighten(colorOf(h.owner), 0.45);
-    tracePath(h.cx, h.cy);
-    ctx.stroke();
-  }
+  for (const [color, cp] of corePaths) { ctx.strokeStyle = color; ctx.stroke(cp); }
+
   ctx.globalAlpha = 1;
   return off;
 }
