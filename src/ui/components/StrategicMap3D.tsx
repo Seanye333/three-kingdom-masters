@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
+import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
@@ -570,6 +571,63 @@ function buildNormalMap(): THREE.Texture {
   tex.anisotropy = 8;
   tex.generateMipmaps = true;
   return tex;
+}
+
+/* ─── Phase 3a — territory tint over the terrain ──────────────────
+ *  Builds a sibling plane to MapTerrain, displaced to follow the same
+ *  heights but lifted by 0.05 so it sits just above the ground, then
+ *  textured with the same Voronoi canvas the 2D map uses. The texture
+ *  rebuilds on ownership change. */
+function TerritoryGroundLayer({
+  cities,
+  forces,
+}: {
+  cities: Record<string, City>;
+  forces: Record<string, { color: string; capitalCityId?: string | null }>;
+}) {
+  // Same displaced geometry as MapTerrain — keep them in lockstep.
+  const geom = useMemo(() => {
+    const subW = 240, subD = 180;
+    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, subW, subD);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i);
+      const wy = pos.getY(i);
+      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
+      pos.setZ(i, sampleTerrain(px, py).h + 0.05);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+
+  // CanvasTexture wrapping the cached Voronoi image. Rebuild only when
+  // the ownership signature changes.
+  const sig = getTerritorySignature(cities);
+  const texture = useMemo(() => {
+    const tex = new THREE.CanvasTexture(getTerritoryCanvas(cities, forces));
+    tex.flipY = true;
+    tex.needsUpdate = true;
+    return tex;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sig]);
+
+  return (
+    <mesh
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[0, 0, 0]}
+      geometry={geom}
+      // Render after the terrain so the alpha blend lands on top.
+      renderOrder={1}
+    >
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        opacity={0.55}
+        depthWrite={false}
+      />
+    </mesh>
+  );
 }
 
 /* ─── Procedural China terrain ───────────────────────────────────── */
@@ -1863,6 +1921,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
 
       <Suspense fallback={null}>
         <MapTerrain />
+        <TerritoryGroundLayer cities={cities} forces={forces} />
       </Suspense>
       <Ocean />
       <RiverRibbons />

@@ -98,6 +98,34 @@ function computeOverlay(
 }
 
 /**
+ * Get the cached Voronoi canvas, recomputing only if ownership has
+ * changed. Used by both the 2D paint helper below and the 3D map's
+ * ground-plane texture (so both views share the same image).
+ */
+export function getTerritoryCanvas(
+  cities: Record<EntityId, City>,
+  forces: Record<EntityId, Force>,
+): HTMLCanvasElement {
+  const cityList = Object.values(cities);
+  const territories = generateTerritories(cityList);
+  const sig = buildSignature(territories, cities);
+  if (!cachedCanvas || sig !== cachedSignature) {
+    cachedCanvas = computeOverlay(territories, cities, forces);
+    cachedSignature = sig;
+  }
+  return cachedCanvas;
+}
+
+/** Signature the ownership-keyed cache uses — exposed so the 3D map can
+ *  decide whether to rebuild its CanvasTexture this frame. */
+export function getTerritorySignature(
+  cities: Record<EntityId, City>,
+): string {
+  const territories = generateTerritories(Object.values(cities));
+  return buildSignature(territories, cities);
+}
+
+/**
  * Paint the territory overlay onto the main canvas. Cached on
  * ownership signature so this is essentially free once warmed up.
  */
@@ -106,12 +134,5 @@ export function drawTerritoryOverlay(
   cities: Record<EntityId, City>,
   forces: Record<EntityId, Force>,
 ) {
-  const cityList = Object.values(cities);
-  const territories = generateTerritories(cityList);
-  const sig = buildSignature(territories, cities);
-  if (!cachedCanvas || sig !== cachedSignature) {
-    cachedCanvas = computeOverlay(territories, cities, forces);
-    cachedSignature = sig;
-  }
-  ctx.drawImage(cachedCanvas, 0, 0);
+  ctx.drawImage(getTerritoryCanvas(cities, forces), 0, 0);
 }
