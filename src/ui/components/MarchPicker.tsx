@@ -3,7 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { navalReachableCityIds } from '../../game/data/ports';
 import { marchDurationFor } from '../../game/data/cities';
-import { generateTerritories, computeMarchRoute } from '../../game/data/territories';
+import { generateTerritories, terrainRoute } from '../../game/data/territories';
 import { useT } from '../i18n';
 import { BattlePrepModal } from './BattlePrepModal';
 import type { EntityId } from '../../game/types';
@@ -93,11 +93,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
     const tgt = targetId ? cities[targetId] : null;
     if (!src || !tgt) return null;
     const territories = generateTerritories(Object.values(cities));
-    const route = computeMarchRoute(
-      territories,
-      { id: src.id, coords: src.coords },
-      { id: tgt.id, coords: tgt.coords },
-    );
+    const route = terrainRoute(src.coords.x, src.coords.y, tgt.coords.x, tgt.coords.y);
     const ownerAt = (x: number, y: number): EntityId | null => {
       let best = -1;
       let bestD = Infinity;

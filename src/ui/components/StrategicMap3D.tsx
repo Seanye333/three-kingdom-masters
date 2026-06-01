@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
-import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../../game/data/territories';
+import { positionAlongRoute, terrainRoute } from '../../game/data/territories';
 import { snapToHexCenter } from '../../game/data/geography';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
 import * as THREE from 'three';
@@ -1282,7 +1282,6 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
   ports: Record<string, import('../../game/types').Port>;
 }) {
   const armies = useMemo(() => {
-    const territories = generateTerritories(Object.values(cities));
     return Object.values(pendingCommands)
       .filter((cmd): cmd is { cityId: string; type: string; targetCityId: string; troops: number; officerId: string; seasonsRemaining?: number; totalSeasons?: number } =>
         cmd.type === 'march' && !!cmd.targetCityId && !!cmd.cityId)
@@ -1295,13 +1294,9 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
         const commander = officers[cmd.officerId];
         const totalSeasons = Math.max(1, cmd.totalSeasons ?? 1);
         const seasonsRemaining = cmd.seasonsRemaining ?? 1;
-        // Phase 3b — pre-compute the land route through territories so the
-        // 3D squad can follow the same poly-line as the 2D pennant.
-        const landRoute = computeMarchRoute(
-          territories,
-          { id: from.id, coords: from.coords },
-          { id: to.id, coords: to.coords },
-        );
+        // Terrain-weighted route (bends around mountains) — same path the
+        // 2D pennant follows.
+        const landRoute = terrainRoute(from.coords.x, from.coords.y, to.coords.x, to.coords.y);
         const weaponType: WeaponType = commander ? deriveWeaponType(commander) : 'none';
         return {
           from,

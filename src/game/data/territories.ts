@@ -9,6 +9,124 @@
  */
 
 import type { City } from '../types';
+import { isLand, terrainMarchCost } from './geography';
+
+// ── Terrain-weighted march pathfinding (A*) ───────────────────────
+// A coarse navigation grid over the 1000×720 map; A* finds the
+// lowest-cost path so columns bend around mountain ranges and hug the
+// passes instead of cutting straight through. Cached per route — cities
+// don't move, so each (from,to) is solved once per session.
+const NAV = 24;
+const NAV_COLS = Math.ceil(1000 / NAV) + 1;
+const NAV_ROWS = Math.ceil(720 / NAV) + 1;
+let navCost: Float32Array | null = null;
+let navLand: Uint8Array | null = null;
+function ensureNav() {
+  if (navCost) return;
+  navCost = new Float32Array(NAV_COLS * NAV_ROWS);
+  navLand = new Uint8Array(NAV_COLS * NAV_ROWS);
+  for (let r = 0; r < NAV_ROWS; r++) {
+    for (let c = 0; c < NAV_COLS; c++) {
+      const x = c * NAV, y = r * NAV;
+      navCost[r * NAV_COLS + c] = terrainMarchCost(x, y);
+      navLand[r * NAV_COLS + c] = isLand(x, y, -12) ? 1 : 0;
+    }
+  }
+}
+/** Nearest land node index to a pixel (spirals out if the cell is sea). */
+function nearestLandNode(x: number, y: number): number {
+  const c0 = Math.max(0, Math.min(NAV_COLS - 1, Math.round(x / NAV)));
+  const r0 = Math.max(0, Math.min(NAV_ROWS - 1, Math.round(y / NAV)));
+  for (let ring = 0; ring < 8; ring++) {
+    for (let dr = -ring; dr <= ring; dr++) {
+      for (let dc = -ring; dc <= ring; dc++) {
+        if (Math.max(Math.abs(dr), Math.abs(dc)) !== ring) continue;
+        const r = r0 + dr, c = c0 + dc;
+        if (r < 0 || c < 0 || r >= NAV_ROWS || c >= NAV_COLS) continue;
+        if (navLand![r * NAV_COLS + c]) return r * NAV_COLS + c;
+      }
+    }
+  }
+  return r0 * NAV_COLS + c0;
+}
+
+const routeCache = new Map<string, Array<{ x: number; y: number }>>();
+
+/**
+ * Lowest-terrain-cost path from one point to another, as a simplified
+ * pixel poly-line. Falls back to a straight segment if no land path
+ * exists. Result cached on rounded endpoints.
+ */
+export function terrainRoute(fromX: number, fromY: number, toX: number, toY: number): Array<{ x: number; y: number }> {
+  const key = `${Math.round(fromX)},${Math.round(fromY)}>${Math.round(toX)},${Math.round(toY)}`;
+  const hit = routeCache.get(key);
+  if (hit) return hit;
+  ensureNav();
+  const path = astar(fromX, fromY, toX, toY) ?? [{ x: fromX, y: fromY }, { x: toX, y: toY }];
+  routeCache.set(key, path);
+  return path;
+}
+
+function astar(fromX: number, fromY: number, toX: number, toY: number): Array<{ x: number; y: number }> | null {
+  const N = NAV_COLS * NAV_ROWS;
+  const start = nearestLandNode(fromX, fromY);
+  const goal = nearestLandNode(toX, toY);
+  const gx = (goal % NAV_COLS) * NAV, gy = Math.floor(goal / NAV_COLS) * NAV;
+  const g = new Float32Array(N).fill(Infinity);
+  const f = new Float32Array(N).fill(Infinity);
+  const came = new Int32Array(N).fill(-1);
+  const open = new Set<number>();
+  g[start] = 0;
+  f[start] = Math.hypot((start % NAV_COLS) * NAV - gx, Math.floor(start / NAV_COLS) * NAV - gy);
+  open.add(start);
+  const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+  let guard = 0;
+  while (open.size > 0 && guard++ < 20000) {
+    // pop lowest f
+    let cur = -1, best = Infinity;
+    for (const n of open) { if (f[n] < best) { best = f[n]; cur = n; } }
+    if (cur === goal) break;
+    open.delete(cur);
+    const cc = cur % NAV_COLS, cr = Math.floor(cur / NAV_COLS);
+    for (const [dc, dr] of DIRS) {
+      const nc = cc + dc, nr = cr + dr;
+      if (nc < 0 || nr < 0 || nc >= NAV_COLS || nr >= NAV_ROWS) continue;
+      const ni = nr * NAV_COLS + nc;
+      if (!navLand![ni]) continue;
+      const step = (dc && dr) ? NAV * 1.4142 : NAV;
+      const tentative = g[cur] + step * (1 + (navCost![cur] + navCost![ni]) / 2);
+      if (tentative < g[ni]) {
+        came[ni] = cur;
+        g[ni] = tentative;
+        f[ni] = tentative + Math.hypot(nc * NAV - gx, nr * NAV - gy);
+        open.add(ni);
+      }
+    }
+  }
+  if (came[goal] === -1 && start !== goal) return null;
+  // Reconstruct grid path → pixel points.
+  const nodes: number[] = [];
+  for (let n = goal; n !== -1; n = came[n]) { nodes.push(n); if (n === start) break; }
+  nodes.reverse();
+  const pts: Array<{ x: number; y: number }> = [{ x: fromX, y: fromY }];
+  for (const n of nodes) pts.push({ x: (n % NAV_COLS) * NAV, y: Math.floor(n / NAV_COLS) * NAV });
+  pts.push({ x: toX, y: toY });
+  return simplify(pts);
+}
+
+/** Drop near-collinear points so the grid path reads as a clean poly-line. */
+function simplify(pts: Array<{ x: number; y: number }>): Array<{ x: number; y: number }> {
+  if (pts.length <= 2) return pts;
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+    const cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    const len = Math.hypot(c.x - a.x, c.y - a.y) || 1;
+    if (Math.abs(cross) / len > 3) out.push(b); // keep only real bends
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
 
 export interface Territory {
   id: string;

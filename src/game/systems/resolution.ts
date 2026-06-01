@@ -11,7 +11,7 @@ import type {
 } from '../types';
 import { OATH_BONDS, type OathBond } from '../data/bonds';
 import { isHostilePermitted } from '../types';
-import { generateTerritories, computeMarchRoute, positionAlongRoute, type Territory } from '../data/territories';
+import { generateTerritories, terrainRoute, positionAlongRoute, type Territory } from '../data/territories';
 import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
 import { handleSearch, resolveInternalAffairs, type LostItemRef } from './commands';
@@ -104,16 +104,11 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // map positions overlap this season clash in the field before either
   // reaches its destination. Loser's march is cancelled (survivors stream
   // back to source); winner takes lighter losses and marches on.
-  const interceptTerritories = generateTerritories(Object.values(cities));
   const armyPosition = (cmd: Extract<Command, { type: 'march' }>) => {
     const src = cities[cmd.cityId];
     const dst = cities[cmd.targetCityId];
     if (!src || !dst) return null;
-    const route = computeMarchRoute(
-      interceptTerritories,
-      { id: src.id, coords: src.coords },
-      { id: dst.id, coords: dst.coords },
-    );
+    const route = terrainRoute(src.coords.x, src.coords.y, dst.coords.x, dst.coords.y);
     const total = Math.max(1, cmd.totalSeasons ?? 1);
     const remaining = cmd.seasonsRemaining ?? 1;
     const elapsed = total - remaining;
@@ -205,11 +200,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     const cmdr = officers[cmd.officerId];
     if (!src || !dst || !cmdr || !cmdr.forceId) return;
     const territories = generateTerritories(Object.values(cities));
-    const route = computeMarchRoute(
-      territories,
-      { id: src.id, coords: src.coords },
-      { id: dst.id, coords: dst.coords },
-    );
+    const route = terrainRoute(src.coords.x, src.coords.y, dst.coords.x, dst.coords.y);
     if (route.length < 2) return;
     // For each territory whose centroid projects between [tStart, tEnd]
     // along the polyline length, claim it for the marching force.

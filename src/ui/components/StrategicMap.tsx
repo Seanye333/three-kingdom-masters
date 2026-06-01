@@ -11,7 +11,7 @@ import type {
 } from '../../game/types';
 import type { Weather } from '../../game/systems/weather';
 import { drawTerritoryOverlay, getTerritoryCanvas } from './territoryOverlay';
-import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../../game/data/territories';
+import { generateTerritories, positionAlongRoute, terrainRoute } from '../../game/data/territories';
 import { snapToHexCenter, hexCorners, isLand } from '../../game/data/geography';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
 
@@ -1180,10 +1180,8 @@ function drawCityLayer(
     }
   }
 
-  // March arrows + in-transit unit markers for pending commands. Phase 3b:
-  // armies follow a territory poly-route from source to destination instead
-  // of flying along the straight road.
-  const territoriesForRoutes = generateTerritories(Object.values(cities));
+  // March arrows + in-transit unit markers. Armies follow a terrain-
+  // weighted route (bends around mountains, through passes).
   for (const cmd of Object.values(pendingCommands)) {
     if (cmd.type !== 'march') continue;
     const from = cities[cmd.cityId];
@@ -1193,11 +1191,7 @@ function drawCityLayer(
     const hostile = to.ownerForceId !== from.ownerForceId;
     const color = hostile ? '#b8442e' : fromForce?.color ?? '#d4a84a';
 
-    const route = computeMarchRoute(
-      territoriesForRoutes,
-      { id: from.id, coords: from.coords },
-      { id: to.id, coords: to.coords },
-    );
+    const route = terrainRoute(from.coords.x, from.coords.y, to.coords.x, to.coords.y);
     drawRoutePolyline(ctx, route, color);
 
     const commander = officers[cmd.officerId];
