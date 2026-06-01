@@ -10,6 +10,7 @@ import type {
   Officer,
 } from '../../game/types';
 import type { Weather } from '../../game/systems/weather';
+import { drawTerritoryOverlay } from './territoryOverlay';
 
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 720;
@@ -813,6 +814,7 @@ function drawMap(
     // — the photo already has all of those. Jump straight to the overlays.
     drawSeasonTint(ctx, date.season);
     drawCloudShadows(ctx);
+    drawTerritoryOverlay(ctx, cities, forces);
     drawProvinceTints(ctx, cities);
     drawTerrainGlyphs(ctx, cities);
     // Roads + march arrows + cities are drawn by the shared block below.
@@ -955,6 +957,9 @@ function drawMap(
 
   // ── Drifting cloud shadows above the land ──
   drawCloudShadows(ctx);
+
+  // ── Territory ownership tint (Phase 3a — Voronoi by territory) ──
+  drawTerritoryOverlay(ctx, cities, forces);
 
   // ── Province color tints (RTK13PK-style soft regional shading) ──
   drawProvinceTints(ctx, cities);
