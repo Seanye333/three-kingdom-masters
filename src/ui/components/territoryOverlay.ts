@@ -123,7 +123,7 @@ function computeOverlay(
       ctx.fillStyle = colorOf(h.owner);
       ctx.fill();
       ctx.globalAlpha = 0.22;
-      ctx.lineWidth = 0.7;
+      ctx.lineWidth = 0.5;
       ctx.strokeStyle = '#1a120a';
       ctx.stroke();
     }
@@ -148,14 +148,14 @@ function computeOverlay(
 
   // Pass 2a — dark base seam under every frontier hex (the "carved" edge).
   ctx.globalAlpha = 0.82;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1.5;
   ctx.strokeStyle = '#120b05';
   for (const h of frontier) { tracePath(h.cx, h.cy); ctx.stroke(); }
 
   // Pass 2b — bright force-tinted core on top, so each frontier reads as a
   // crisp coloured border with a dark outline (RTK-style official lines).
   ctx.globalAlpha = 0.9;
-  ctx.lineWidth = 0.9;
+  ctx.lineWidth = 0.7;
   for (const h of frontier) {
     ctx.strokeStyle = lighten(colorOf(h.owner), 0.45);
     tracePath(h.cx, h.cy);
