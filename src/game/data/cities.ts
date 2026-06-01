@@ -1,4 +1,5 @@
 import type { City } from '../types';
+import { terrainMarchCost } from './geography';
 
 /** RTK14-style terrain category for each city. Pure-display today. */
 export type Terrain =
@@ -1036,19 +1037,35 @@ export function buildInitialCities(
 export const CITY_IDS = CITY_TEMPLATES.map((t) => t.id);
 
 /**
- * Multi-season march duration based on straight-line distance between two
- * adjacent cities on the 1000×720 map. Short hops (<80 units) stay 1 season
- * so peacetime adjustments feel instant; long mountain/sea adjacencies
- * (漢中↔成都, 北平↔遼東, 樂浪↔襄平) take 2-3 seasons so the player gets a
- * visible window to react.
+ * Multi-season march duration. Distance sets the baseline, but the path is
+ * weighted by terrain — crossing mountain ranges (秦岭, 大巴, 横断…) or a
+ * major river slows the column, so 漢中↔成都 through the passes takes longer
+ * than a flat march of the same distance. Pass-terrain endpoints (劍閣,
+ * 散關…) add a chokepoint season. Capped at 4 seasons.
  */
 export function marchDurationFor(from: City, to: City): number {
   const dx = to.coords.x - from.coords.x;
   const dy = to.coords.y - from.coords.y;
   const dist = Math.hypot(dx, dy);
-  if (dist < 80) return 1;
-  if (dist < 140) return 2;
-  return 3;
+
+  // Integrate terrain cost along the straight line: average extra cost
+  // scales the effective distance (mountains can ~2× it).
+  const STEPS = 10;
+  let costSum = 0;
+  for (let i = 0; i < STEPS; i++) {
+    const t = (i + 0.5) / STEPS;
+    costSum += terrainMarchCost(from.coords.x + dx * t, from.coords.y + dy * t);
+  }
+  const terrainMul = 1 + (costSum / STEPS); // 1 (plains) … ~2.3 (deep mountains)
+  let effDist = dist * terrainMul;
+
+  // A pass endpoint is a chokepoint — funnelling through it costs time.
+  if (from.terrain === 'pass' || to.terrain === 'pass') effDist += 45;
+
+  if (effDist < 80) return 1;
+  if (effDist < 150) return 2;
+  if (effDist < 240) return 3;
+  return 4;
 }
 
 /** Static city-id → bilingual name lookup. Used by UI components that

@@ -96,3 +96,61 @@ export function snapToHexCenter(px: number, py: number): { x: number; y: number 
   const q = Math.round((px - xOff) / HEX_W);
   return { x: q * HEX_W + xOff, y: r * HEX_V };
 }
+
+// ── Terrain cost for marching ─────────────────────────────────────
+// Mountain ridges + major rivers in pixel space (mirrors the procedural
+// terrain in StrategicMap3D). A march that crosses these moves slower.
+const DEG_TO_PX = MAP_W / (GEO_LON_MAX - GEO_LON_MIN);
+const ridgePx = (ridge: ReadonlyArray<readonly [number, number]>): Array<[number, number]> =>
+  ridge.map(([lon, lat]) => geoToPixel(lon, lat));
+
+const MOUNTAINS = ([
+  { ridge: [[96, 31], [98, 29.5], [100, 28]], width: 3.0, cost: 1.6 },           // 青藏
+  { ridge: [[96, 35.5], [100, 36], [104, 36]], width: 2.0, cost: 1.1 },          // 昆仑
+  { ridge: [[105, 33.8], [108, 33.7], [111, 33.5], [113, 33.4]], width: 0.8, cost: 1.2 }, // 秦岭
+  { ridge: [[105, 32.5], [108, 32], [111, 31.5]], width: 0.7, cost: 1.3 },       // 大巴/巫山
+  { ridge: [[113.5, 41], [113.8, 38], [113.5, 35]], width: 0.7, cost: 0.9 },     // 太行
+  { ridge: [[115, 41.5], [117, 41], [119, 41]], width: 0.6, cost: 0.7 },         // 燕山
+  { ridge: [[117.5, 28], [117, 25]], width: 0.6, cost: 0.8 },                    // 武夷
+  { ridge: [[110, 25.5], [113, 25], [115, 24.8]], width: 0.6, cost: 0.7 },       // 南岭
+  { ridge: [[100, 30], [101.5, 27], [102, 24]], width: 1.0, cost: 1.4 },         // 横断
+] as const).map((m) => ({ ridge: ridgePx(m.ridge), width: m.width * DEG_TO_PX, cost: m.cost }));
+
+const RIVERS = ([
+  { pts: [[96, 35], [103, 37], [106, 39], [109, 40.5], [110, 38], [112, 35], [114, 35], [117, 36], [119, 37.5]], width: 0.20 }, // 黄河
+  { pts: [[96, 33], [104, 30], [107, 30.5], [110, 30.5], [113, 30.5], [117, 30.8], [120, 31], [122, 31.5]], width: 0.25 },      // 长江
+] as const).map((r) => ({ pts: ridgePx(r.pts), width: Math.max(8, r.width * DEG_TO_PX) }));
+
+function distToPolyline(px: number, py: number, pts: Array<[number, number]>): number {
+  let best = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i];
+    const [bx, by] = pts[i + 1];
+    const dx = bx - ax, dy = by - ay;
+    const len2 = dx * dx + dy * dy || 1;
+    let t = ((px - ax) * dx + (py - ay) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    const cx = ax + dx * t, cy = ay + dy * t;
+    const d = Math.hypot(px - cx, py - cy);
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+/**
+ * Extra movement cost at a pixel from terrain: 0 on open plains, rising
+ * through mountains (up to ~1.6×) and a bump for river crossings. Used to
+ * weight march distance so marches through the mountains take longer.
+ */
+export function terrainMarchCost(x: number, y: number): number {
+  let cost = 0;
+  for (const m of MOUNTAINS) {
+    const d = distToPolyline(x, y, m.ridge);
+    if (d < m.width) cost += m.cost * (1 - d / m.width);
+  }
+  for (const r of RIVERS) {
+    const d = distToPolyline(x, y, r.pts);
+    if (d < r.width) cost += 0.5 * (1 - d / r.width);
+  }
+  return cost;
+}
