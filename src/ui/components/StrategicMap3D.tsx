@@ -4,6 +4,7 @@ import { Html, OrbitControls } from '@react-three/drei';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
 import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../../game/data/territories';
 import { snapToHexCenter } from '../../game/data/geography';
+import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
@@ -1272,6 +1273,7 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
           { id: from.id, coords: from.coords },
           { id: to.id, coords: to.coords },
         );
+        const weaponType: WeaponType = commander ? deriveWeaponType(commander) : 'none';
         return {
           from,
           to,
@@ -1281,6 +1283,7 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
           seasonsRemaining,
           totalSeasons,
           landRoute,
+          weaponType,
         };
       })
       .filter((a): a is NonNullable<typeof a> => !!a);
@@ -1292,18 +1295,25 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
         <MarchingArmy key={i} from={a.from} to={a.to} color={a.color}
           commanderName={a.commanderName} troops={a.troops}
           seasonsRemaining={a.seasonsRemaining} totalSeasons={a.totalSeasons}
-          landRoute={a.landRoute}
+          landRoute={a.landRoute} weaponType={a.weaponType}
           ports={ports} />
       ))}
     </group>
   );
 }
 
-function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, landRoute, ports }: {
+/** Short unit-type tag (騎/弓/槍…) + role for the army label. */
+const UNIT_TAG: Record<WeaponType, string> = {
+  cavalry: '騎', bow: '弓', crossbow: '弩', spear: '槍', halberd: '戟',
+  sabre: '刀', sword: '劍', fan: '師', siege: '械', none: '步',
+};
+
+function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, landRoute, weaponType, ports }: {
   from: City; to: City; color: string;
   commanderName: string; troops: number;
   seasonsRemaining: number; totalSeasons: number;
   landRoute: Array<{ x: number; y: number }>;
+  weaponType: WeaponType;
   ports: Record<string, import('../../game/types').Port>;
 }) {
   const [fpx, fpy] = cityPixel(from.id, from.coords.x, from.coords.y);
@@ -1391,10 +1401,12 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   return (
     <group ref={groupRef}>
       {FORMATION.map(([sx, sz], i) => (
-        <Soldier key={i} dx={sx} dz={sz} color={color} phase={i * 0.6} isLeader={i === 0} />
+        <Soldier key={i} dx={sx} dz={sz} color={color} phase={i * 0.6}
+          isLeader={i === 0} weaponType={weaponType} />
       ))}
+      <MarchDust />
       {commanderName && (
-        <Html position={[0, 0.45, 0]} center distanceFactor={10} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <Html position={[0, 0.5, 0]} center distanceFactor={10} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
           <div style={{
             background: 'rgba(15, 10, 5, 0.82)',
             border: `1px solid ${color}`,
@@ -1406,6 +1418,11 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
             textShadow: '0 0 4px rgba(0,0,0,0.9)',
             boxShadow: `0 0 6px ${color}66`,
           }}>
+            <span style={{
+              display: 'inline-block', minWidth: 13, textAlign: 'center',
+              background: color, color: '#1a120a', borderRadius: 2,
+              fontSize: '9px', marginRight: 4, padding: '0 1px', fontWeight: 700,
+            }}>{UNIT_TAG[weaponType]}</span>
             <span style={{ color: '#ffe9a8' }}>{commanderName}</span>
             <span style={{ color: '#c0a878', marginLeft: 5, fontSize: '9px', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}{etaLabel}</span>
           </div>
@@ -1415,36 +1432,103 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   );
 }
 
-function Soldier({ dx, dz, color, phase, isLeader }: {
+/** Drifting dust puffs kicked up behind the marching column. */
+function MarchDust() {
+  const ref = useRef<THREE.Group>(null);
+  const N = 5;
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    for (let i = 0; i < ref.current.children.length; i++) {
+      const m = ref.current.children[i] as THREE.Mesh;
+      // Each puff cycles: rises + drifts back + fades, offset per index.
+      const t = (clock.elapsedTime * 0.8 + i / N) % 1;
+      m.position.set(-0.05 - t * 0.35, 0.02 + t * 0.12, (i - N / 2) * 0.05);
+      m.scale.setScalar(0.05 + t * 0.14);
+      (m.material as THREE.MeshBasicMaterial).opacity = 0.32 * (1 - t);
+    }
+  });
+  return (
+    <group ref={ref}>
+      {Array.from({ length: N }, (_, i) => (
+        <mesh key={i}>
+          <sphereGeometry args={[1, 6, 6]} />
+          <meshBasicMaterial color="#b8a888" transparent opacity={0.2} depthWrite={false} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function Soldier({ dx, dz, color, phase, isLeader, weaponType }: {
   dx: number; dz: number; color: string; phase: number; isLeader: boolean;
+  weaponType: WeaponType;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const bannerRef = useRef<THREE.Mesh>(null);
+  const mounted = weaponType === 'cavalry';
+  const lift = mounted ? 0.10 : 0;
   useFrame(({ clock }) => {
-    if (!groupRef.current) return;
-    // Walking bounce — different phase per soldier so they don't bob in sync
-    groupRef.current.position.y = Math.abs(Math.sin(clock.elapsedTime * 5 + phase)) * 0.04;
+    if (groupRef.current) {
+      // Walking bounce — phase-shifted; mounted units ride steadier.
+      const amp = mounted ? 0.02 : 0.04;
+      groupRef.current.position.y = Math.abs(Math.sin(clock.elapsedTime * 5 + phase)) * amp;
+    }
+    if (bannerRef.current) {
+      // Banner ripples in the wind.
+      bannerRef.current.rotation.z = Math.sin(clock.elapsedTime * 4 + phase) * 0.25;
+    }
   });
   return (
     <group ref={groupRef} position={[dx, 0, dz]}>
+      {/* Mount for cavalry — a simple horse body + legs under the rider. */}
+      {mounted && (
+        <group position={[0, 0.02, 0]}>
+          <mesh position={[0, 0.07, 0]} castShadow>
+            <boxGeometry args={[0.07, 0.05, 0.14]} />
+            <meshStandardMaterial color="#5a4030" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 0.10, 0.09]} castShadow>
+            <boxGeometry args={[0.04, 0.06, 0.04]} />
+            <meshStandardMaterial color="#5a4030" roughness={0.8} />
+          </mesh>
+        </group>
+      )}
       {/* Body — torso */}
-      <mesh position={[0, 0.07, 0]} castShadow>
+      <mesh position={[0, 0.07 + lift, 0]} castShadow>
         <cylinderGeometry args={[0.04, 0.05, 0.10, 6]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
+        <meshStandardMaterial color={weaponType === 'fan' ? '#caa' : color} roughness={0.7} />
       </mesh>
       {/* Head */}
-      <mesh position={[0, 0.155, 0]} castShadow>
+      <mesh position={[0, 0.155 + lift, 0]} castShadow>
         <sphereGeometry args={[0.028, 6, 6]} />
         <meshStandardMaterial color="#e0c498" roughness={0.75} />
       </mesh>
-      {/* Spear (or banner pole) */}
-      <mesh position={[0.03, 0.13, 0]} castShadow>
-        <cylinderGeometry args={[0.004, 0.004, 0.22, 4]} />
-        <meshStandardMaterial color="#3a2818" />
-      </mesh>
-      {/* Leader gets a banner */}
+
+      {/* Type-specific gear */}
+      {weaponType === 'fan' ? (
+        // Strategist — holds a round fan, no weapon pole.
+        <mesh position={[0.06, 0.15 + lift, 0]} rotation={[0, 0, 0.4]} castShadow>
+          <circleGeometry args={[0.035, 12]} />
+          <meshStandardMaterial color="#e8dcc0" side={THREE.DoubleSide} roughness={0.6} />
+        </mesh>
+      ) : (weaponType === 'bow' || weaponType === 'crossbow') ? (
+        // Archer — a curved bow arc.
+        <mesh position={[0.05, 0.13 + lift, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <torusGeometry args={[0.05, 0.005, 6, 10, Math.PI * 1.2]} />
+          <meshStandardMaterial color="#6a4a28" roughness={0.7} />
+        </mesh>
+      ) : (
+        // Infantry / cavalry — pole arm (taller for halberd/spear).
+        <mesh position={[0.035, (weaponType === 'halberd' ? 0.16 : 0.13) + lift, 0]} castShadow>
+          <cylinderGeometry args={[0.004, 0.004, weaponType === 'halberd' ? 0.28 : 0.22, 4]} />
+          <meshStandardMaterial color="#3a2818" />
+        </mesh>
+      )}
+
+      {/* Leader carries the force banner (waving). */}
       {isLeader && (
-        <mesh position={[0.07, 0.20, 0]} castShadow>
-          <planeGeometry args={[0.08, 0.05]} />
+        <mesh ref={bannerRef} position={[0.075, 0.22 + lift, 0]} castShadow>
+          <planeGeometry args={[0.09, 0.055]} />
           <meshStandardMaterial color={color} side={THREE.DoubleSide} />
         </mesh>
       )}

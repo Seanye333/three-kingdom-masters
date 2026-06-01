@@ -13,6 +13,13 @@ import type { Weather } from '../../game/systems/weather';
 import { drawTerritoryOverlay } from './territoryOverlay';
 import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../../game/data/territories';
 import { snapToHexCenter, hexCorners, isLand } from '../../game/data/geography';
+import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
+
+/** Single-glyph unit tag for the 2D march pennant. */
+const UNIT_TAG_2D: Record<WeaponType, string> = {
+  cavalry: '騎', bow: '弓', crossbow: '弩', spear: '槍', halberd: '戟',
+  sabre: '刀', sword: '劍', fan: '師', siege: '械', none: '步',
+};
 
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 720;
@@ -1118,8 +1125,9 @@ function drawCityLayer(
       const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / total));
       const raw = positionAlongRoute(route, t);
       const { x: ux, y: uy } = snapToHexCenter(raw.x, raw.y);
+      const unitTag = UNIT_TAG_2D[deriveWeaponType(commander)];
       drawOccupiedHex(ctx, ux, uy, color);
-      drawMarchUnit(ctx, ux, uy, color, commander.name.zh, cmd.troops, remaining, total);
+      drawMarchUnit(ctx, ux, uy, color, commander.name.zh, cmd.troops, remaining, total, unitTag);
     }
   }
 
@@ -1445,6 +1453,7 @@ function drawMarchUnit(
   troops: number,
   seasonsRemaining: number,
   totalSeasons: number,
+  unitTag: string,
 ) {
   ctx.save();
   // Subtle bob so the unit looks alive.
@@ -1471,14 +1480,19 @@ function drawMarchUnit(
   ctx.fill();
   ctx.stroke();
 
-  // Round base showing the force color
+  // Round base showing the force color, with the unit-type glyph on it.
   ctx.fillStyle = color;
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.arc(x, cy + 4, 4, 0, Math.PI * 2);
+  ctx.arc(x, cy + 4, 6, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
+  ctx.fillStyle = '#1a120a';
+  ctx.font = 'bold 8px "Songti SC", serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(unitTag, x, cy + 4.5);
 
   // Commander name + troop count, stacked below the marker
   ctx.font = 'bold 10px "Ma Shan Zheng", "Songti SC", "Noto Serif SC", serif';
