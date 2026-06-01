@@ -12,6 +12,7 @@ import { isLand, hexCorners, HEX_W, HEX_V, HEX_SIZE } from '../../game/data/geog
 
 const W = 1000;
 const H = 720;
+const SS = 2; // supersample factor for crisp fine-grid lines
 const NEUTRAL_COLOR = '#5a4530';
 const FILL_ALPHA = 0.42;
 
@@ -60,11 +61,15 @@ function computeOverlay(
   forces: Record<EntityId, Force>,
   territoryOwnership: Record<EntityId, EntityId | null> = {},
 ): HTMLCanvasElement {
+  // Supersample: render at 2× then let drawImage/texture downsample, so the
+  // fine grid lines stay crisp instead of blurring when the map is shown
+  // smaller than 1000px or stretched over the 3D terrain.
   const off = document.createElement('canvas');
-  off.width = W;
-  off.height = H;
+  off.width = W * SS;
+  off.height = H * SS;
   const ctx = off.getContext('2d');
   if (!ctx) return off;
+  ctx.scale(SS, SS); // draw everything below in logical 1000×720 space
 
   // Effective owner per territory: 3c override wins, else parent city.
   const tx = territories.map((t) => t.coords.x);
@@ -205,5 +210,6 @@ export function drawTerritoryOverlay(
   forces: Record<EntityId, Force>,
   territoryOwnership: Record<EntityId, EntityId | null> = {},
 ) {
-  ctx.drawImage(getTerritoryCanvas(cities, forces, territoryOwnership), 0, 0);
+  // Canvas is supersampled (W*SS × H*SS) — draw it back at logical size.
+  ctx.drawImage(getTerritoryCanvas(cities, forces, territoryOwnership), 0, 0, W, H);
 }
