@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { navalReachableCityIds } from '../../game/data/ports';
 import { marchDurationFor } from '../../game/data/cities';
+import { generateTerritories, computeMarchRoute } from '../../game/data/territories';
 import { useT } from '../i18n';
 import { BattlePrepModal } from './BattlePrepModal';
 import type { EntityId } from '../../game/types';
@@ -15,6 +16,7 @@ interface Props {
 }
 
 const MAX_COMPANIONS = 5;
+const EMPTY_OWNERSHIP: Record<EntityId, EntityId | null> = {};
 
 export function MarchPicker({ cityId, onClose }: Props) {
   const def = COMMAND_DEFS['march'];
@@ -23,6 +25,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const officersMap = useGameStore((s) => s.officers);
+  const territoryOwnership = useGameStore((s) => s.territoryOwnership ?? EMPTY_OWNERSHIP);
   const [showPrep, setShowPrep] = useState(false);
 
   const pendingTrainings = useGameStore((s) => s.pendingTrainings);
@@ -81,6 +84,41 @@ export function MarchPicker({ cityId, onClose }: Props) {
   const [officerId, setOfficerId] = useState<EntityId | null>(
     officers[0]?.id ?? null,
   );
+
+  // Route preview for the selected target: which territory cells the army
+  // crosses, who owns them, how many seasons, and whether it passes through
+  // hostile ground (which risks interception + bleeds supply en route).
+  const routeInfo = useMemo(() => {
+    const src = cities[cityId];
+    const tgt = targetId ? cities[targetId] : null;
+    if (!src || !tgt) return null;
+    const territories = generateTerritories(Object.values(cities));
+    const route = computeMarchRoute(
+      territories,
+      { id: src.id, coords: src.coords },
+      { id: tgt.id, coords: tgt.coords },
+    );
+    const ownerAt = (x: number, y: number): EntityId | null => {
+      let best = -1;
+      let bestD = Infinity;
+      for (let i = 0; i < territories.length; i++) {
+        const dx = x - territories[i].coords.x;
+        const dy = y - territories[i].coords.y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best < 0) return null;
+      const ter = territories[best];
+      const ov = territoryOwnership[ter.id];
+      if (ov !== undefined && ov !== null) return ov;
+      return cities[ter.parentCityId]?.ownerForceId ?? null;
+    };
+    // Interior waypoints (skip the two city endpoints).
+    const cells = route.slice(1, -1).map((p) => ownerAt(p.x, p.y));
+    const myForce = src.ownerForceId;
+    const hostileCells = cells.filter((f) => f && f !== myForce).length;
+    return { cells, seasons: marchDurationFor(src, tgt), hostileCells, myForce };
+  }, [cityId, targetId, cities, territoryOwnership]);
   const [additionalIds, setAdditionalIds] = useState<EntityId[]>([]);
   const [troops, setTroops] = useState<number>(
     Math.min(2000, source?.troops ?? 0),
@@ -197,6 +235,43 @@ export function MarchPicker({ cityId, onClose }: Props) {
             </ul>
           )}
         </section>
+
+        {routeInfo && target && (
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>{t('行軍路線', 'March Route')}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', padding: '0.2rem 0' }}>
+              {/* source */}
+              <span style={{
+                display: 'inline-block', width: 9, height: 9, borderRadius: '50%',
+                background: source.ownerForceId ? (forces[source.ownerForceId]?.color ?? '#5a4530') : '#5a4530',
+                border: '1px solid #000',
+              }} title={source.name.zh} />
+              {routeInfo.cells.map((f, i) => (
+                <span key={i} style={{
+                  display: 'inline-block', width: 7, height: 7,
+                  transform: 'rotate(45deg)',
+                  background: f ? (forces[f]?.color ?? '#5a4530') : '#3a2d20',
+                  outline: f && f !== routeInfo.myForce ? '1px solid #b8442e' : 'none',
+                }} title={f ? (forces[f]?.name.zh ?? '無主') : '無主'} />
+              ))}
+              {/* arrow + target */}
+              <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>▸</span>
+              <span style={{
+                display: 'inline-block', width: 10, height: 10, borderRadius: '50%',
+                background: targetForce?.color ?? '#5a4530',
+                border: '1px solid #fff4d0',
+              }} title={target.name.zh} />
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#c0a878', marginTop: '0.2rem' }}>
+              {t(`耗時 ${routeInfo.seasons} 季`, `${routeInfo.seasons} season(s)`)}
+              {routeInfo.hostileCells > 0 && (
+                <span style={{ color: '#e08850', marginLeft: 8 }}>
+                  ⚠ {t(`途經 ${routeInfo.hostileCells} 格敵境 — 恐遭攔截`, `crosses ${routeInfo.hostileCells} enemy cell(s) — interception risk`)}
+                </span>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>{t('大將', 'Commander')}</h3>
