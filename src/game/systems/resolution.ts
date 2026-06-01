@@ -172,6 +172,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
 
   const delayedEffects: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }> = [];
   for (const cmd of marches) {
+    const citiesBefore = cities;
     const outcome = handleMarch(cmd, {
       cities,
       officers,
@@ -186,6 +187,21 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     cities = outcome.cities;
     officers = outcome.officers;
     entries.push(...outcome.entries);
+    // Phase 3d — city fell to a new owner this march: clear any captured
+    // sub-territory overrides for that city, so its inner cells follow
+    // the new owner instead of showing the previous invader's banner.
+    for (const cityId of Object.keys(outcome.cities)) {
+      const beforeOwner = citiesBefore[cityId]?.ownerForceId;
+      const afterOwner = outcome.cities[cityId]?.ownerForceId;
+      if (beforeOwner !== afterOwner) {
+        const territories = generateTerritories(Object.values(cities));
+        for (const ter of territories) {
+          if (ter.parentCityId === cityId) {
+            delete territoryOwnership[ter.id];
+          }
+        }
+      }
+    }
     // 武功 — duels: scan battle entries for duel winners
     for (const e of outcome.entries) {
       if (e.battle && e.battle.duelWinnerId) {

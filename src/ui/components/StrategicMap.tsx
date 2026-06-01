@@ -16,6 +16,9 @@ import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../.
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 720;
 const CITY_RADIUS = 9;
+/** Stable fallback so the zustand selector doesn't return a new {} per
+ *  render (which would loop-detect under useSyncExternalStore). */
+const EMPTY_TERRITORY_OWNERSHIP: Record<EntityId, EntityId | null> = {};
 const NEUTRAL_COLOR = '#5a4530';
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 3.0;
@@ -42,7 +45,7 @@ export function StrategicMap() {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const officers = useGameStore((s) => s.officers);
-  const territoryOwnership = useGameStore((s) => s.territoryOwnership);
+  const territoryOwnership = useGameStore((s) => s.territoryOwnership ?? EMPTY_TERRITORY_OWNERSHIP);
   const selectedCityId = useGameStore((s) => s.selectedCityId);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectCity = useGameStore((s) => s.selectCity);

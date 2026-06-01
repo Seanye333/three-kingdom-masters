@@ -42,6 +42,8 @@ function hashStr(s: string): number {
 const PIXEL_TO_WORLD = 1 / 24;          // bigger world → more room between cities
 const MAP_W = 1000 * PIXEL_TO_WORLD;   // 41.67
 const MAP_D = 720  * PIXEL_TO_WORLD;   // 30
+/** Stable fallback for selectors that may return undefined on old saves. */
+const EMPTY_TERRITORY_OWNERSHIP: Record<string, string | null> = {};
 function pxToWorld(x: number, y: number): [number, number] {
   return [x * PIXEL_TO_WORLD - MAP_W / 2, y * PIXEL_TO_WORLD - MAP_D / 2];
 }
@@ -1859,7 +1861,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const officers = useGameStore((s) => s.officers);
-  const territoryOwnership = useGameStore((s) => s.territoryOwnership);
+  const territoryOwnership = useGameStore((s) => s.territoryOwnership ?? EMPTY_TERRITORY_OWNERSHIP);
   const selectedCityId = useGameStore((s) => s.selectedCityId);
   const selectCity = useGameStore((s) => s.selectCity);
   const pendingCommands = useGameStore((s) => s.pendingCommands);

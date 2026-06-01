@@ -805,6 +805,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           runtimeBonds: state.runtimeBonds,
           family: state.family,
           appointments: appointmentsAfterAI,
+          territoryOwnership: state.territoryOwnership ?? {},
           date: state.date,
         });
         // Compute whether this period transition crosses a season boundary.
@@ -825,7 +826,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           diplomacy: planned.diplomacy,
           runtimeBonds: planned.runtimeBonds,
           lostItems: state.lostItems,
-          territoryOwnership: state.territoryOwnership,
+          territoryOwnership: state.territoryOwnership ?? {},
           family: state.family,
           appointments: appointmentsAfterAI,
           casusBelliMarks: casusBelliAfterCourt,
@@ -2081,7 +2082,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           fleets: updatedFleets,
           ports: nextPorts,
           forts: nextForts,
-          territoryOwnership: result.territoryOwnership ?? state.territoryOwnership,
+          territoryOwnership: result.territoryOwnership ?? state.territoryOwnership ?? {},
           endingsAchieved,
           campaignStats: {
             ...state.campaignStats,

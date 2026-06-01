@@ -61,6 +61,9 @@ export interface AIPlanInput {
   /** Civic-title appointments — so AI can route a city's internal-affairs
    *  to its prefect (who gets the +15% internalMultiplier bonus). */
   appointments?: import('../types').Appointment[];
+  /** Phase 3d — per-territory owner overrides. AI uses this to spot
+   *  targets that currently hold its captured cells (reclaim priority). */
+  territoryOwnership?: Record<EntityId, EntityId | null>;
   date: GameDate;
   difficulty?: Difficulty;
   rng?: () => number;
@@ -132,6 +135,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         input.forces,
         input.family ?? [],
         prefectId,
+        input.territoryOwnership ?? {},
       );
       if (!decision) continue;
 
@@ -504,6 +508,7 @@ function decideCommand(
   forces: Record<EntityId, Force>,
   family: import('../types/family').FamilyRelation[],
   prefectId: EntityId | null = null,
+  territoryOwnership: Record<EntityId, EntityId | null> = {},
 ): Decision | null {
   const ownRulerId = forces[forceId]?.rulerOfficerId;
   // 1. Food crisis — develop agriculture
@@ -532,6 +537,20 @@ function decideCommand(
 
   // 4. Opportunity to attack a weaker neighbor
   if (city.troops >= 5000 && city.gold >= COMMAND_DEFS['march'].goldCost) {
+    // Phase 3d — reclaim bias: how many of MY territory cells does each
+    // candidate force currently hold? Use as a soft preference so AI
+    // counter-marches forces that have been raiding it.
+    const reclaimDebt: Record<EntityId, number> = {};
+    for (const [terId, ownerId] of Object.entries(territoryOwnership)) {
+      if (!ownerId || ownerId === forceId) continue;
+      // territory ids are `${parentCityId}-${i}` — recover parent.
+      const dash = terId.lastIndexOf('-');
+      const parentCityId = dash > 0 ? terId.slice(0, dash) : terId;
+      const parent = allCities[parentCityId];
+      if (parent?.ownerForceId === forceId) {
+        reclaimDebt[ownerId] = (reclaimDebt[ownerId] ?? 0) + 1;
+      }
+    }
     const targets = city.adjacentCityIds
       .map((id) => allCities[id])
       .filter(
@@ -541,7 +560,13 @@ function decideCommand(
           (c.ownerForceId === null ||
             isHostilePermitted(diplomacy, forceId, c.ownerForceId)),
       )
-      .sort((a, b) => a.troops - b.troops);
+      .sort((a, b) => {
+        // Lower troops = easier; but a target whose owner is sitting on
+        // my captured cells gets an effective discount.
+        const aDebt = a.ownerForceId ? (reclaimDebt[a.ownerForceId] ?? 0) : 0;
+        const bDebt = b.ownerForceId ? (reclaimDebt[b.ownerForceId] ?? 0) : 0;
+        return (a.troops - aDebt * 400) - (b.troops - bDebt * 400);
+      });
 
     const baseThreshold =
       difficulty === 'easy' ? 0.4 : difficulty === 'hard' ? 0.8 : 0.6;
