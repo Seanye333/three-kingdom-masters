@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
 import { citySize } from '../../game/systems/citySize';
-import type { City, Season } from '../../game/types';
+import type { City, Force, Season } from '../../game/types';
 import type { WeatherKind } from '../../game/systems/weather';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
@@ -584,7 +584,7 @@ function TerritoryGroundLayer({
   forces,
 }: {
   cities: Record<string, City>;
-  forces: Record<string, { color: string; capitalCityId?: string | null }>;
+  forces: Record<string, Force>;
 }) {
   // Same displaced geometry as MapTerrain — keep them in lockstep.
   const geom = useMemo(() => {
