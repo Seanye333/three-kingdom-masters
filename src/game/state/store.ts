@@ -827,6 +827,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           runtimeBonds: planned.runtimeBonds,
           lostItems: state.lostItems,
           territoryOwnership: state.territoryOwnership ?? {},
+          playerForceId: state.playerForceId,
           family: state.family,
           appointments: appointmentsAfterAI,
           casusBelliMarks: casusBelliAfterCourt,

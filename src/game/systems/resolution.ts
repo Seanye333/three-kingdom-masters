@@ -34,6 +34,8 @@ export interface ResolutionInput {
   /** Phase 3c — current per-territory owner overrides (null/missing
    *  means inherit from parent city). */
   territoryOwnership?: Record<EntityId, EntityId | null>;
+  /** Player's force — used to summarise their territory gains/losses. */
+  playerForceId?: EntityId | null;
   /** Runtime family relations — flow through into combat for kinship bonuses. */
   family?: import('../types/family').FamilyRelation[];
   /** Civic-title appointments — drive force-wide bonuses in commands + combat. */
@@ -479,6 +481,36 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         kind: 'desertion',
         text: `${city.name.en} ${fully ? 'is fully encircled' : 'is harassed'} — ${enemyCount}/${sats.length} surrounding territories enemy-held. −${troopLoss} troops, −${goldLoss}g.`,
         textZh: `${city.name.zh}${fully ? '被圍困' : '受騷擾'}：外圍 ${enemyCount}/${sats.length} 格陷敵。兵 −${troopLoss}、金 −${goldLoss}。`,
+      });
+    }
+  }
+
+  // Player territory summary: net cells captured / lost this season via
+  // marching (override transitions involving the player force). Closes the
+  // feedback loop on the core grid-conquest mechanic.
+  const player = input.playerForceId;
+  if (player) {
+    const before = input.territoryOwnership ?? {};
+    let gained = 0;
+    let lost = 0;
+    const keys = new Set([...Object.keys(before), ...Object.keys(territoryOwnership)]);
+    for (const k of keys) {
+      const b = before[k] ?? null;
+      const a = territoryOwnership[k] ?? null;
+      if (b === a) continue;
+      if (a === player) gained++;
+      else if (b === player) lost++;
+    }
+    if (gained > 0 || lost > 0) {
+      const parts: string[] = [];
+      const partsZh: string[] = [];
+      if (gained > 0) { parts.push(`gained ${gained} territory cell(s)`); partsZh.push(`佔領 ${gained} 格領地`); }
+      if (lost > 0) { parts.push(`lost ${lost}`); partsZh.push(`失守 ${lost} 格`); }
+      entries.push({
+        cityId: null,
+        kind: gained >= lost ? 'conquest' : 'desertion',
+        text: `Your forces ${parts.join(', ')} this season.`,
+        textZh: `本季我軍${partsZh.join('、')}。`,
       });
     }
   }
