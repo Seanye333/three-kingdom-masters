@@ -1031,9 +1031,43 @@ function SideHall({ x, z, radius, baseY, h }: {
   );
 }
 
-/** Port complex (港): stone pier extending sideways from the city, with a
- *  moored war junk (楼船) + 3 small fishing boats + a few mast poles. The
- *  pier sticks out along +X by convention. */
+/** Force banner flown over an owned city — a pole + waving flag. */
+function CityBanner({ color, baseY, isCapital }: {
+  color: string; baseY: number; isCapital: boolean;
+}) {
+  const flagRef = useRef<THREE.Mesh>(null);
+  const poleH = isCapital ? 0.55 : 0.38;
+  const flagW = isCapital ? 0.22 : 0.15;
+  const flagH = isCapital ? 0.14 : 0.09;
+  const flagY = baseY + poleH - flagH * 0.7;
+  useFrame(({ clock }) => {
+    if (flagRef.current) {
+      flagRef.current.rotation.z = Math.sin(clock.elapsedTime * 3.5) * 0.18;
+    }
+  });
+  return (
+    <group>
+      <mesh position={[0, baseY + poleH / 2, 0]} castShadow>
+        <cylinderGeometry args={[0.012, 0.012, poleH, 5]} />
+        <meshStandardMaterial color="#1a1410" />
+      </mesh>
+      {/* Gold finial on capital poles. */}
+      {isCapital && (
+        <mesh position={[0, baseY + poleH + 0.02, 0]} castShadow>
+          <sphereGeometry args={[0.022, 8, 8]} />
+          <meshStandardMaterial color="#f0d878" metalness={0.5} roughness={0.4} />
+        </mesh>
+      )}
+      <mesh ref={flagRef} position={[flagW / 2, flagY, 0]} castShadow>
+        <planeGeometry args={[flagW, flagH]} />
+        <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.6} />
+      </mesh>
+    </group>
+  );
+}
+
+/** City pillar group: walled city / pagoda / pass / hamlet by tier, with
+ *  a force-colored base disk, banner, name label and selection ring. */
 function City3D({
   city, forceColor, isCapital, isSelected, terrainY, overlay, onClick,
 }: {
@@ -1076,18 +1110,11 @@ function City3D({
         forceColor={forceColor}
         onClick={onClick}
       />
-      {/* Capital flag */}
-      {isCapital && (
-        <>
-          <mesh position={[0, height + 0.35, 0]} castShadow>
-            <cylinderGeometry args={[0.015, 0.015, 0.5, 4]} />
-            <meshStandardMaterial color="#1a1410" />
-          </mesh>
-          <mesh position={[0.1, height + 0.5, 0]} castShadow>
-            <planeGeometry args={[0.2, 0.13]} />
-            <meshStandardMaterial color="#b8442e" side={THREE.DoubleSide} />
-          </mesh>
-        </>
+      {/* Force banner — every owned city flies its colours so ownership
+       *  reads from the buildings, not just the ground grid. Capitals get
+       *  a taller pole + larger flag. */}
+      {city.ownerForceId && (
+        <CityBanner color={forceColor} baseY={height} isCapital={isCapital} />
       )}
       {/* Port complex — pier, wharf, war junk + mast forest */}
       {/* Old in-city port docks removed — ports are now independent entities
