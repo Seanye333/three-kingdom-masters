@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCES } from '../../game/data';
 import type {
@@ -12,7 +12,7 @@ import type {
 import type { Weather } from '../../game/systems/weather';
 import { drawTerritoryOverlay } from './territoryOverlay';
 import { computeMarchRoute, generateTerritories, positionAlongRoute } from '../../game/data/territories';
-import { snapToHexCenter, hexCorners } from '../../game/data/geography';
+import { snapToHexCenter, hexCorners, isLand } from '../../game/data/geography';
 
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 720;
@@ -58,6 +58,10 @@ export function StrategicMap() {
   const burningCities = useGameStore((s) => s.burningCities);
   const [hoverCityId, setHoverCityId] = useState<EntityId | null>(null);
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  // Hovered territory cell (when not over a city): tooltip state + a ref
+  // the draw loop reads to outline the cell without re-subscribing.
+  const [hoverForce, setHoverForce] = useState<{ name: string; color: string } | null>(null);
+  const hoverHexRef = useRef<{ x: number; y: number; color: string } | null>(null);
   const [viewport, setViewport] = useState<Viewport>(DEFAULT_VIEWPORT);
   const [overlayMode, setOverlayMode] = useState<OverlayMode>('none');
   // Dev edit mode — drag-to-relocate cities, then export.
@@ -120,6 +124,27 @@ export function StrategicMap() {
         effectiveCities[c.id] = ov ? { ...c, coords: ov } : c;
       }
       drawMap(ctx, effectiveCities, forces, officers, territoryOwnership, selectedCityId, pendingCommands, date, bgImageRef.current);
+      // Hovered territory cell outline (drawn in world space, above the grid).
+      const hh = hoverHexRef.current;
+      if (hh) {
+        const corners = hexCorners(hh.x, hh.y);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(corners[0][0], corners[0][1]);
+        for (let i = 1; i < 6; i++) ctx.lineTo(corners[i][0], corners[i][1]);
+        ctx.closePath();
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = hh.color;
+        ctx.fill();
+        ctx.globalAlpha = 0.95;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#fff4d0';
+        ctx.shadowColor = hh.color;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.restore();
+      }
       if (overlayMode !== 'none') {
         drawHeatmap(ctx, effectiveCities, overlayMode);
       }
@@ -150,6 +175,29 @@ export function StrategicMap() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [cities, forces, officers, territoryOwnership, selectedCityId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities]);
+
+  // Territory list (stable per city set) for hover owner lookup.
+  const territoriesForHover = useMemo(
+    () => generateTerritories(Object.values(cities)),
+    [cities],
+  );
+  // Effective owning force of the territory cell at a world point, or null.
+  const territoryForceAt = (wx: number, wy: number): EntityId | null => {
+    let best = -1;
+    let bestD = Infinity;
+    for (let i = 0; i < territoriesForHover.length; i++) {
+      const t = territoriesForHover[i];
+      const dx = wx - t.coords.x;
+      const dy = wy - t.coords.y;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    if (best < 0) return null;
+    const t = territoriesForHover[best];
+    const override = territoryOwnership[t.id];
+    if (override !== undefined && override !== null) return override;
+    return cities[t.parentCityId]?.ownerForceId ?? null;
+  };
 
   // Convert canvas (CSS px) coords → world (map) coords.
   const toWorld = (cx: number, cy: number) => ({
@@ -253,10 +301,26 @@ export function StrategicMap() {
     const hit = hitTestCity(x, y, effMap);
     if (hit !== hoverCityId) setHoverCityId(hit);
     if (hit) setHoverPos({ x: cx, y: cy });
+
+    // Territory-cell hover (only when not over a city and on land).
+    if (!hit && isLand(x, y, 2)) {
+      const snapped = snapToHexCenter(x, y);
+      const forceId = territoryForceAt(snapped.x, snapped.y);
+      const force = forceId ? forces[forceId] : null;
+      const color = force?.color ?? '#8a7050';
+      hoverHexRef.current = { x: snapped.x, y: snapped.y, color };
+      setHoverForce({ name: force ? force.name.zh : '無主', color });
+      setHoverPos({ x: cx, y: cy });
+    } else {
+      hoverHexRef.current = null;
+      if (hoverForce) setHoverForce(null);
+    }
   };
 
   const handleMouseLeave = () => {
     setHoverCityId(null);
+    hoverHexRef.current = null;
+    setHoverForce(null);
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -468,6 +532,28 @@ export function StrategicMap() {
           </div>
         );
       })()}
+      {/* Territory-cell hover chip (only when not over a city) */}
+      {!hoverCityId && hoverForce && (
+        <div style={{
+          position: 'absolute',
+          left: Math.min(MAP_WIDTH - 120, hoverPos.x + 14),
+          top: Math.min(MAP_HEIGHT - 40, hoverPos.y + 14),
+          pointerEvents: 'none',
+          background: 'rgba(20, 14, 9, 0.9)',
+          border: `1px solid ${hoverForce.color}`,
+          padding: '0.2rem 0.5rem',
+          color: '#e8d9b0',
+          fontFamily: '"Songti SC", serif',
+          fontSize: '0.78rem',
+          whiteSpace: 'nowrap',
+          zIndex: 50,
+          boxShadow: '0 0 8px rgba(0,0,0,0.6)',
+        }}>
+          <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: hoverForce.color, marginRight: 5 }} />
+          {hoverForce.name}
+          <span style={{ color: '#8a7050', marginLeft: 5, fontSize: '0.66rem' }}>領地</span>
+        </div>
+      )}
       <div
         style={{
           position: 'absolute',
