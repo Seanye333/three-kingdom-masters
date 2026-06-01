@@ -10,6 +10,7 @@ import type {
   HistoricalEvent,
   ImperialRank,
   InternalAffairsType,
+  MarchCommand,
   MilitaryRankId,
   Officer,
   ProvinceId,
@@ -26,6 +27,7 @@ import { FORGE_RECIPES_BY_ID } from '../data/forging';
 import { EDICTS_BY_KIND, IMPERIAL_RANKS_BY_ID } from '../data/imperial';
 import { ESPIONAGE_DEFS_BY_KIND } from '../data/espionage';
 import { ITEMS_BY_ID } from '../data/items';
+import { marchDurationFor } from '../data/cities';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
 import {
@@ -482,14 +484,19 @@ export const useGameStore = create<GameStore>()(
           officers: officersUpdate,
           pendingCommands: {
             ...state.pendingCommands,
-            [officerId]: {
-              type: 'march',
-              cityId: sourceId,
-              officerId,
-              targetCityId: targetId,
-              troops,
-              additionalOfficerIds: extras.length > 0 ? extras : undefined,
-            },
+            [officerId]: ((): MarchCommand => {
+              const dur = marchDurationFor(source, state.cities[targetId]);
+              return {
+                type: 'march',
+                cityId: sourceId,
+                officerId,
+                targetCityId: targetId,
+                troops,
+                additionalOfficerIds: extras.length > 0 ? extras : undefined,
+                seasonsRemaining: dur,
+                totalSeasons: dur,
+              };
+            })(),
           },
         });
         return { ok: true };
@@ -2014,13 +2021,31 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           });
         }
 
+        // In-transit multi-season marches stay in pendingCommands; their
+        // commanders also need `task: 'march'` preserved so they can't be
+        // reassigned to other duties while the army is on the road.
+        const carriedCommands = result.keptCommands ?? {};
+        let officersWithMarchTask = postOfficers;
+        if (Object.keys(carriedCommands).length > 0) {
+          officersWithMarchTask = { ...postOfficers };
+          for (const cmd of Object.values(carriedCommands)) {
+            if (cmd.type !== 'march') continue;
+            const o = officersWithMarchTask[cmd.officerId];
+            if (o) officersWithMarchTask[cmd.officerId] = { ...o, task: 'march' };
+            for (const xId of cmd.additionalOfficerIds ?? []) {
+              const x = officersWithMarchTask[xId];
+              if (x) officersWithMarchTask[xId] = { ...x, task: 'march' };
+            }
+          }
+        }
+
         set({
           date: result.date,
           cities: postCities,
-          officers: postOfficers,
+          officers: officersWithMarchTask,
           forces: postForces,
           runtimeBonds: bondsAfterTraits,
-          pendingCommands: {},
+          pendingCommands: carriedCommands,
           pendingTrainings: nextTrainings,
           lastReport: result.report,
           deeds: nextDeeds,

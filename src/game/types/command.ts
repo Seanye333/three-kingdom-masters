@@ -32,6 +32,14 @@ export interface MarchCommand extends CommandBase {
   troops: number;
   /** Additional officers accompanying the commander, max 2. */
   additionalOfficerIds?: EntityId[];
+  /**
+   * Multi-season march timing. `totalSeasons` is set at issue based on
+   * straight-line distance; `seasonsRemaining` decrements each season-end
+   * and only when it reaches 1 does the army arrive and fight. Old
+   * (one-shot) marches resolve immediately when undefined.
+   */
+  seasonsRemaining?: number;
+  totalSeasons?: number;
 }
 
 export type Command = InternalAffairsCommand | MarchCommand;

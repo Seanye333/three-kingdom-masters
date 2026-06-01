@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { navalReachableCityIds } from '../../game/data/ports';
+import { marchDurationFor } from '../../game/data/cities';
 import { useT } from '../i18n';
 import { BattlePrepModal } from './BattlePrepModal';
 import type { EntityId } from '../../game/types';
@@ -186,7 +187,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
                           <span className={styles.friendly}>{t('移', 'MOVE')}</span>
                         )}
                         <span className={styles.muted}>
-                          {c.troops.toLocaleString()}t · D{c.defense}
+                          {c.troops.toLocaleString()}t · D{c.defense} · {marchDurationFor(source, c)}{t('季', 's')}
                         </span>
                       </span>
                     </button>

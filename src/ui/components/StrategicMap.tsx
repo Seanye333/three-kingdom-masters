@@ -1003,12 +1003,16 @@ function drawCityLayer(
 
     const commander = officers[cmd.officerId];
     if (commander) {
-      // Slide the unit slowly toward the destination so it visibly creeps
-      // along the road; reaches the city right around season end.
-      const t = 0.30 + ((Date.now() / 1000) % 30) / 30 * 0.55;
+      // Real progress from seasonsRemaining (Phase 2 multi-season marches).
+      // Army sits at (elapsed+0.5)/total along the road, plus a small wobble.
+      const total = Math.max(1, cmd.totalSeasons ?? 1);
+      const remaining = cmd.seasonsRemaining ?? 1;
+      const elapsed = total - remaining;
+      const wobble = Math.sin(Date.now() / 800) * 0.03;
+      const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / total + wobble));
       const ux = from.coords.x + (to.coords.x - from.coords.x) * t;
       const uy = from.coords.y + (to.coords.y - from.coords.y) * t;
-      drawMarchUnit(ctx, ux, uy, color, commander.name.zh, cmd.troops);
+      drawMarchUnit(ctx, ux, uy, color, commander.name.zh, cmd.troops, remaining, total);
     }
   }
 
@@ -1259,6 +1263,8 @@ function drawMarchUnit(
   color: string,
   commanderName: string,
   troops: number,
+  seasonsRemaining: number,
+  totalSeasons: number,
 ) {
   ctx.save();
   // Subtle bob so the unit looks alive.
@@ -1307,9 +1313,12 @@ function drawMarchUnit(
 
   ctx.font = '9px ui-monospace, monospace';
   const troopLabel = troops >= 1000 ? `${(troops / 1000).toFixed(1)}k` : `${troops}`;
+  // Append ETA for multi-season marches so the player can read remaining seasons.
+  const eta = totalSeasons > 1 ? `  ${seasonsRemaining}/${totalSeasons}季` : '';
+  const fullLabel = `${troopLabel}${eta}`;
   ctx.fillStyle = '#f0e0b0';
-  ctx.strokeText(troopLabel, x, cy + 23);
-  ctx.fillText(troopLabel, x, cy + 23);
+  ctx.strokeText(fullLabel, x, cy + 23);
+  ctx.fillText(fullLabel, x, cy + 23);
   ctx.restore();
 }
 

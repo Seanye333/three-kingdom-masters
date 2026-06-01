@@ -16,6 +16,7 @@ import { getRelation, isHostilePermitted, pairKey } from '../types';
 import type { Difficulty } from '../state/gameState';
 import { OATH_BONDS, type OathBond } from '../data/bonds';
 import { COMMAND_DEFS } from './commands';
+import { marchDurationFor } from '../data/cities';
 import {
   NAP_PROPOSAL_COST,
   computeTotalTroops,
@@ -595,6 +596,7 @@ function decideCommand(
       }
       const companions = picked.map((c) => c.id);
 
+      const dur = marchDurationFor(city, target);
       const cmd: MarchCommand = {
         type: 'march',
         cityId: city.id,
@@ -602,6 +604,8 @@ function decideCommand(
         targetCityId: target.id,
         troops: sendTroops,
         additionalOfficerIds: companions.length > 0 ? companions : undefined,
+        seasonsRemaining: dur,
+        totalSeasons: dur,
       };
       return { command: cmd, officer: o, companions };
     }

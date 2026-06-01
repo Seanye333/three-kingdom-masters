@@ -1035,6 +1035,22 @@ export function buildInitialCities(
 
 export const CITY_IDS = CITY_TEMPLATES.map((t) => t.id);
 
+/**
+ * Multi-season march duration based on straight-line distance between two
+ * adjacent cities on the 1000×720 map. Short hops (<80 units) stay 1 season
+ * so peacetime adjustments feel instant; long mountain/sea adjacencies
+ * (漢中↔成都, 北平↔遼東, 樂浪↔襄平) take 2-3 seasons so the player gets a
+ * visible window to react.
+ */
+export function marchDurationFor(from: City, to: City): number {
+  const dx = to.coords.x - from.coords.x;
+  const dy = to.coords.y - from.coords.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 80) return 1;
+  if (dist < 140) return 2;
+  return 3;
+}
+
 /** Static city-id → bilingual name lookup. Used by UI components that
  *  show city names without access to the runtime game state (e.g.
  *  the items browser on the title screen referencing each item's origin). */

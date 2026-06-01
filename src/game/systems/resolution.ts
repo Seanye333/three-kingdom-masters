@@ -55,6 +55,12 @@ export interface ResolutionOutput {
   diplomacy: DiplomaticState;
   lostItems: LostItemRef[];
   report: SeasonReport;
+  /**
+   * Marches still in transit (seasonsRemaining > 1 at start of resolution).
+   * The store assigns these to next season's pendingCommands instead of
+   * the usual {} reset, so the army keeps marching.
+   */
+  keptCommands?: Record<EntityId, Command>;
   /** Pending delayed effects from stratagems (e.g. 截糧 troop drain). */
   delayedEffects?: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }>;
   /**
@@ -79,11 +85,22 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   };
 
   // 1. Process commands. Marches first, then internal affairs.
+  // Multi-season march: if seasonsRemaining > 1, the army is still on the
+  // road — decrement and keep for next season instead of resolving now.
   const allCmds = Object.values(input.pendingCommands);
-  const marches = allCmds.filter((c): c is Extract<Command, { type: 'march' }> =>
+  const allMarches = allCmds.filter((c): c is Extract<Command, { type: 'march' }> =>
     c.type === 'march',
   );
+  const marches = allMarches.filter((c) => (c.seasonsRemaining ?? 1) <= 1);
+  const inTransit = allMarches.filter((c) => (c.seasonsRemaining ?? 1) > 1);
   const internals = allCmds.filter((c) => c.type !== 'march');
+  const keptCommands: Record<EntityId, Command> = {};
+  for (const cmd of inTransit) {
+    keptCommands[cmd.officerId] = {
+      ...cmd,
+      seasonsRemaining: (cmd.seasonsRemaining ?? 1) - 1,
+    };
+  }
 
   const delayedEffects: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }> = [];
   for (const cmd of marches) {
@@ -412,6 +429,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     diplomacy: dip.diplomacy,
     lostItems,
     report: { date: { year: input.date.year, season: input.date.season }, entries },
+    keptCommands: Object.keys(keptCommands).length > 0 ? keptCommands : undefined,
     delayedEffects: delayedEffects.length > 0 ? delayedEffects : undefined,
     deedDeltas: deedDeltas.length > 0 ? deedDeltas : undefined,
   };

@@ -1176,14 +1176,14 @@ function Roads({ cities }: { cities: Record<string, City> }) {
 /* ─── Marching army arrows (animated) ──────────────────────── */
 function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
   cities: Record<string, City>;
-  pendingCommands: Record<string, { cityId?: string; type: string; targetCityId?: string; troops?: number; officerId?: string }>;
+  pendingCommands: Record<string, { cityId?: string; type: string; targetCityId?: string; troops?: number; officerId?: string; seasonsRemaining?: number; totalSeasons?: number }>;
   forces: Record<string, { color: string }>;
   officers: Record<string, import('../../game/types').Officer>;
   ports: Record<string, import('../../game/types').Port>;
 }) {
   const armies = useMemo(() => {
     return Object.values(pendingCommands)
-      .filter((cmd): cmd is { cityId: string; type: string; targetCityId: string; troops: number; officerId: string } =>
+      .filter((cmd): cmd is { cityId: string; type: string; targetCityId: string; troops: number; officerId: string; seasonsRemaining?: number; totalSeasons?: number } =>
         cmd.type === 'march' && !!cmd.targetCityId && !!cmd.cityId)
       .map((cmd) => {
         const from = cities[cmd.cityId];
@@ -1192,12 +1192,16 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
         const force = forces[from.ownerForceId ?? ''];
         const hostile = to.ownerForceId !== from.ownerForceId;
         const commander = officers[cmd.officerId];
+        const totalSeasons = Math.max(1, cmd.totalSeasons ?? 1);
+        const seasonsRemaining = cmd.seasonsRemaining ?? 1;
         return {
           from,
           to,
           color: hostile ? '#b8442e' : (force?.color ?? '#d4a84a'),
           commanderName: commander?.name.zh ?? '',
           troops: cmd.troops,
+          seasonsRemaining,
+          totalSeasons,
         };
       })
       .filter((a): a is NonNullable<typeof a> => !!a);
@@ -1207,15 +1211,18 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
     <group>
       {armies.map((a, i) => (
         <MarchingArmy key={i} from={a.from} to={a.to} color={a.color}
-          commanderName={a.commanderName} troops={a.troops} ports={ports} />
+          commanderName={a.commanderName} troops={a.troops}
+          seasonsRemaining={a.seasonsRemaining} totalSeasons={a.totalSeasons}
+          ports={ports} />
       ))}
     </group>
   );
 }
 
-function MarchingArmy({ from, to, color, commanderName, troops, ports }: {
+function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, ports }: {
   from: City; to: City; color: string;
   commanderName: string; troops: number;
+  seasonsRemaining: number; totalSeasons: number;
   ports: Record<string, import('../../game/types').Port>;
 }) {
   const [fpx, fpy] = cityPixel(from.id, from.coords.x, from.coords.y);
@@ -1264,7 +1271,11 @@ function MarchingArmy({ from, to, color, commanderName, troops, ports }: {
   const groupRef = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
-    const t = (clock.elapsedTime * 0.05) % 1;
+    // Real season-based position: army is at (elapsed + 0.5) / total along
+    // the road, plus a tiny wobble so it doesn't look frozen.
+    const elapsed = totalSeasons - seasonsRemaining;
+    const wobble = Math.sin(clock.elapsedTime * 0.6) * 0.04;
+    const t = Math.min(0.95, Math.max(0.05, (elapsed + 0.5) / totalSeasons + wobble));
     let x: number, z: number, heading: number;
     if (path.kind === 'land') {
       const { mx, mz } = path;
@@ -1298,6 +1309,7 @@ function MarchingArmy({ from, to, color, commanderName, troops, ports }: {
   ];
 
   const troopLabel = troops >= 1000 ? `${(troops / 1000).toFixed(1)}k` : `${troops}`;
+  const etaLabel = totalSeasons > 1 ? `  ${seasonsRemaining}/${totalSeasons}季` : '';
   return (
     <group ref={groupRef}>
       {FORMATION.map(([sx, sz], i) => (
@@ -1317,7 +1329,7 @@ function MarchingArmy({ from, to, color, commanderName, troops, ports }: {
             boxShadow: `0 0 6px ${color}66`,
           }}>
             <span style={{ color: '#ffe9a8' }}>{commanderName}</span>
-            <span style={{ color: '#c0a878', marginLeft: 5, fontSize: '9px', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}</span>
+            <span style={{ color: '#c0a878', marginLeft: 5, fontSize: '9px', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}{etaLabel}</span>
           </div>
         </Html>
       )}
