@@ -606,12 +606,18 @@ function TerritoryGroundLayer({
     return g;
   }, []);
 
-  // CanvasTexture wrapping the cached Voronoi image. Rebuild only when
-  // the ownership signature changes.
+  // CanvasTexture wrapping the cached hex-grid image. Rebuild only when
+  // the ownership signature changes. Anisotropic + linear-no-mipmap
+  // filtering keeps the crisp hex edges sharp when stretched across the
+  // tilted terrain plane instead of mip-blurring into mush.
   const sig = getTerritorySignature(cities, territoryOwnership);
   const texture = useMemo(() => {
     const tex = new THREE.CanvasTexture(getTerritoryCanvas(cities, forces, territoryOwnership));
     tex.flipY = true;
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = 8;
+    tex.generateMipmaps = false;
     tex.needsUpdate = true;
     return tex;
     // eslint-disable-next-line react-hooks/exhaustive-deps

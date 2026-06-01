@@ -1,10 +1,9 @@
 /**
- * Phase 3a — Territory color overlay for the 2D strategic map.
- *
- * Renders a Voronoi-by-territory fill onto an offscreen canvas, then
- * blits it under the city layer. The compute is a brute-force nearest
- * search per pixel — fine because we only recompute when ownership
- * actually changes (signature-cached).
+ * Phase 3a + hex-grid refit — Territory color overlay for the strategic
+ * maps. Renders a crisp RTK-XIV-style hexagonal grid onto an offscreen
+ * canvas: every hex is filled by its owning force and outlined, giving a
+ * sharp grid instead of the old soft Voronoi blob. Signature-cached so
+ * it only recomputes when ownership changes; shared by 2D and 3D.
  */
 
 import type { City, EntityId, Force } from '../../game/types';
@@ -13,19 +12,28 @@ import { generateTerritories, type Territory } from '../../game/data/territories
 const W = 1000;
 const H = 720;
 const NEUTRAL_COLOR = '#5a4530';
-const FILL_ALPHA = 0.45;
-const EDGE_ALPHA = 0.75;
+const FILL_ALPHA = 0.5;
+
+// Hex grid geometry (pointy-top). HEX_SIZE = centre→corner.
+const HEX_SIZE = 19;
+const SQRT3 = Math.sqrt(3);
+const HEX_W = SQRT3 * HEX_SIZE;        // horizontal centre spacing
+const HEX_V = 1.5 * HEX_SIZE;          // vertical centre spacing
+// A hex only paints if a territory centroid is within this radius —
+// keeps oceans / deep frontier clear instead of flooding the whole map.
+const PAINT_RADIUS_2 = 82 * 82;
 
 let cachedCanvas: HTMLCanvasElement | null = null;
 let cachedSignature = '';
 
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ];
+/** Six pointy-top corners of a hex centred at (cx, cy). */
+function hexCorners(cx: number, cy: number): Array<[number, number]> {
+  const pts: Array<[number, number]> = [];
+  for (let i = 0; i < 6; i++) {
+    const ang = (Math.PI / 180) * (60 * i - 90);
+    pts.push([cx + HEX_SIZE * Math.cos(ang), cy + HEX_SIZE * Math.sin(ang)]);
+  }
+  return pts;
 }
 
 function buildSignature(
@@ -49,9 +57,10 @@ function buildSignature(
 }
 
 /**
- * Compute the territory color buffer at full resolution. Each pixel is
- * assigned to its nearest territory; the cell takes its owning force
- * colour at FILL_ALPHA.
+ * Render the territory hex grid. Each hex is assigned to its nearest
+ * territory's effective owner, filled with that force's colour, and
+ * outlined — a thin grid line on every hex, plus a bolder dark edge on
+ * the seams between two different forces (the contested frontier).
  */
 function computeOverlay(
   territories: Territory[],
@@ -62,73 +71,92 @@ function computeOverlay(
   const off = document.createElement('canvas');
   off.width = W;
   off.height = H;
-  const octx = off.getContext('2d', { willReadFrequently: false });
-  if (!octx) return off;
-  const img = octx.createImageData(W, H);
-  const px = img.data;
+  const ctx = off.getContext('2d');
+  if (!ctx) return off;
 
   // Effective owner per territory: 3c override wins, else parent city.
-  const effectiveOwner: Array<EntityId | null> = territories.map((t) => {
+  const tx = territories.map((t) => t.coords.x);
+  const ty = territories.map((t) => t.coords.y);
+  const ownerOf: Array<EntityId | null> = territories.map((t) => {
     const override = territoryOwnership[t.id];
     if (override !== undefined && override !== null) return override;
     return cities[t.parentCityId]?.ownerForceId ?? null;
   });
-  // Pre-resolve each territory's RGB triple — avoids a hex parse per pixel.
-  const colorRgb: Array<[number, number, number]> = effectiveOwner.map((id) => {
-    const force = id ? forces[id] : null;
-    return hexToRgb(force?.color ?? NEUTRAL_COLOR);
-  });
-  // Edges are between cells with *different effective forces*.
-  const forceKey: string[] = effectiveOwner.map((id) => id ?? '_');
-  const tx = territories.map((t) => t.coords.x);
-  const ty = territories.map((t) => t.coords.y);
-  const a = Math.round(FILL_ALPHA * 255);
-  const edgeA = Math.round(EDGE_ALPHA * 255);
+  const colorOf = (id: EntityId | null): string =>
+    (id ? forces[id]?.color : null) ?? NEUTRAL_COLOR;
 
-  // Pass 1: assign each pixel to its nearest territory + paint fill colour.
-  // Save the assigned key in a side buffer so pass 2 can compute borders.
-  const keyBuf = new Uint16Array(W * H);
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      let bestIdx = 0;
+  // Build the hex grid, tagging each hex with the owner of its nearest
+  // territory (or null if none is within PAINT_RADIUS_2).
+  type Hex = { cx: number; cy: number; owner: EntityId | null; painted: boolean };
+  const grid: Hex[][] = [];
+  for (let row = -1, y = -HEX_V; y < H + HEX_SIZE; row++, y = row * HEX_V) {
+    const xOff = (((row % 2) + 2) % 2) * (HEX_W / 2);
+    const line: Hex[] = [];
+    for (let col = -1, x = -HEX_W + xOff; x < W + HEX_W; col++, x = col * HEX_W + xOff) {
+      let best = -1;
       let bestD = Infinity;
       for (let i = 0; i < territories.length; i++) {
         const dx = x - tx[i];
         const dy = y - ty[i];
         const d = dx * dx + dy * dy;
-        if (d < bestD) {
-          bestD = d;
-          bestIdx = i;
-        }
+        if (d < bestD) { bestD = d; best = i; }
       }
-      keyBuf[y * W + x] = bestIdx;
-      const [r, g, b] = colorRgb[bestIdx];
-      const offset = (y * W + x) * 4;
-      px[offset] = r;
-      px[offset + 1] = g;
-      px[offset + 2] = b;
-      px[offset + 3] = a;
+      const painted = best >= 0 && bestD <= PAINT_RADIUS_2;
+      line.push({ cx: x, cy: y, owner: painted ? ownerOf[best] : null, painted });
+    }
+    grid.push(line);
+  }
+
+  // Pass 1 — fills + thin per-hex grid line.
+  ctx.lineJoin = 'round';
+  for (const line of grid) {
+    for (const h of line) {
+      if (!h.painted) continue;
+      const c = hexCorners(h.cx, h.cy);
+      ctx.beginPath();
+      ctx.moveTo(c[0][0], c[0][1]);
+      for (let i = 1; i < 6; i++) ctx.lineTo(c[i][0], c[i][1]);
+      ctx.closePath();
+      ctx.globalAlpha = FILL_ALPHA;
+      ctx.fillStyle = colorOf(h.owner);
+      ctx.fill();
+      ctx.globalAlpha = 0.16;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#1a120a';
+      ctx.stroke();
     }
   }
-  // Pass 2: paint dark borders wherever the assigned force differs from
-  // a neighbour. Borders only on inter-force boundaries — same-force
-  // city sub-territories merge into one visible block.
-  for (let y = 1; y < H; y++) {
-    for (let x = 1; x < W; x++) {
-      const here = forceKey[keyBuf[y * W + x]];
-      const left = forceKey[keyBuf[y * W + (x - 1)]];
-      const up = forceKey[keyBuf[(y - 1) * W + x]];
-      if (here !== left || here !== up) {
-        const offset = (y * W + x) * 4;
-        // Dark warm-brown edge that reads against any force colour.
-        px[offset] = 25;
-        px[offset + 1] = 18;
-        px[offset + 2] = 10;
-        px[offset + 3] = edgeA;
+
+  // Pass 2 — bold frontier seams. For each painted hex, draw a heavier
+  // outline if any of its 6 odd-r neighbours has a different owner. Same
+  // -force interiors keep only the thin grid line from pass 1.
+  ctx.globalAlpha = 0.7;
+  ctx.lineWidth = 2.25;
+  ctx.strokeStyle = '#140d06';
+  for (let r = 0; r < grid.length; r++) {
+    const even = r % 2 === 0;
+    // odd-r offset neighbour deltas
+    const deltas = even
+      ? [[+1, 0], [-1, 0], [0, -1], [-1, -1], [0, +1], [-1, +1]]
+      : [[+1, 0], [-1, 0], [+1, -1], [0, -1], [+1, +1], [0, +1]];
+    for (let q = 0; q < grid[r].length; q++) {
+      const h = grid[r][q];
+      if (!h.painted) continue;
+      let frontier = false;
+      for (const [dq, dr] of deltas) {
+        const nb = grid[r + dr]?.[q + dq];
+        if (!nb || !nb.painted || nb.owner !== h.owner) { frontier = true; break; }
       }
+      if (!frontier) continue;
+      const c = hexCorners(h.cx, h.cy);
+      ctx.beginPath();
+      ctx.moveTo(c[0][0], c[0][1]);
+      for (let i = 1; i < 6; i++) ctx.lineTo(c[i][0], c[i][1]);
+      ctx.closePath();
+      ctx.stroke();
     }
   }
-  octx.putImageData(img, 0, 0);
+  ctx.globalAlpha = 1;
   return off;
 }
 
