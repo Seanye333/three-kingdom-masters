@@ -222,6 +222,39 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       entries.push(result.entry);
       continue;
     }
+    if (cmd.type === 'garrison') {
+      // 鎮守 — clear enemy overrides from this city's own satellite cells
+      // (the commander drives the raiders off) and reinforce defense.
+      // Reclaim effectiveness scales with leadership.
+      if (!city.ownerForceId) continue;
+      const sats = generateTerritories(Object.values(cities))
+        .filter((t) => t.parentCityId === city.id && !t.id.endsWith('-0'));
+      let reclaimed = 0;
+      for (const ter of sats) {
+        const owner = territoryOwnership[ter.id];
+        if (owner && owner !== city.ownerForceId) {
+          delete territoryOwnership[ter.id];
+          reclaimed++;
+        }
+      }
+      const defBoost = Math.max(2, Math.floor(officer.stats.leadership / 20));
+      cities[city.id] = {
+        ...city,
+        defense: Math.min(200, city.defense + defBoost),
+      };
+      entries.push({
+        cityId: city.id,
+        kind: 'command-success',
+        text: reclaimed > 0
+          ? `${officer.name.en} garrisoned ${city.name.en}: reclaimed ${reclaimed} territory cell(s), defense +${defBoost}.`
+          : `${officer.name.en} garrisoned ${city.name.en}: defense +${defBoost}.`,
+        textZh: reclaimed > 0
+          ? `${officer.name.zh}鎮守${city.name.zh}：收復外圍 ${reclaimed} 格，城防 +${defBoost}。`
+          : `${officer.name.zh}鎮守${city.name.zh}：城防 +${defBoost}。`,
+      });
+      bumpDeed(cmd.officerId, { civicWorks: 1 });
+      continue;
+    }
     const bonus = appointmentBonusFor(
       city.ownerForceId,
       input.appointments ?? [],

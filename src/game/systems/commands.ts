@@ -123,6 +123,14 @@ export const COMMAND_DEFS: Record<CommandType, CommandDef> = {
     description:
       '城壁強化 — Upgrade fortification tier (1→2→3). Tier 2 = inner wall +18% def; Tier 3 = citadel like 合肥/長安/洛陽 +40% def. Massive gold cost, can only be done at 城 tier+.',
   },
+  garrison: {
+    type: 'garrison',
+    label: { en: 'Garrison', zh: '鎮守' },
+    stat: 'leadership',
+    goldCost: 150,
+    description:
+      '鎮守 — Drive enemy raiders out of the territory cells surrounding this city and reinforce its defense. Effect scales with Leadership. Useful when an enemy column has captured nearby ground.',
+  },
   march: {
     type: 'march',
     label: { en: 'March', zh: '出陣' },
@@ -149,7 +157,7 @@ export interface CommandResult {
 }
 
 export function resolveInternalAffairs(
-  type: Exclude<InternalAffairsType, 'search'>,
+  type: Exclude<InternalAffairsType, 'search' | 'garrison'>,
   officer: Officer,
   city: City,
   rng: () => number,

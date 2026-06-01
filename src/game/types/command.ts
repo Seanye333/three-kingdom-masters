@@ -13,7 +13,8 @@ export type InternalAffairsType =
   | 'major-defense'       // 大築城 — heavy fortification
   // ── Specialist actions ──
   | 'encourage-migration' // 招撫流民 — boost population
-  | 'upgrade-wall';       // 城壁強化 — upgrade wallTier 1→2→3
+  | 'upgrade-wall'        // 城壁強化 — upgrade wallTier 1→2→3
+  | 'garrison';           // 鎮守 — reclaim surrounding territory + boost defense
 
 export type CommandType = InternalAffairsType | 'march';
 

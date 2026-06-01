@@ -23,6 +23,7 @@ const INTERNAL_ORDER: InternalAffairsType[] = [
   'build-defense',
   'recruit-troops',
   'improve-loyalty',
+  'garrison',
   'search',
   'encourage-migration',
   // ── Tier-2 (requires 城 tier+) ──
