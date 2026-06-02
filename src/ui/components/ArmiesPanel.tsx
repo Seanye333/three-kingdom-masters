@@ -12,6 +12,7 @@ export function ArmiesPanel() {
   const cities = useGameStore((s) => s.cities);
   const selectedArmyId = useGameStore((s) => s.selectedArmyId);
   const selectArmy = useGameStore((s) => s.selectArmy);
+  const cancelCommand = useGameStore((s) => s.cancelCommand);
 
   const mine = Object.values(armies).filter((a) => a.forceId === playerForceId);
   if (mine.length === 0) return null;
@@ -32,9 +33,17 @@ export function ArmiesPanel() {
       <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: 3 }}>
         在途部隊 · Armies
       </div>
-      {selectedArmyId && (
-        <div style={{ fontSize: '0.6rem', color: '#d4a84a', marginBottom: 3 }}>
-          點地圖城市以改道
+      {selectedArmyId && armies[selectedArmyId] && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 3 }}>
+          <span style={{ fontSize: '0.6rem', color: '#d4a84a' }}>點地圖城市以改道</span>
+          <button
+            onClick={() => { cancelCommand(selectedArmyId); selectArmy(null); }}
+            style={{
+              background: '#3a1410', border: '1px solid #b8442e', color: '#e8a890',
+              fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
+              fontFamily: '"Songti SC", serif',
+            }}
+          >召回</button>
         </div>
       )}
       {mine.map((a) => {
