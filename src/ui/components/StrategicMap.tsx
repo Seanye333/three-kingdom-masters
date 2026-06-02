@@ -96,6 +96,7 @@ export function StrategicMap() {
   const officers = useGameStore((s) => s.officers);
   const territoryOwnership = useGameStore((s) => s.territoryOwnership ?? EMPTY_TERRITORY_OWNERSHIP);
   const selectedCityId = useGameStore((s) => s.selectedCityId);
+  const selectedArmyId = useGameStore((s) => s.selectedArmyId);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectCity = useGameStore((s) => s.selectCity);
 
@@ -171,7 +172,7 @@ export function StrategicMap() {
         const ov = coordOverrides[c.id];
         effectiveCities[c.id] = ov ? { ...c, coords: ov } : c;
       }
-      drawMap(ctx, effectiveCities, forces, officers, territoryOwnership, selectedCityId, pendingCommands, date, bgImageRef.current, viewport.scale);
+      drawMap(ctx, effectiveCities, forces, officers, territoryOwnership, selectedCityId, pendingCommands, date, bgImageRef.current, viewport.scale, selectedArmyId);
       // Hovered territory cell outline (drawn in world space, above the grid).
       const hh = hoverHexRef.current;
       if (hh) {
@@ -227,7 +228,7 @@ export function StrategicMap() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [cities, forces, officers, territoryOwnership, selectedCityId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities]);
+  }, [cities, forces, officers, territoryOwnership, selectedCityId, selectedArmyId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities]);
 
   // Territory list (stable per city set) for hover owner lookup.
   const territoriesForHover = useMemo(
@@ -986,6 +987,7 @@ function drawMap(
   date: GameDate,
   bgImage: HTMLImageElement | null,
   scale: number,
+  selectedArmyId: EntityId | null,
 ) {
   // Sea / void
   ctx.fillStyle = '#0a0e16';
@@ -1002,7 +1004,7 @@ function drawMap(
     drawProvinceTints(ctx, cities);
     drawTerrainGlyphs(ctx, cities);
     // Roads + march arrows + cities are drawn by the shared block below.
-    drawCityLayer(ctx, cities, forces, officers, selectedCityId, pendingCommands, scale);
+    drawCityLayer(ctx, cities, forces, officers, selectedCityId, pendingCommands, scale, selectedArmyId);
     return;
   }
 
@@ -1151,7 +1153,7 @@ function drawMap(
   // ── Ambient terrain glyphs near each city ──
   drawTerrainGlyphs(ctx, cities);
 
-  drawCityLayer(ctx, cities, forces, officers, selectedCityId, pendingCommands, scale);
+  drawCityLayer(ctx, cities, forces, officers, selectedCityId, pendingCommands, scale, selectedArmyId);
 
   // (Compass rose and decorative border are drawn separately in
   //  drawOverlay so they don't pan/zoom with the map.)
@@ -1166,6 +1168,7 @@ function drawCityLayer(
   selectedCityId: EntityId | null,
   pendingCommands: Record<EntityId, Command>,
   viewScale: number,
+  selectedArmyId: EntityId | null,
 ) {
   // Adjacency lines — curving Bezier "trade roads" instead of straight lines.
   ctx.strokeStyle = 'rgba(180, 140, 90, 0.55)';
@@ -1191,8 +1194,9 @@ function drawCityLayer(
     const hostile = to.ownerForceId !== from.ownerForceId;
     const color = hostile ? '#b8442e' : fromForce?.color ?? '#d4a84a';
 
+    const selected = cmd.officerId === selectedArmyId;
     const route = terrainRoute(from.coords.x, from.coords.y, to.coords.x, to.coords.y);
-    drawRoutePolyline(ctx, route, color);
+    drawRoutePolyline(ctx, route, selected ? '#fff4d0' : color);
 
     const commander = officers[cmd.officerId];
     if (commander) {
@@ -1206,6 +1210,19 @@ function drawCityLayer(
       const { x: ux, y: uy } = snapToHexCenter(raw.x, raw.y);
       const unitTag = UNIT_TAG_2D[deriveWeaponType(commander)];
       drawOccupiedHex(ctx, ux, uy, color);
+      // Selection ring — pulsing bright halo around the chosen army.
+      if (selected) {
+        const r = 13 + Math.sin(Date.now() / 250) * 2;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ux, uy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = '#fff4d0';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#fff4d0';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.restore();
+      }
       drawMarchUnit(ctx, ux, uy, color, commander.name.zh, cmd.troops, remaining, total, unitTag);
     }
   }

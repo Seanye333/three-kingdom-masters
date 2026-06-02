@@ -64,6 +64,8 @@ export interface GameState {
   scenarioId: EntityId | null;
   playerForceId: EntityId | null;
   selectedCityId: EntityId | null;
+  /** Selected in-transit army (for map highlight), or null. */
+  selectedArmyId: EntityId | null;
   cities: Record<EntityId, City>;
   forces: Record<EntityId, Force>;
   officers: Record<EntityId, Officer>;
@@ -228,6 +230,7 @@ export const EMPTY_STATE: GameState = {
   scenarioId: null,
   playerForceId: null,
   selectedCityId: null,
+  selectedArmyId: null,
   cities: {},
   forces: {},
   officers: {},

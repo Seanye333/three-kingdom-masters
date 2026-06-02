@@ -139,6 +139,7 @@ interface GameStore extends GameState {
     },
   ) => void;
   selectCity: (cityId: EntityId | null) => void;
+  selectArmy: (armyId: EntityId | null) => void;
   issueCommand: (
     cityId: EntityId,
     type: InternalAffairsType,
@@ -373,6 +374,8 @@ export const useGameStore = create<GameStore>()(
         set((s) => loadScenario(s, scenario, playerForceId, difficulty, customOfficer)),
 
       selectCity: (cityId) => set(() => ({ selectedCityId: cityId })),
+
+      selectArmy: (armyId) => set(() => ({ selectedArmyId: armyId })),
 
       issueCommand: (cityId, type, officerId) => {
         const state = get();

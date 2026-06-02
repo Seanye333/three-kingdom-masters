@@ -10,6 +10,8 @@ export function ArmiesPanel() {
   const armies = useGameStore((s) => s.armies);
   const officers = useGameStore((s) => s.officers);
   const cities = useGameStore((s) => s.cities);
+  const selectedArmyId = useGameStore((s) => s.selectedArmyId);
+  const selectArmy = useGameStore((s) => s.selectArmy);
 
   const mine = Object.values(armies).filter((a) => a.forceId === playerForceId);
   if (mine.length === 0) return null;
@@ -25,7 +27,7 @@ export function ArmiesPanel() {
       minWidth: 150,
       maxWidth: 210,
       boxShadow: '0 0 10px rgba(0,0,0,0.6)',
-      pointerEvents: 'none',
+      pointerEvents: 'auto',
     }}>
       <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: 3 }}>
         在途部隊 · Armies
@@ -35,8 +37,18 @@ export function ArmiesPanel() {
         const target = cities[a.targetCityId];
         const remaining = Math.max(1, Math.round((1 - a.progress) * a.totalSeasons));
         const troopLabel = a.troops >= 1000 ? `${(a.troops / 1000).toFixed(1)}k` : `${a.troops}`;
+        const selected = a.id === selectedArmyId;
         return (
-          <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 6, lineHeight: 1.5 }}>
+          <div
+            key={a.id}
+            onClick={() => selectArmy(selected ? null : a.id)}
+            style={{
+              display: 'flex', justifyContent: 'space-between', gap: 6, lineHeight: 1.5,
+              cursor: 'pointer', padding: '0 2px',
+              background: selected ? 'rgba(212, 168, 74, 0.22)' : 'transparent',
+              outline: selected ? '1px solid #d4a84a' : 'none',
+            }}
+          >
             <span style={{ color: '#ffe9a8', whiteSpace: 'nowrap' }}>
               {cmdr?.name.zh ?? '？'}
               <span style={{ color: '#8a7050', marginLeft: 4, fontSize: '0.62rem', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}</span>
