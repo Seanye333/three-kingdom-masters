@@ -1274,12 +1274,13 @@ function Roads({ cities }: { cities: Record<string, City> }) {
 }
 
 /* ─── Marching army arrows (animated) ──────────────────────── */
-function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
+function MarchingArmies({ cities, pendingCommands, forces, officers, ports, selectedArmyId }: {
   cities: Record<string, City>;
   pendingCommands: Record<string, { cityId?: string; type: string; targetCityId?: string; troops?: number; officerId?: string; seasonsRemaining?: number; totalSeasons?: number }>;
   forces: Record<string, { color: string }>;
   officers: Record<string, import('../../game/types').Officer>;
   ports: Record<string, import('../../game/types').Port>;
+  selectedArmyId: string | null;
 }) {
   const armies = useMemo(() => {
     return Object.values(pendingCommands)
@@ -1308,10 +1309,11 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
           totalSeasons,
           landRoute,
           weaponType,
+          selected: cmd.officerId === selectedArmyId,
         };
       })
       .filter((a): a is NonNullable<typeof a> => !!a);
-  }, [cities, pendingCommands, forces, officers]);
+  }, [cities, pendingCommands, forces, officers, selectedArmyId]);
 
   return (
     <group>
@@ -1320,6 +1322,7 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports }: {
           commanderName={a.commanderName} troops={a.troops}
           seasonsRemaining={a.seasonsRemaining} totalSeasons={a.totalSeasons}
           landRoute={a.landRoute} weaponType={a.weaponType}
+          selected={a.selected}
           ports={ports} />
       ))}
     </group>
@@ -1332,12 +1335,13 @@ const UNIT_TAG: Record<WeaponType, string> = {
   sabre: '刀', sword: '劍', fan: '師', siege: '械', none: '步',
 };
 
-function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, landRoute, weaponType, ports }: {
+function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, landRoute, weaponType, selected, ports }: {
   from: City; to: City; color: string;
   commanderName: string; troops: number;
   seasonsRemaining: number; totalSeasons: number;
   landRoute: Array<{ x: number; y: number }>;
   weaponType: WeaponType;
+  selected: boolean;
   ports: Record<string, import('../../game/types').Port>;
 }) {
   const [fpx, fpy] = cityPixel(from.id, from.coords.x, from.coords.y);
@@ -1424,6 +1428,13 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   const etaLabel = totalSeasons > 1 ? `  ${seasonsRemaining}/${totalSeasons}季` : '';
   return (
     <group ref={groupRef}>
+      {/* Selection ring on the ground under the squad. */}
+      {selected && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+          <ringGeometry args={[0.32, 0.42, 28]} />
+          <meshBasicMaterial color="#fff4d0" transparent opacity={0.85} side={THREE.DoubleSide} />
+        </mesh>
+      )}
       {FORMATION.map(([sx, sz], i) => (
         <Soldier key={i} dx={sx} dz={sz} color={color} phase={i * 0.6}
           isLeader={i === 0} weaponType={weaponType} />
@@ -1990,6 +2001,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
   const selectedCityId = useGameStore((s) => s.selectedCityId);
   const selectCity = useGameStore((s) => s.selectCity);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
+  const selectedArmyId3D = useGameStore((s) => s.selectedArmyId);
   const portsForMarch = useGameStore((s) => s.ports);
   const weather = useGameStore((s) => s.weather);
   const weatherPreset = WEATHER_PRESETS[weather.kind];
@@ -2057,7 +2069,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       <Forest3D />
 
       <Roads cities={cities} />
-      <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} />
+      <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} />
 

@@ -99,6 +99,7 @@ export function StrategicMap() {
   const selectedArmyId = useGameStore((s) => s.selectedArmyId);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectCity = useGameStore((s) => s.selectCity);
+  const selectArmy = useGameStore((s) => s.selectArmy);
 
   const fogOfWar = useGameStore((s) => s.fogOfWar);
   const playerForceId = useGameStore((s) => s.playerForceId);
@@ -253,6 +254,26 @@ export function StrategicMap() {
     return cities[t.parentCityId]?.ownerForceId ?? null;
   };
 
+  // Hit-test a marching army at a world point — returns its id (= officer
+  // id) if the click lands on the unit marker, using the same position
+  // formula the draw loop uses.
+  const armyAtPoint = (wx: number, wy: number): EntityId | null => {
+    for (const cmd of Object.values(pendingCommands)) {
+      if (cmd.type !== 'march') continue;
+      const from = cities[cmd.cityId];
+      const to = cities[cmd.targetCityId];
+      if (!from || !to) continue;
+      const route = terrainRoute(from.coords.x, from.coords.y, to.coords.x, to.coords.y);
+      const total = Math.max(1, cmd.totalSeasons ?? 1);
+      const remaining = cmd.seasonsRemaining ?? 1;
+      const t = Math.min(0.95, Math.max(0.05, (total - remaining + 0.5) / total));
+      const raw = positionAlongRoute(route, t);
+      const { x: ux, y: uy } = snapToHexCenter(raw.x, raw.y);
+      if (Math.hypot(wx - ux, wy - uy) <= 14) return cmd.officerId;
+    }
+    return null;
+  };
+
   // Convert canvas (CSS px) coords → world (map) coords.
   const toWorld = (cx: number, cy: number) => ({
     x: (cx - viewport.x) / viewport.scale,
@@ -397,6 +418,10 @@ export function StrategicMap() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const { x, y } = toWorld(e.clientX - rect.left, e.clientY - rect.top);
+    // A marching unit under the cursor takes priority over the city beneath.
+    const armyHit = armyAtPoint(x, y);
+    if (armyHit) { selectArmy(armyHit); return; }
+    selectArmy(null);
     const effMap: Record<EntityId, City> = {};
     for (const c of Object.values(cities)) effMap[c.id] = effectiveCity(c.id)!;
     const hit = hitTestCity(x, y, effMap);
@@ -532,6 +557,9 @@ export function StrategicMap() {
       const cx = cssX * scaleX;
       const cy = cssY * scaleY;
       const { x: wx, y: wy } = toWorld(cx, cy);
+      const armyHit = armyAtPoint(wx, wy);
+      if (armyHit) { selectArmy(armyHit); return; }
+      selectArmy(null);
       const effMap: Record<EntityId, City> = {};
       for (const c of Object.values(cities)) effMap[c.id] = effectiveCity(c.id)!;
       const hit = hitTestCity(wx, wy, effMap);
