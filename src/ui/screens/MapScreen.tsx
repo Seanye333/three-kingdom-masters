@@ -12,6 +12,7 @@ import { SettingsModal } from '../components/SettingsModal';
 import { CareerModal } from '../components/CareerModal';
 import { DialogueModal } from '../components/DialogueModal';
 import { ObjectivePanel } from '../components/ObjectivePanel';
+import { ArmiesPanel } from '../components/ArmiesPanel';
 import { CourtModal } from '../components/CourtModal';
 import { DiplomacyModal } from '../components/DiplomacyModal';
 import { EndingsModal } from '../components/EndingsModal';
@@ -346,6 +347,10 @@ export function MapScreen() {
               >{t('切換 3D', 'Switch 3D')} ⇄</button>
             </>
           )}
+          {/* In-transit armies overview — shown over both map modes. */}
+          <div style={{ position: 'absolute', left: 8, top: 92, zIndex: 15 }}>
+            <ArmiesPanel />
+          </div>
         </div>
         <CityPanel />
       </main>

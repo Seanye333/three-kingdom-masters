@@ -476,6 +476,7 @@ export const useGameStore = create<GameStore>()(
           };
         }
 
+        const dur = marchDurationFor(source, state.cities[targetId]);
         set({
           cities: {
             ...state.cities,
@@ -484,19 +485,35 @@ export const useGameStore = create<GameStore>()(
           officers: officersUpdate,
           pendingCommands: {
             ...state.pendingCommands,
-            [officerId]: ((): MarchCommand => {
-              const dur = marchDurationFor(source, state.cities[targetId]);
-              return {
-                type: 'march',
-                cityId: sourceId,
-                officerId,
-                targetCityId: targetId,
-                troops,
-                additionalOfficerIds: extras.length > 0 ? extras : undefined,
-                seasonsRemaining: dur,
-                totalSeasons: dur,
-              };
-            })(),
+            [officerId]: {
+              type: 'march',
+              cityId: sourceId,
+              officerId,
+              targetCityId: targetId,
+              troops,
+              additionalOfficerIds: extras.length > 0 ? extras : undefined,
+              seasonsRemaining: dur,
+              totalSeasons: dur,
+            } as MarchCommand,
+          },
+          // Mirror the order into the persistent army layer at the source
+          // (progress 0) so it shows up as a unit immediately, even before
+          // the season resolves.
+          armies: {
+            ...state.armies,
+            [officerId]: {
+              id: officerId,
+              forceId: source.ownerForceId!,
+              commanderId: officerId,
+              companionIds: extras,
+              troops,
+              fromCityId: sourceId,
+              targetCityId: targetId,
+              x: source.coords.x,
+              y: source.coords.y,
+              progress: 0,
+              totalSeasons: dur,
+            },
           },
         });
         return { ok: true };
@@ -530,12 +547,15 @@ export const useGameStore = create<GameStore>()(
           }
         }
 
+        const nextArmies = { ...state.armies };
+        delete nextArmies[officerKey];
         set({
           cities: city
             ? { ...state.cities, [cmd.cityId]: { ...city, gold: city.gold + def.goldCost } }
             : state.cities,
           officers: officersUpdate,
           pendingCommands: next,
+          armies: nextArmies,
         });
       },
 
