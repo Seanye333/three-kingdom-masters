@@ -41,6 +41,10 @@ export interface MarchCommand extends CommandBase {
    */
   seasonsRemaining?: number;
   totalSeasons?: number;
+  /** Holding position: the army stops advancing at its current cell and
+   *  garrisons it (still fights enemies that reach it). Cleared on
+   *  redirect. */
+  holding?: boolean;
 }
 
 export type Command = InternalAffairsCommand | MarchCommand;

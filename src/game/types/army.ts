@@ -25,4 +25,6 @@ export interface Army {
   totalSeasons: number;
   /** Whether this army crosses water (rendered gliding, no hex snap). */
   naval?: boolean;
+  /** Holding its current cell as a garrison (not advancing). */
+  holding?: boolean;
 }

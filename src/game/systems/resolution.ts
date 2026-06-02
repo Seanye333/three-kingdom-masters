@@ -307,8 +307,11 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   const liveMarches = allMarches.filter((c) => !cancelledMarchOfficers.has(c.officerId));
   const withTroops = (c: Extract<Command, { type: 'march' }>) =>
     troopOverride[c.officerId] !== undefined ? { ...c, troops: troopOverride[c.officerId] } : c;
-  const marches = liveMarches.filter((c) => (c.seasonsRemaining ?? 1) <= 1).map(withTroops);
-  const inTransit = liveMarches.filter((c) => (c.seasonsRemaining ?? 1) > 1).map(withTroops);
+  // Held armies garrison their cell — they don't advance or resolve.
+  const held = liveMarches.filter((c) => c.holding).map(withTroops);
+  const moving = liveMarches.filter((c) => !c.holding);
+  const marches = moving.filter((c) => (c.seasonsRemaining ?? 1) <= 1).map(withTroops);
+  const inTransit = moving.filter((c) => (c.seasonsRemaining ?? 1) > 1).map(withTroops);
   const keptCommands: Record<EntityId, Command> = {};
   for (const cmd of inTransit) {
     keptCommands[cmd.officerId] = {
@@ -316,19 +319,20 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       seasonsRemaining: (cmd.seasonsRemaining ?? 1) - 1,
     };
   }
+  // Held marches are carried forward unchanged (frozen in place).
+  for (const cmd of held) {
+    keptCommands[cmd.officerId] = { ...cmd };
+  }
 
-  // Derive the persistent Army layer from the in-transit marches that will
-  // keep marching next season. Each is positioned at its current point on
-  // the terrain route. This is the canonical "unit on the map" entity the
-  // renderers + future selection/redirect build on.
+  // Derive the persistent Army layer from marches still on the map next
+  // season — in-transit (advancing) and held (frozen at their cell).
   const outArmies: Record<EntityId, import('../types').Army> = {};
-  for (const cmd of inTransit) {
+  const deriveArmy = (cmd: Extract<Command, { type: 'march' }>, remainingNext: number, holding: boolean) => {
     const src = cities[cmd.cityId];
     const dst = cities[cmd.targetCityId];
     const cmdr = officers[cmd.officerId];
-    if (!src || !dst || !cmdr?.forceId) continue;
+    if (!src || !dst || !cmdr?.forceId) return;
     const total = Math.max(1, cmd.totalSeasons ?? 1);
-    const remainingNext = (cmd.seasonsRemaining ?? 1) - 1; // after this season's step
     const progress = Math.min(0.95, Math.max(0.05, (total - remainingNext) / total));
     const pos = armyPosition({ ...cmd, seasonsRemaining: remainingNext });
     outArmies[cmd.officerId] = {
@@ -343,8 +347,11 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       y: pos?.y ?? src.coords.y,
       progress,
       totalSeasons: total,
+      holding,
     };
-  }
+  };
+  for (const cmd of inTransit) deriveArmy(cmd, (cmd.seasonsRemaining ?? 1) - 1, false);
+  for (const cmd of held) deriveArmy(cmd, cmd.seasonsRemaining ?? 1, true);
 
   // Phase 3c — territory capture stamps. Every army on the road this
   // season claims the cells along the slice of route it physically
@@ -397,6 +404,13 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   };
   for (const cmd of liveMarches) {
     const total = Math.max(1, cmd.totalSeasons ?? 1);
+    if (cmd.holding) {
+      // A garrison holds the cell it sits on — stamp a small slice around
+      // its frozen position so it keeps the ground it's standing on.
+      const t = (total - (cmd.seasonsRemaining ?? 1) + 0.5) / total;
+      stampRouteSlice(cmd, Math.max(0, t - 0.04), Math.min(1, t + 0.04));
+      continue;
+    }
     const remainingAfter = Math.max(0, (cmd.seasonsRemaining ?? 1) - 1);
     const remainingBefore = cmd.seasonsRemaining ?? 1;
     const tStart = (total - remainingBefore) / total;

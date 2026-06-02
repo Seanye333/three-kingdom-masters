@@ -13,6 +13,7 @@ export function ArmiesPanel() {
   const selectedArmyId = useGameStore((s) => s.selectedArmyId);
   const selectArmy = useGameStore((s) => s.selectArmy);
   const cancelCommand = useGameStore((s) => s.cancelCommand);
+  const holdArmy = useGameStore((s) => s.holdArmy);
 
   const mine = Object.values(armies).filter((a) => a.forceId === playerForceId);
   if (mine.length === 0) return null;
@@ -34,16 +35,28 @@ export function ArmiesPanel() {
         在途部隊 · Armies
       </div>
       {selectedArmyId && armies[selectedArmyId] && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 3 }}>
-          <span style={{ fontSize: '0.6rem', color: '#d4a84a' }}>點地圖城市以改道</span>
-          <button
-            onClick={() => { cancelCommand(selectedArmyId); selectArmy(null); }}
-            style={{
-              background: '#3a1410', border: '1px solid #b8442e', color: '#e8a890',
-              fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
-              fontFamily: '"Songti SC", serif',
-            }}
-          >召回</button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, marginBottom: 3 }}>
+          <span style={{ fontSize: '0.58rem', color: '#d4a84a' }}>點城改道</span>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button
+              onClick={() => holdArmy(selectedArmyId)}
+              style={{
+                background: armies[selectedArmyId].holding ? '#2a3a1a' : '#1a2410',
+                border: `1px solid ${armies[selectedArmyId].holding ? '#a8c87a' : '#5a7a3a'}`,
+                color: armies[selectedArmyId].holding ? '#c8e8a0' : '#a8c87a',
+                fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
+                fontFamily: '"Songti SC", serif',
+              }}
+            >{armies[selectedArmyId].holding ? '解除' : '駐守'}</button>
+            <button
+              onClick={() => { cancelCommand(selectedArmyId); selectArmy(null); }}
+              style={{
+                background: '#3a1410', border: '1px solid #b8442e', color: '#e8a890',
+                fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
+                fontFamily: '"Songti SC", serif',
+              }}
+            >召回</button>
+          </div>
         </div>
       )}
       {mine.map((a) => {
@@ -67,8 +80,8 @@ export function ArmiesPanel() {
               {cmdr?.name.zh ?? '？'}
               <span style={{ color: '#8a7050', marginLeft: 4, fontSize: '0.62rem', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}</span>
             </span>
-            <span style={{ color: '#c0a878', whiteSpace: 'nowrap' }}>
-              ▸{target?.name.zh ?? '?'} {a.totalSeasons > 1 ? `${remaining}季` : ''}
+            <span style={{ color: a.holding ? '#a8c87a' : '#c0a878', whiteSpace: 'nowrap' }}>
+              {a.holding ? '駐守中' : `▸${target?.name.zh ?? '?'} ${a.totalSeasons > 1 ? `${remaining}季` : ''}`}
             </span>
           </div>
         );

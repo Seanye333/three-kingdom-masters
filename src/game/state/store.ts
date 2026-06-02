@@ -141,6 +141,7 @@ interface GameStore extends GameState {
   selectCity: (cityId: EntityId | null) => void;
   selectArmy: (armyId: EntityId | null) => void;
   redirectArmy: (armyId: EntityId, newTargetId: EntityId) => boolean;
+  holdArmy: (armyId: EntityId) => boolean;
   issueCommand: (
     cityId: EntityId,
     type: InternalAffairsType,
@@ -390,17 +391,32 @@ export const useGameStore = create<GameStore>()(
         if (newTargetId === cmd.targetCityId || newTargetId === cmd.cityId) return false;
         // New leg length source→newTarget; preserve how far the army has come
         // so it "turns" toward the new objective rather than restarting.
+        // Redirecting also lifts any hold.
         const total = marchDurationFor(src, tgt);
         const remaining = Math.max(1, Math.ceil((1 - army.progress) * total));
         set({
           pendingCommands: {
             ...state.pendingCommands,
-            [armyId]: { ...cmd, targetCityId: newTargetId, totalSeasons: total, seasonsRemaining: remaining },
+            [armyId]: { ...cmd, targetCityId: newTargetId, totalSeasons: total, seasonsRemaining: remaining, holding: false },
           },
           armies: {
             ...state.armies,
-            [armyId]: { ...army, targetCityId: newTargetId, totalSeasons: total },
+            [armyId]: { ...army, targetCityId: newTargetId, totalSeasons: total, holding: false },
           },
+        });
+        return true;
+      },
+
+      holdArmy: (armyId) => {
+        const state = get();
+        const cmd = state.pendingCommands[armyId];
+        const army = state.armies[armyId];
+        if (!cmd || cmd.type !== 'march' || !army) return false;
+        if (army.forceId !== state.playerForceId) return false;
+        const next = !army.holding;
+        set({
+          pendingCommands: { ...state.pendingCommands, [armyId]: { ...cmd, holding: next } },
+          armies: { ...state.armies, [armyId]: { ...army, holding: next } },
         });
         return true;
       },
