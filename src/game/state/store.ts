@@ -140,6 +140,7 @@ interface GameStore extends GameState {
   ) => void;
   selectCity: (cityId: EntityId | null) => void;
   selectArmy: (armyId: EntityId | null) => void;
+  redirectArmy: (armyId: EntityId, newTargetId: EntityId) => boolean;
   issueCommand: (
     cityId: EntityId,
     type: InternalAffairsType,
@@ -376,6 +377,33 @@ export const useGameStore = create<GameStore>()(
       selectCity: (cityId) => set(() => ({ selectedCityId: cityId })),
 
       selectArmy: (armyId) => set(() => ({ selectedArmyId: armyId })),
+
+      redirectArmy: (armyId, newTargetId) => {
+        const state = get();
+        const cmd = state.pendingCommands[armyId];
+        const army = state.armies[armyId];
+        if (!cmd || cmd.type !== 'march' || !army) return false;
+        if (army.forceId !== state.playerForceId) return false;
+        const src = state.cities[cmd.cityId];
+        const tgt = state.cities[newTargetId];
+        if (!src || !tgt) return false;
+        if (newTargetId === cmd.targetCityId || newTargetId === cmd.cityId) return false;
+        // New leg length source→newTarget; preserve how far the army has come
+        // so it "turns" toward the new objective rather than restarting.
+        const total = marchDurationFor(src, tgt);
+        const remaining = Math.max(1, Math.ceil((1 - army.progress) * total));
+        set({
+          pendingCommands: {
+            ...state.pendingCommands,
+            [armyId]: { ...cmd, targetCityId: newTargetId, totalSeasons: total, seasonsRemaining: remaining },
+          },
+          armies: {
+            ...state.armies,
+            [armyId]: { ...army, targetCityId: newTargetId, totalSeasons: total },
+          },
+        });
+        return true;
+      },
 
       issueCommand: (cityId, type, officerId) => {
         const state = get();

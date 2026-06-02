@@ -32,6 +32,11 @@ export function ArmiesPanel() {
       <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: 3 }}>
         在途部隊 · Armies
       </div>
+      {selectedArmyId && (
+        <div style={{ fontSize: '0.6rem', color: '#d4a84a', marginBottom: 3 }}>
+          點地圖城市以改道
+        </div>
+      )}
       {mine.map((a) => {
         const cmdr = officers[a.commanderId];
         const target = cities[a.targetCityId];

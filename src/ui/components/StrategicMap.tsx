@@ -100,6 +100,7 @@ export function StrategicMap() {
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectCity = useGameStore((s) => s.selectCity);
   const selectArmy = useGameStore((s) => s.selectArmy);
+  const redirectArmy = useGameStore((s) => s.redirectArmy);
 
   const fogOfWar = useGameStore((s) => s.fogOfWar);
   const playerForceId = useGameStore((s) => s.playerForceId);
@@ -421,10 +422,15 @@ export function StrategicMap() {
     // A marching unit under the cursor takes priority over the city beneath.
     const armyHit = armyAtPoint(x, y);
     if (armyHit) { selectArmy(armyHit); return; }
-    selectArmy(null);
     const effMap: Record<EntityId, City> = {};
     for (const c of Object.values(cities)) effMap[c.id] = effectiveCity(c.id)!;
     const hit = hitTestCity(x, y, effMap);
+    // If an army is selected, clicking a city re-routes it there (RTS-style:
+    // unit selected → click destination). Otherwise normal city selection.
+    if (selectedArmyId && hit) {
+      if (redirectArmy(selectedArmyId, hit)) { selectArmy(null); return; }
+    }
+    selectArmy(null);
     selectCity(hit);
   };
 
@@ -559,10 +565,13 @@ export function StrategicMap() {
       const { x: wx, y: wy } = toWorld(cx, cy);
       const armyHit = armyAtPoint(wx, wy);
       if (armyHit) { selectArmy(armyHit); return; }
-      selectArmy(null);
       const effMap: Record<EntityId, City> = {};
       for (const c of Object.values(cities)) effMap[c.id] = effectiveCity(c.id)!;
       const hit = hitTestCity(wx, wy, effMap);
+      if (selectedArmyId && hit) {
+        if (redirectArmy(selectedArmyId, hit)) { selectArmy(null); return; }
+      }
+      selectArmy(null);
       selectCity(hit);
     }
   };
