@@ -462,9 +462,9 @@ export function TacticalBattleScreen() {
   const svgWidth = battle.width * HEX_COL_STEP + HEX_W / 4;
   const svgHeight = battle.height * HEX_ROW_STEP + HEX_H;
 
-  const namedMap = NAMED_MAPS_BY_ID[`map-${battle.cityId.replace('city-', '')}`];
-  const battleTitleZh = namedMap?.name.zh ?? '戰術戰闘';
-  const battleTitleEn = namedMap?.name.en ?? 'Tactical Battle';
+  const namedMap = battle.field ? undefined : NAMED_MAPS_BY_ID[`map-${battle.cityId.replace('city-', '')}`];
+  const battleTitleZh = namedMap?.name.zh ?? (battle.field ? '野戰' : '戰術戰闘');
+  const battleTitleEn = namedMap?.name.en ?? (battle.field ? 'Field Battle' : 'Tactical Battle');
 
   return (
     <div className={styles.root}>

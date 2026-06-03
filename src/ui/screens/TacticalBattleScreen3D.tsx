@@ -1288,8 +1288,10 @@ function BattleScene({
         );
       })}
 
-      {/* City walls — rightmost column hexes that don't have a defense structure */}
-      {(() => {
+      {/* City walls — rightmost column hexes that don't have a defense
+          structure. Suppressed for field battles (亲征野战): an open-ground
+          clash has no walls. */}
+      {!battle.field && (() => {
         const wallCol = battle.width - 1;
         const structureCoords = new Set(
           (battle.cityStructures ?? []).map((s) => `${s.coord.col},${s.coord.row}`),
