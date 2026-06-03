@@ -14,6 +14,7 @@ export function ArmiesPanel() {
   const selectArmy = useGameStore((s) => s.selectArmy);
   const cancelCommand = useGameStore((s) => s.cancelCommand);
   const holdArmy = useGameStore((s) => s.holdArmy);
+  const splitArmy = useGameStore((s) => s.splitArmy);
 
   const mine = Object.values(armies).filter((a) => a.forceId === playerForceId);
   if (mine.length === 0) return null;
@@ -48,6 +49,17 @@ export function ArmiesPanel() {
                 fontFamily: '"Songti SC", serif',
               }}
             >{armies[selectedArmyId].holding ? '解除' : '駐守'}</button>
+            {(armies[selectedArmyId].companionIds?.length ?? 0) > 0 && (
+              <button
+                onClick={() => splitArmy(selectedArmyId)}
+                style={{
+                  background: '#1a2030', border: '1px solid #5a78a0', color: '#a8c0e8',
+                  fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
+                  fontFamily: '"Songti SC", serif',
+                }}
+                title="分出一半兵力與一名副將,駐守當前格"
+              >分兵</button>
+            )}
             <button
               onClick={() => { cancelCommand(selectedArmyId); selectArmy(null); }}
               style={{

@@ -130,6 +130,13 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     const blended = pool.reduce((s, o) => s + o.stats.war * 0.6 + o.stats.leadership * 0.4, 0) / pool.length;
     return { blended, power: blended * Math.sqrt(Math.max(1, cmd.troops)) };
   };
+  // Best intelligence among an army's officers — a wise commander scouts
+  // ahead and sees through enemy ambushes (识破伏兵).
+  const armyMaxIntel = (cmd: Extract<Command, { type: 'march' }>) =>
+    Math.max(0, ...[cmd.officerId, ...(cmd.additionalOfficerIds ?? [])]
+      .map((id) => officers[id]?.stats.intelligence ?? 0));
+  // Camps stormed this season → the victor seizes the broken camp's ground.
+  const campSeizures: Array<{ x: number; y: number; forceId: EntityId }> = [];
   // Build a field BattleDetail; `atk` is the victor side, `def` the loser.
   type FieldSide = {
     forceId: EntityId | null; commanderId: EntityId; companionIds: EntityId[];
@@ -159,32 +166,47 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       if (!pa || !pb) continue;
       if (Math.hypot(pa.x - pb.x, pa.y - pb.y) > INTERCEPT_DIST) continue;
 
-      // Field clash. A dug-in army (holding) that catches a moving column is
-      // lying in wait — an ambush. It fights with a power bonus that grows
-      // with terrain cover (mountains/forest/river crossings), so holding a
-      // rough chokepoint and springing on a passing army is a real tactic.
+      // Field clash. A dug-in army (holding) fights from an earthwork camp,
+      // with a power bonus that grows with terrain cover (mountains/forest/
+      // river crossings). That bonus is dual-purpose:
+      //   • if the dug-in side WINS → it sprang an ambush (设伏破敌);
+      //   • if it LOSES despite the cover → its camp was stormed (拔寨).
+      // A moving column led by a wise commander scouts ahead and partly sees
+      // through the trap, blunting the dug-in bonus (识破伏兵).
       const statsA = fieldStats(a);
       const statsB = fieldStats(b);
-      const aAmbush = !!a.holding && !b.holding;
-      const bAmbush = !!b.holding && !a.holding;
+      const aHolds = !!a.holding && !b.holding;
+      const bHolds = !!b.holding && !a.holding;
+      const oneHolds = aHolds || bHolds;
       const AMBUSH_BASE = 0.3, COVER_SCALE = 0.45, COVER_CAP = 0.55;
-      const ambushMult = (isAmb: boolean, p: { x: number; y: number }) =>
-        isAmb ? 1 + AMBUSH_BASE + Math.min(COVER_CAP, terrainMarchCost(p.x, p.y) * COVER_SCALE) : 1;
-      const multA = ambushMult(aAmbush, pa);
-      const multB = ambushMult(bAmbush, pb);
+      // The mover (the side NOT dug in) is the one who can detect the ambush.
+      const moverCmd = aHolds ? b : bHolds ? a : null;
+      const moverIntel = moverCmd ? armyMaxIntel(moverCmd) : 0;
+      const detect = oneHolds ? Math.min(0.5, Math.max(0, (moverIntel - 70) / 80)) : 0;
+      const holdBonus = (p: { x: number; y: number }) =>
+        (AMBUSH_BASE + Math.min(COVER_CAP, terrainMarchCost(p.x, p.y) * COVER_SCALE)) * (1 - detect);
+      const multA = aHolds ? 1 + holdBonus(pa) : 1;
+      const multB = bHolds ? 1 + holdBonus(pb) : 1;
       const aWins = statsA.power * multA >= statsB.power * multB;
       const winner = aWins ? a : b;
       const loser = aWins ? b : a;
       const wStats = aWins ? statsA : statsB;
       const lStats = aWins ? statsB : statsA;
-      // The clash was an ambush if the *victor* was the one lying in wait.
-      const ambush = aWins ? aAmbush : bAmbush;
+      const holderWon = (aHolds && aWins) || (bHolds && !aWins);
+      const ambush = oneHolds && holderWon;        // dug-in sprang the trap
+      const campStormed = oneHolds && !holderWon;  // dug-in camp overrun
+      const detected = oneHolds && detect >= 0.25; // scout saw it coming
       const winnerCmdr = officers[winner.officerId];
       const loserCmdr = officers[loser.officerId];
-      // A sprung ambush is lopsided: the ambusher bleeds little, the
-      // surprised column is shattered.
-      const winnerCasualty = Math.floor(winner.troops * (ambush ? 0.12 : 0.2));
-      const loserCasualty = Math.floor(loser.troops * (ambush ? 0.72 : 0.6));
+      // Sprung ambush: lopsided. Stormed camp: the dug-in defenders are
+      // overrun (heavy), the stormers pay a price breaching the earthworks.
+      const winnerCasualty = Math.floor(winner.troops * (ambush ? 0.12 : campStormed ? 0.25 : 0.2));
+      const loserCasualty = Math.floor(loser.troops * (ambush ? 0.72 : campStormed ? 0.75 : 0.6));
+      // Storming a camp seizes the ground it held for the victor.
+      if (campStormed && winnerCmdr?.forceId) {
+        const lp = aWins ? pb : pa;
+        campSeizures.push({ x: lp.x, y: lp.y, forceId: winnerCmdr.forceId });
+      }
       // Casualties are drawn from each army's source city (troops are
       // notionally still there until the march resolves).
       const winSrc = cities[winner.cityId];
@@ -232,16 +254,24 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         defenderLosses: loserCasualty,
         field: true,
         ambush,
+        campAssault: campStormed,
+        detected,
       };
+      const detEn = detected ? `${wName.en}'s scouts saw the trap; ` : '';
+      const detZh = detected ? `${wName.zh}早察其謀,` : '';
       entries.push({
         cityId: winner.targetCityId,
         kind: 'battle',
         text: ambush
           ? `Ambush: ${wName.en} lay in wait and fell upon ${lName.en}'s column, shattering it (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`
-          : `Field clash: ${wName.en} intercepted ${lName.en} on the march and routed them (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`,
+          : campStormed
+            ? `Camp stormed: ${detEn}${wName.en} overran ${lName.en}'s dug-in camp and seized the ground (−${winnerCasualty} vs −${loserCasualty}).`
+            : `Field clash: ${wName.en} intercepted ${lName.en} on the march and routed them (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`,
         textZh: ambush
           ? `伏擊：${wName.zh}設伏以待,驟擊${lName.zh}之軍而潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`
-          : `野戰：${wName.zh}於行軍途中截擊${lName.zh}並擊潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`,
+          : campStormed
+            ? `拔寨：${detZh}${wName.zh}強攻${lName.zh}之營寨,破之而據其地（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。`
+            : `野戰：${wName.zh}於行軍途中截擊${lName.zh}並擊潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`,
         battle: fieldBattle,
       });
     }
@@ -503,6 +533,20 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     const tStart = (total - remainingBefore) / total;
     const tEnd = (total - remainingAfter) / total;
     stampRouteSlice(cmd, tStart, tEnd);
+  }
+
+  // Storming a camp seizes the cells it held for the victor — the routed
+  // garrison no longer stamps them, so flip the ground around each broken
+  // camp explicitly.
+  if (campSeizures.length > 0) {
+    const seizeTerr = generateTerritories(Object.values(cities));
+    for (const seizure of campSeizures) {
+      for (const ter of seizeTerr) {
+        if (Math.hypot(ter.coords.x - seizure.x, ter.coords.y - seizure.y) <= 26) {
+          territoryOwnership[ter.id] = seizure.forceId;
+        }
+      }
+    }
   }
 
   const delayedEffects: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }> = [];

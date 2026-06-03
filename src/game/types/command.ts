@@ -120,6 +120,12 @@ export interface BattleDetail {
   /** True when the victor was a dug-in army lying in wait — a sprung
    *  ambush (terrain-amplified field clash). */
   ambush?: boolean;
+  /** True when the victor stormed a dug-in enemy camp (拔寨) — the loser was
+   *  the holding side, overrun despite its earthworks. */
+  campAssault?: boolean;
+  /** True when the moving side's scouts saw through the ambush (识破伏兵),
+   *  blunting the dug-in bonus. */
+  detected?: boolean;
 }
 
 export interface HistoricBattle extends BattleDetail {

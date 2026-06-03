@@ -147,6 +147,10 @@ interface GameStore extends GameState {
   /** Merge the source army into the destination army (both must be the
    *  player's and close enough to rendezvous). Returns false if not allowed. */
   mergeArmyInto: (sourceArmyId: EntityId, destArmyId: EntityId) => boolean;
+  /** Split a detachment off an army under one of its companion officers;
+   *  the detachment garrisons the army's current cell so it can be redirected.
+   *  Returns the new army id (= detach officer id) or null if not allowed. */
+  splitArmy: (armyId: EntityId, detachOfficerId?: EntityId) => EntityId | null;
   issueCommand: (
     cityId: EntityId,
     type: InternalAffairsType,
@@ -509,6 +513,84 @@ export const useGameStore = create<GameStore>()(
           selectedArmyId: destArmyId,
         });
         return true;
+      },
+
+      splitArmy: (armyId, detachOfficerId) => {
+        const state = get();
+        const cmd = state.pendingCommands[armyId];
+        const army = state.armies[armyId];
+        if (!cmd || cmd.type !== 'march' || !army) return null;
+        if (army.forceId !== state.playerForceId) return null;
+        const companions = cmd.additionalOfficerIds ?? [];
+        if (companions.length === 0) return null; // no officer to lead a detachment
+        // Detach under the chosen companion (default: the first).
+        const detachId = detachOfficerId && companions.includes(detachOfficerId)
+          ? detachOfficerId : companions[0];
+        if (army.troops < 2) return null;
+        const detachTroops = Math.floor(army.troops / 2);
+        const keepTroops = army.troops - detachTroops;
+        if (detachTroops < 1) return null;
+
+        // Current on-map position (same math the renderer uses) — the
+        // detachment garrisons the cell the column is standing on.
+        const from = state.cities[cmd.cityId];
+        const dest = marchDestCoords(cmd, state.cities);
+        let px = army.x, py = army.y;
+        if (from && dest) {
+          const route = terrainRoute(from.coords.x, from.coords.y, dest.x, dest.y);
+          const total = Math.max(1, cmd.totalSeasons ?? 1);
+          const remaining = cmd.seasonsRemaining ?? 1;
+          const t = Math.min(0.95, Math.max(0.05, (total - remaining + 0.5) / total));
+          const pos = positionAlongRoute(route, t);
+          px = pos.x; py = pos.y;
+        }
+
+        const remainingCompanions = companions.filter((id) => id !== detachId);
+        const nextCommands = { ...state.pendingCommands };
+        // Parent keeps its orders, minus the detached troops & officer.
+        nextCommands[armyId] = {
+          ...cmd,
+          troops: keepTroops,
+          additionalOfficerIds: remainingCompanions.length > 0 ? remainingCompanions : undefined,
+        };
+        // Detachment: a holding garrison on the current cell, ready to be
+        // redirected. Keyed by the detached officer (one command per officer).
+        nextCommands[detachId] = {
+          type: 'march',
+          cityId: cmd.cityId,
+          officerId: detachId,
+          targetCityId: cmd.targetCityId,
+          targetX: px,
+          targetY: py,
+          troops: detachTroops,
+          seasonsRemaining: 1,
+          totalSeasons: 1,
+          holding: true,
+        } as MarchCommand;
+
+        const nextArmies = { ...state.armies };
+        nextArmies[armyId] = { ...army, troops: keepTroops, companionIds: remainingCompanions };
+        nextArmies[detachId] = {
+          id: detachId,
+          forceId: army.forceId,
+          commanderId: detachId,
+          companionIds: [],
+          troops: detachTroops,
+          fromCityId: cmd.cityId,
+          targetCityId: cmd.targetCityId,
+          x: px,
+          y: py,
+          progress: army.progress,
+          totalSeasons: 1,
+          holding: true,
+          cellTarget: true,
+        };
+        set({
+          pendingCommands: nextCommands,
+          armies: nextArmies,
+          selectedArmyId: detachId,
+        });
+        return detachId;
       },
 
       issueCommand: (cityId, type, officerId) => {
