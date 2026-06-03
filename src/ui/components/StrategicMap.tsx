@@ -103,6 +103,7 @@ export function StrategicMap() {
   const redirectArmy = useGameStore((s) => s.redirectArmy);
   const moveArmyToCell = useGameStore((s) => s.moveArmyToCell);
   const mergeArmyInto = useGameStore((s) => s.mergeArmyInto);
+  const startFieldBattle = useGameStore((s) => s.startFieldBattle);
 
   const fogOfWar = useGameStore((s) => s.fogOfWar);
   const playerForceId = useGameStore((s) => s.playerForceId);
@@ -427,9 +428,12 @@ export function StrategicMap() {
     // A marching unit under the cursor takes priority over the city beneath.
     const armyHit = armyAtPoint(x, y);
     if (armyHit) {
-      // Selected army + click another friendly army nearby → merge columns.
-      if (selectedArmyId && armyHit !== selectedArmyId
-        && mergeArmyInto(selectedArmyId, armyHit)) return;
+      // Selected army + click another army nearby:
+      //  • friendly → merge columns;  • enemy in range → 亲征野战 (tactical).
+      if (selectedArmyId && armyHit !== selectedArmyId) {
+        if (mergeArmyInto(selectedArmyId, armyHit)) return;
+        if (startFieldBattle(selectedArmyId, armyHit)) return;
+      }
       selectArmy(armyHit);
       return;
     }
@@ -581,8 +585,10 @@ export function StrategicMap() {
       const { x: wx, y: wy } = toWorld(cx, cy);
       const armyHit = armyAtPoint(wx, wy);
       if (armyHit) {
-        if (selectedArmyId && armyHit !== selectedArmyId
-          && mergeArmyInto(selectedArmyId, armyHit)) return;
+        if (selectedArmyId && armyHit !== selectedArmyId) {
+          if (mergeArmyInto(selectedArmyId, armyHit)) return;
+          if (startFieldBattle(selectedArmyId, armyHit)) return;
+        }
         selectArmy(armyHit);
         return;
       }

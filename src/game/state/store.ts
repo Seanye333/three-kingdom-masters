@@ -68,6 +68,7 @@ import {
   attemptRecruit,
 } from '../systems/officerFate';
 import { resolveSeason } from '../systems/resolution';
+import { setupTacticalBattle, inferUnitType } from '../systems/tactical';
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
 import { DEFENSE_BUILDINGS } from '../data/defenseBuildings';
 import { SHIP_CLASSES_BY_ID } from '../data/ships';
@@ -252,6 +253,9 @@ interface GameStore extends GameState {
   ) => { ok: boolean; reason?: string };
   dismissEvent: () => void;
   startTacticalBattle: (battle: TacticalBattle) => void;
+  /** 亲征野战 — lead a player field army into an interactive tactical battle
+   *  against an adjacent enemy army. Returns false if not allowed. */
+  startFieldBattle: (playerArmyId: EntityId, enemyArmyId: EntityId) => boolean;
   endTacticalBattle: (
     winner: 'attacker' | 'defender',
     attackerLosses: number,
@@ -3132,6 +3136,70 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       },
 
       startTacticalBattle: (battle) => set({ tacticalBattle: battle }),
+
+      startFieldBattle: (playerArmyId, enemyArmyId) => {
+        const state = get();
+        const pArmy = state.armies[playerArmyId];
+        const eArmy = state.armies[enemyArmyId];
+        if (!pArmy || !eArmy) return false;
+        if (pArmy.forceId !== state.playerForceId) return false;
+        if (eArmy.forceId === state.playerForceId) return false;
+        if (!isHostilePermitted(state.diplomacy, pArmy.forceId, eArmy.forceId)) return false;
+        // The two columns must be close enough to give battle this season.
+        const ENGAGE_DIST = 120;
+        if (Math.hypot(pArmy.x - eArmy.x, pArmy.y - eArmy.y) > ENGAGE_DIST) return false;
+
+        // Split each army's troops across its officers (commander gets the
+        // remainder), as the city battle-prep does.
+        const sideOf = (army: typeof pArmy) => {
+          const offs = [army.commanderId, ...army.companionIds]
+            .map((id) => state.officers[id])
+            .filter((o): o is import('../types').Officer => !!o);
+          const n = Math.max(1, offs.length);
+          const base = Math.floor(army.troops / n);
+          return offs.map((o, i) => ({
+            officer: o,
+            troops: i === 0 ? army.troops - base * (n - 1) : base,
+            unitType: inferUnitType(o),
+          }));
+        };
+        const attackers = sideOf(pArmy);
+        const defenders = sideOf(eArmy);
+        if (attackers.length === 0 || defenders.length === 0) return false;
+
+        // Clash midpoint → nominal nearest city (label/replay) + battlefield
+        // terrain (driven by the coords, no city walls).
+        const midX = (pArmy.x + eArmy.x) / 2, midY = (pArmy.y + eArmy.y) / 2;
+        let nominalCity = pArmy.targetCityId;
+        let bestD = Infinity;
+        for (const c of Object.values(state.cities)) {
+          const d = Math.hypot(c.coords.x - midX, c.coords.y - midY);
+          if (d < bestD) { bestD = d; nominalCity = c.id; }
+        }
+        const stratWeather = state.weather?.kind ?? 'clear';
+        const tacticalWeather = stratWeather === 'drought' ? 'clear' : stratWeather;
+
+        const battle = setupTacticalBattle({
+          cityId: nominalCity,
+          width: 18,
+          height: 12,
+          attackerForceId: pArmy.forceId,
+          defenderForceId: eArmy.forceId,
+          attackers,
+          defenders,
+          // A dug-in enemy camp fights from an ambush formation.
+          defenderFormation: eArmy.holding ? 'ten-ambush' : undefined,
+          weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
+          windDirection: state.weather?.wind ?? 'calm',
+          // No buildSlots — open field, no walls. Terrain from the clash coords.
+          terrainHint: { x: midX, y: midY },
+        });
+        battle.field = true;
+        battle.attackerArmyId = playerArmyId;
+        battle.defenderArmyId = enemyArmyId;
+        set({ tacticalBattle: battle, selectedArmyId: null });
+        return true;
+      },
       endTacticalBattle: (winner, attackerLosses, defenderLosses) => {
         const state = get();
         const tb = state.tacticalBattle;
@@ -3235,9 +3303,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
         }
 
-        // Apply troop losses to the source/target cities.
+        // Apply troop losses to the source/target cities (siege only — a
+        // field battle's casualties write back to the armies below).
         const target = cities[tb.cityId];
-        if (target) {
+        if (target && !tb.field) {
           // Defender losses are taken from target city.
           cities[tb.cityId] = {
             ...target,
@@ -3258,8 +3327,48 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
         }
 
+        // ── Field battle writeback (亲征野战) — casualties to the two armies,
+        // the routed army removed, no city changes hands. ──
+        let nextArmies = state.armies;
+        let nextFieldPending = state.pendingCommands;
+        if (tb.field) {
+          const armies = { ...state.armies };
+          const pending = { ...state.pendingCommands };
+          const survivorsOf = (side: 'attacker' | 'defender') =>
+            tb.units.filter((u) => u.side === side).reduce((s, u) => s + Math.max(0, u.troops), 0);
+          const cmdAlive = (side: 'attacker' | 'defender') =>
+            tb.units.some((u) => u.side === side && u.isCommander && u.troops > 0);
+          const resolveArmy = (armyId: EntityId | undefined, side: 'attacker' | 'defender') => {
+            if (!armyId) return;
+            const army = armies[armyId];
+            if (!army) return;
+            const survivors = survivorsOf(side);
+            const routed = (winner && winner !== side) || !cmdAlive(side) || survivors <= 0;
+            if (routed) {
+              // Column broken — remove it; free any officers not slain/taken.
+              delete armies[armyId];
+              delete pending[armyId];
+              for (const id of [army.commanderId, ...army.companionIds]) {
+                const o = officers[id];
+                if (o && o.status !== 'dead' && o.status !== 'imprisoned') {
+                  officers[id] = { ...o, task: null, status: 'idle' };
+                }
+              }
+            } else {
+              // Bloodied but intact — carry on with the survivors.
+              armies[armyId] = { ...army, troops: survivors };
+              const cmd = pending[armyId];
+              if (cmd && cmd.type === 'march') pending[armyId] = { ...cmd, troops: survivors };
+            }
+          };
+          resolveArmy(tb.attackerArmyId, 'attacker');
+          resolveArmy(tb.defenderArmyId, 'defender');
+          nextArmies = armies;
+          nextFieldPending = pending;
+        }
+
         // If attacker won, city falls (taken with attacker's surviving troops).
-        if (winner === 'attacker' && target) {
+        if (winner === 'attacker' && target && !tb.field) {
           const attackerCmd = tb.units.find((u) => u.side === 'attacker' && u.isCommander);
           if (attackerCmd) {
             const survivingTroops = tb.units
@@ -3369,7 +3478,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           newlyAch.push(...r.newlyUnlocked);
         };
         for (const id of dead) recordTrigger('defeat-officer', id);
-        if (winner === 'attacker') {
+        if (winner === 'attacker' && !tb.field) {
           recordTrigger('capture-city', tb.cityId);
         }
         // Cumulative kills (loser's troop loss).
@@ -3389,6 +3498,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         set({
           officers: titleGrant.officers,
           cities,
+          armies: nextArmies,
+          pendingCommands: nextFieldPending,
           tacticalBattle: null,
           deeds: titleGrant.deeds,
           battleReplays: replays,

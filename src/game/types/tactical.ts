@@ -281,6 +281,16 @@ export interface TacticalBattle {
    * sides; auto-attack attackers each turn (watchtower fires arrows, etc.).
    */
   cityStructures?: TacticalCityStructure[];
+  /**
+   * Field battle (army-vs-army in the open) rather than a city siege — set
+   * when the player leads a field army into battle in person (亲征野战). No
+   * city changes hands; casualties write back to the two armies instead.
+   */
+  field?: boolean;
+  /** The player (attacker) army id, for field-battle casualty writeback. */
+  attackerArmyId?: EntityId;
+  /** The enemy (defender) army id, for field-battle casualty writeback. */
+  defenderArmyId?: EntityId;
 }
 
 export interface TacticalCityStructure {
