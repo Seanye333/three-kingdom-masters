@@ -1518,6 +1518,51 @@ const CAMP_TENTS: ReadonlyArray<readonly [number, number]> = [
   [-0.18, 0.1], [0.18, 0.1], [0, -0.14], [-0.1, -0.12], [0.1, -0.12],
 ];
 
+/** Crossed-sabre / broken-stockade markers at recent field-battle sites. */
+function FieldBattleMarks3D({ marks }: {
+  marks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number }>;
+}) {
+  if (!marks || marks.length === 0) return null;
+  return (
+    <group>
+      {marks.map((m, i) => {
+        const [wx, wz] = pxToWorld(m.x, m.y);
+        const y = sampleTerrainHeight(wx, wz) + 0.06;
+        const fade = Math.min(1, m.seasonsLeft / 2);
+        const color = m.kind === 'ambush' ? '#e08a2a' : m.kind === 'camp' ? '#c43a2a' : '#9aa6b4';
+        if (m.kind === 'camp') {
+          // Broken stockade — a few leaning snapped stakes.
+          return (
+            <group key={i} position={[wx, y, wz]}>
+              {[[-0.1, 0.3], [0.05, -0.25], [0.14, 0.5]].map(([dx, rot], k) => (
+                <mesh key={k} position={[dx, 0.08, 0]} rotation={[0, 0, rot]}>
+                  <cylinderGeometry args={[0.012, 0.012, 0.16, 4]} />
+                  <meshStandardMaterial color="#6b4f2a" transparent opacity={0.9 * fade} />
+                </mesh>
+              ))}
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+                <circleGeometry args={[0.14, 16]} />
+                <meshBasicMaterial color={color} transparent opacity={0.4 * fade} />
+              </mesh>
+            </group>
+          );
+        }
+        // Crossed sabres — two thin crossed bars lying on the ground.
+        return (
+          <group key={i} position={[wx, y, wz]} rotation={[-Math.PI / 2, 0, 0]}>
+            {[Math.PI / 4, -Math.PI / 4].map((rot, k) => (
+              <mesh key={k} rotation={[0, 0, rot]}>
+                <boxGeometry args={[0.26, 0.025, 0.006]} />
+                <meshBasicMaterial color={color} transparent opacity={0.85 * fade} />
+              </mesh>
+            ))}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function FieldCamp({ color, troops = 0 }: { color: string; troops?: number }) {
   const flagRef = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
@@ -2064,6 +2109,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
   const selectCity = useGameStore((s) => s.selectCity);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectedArmyId3D = useGameStore((s) => s.selectedArmyId);
+  const fieldBattleMarks = useGameStore((s) => s.fieldBattleMarks);
   const portsForMarch = useGameStore((s) => s.ports);
   const weather = useGameStore((s) => s.weather);
   const weatherPreset = WEATHER_PRESETS[weather.kind];
@@ -2132,6 +2178,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
 
       <Roads cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} />
+      <FieldBattleMarks3D marks={fieldBattleMarks} />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} />
 

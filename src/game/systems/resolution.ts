@@ -74,6 +74,9 @@ export interface ResolutionOutput {
   /** Persistent field armies still on the map after this season (derived
    *  from in-transit marches — the canonical "unit on the map" layer). */
   armies?: Record<EntityId, import('../types').Army>;
+  /** Field-battle sites this season (ambush/camp-storm/clash) to mark on the
+   *  map. Coords in 1000×720 map space. */
+  fieldBattleMarks?: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash' }>;
   /** Pending delayed effects from stratagems (e.g. 截糧 troop drain). */
   delayedEffects?: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }>;
   /**
@@ -144,6 +147,8 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       .map((id) => officers[id]?.stats.intelligence ?? 0));
   // Camps stormed this season → the victor seizes the broken camp's ground.
   const campSeizures: Array<{ x: number; y: number; forceId: EntityId }> = [];
+  // Field-battle sites to mark on the map this season.
+  const fieldBattleMarks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash' }> = [];
   // Build a field BattleDetail; `atk` is the victor side, `def` the loser.
   type FieldSide = {
     forceId: EntityId | null; commanderId: EntityId; companionIds: EntityId[];
@@ -214,6 +219,11 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         const lp = aWins ? pb : pa;
         campSeizures.push({ x: lp.x, y: lp.y, forceId: winnerCmdr.forceId });
       }
+      // Mark the clash site on the map.
+      fieldBattleMarks.push({
+        x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2,
+        kind: ambush ? 'ambush' : campStormed ? 'camp' : 'clash',
+      });
       // Casualties are drawn from each army's source city (troops are
       // notionally still there until the march resolves).
       const winSrc = cities[winner.cityId];
@@ -1071,6 +1081,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     keptCommands: Object.keys(keptCommands).length > 0 ? keptCommands : undefined,
     armies: outArmies,
     territoryOwnership,
+    fieldBattleMarks: fieldBattleMarks.length > 0 ? fieldBattleMarks : undefined,
     delayedEffects: delayedEffects.length > 0 ? delayedEffects : undefined,
     deedDeltas: deedDeltas.length > 0 ? deedDeltas : undefined,
   };

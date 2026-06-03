@@ -210,6 +210,9 @@ export interface GameState {
   courtFactions: Record<EntityId, Array<{ officerId: EntityId; faction: 'reformer' | 'eunuch' | 'gentry' | 'military' }>>;
   /** Cities currently visibly burning on the map (decays over seasons). */
   burningCities: Array<{ cityId: EntityId; seasonsLeft: number }>;
+  /** Recent field-battle sites marked on the map (ambush/camp-storm/clash),
+   *  decaying over seasons. Coords are in the 1000×720 map space. */
+  fieldBattleMarks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number }>;
   /** Heaven's Mandate per force (0-100). */
   mandate: MandateState;
   /** Active 截糧 / delayed stratagem effects ticking down per season. */
@@ -297,6 +300,7 @@ export const EMPTY_STATE: GameState = {
   weather: { kind: 'clear', wind: 'calm', windPower: 1 },
   courtFactions: {},
   burningCities: [],
+  fieldBattleMarks: [],
   mandate: { byForce: {} },
   pendingDelayedEffects: [],
   pendingBattleTheaters: [],
@@ -476,6 +480,7 @@ export function loadScenario(
     weather: rollWeather(scenario.startDate.season, Math.random),
     courtFactions: {},
     burningCities: [],
+    fieldBattleMarks: [],
     mandate: createInitialMandate(scenario.forces.map((f) => f.id)),
     pendingDelayedEffects: [],
     pendingBattleTheaters: [],

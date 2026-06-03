@@ -109,6 +109,7 @@ export function StrategicMap() {
   const date = useGameStore((s) => s.date);
   const weather = useGameStore((s) => s.weather);
   const burningCities = useGameStore((s) => s.burningCities);
+  const fieldBattleMarks = useGameStore((s) => s.fieldBattleMarks);
   const [hoverCityId, setHoverCityId] = useState<EntityId | null>(null);
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   // Hovered territory cell (when not over a city): tooltip state + a ref
@@ -206,6 +207,8 @@ export function StrategicMap() {
       }
       // ── Burning-city fire glyphs (rendered above cities, below fog) ──
       drawBurningCities(ctx, effectiveCities, burningCities);
+      // ── Recent field-battle site marks (ambush/camp-storm/clash) ──
+      drawFieldBattleMarks(ctx, fieldBattleMarks);
       // ── Weather tint overlay (rain/snow/strong-wind streaks) ──
       drawWeatherOverlay(ctx, weather);
       ctx.restore();
@@ -232,7 +235,7 @@ export function StrategicMap() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [cities, forces, officers, territoryOwnership, selectedCityId, selectedArmyId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities]);
+  }, [cities, forces, officers, territoryOwnership, selectedCityId, selectedArmyId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities, fieldBattleMarks]);
 
   // Territory list (stable per city set) for hover owner lookup.
   const territoriesForHover = useMemo(
@@ -2153,6 +2156,57 @@ function drawBurningCities(
       ctx.beginPath();
       ctx.arc(sx, sy, 0.6, 0, Math.PI * 2);
       ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// ── Recent field-battle sites: crossed sabres for a clash/ambush, a broken
+// stockade for a stormed camp. Fade out over their 2-season lifetime. ──
+function drawFieldBattleMarks(
+  ctx: CanvasRenderingContext2D,
+  marks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number }>,
+) {
+  if (!marks || marks.length === 0) return;
+  const pulse = 0.7 + 0.3 * Math.sin(Date.now() / 350);
+  ctx.save();
+  for (const m of marks) {
+    const { x, y } = m;
+    const fade = Math.min(1, m.seasonsLeft / 2); // 1 fresh → 0.5 stale
+    const color = m.kind === 'ambush' ? '#e08a2a' : m.kind === 'camp' ? '#c43a2a' : '#9aa6b4';
+    ctx.globalAlpha = 0.85 * fade;
+    if (m.kind === 'camp') {
+      // Broken stockade — two leaning, snapped palisade stakes + embers.
+      ctx.strokeStyle = '#6b4f2a';
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x - 4, y + 4); ctx.lineTo(x - 5.5, y - 3);
+      ctx.moveTo(x, y + 4); ctx.lineTo(x + 1.5, y - 4);
+      ctx.moveTo(x + 4, y + 4); ctx.lineTo(x + 3, y - 1);
+      ctx.stroke();
+      ctx.globalAlpha = 0.5 * fade * pulse;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, y + 3, 3.2, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // Crossed sabres.
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.8;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 5 * pulse;
+      ctx.beginPath();
+      ctx.moveTo(x - 5, y - 5); ctx.lineTo(x + 5, y + 5);
+      ctx.moveTo(x + 5, y - 5); ctx.lineTo(x - 5, y + 5);
+      ctx.stroke();
+      // Hilts.
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 2.6;
+      ctx.strokeStyle = '#3a2a18';
+      ctx.beginPath();
+      ctx.moveTo(x - 5, y - 5); ctx.lineTo(x - 6.5, y - 6.5);
+      ctx.moveTo(x + 5, y - 5); ctx.lineTo(x + 6.5, y - 6.5);
+      ctx.stroke();
     }
   }
   ctx.restore();

@@ -1911,6 +1911,17 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           .map((id) => ({ cityId: id, seasonsLeft: 2 }));
         const nextBurning = [...decayed, ...newIgnitions];
 
+        // ── Field-battle site marks (ambush/camp-storm/clash) ──
+        // New clashes mark the map for 2 seasons; existing marks tick down.
+        const decayedMarks = (state.fieldBattleMarks ?? [])
+          .map((m) => ({ ...m, seasonsLeft: m.seasonsLeft - 1 }))
+          .filter((m) => m.seasonsLeft > 0);
+        const nextFieldMarks = [
+          ...decayedMarks,
+          ...(result.fieldBattleMarks ?? []).map((m) => ({ ...m, seasonsLeft: 2 })),
+        ].slice(-40); // cap so the array can't grow unbounded
+
+
         // Endings check (only if not in tactical/event states).
         const ending = checkEndings({
           cities: postCities,
@@ -2345,6 +2356,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             : state.pendingEvent,
           weather: nextWeather,
           burningCities: nextBurning,
+          fieldBattleMarks: nextFieldMarks,
           mandate: nextMandate,
           pendingDelayedEffects: remainingDelayed,
           appointments: prunedAppointments,
