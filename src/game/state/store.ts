@@ -29,6 +29,7 @@ import { ESPIONAGE_DEFS_BY_KIND } from '../data/espionage';
 import { ITEMS_BY_ID } from '../data/items';
 import { marchDurationFor } from '../data/cities';
 import { terrainRoute, positionAlongRoute, marchDestCoords } from '../data/territories';
+import { terrainTypeAt } from '../data/geography';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
 import {
@@ -3191,8 +3192,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           defenderFormation: eArmy.holding ? 'ten-ambush' : undefined,
           weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
           windDirection: state.weather?.wind ?? 'calm',
-          // No buildSlots — open field, no walls. Terrain from the clash coords.
-          terrainHint: { x: midX, y: midY },
+          // No buildSlots — open field, no walls. The battlefield is themed
+          // after the real ground the clash happens on (mountain/river/plain).
+          terrainHint: { terrain: terrainTypeAt(midX, midY), x: midX, y: midY },
         });
         battle.field = true;
         battle.attackerArmyId = playerArmyId;

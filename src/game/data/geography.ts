@@ -154,3 +154,24 @@ export function terrainMarchCost(x: number, y: number): number {
   }
   return cost;
 }
+
+/**
+ * Classify the dominant terrain at a map pixel — used to theme a field
+ * battle's tactical battlefield after the real ground the clash happens on.
+ * Returns a battlefield-terrain category ('mountain' | 'water' | 'plain').
+ */
+export function terrainTypeAt(x: number, y: number): 'mountain' | 'water' | 'plain' {
+  let mountainScore = 0;
+  for (const m of MOUNTAINS) {
+    const d = distToPolyline(x, y, m.ridge);
+    if (d < m.width) mountainScore = Math.max(mountainScore, m.cost * (1 - d / m.width));
+  }
+  let riverScore = 0;
+  for (const r of RIVERS) {
+    const d = distToPolyline(x, y, r.pts);
+    if (d < r.width) riverScore = Math.max(riverScore, 1 - d / r.width);
+  }
+  if (riverScore > 0.4 && riverScore >= mountainScore) return 'water';
+  if (mountainScore > 0.3) return 'mountain';
+  return 'plain';
+}
