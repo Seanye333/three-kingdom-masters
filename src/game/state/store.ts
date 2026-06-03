@@ -257,6 +257,9 @@ interface GameStore extends GameState {
   /** 亲征野战 — lead a player field army into an interactive tactical battle
    *  against an adjacent enemy army. Returns false if not allowed. */
   startFieldBattle: (playerArmyId: EntityId, enemyArmyId: EntityId) => boolean;
+  /** Start the next AI-initiated field battle queued from season resolution
+   *  (the player fights clashes the AI forced). No-op if the queue is empty. */
+  startNextFieldBattle: () => void;
   endTacticalBattle: (
     winner: 'attacker' | 'defender',
     attackerLosses: number,
@@ -379,6 +382,72 @@ interface GameStore extends GameState {
   ) => { ok: boolean; reason?: string };
   loadRandomScenario: (forceCount: number, year: number, seed?: number) => void;
   reset: () => void;
+}
+
+/**
+ * Build an interactive field-battle (亲征野战) TacticalBattle between a player
+ * army and an enemy army, themed to the clash terrain and with no city walls.
+ * Returns null if the engagement is not valid. Shared by the player-initiated
+ * trigger (enforceRange) and the AI-initiated deferred queue (no range check).
+ */
+function buildFieldBattle(
+  s: GameState,
+  playerArmyId: EntityId,
+  enemyArmyId: EntityId,
+  enforceRange: boolean,
+): TacticalBattle | null {
+  const pArmy = s.armies[playerArmyId];
+  const eArmy = s.armies[enemyArmyId];
+  if (!pArmy || !eArmy) return null;
+  if (pArmy.forceId !== s.playerForceId) return null;
+  if (eArmy.forceId === s.playerForceId) return null;
+  if (!isHostilePermitted(s.diplomacy, pArmy.forceId, eArmy.forceId)) return null;
+  if (enforceRange && Math.hypot(pArmy.x - eArmy.x, pArmy.y - eArmy.y) > 120) return null;
+
+  const sideOf = (army: typeof pArmy) => {
+    const offs = [army.commanderId, ...army.companionIds]
+      .map((id) => s.officers[id])
+      .filter((o): o is Officer => !!o);
+    const n = Math.max(1, offs.length);
+    const base = Math.floor(army.troops / n);
+    return offs.map((o, i) => ({
+      officer: o,
+      troops: i === 0 ? army.troops - base * (n - 1) : base,
+      unitType: inferUnitType(o),
+    }));
+  };
+  const attackers = sideOf(pArmy);
+  const defenders = sideOf(eArmy);
+  if (attackers.length === 0 || defenders.length === 0) return null;
+
+  const midX = (pArmy.x + eArmy.x) / 2, midY = (pArmy.y + eArmy.y) / 2;
+  let nominalCity = pArmy.targetCityId, bestD = Infinity;
+  for (const c of Object.values(s.cities)) {
+    const d = Math.hypot(c.coords.x - midX, c.coords.y - midY);
+    if (d < bestD) { bestD = d; nominalCity = c.id; }
+  }
+  const stratWeather = s.weather?.kind ?? 'clear';
+  const tacticalWeather = stratWeather === 'drought' ? 'clear' : stratWeather;
+
+  const battle = setupTacticalBattle({
+    cityId: nominalCity,
+    width: 18,
+    height: 12,
+    attackerForceId: pArmy.forceId,
+    defenderForceId: eArmy.forceId,
+    attackers,
+    defenders,
+    // Whichever side is dug in fights from an ambush formation.
+    attackerFormation: pArmy.holding ? 'ten-ambush' : undefined,
+    defenderFormation: eArmy.holding ? 'ten-ambush' : undefined,
+    weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
+    windDirection: s.weather?.wind ?? 'calm',
+    terrainHint: { terrain: terrainTypeAt(midX, midY), x: midX, y: midY },
+  });
+  battle.field = true;
+  battle.attackerArmyId = playerArmyId;
+  battle.defenderArmyId = enemyArmyId;
+  return battle;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -2362,6 +2431,12 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           weather: nextWeather,
           burningCities: nextBurning,
           fieldBattleMarks: nextFieldMarks,
+          pendingFieldBattleQueue: [
+            ...(state.pendingFieldBattleQueue ?? []),
+            ...(result.pendingFieldBattles ?? []).map((b) => ({
+              playerArmyId: b.playerArmyId, enemyArmyId: b.enemyArmyId,
+            })),
+          ],
           mandate: nextMandate,
           pendingDelayedEffects: remainingDelayed,
           appointments: prunedAppointments,
@@ -3139,68 +3214,31 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       startTacticalBattle: (battle) => set({ tacticalBattle: battle }),
 
       startFieldBattle: (playerArmyId, enemyArmyId) => {
-        const state = get();
-        const pArmy = state.armies[playerArmyId];
-        const eArmy = state.armies[enemyArmyId];
-        if (!pArmy || !eArmy) return false;
-        if (pArmy.forceId !== state.playerForceId) return false;
-        if (eArmy.forceId === state.playerForceId) return false;
-        if (!isHostilePermitted(state.diplomacy, pArmy.forceId, eArmy.forceId)) return false;
-        // The two columns must be close enough to give battle this season.
-        const ENGAGE_DIST = 120;
-        if (Math.hypot(pArmy.x - eArmy.x, pArmy.y - eArmy.y) > ENGAGE_DIST) return false;
-
-        // Split each army's troops across its officers (commander gets the
-        // remainder), as the city battle-prep does.
-        const sideOf = (army: typeof pArmy) => {
-          const offs = [army.commanderId, ...army.companionIds]
-            .map((id) => state.officers[id])
-            .filter((o): o is import('../types').Officer => !!o);
-          const n = Math.max(1, offs.length);
-          const base = Math.floor(army.troops / n);
-          return offs.map((o, i) => ({
-            officer: o,
-            troops: i === 0 ? army.troops - base * (n - 1) : base,
-            unitType: inferUnitType(o),
-          }));
-        };
-        const attackers = sideOf(pArmy);
-        const defenders = sideOf(eArmy);
-        if (attackers.length === 0 || defenders.length === 0) return false;
-
-        // Clash midpoint → nominal nearest city (label/replay) + battlefield
-        // terrain (driven by the coords, no city walls).
-        const midX = (pArmy.x + eArmy.x) / 2, midY = (pArmy.y + eArmy.y) / 2;
-        let nominalCity = pArmy.targetCityId;
-        let bestD = Infinity;
-        for (const c of Object.values(state.cities)) {
-          const d = Math.hypot(c.coords.x - midX, c.coords.y - midY);
-          if (d < bestD) { bestD = d; nominalCity = c.id; }
-        }
-        const stratWeather = state.weather?.kind ?? 'clear';
-        const tacticalWeather = stratWeather === 'drought' ? 'clear' : stratWeather;
-
-        const battle = setupTacticalBattle({
-          cityId: nominalCity,
-          width: 18,
-          height: 12,
-          attackerForceId: pArmy.forceId,
-          defenderForceId: eArmy.forceId,
-          attackers,
-          defenders,
-          // A dug-in enemy camp fights from an ambush formation.
-          defenderFormation: eArmy.holding ? 'ten-ambush' : undefined,
-          weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
-          windDirection: state.weather?.wind ?? 'calm',
-          // No buildSlots — open field, no walls. The battlefield is themed
-          // after the real ground the clash happens on (mountain/river/plain).
-          terrainHint: { terrain: terrainTypeAt(midX, midY), x: midX, y: midY },
-        });
-        battle.field = true;
-        battle.attackerArmyId = playerArmyId;
-        battle.defenderArmyId = enemyArmyId;
+        const battle = buildFieldBattle(get(), playerArmyId, enemyArmyId, true);
+        if (!battle) return false;
         set({ tacticalBattle: battle, selectedArmyId: null });
         return true;
+      },
+
+      startNextFieldBattle: () => {
+        const state = get();
+        if (state.tacticalBattle) return; // one battle at a time
+        const queue = state.pendingFieldBattleQueue ?? [];
+        if (queue.length === 0) return;
+        // Start the first still-valid queued clash; drop any whose armies have
+        // since vanished (resolved another way).
+        for (let i = 0; i < queue.length; i++) {
+          const battle = buildFieldBattle(state, queue[i].playerArmyId, queue[i].enemyArmyId, false);
+          if (battle) {
+            set({
+              tacticalBattle: battle,
+              selectedArmyId: null,
+              pendingFieldBattleQueue: [...queue.slice(0, i), ...queue.slice(i + 1)],
+            });
+            return;
+          }
+        }
+        set({ pendingFieldBattleQueue: [] });
       },
       endTacticalBattle: (winner, attackerLosses, defenderLosses) => {
         const state = get();

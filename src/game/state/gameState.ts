@@ -213,6 +213,9 @@ export interface GameState {
   /** Recent field-battle sites marked on the map (ambush/camp-storm/clash),
    *  decaying over seasons. Coords are in the 1000×720 map space. */
   fieldBattleMarks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number }>;
+  /** Player-involved field clashes the AI forced this season (AI 亲征),
+   *  awaiting interactive tactical resolution after the season report. */
+  pendingFieldBattleQueue: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId }>;
   /** Heaven's Mandate per force (0-100). */
   mandate: MandateState;
   /** Active 截糧 / delayed stratagem effects ticking down per season. */
@@ -301,6 +304,7 @@ export const EMPTY_STATE: GameState = {
   courtFactions: {},
   burningCities: [],
   fieldBattleMarks: [],
+  pendingFieldBattleQueue: [],
   mandate: { byForce: {} },
   pendingDelayedEffects: [],
   pendingBattleTheaters: [],
@@ -481,6 +485,7 @@ export function loadScenario(
     courtFactions: {},
     burningCities: [],
     fieldBattleMarks: [],
+    pendingFieldBattleQueue: [],
     mandate: createInitialMandate(scenario.forces.map((f) => f.id)),
     pendingDelayedEffects: [],
     pendingBattleTheaters: [],

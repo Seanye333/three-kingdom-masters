@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { playSfx } from '../../game/systems/sound';
 import { useGameStore } from '../../game/state/store';
 import { DEED_TITLES_BY_ID } from '../../game/systems/deedTitles';
@@ -360,6 +360,7 @@ export function MapScreen() {
       </ErrorBoundary>
       <ErrorBoundary fallbackLabel="Battle theater crashed">
         <BattleTheaterMount />
+        <FieldBattleMount />
       </ErrorBoundary>
       {showForces && <ForcesOverview onClose={() => setShowForces(false)} />}
       {showDiplomacy && (
@@ -490,4 +491,23 @@ function BattleTheaterMount() {
   const next = queue[0];
   if (!next) return null;
   return <BattleTheaterModal battle={next} onClose={dismiss} />;
+}
+
+/**
+ * AI 亲征 — once the season report and any abstract battle theaters are
+ * cleared, pop the next AI-forced field clash into an interactive tactical
+ * battle. The player commands their column; on resolution the next queued
+ * clash (if any) follows.
+ */
+function FieldBattleMount() {
+  const lastReport = useGameStore((s) => s.lastReport);
+  const theaters = useGameStore((s) => s.pendingBattleTheaters);
+  const tacticalBattle = useGameStore((s) => s.tacticalBattle);
+  const queueLen = useGameStore((s) => s.pendingFieldBattleQueue?.length ?? 0);
+  const startNext = useGameStore((s) => s.startNextFieldBattle);
+  useEffect(() => {
+    if (lastReport || theaters.length > 0 || tacticalBattle || queueLen === 0) return;
+    startNext();
+  }, [lastReport, theaters.length, tacticalBattle, queueLen, startNext]);
+  return null;
 }

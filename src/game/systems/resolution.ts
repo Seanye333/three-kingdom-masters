@@ -77,6 +77,9 @@ export interface ResolutionOutput {
   /** Field-battle sites this season (ambush/camp-storm/clash) to mark on the
    *  map. Coords in 1000×720 map space. */
   fieldBattleMarks?: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash' }>;
+  /** Player-involved field clashes deferred to interactive tactical battles
+   *  (AI 亲征) — the store fights these after the season report. */
+  pendingFieldBattles?: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId; x: number; y: number }>;
   /** Pending delayed effects from stratagems (e.g. 截糧 troop drain). */
   delayedEffects?: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }>;
   /**
@@ -163,12 +166,18 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   });
   const cancelledMarchOfficers = new Set<EntityId>();
   const troopOverride: Record<EntityId, number> = {};
+  // Player-involved clashes deferred to an interactive tactical battle (AI
+  // 亲征) — the armies are left intact this season and the battle is fought
+  // after the report; these officers are skipped by the abstract passes.
+  const deferredOfficers = new Set<EntityId>();
+  const pendingFieldBattles: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId; x: number; y: number }> = [];
   const INTERCEPT_DIST = 45;
   for (let i = 0; i < allMarches.length; i++) {
     for (let j = i + 1; j < allMarches.length; j++) {
       const a = allMarches[i];
       const b = allMarches[j];
       if (cancelledMarchOfficers.has(a.officerId) || cancelledMarchOfficers.has(b.officerId)) continue;
+      if (deferredOfficers.has(a.officerId) || deferredOfficers.has(b.officerId)) continue;
       const oa = officers[a.officerId];
       const ob = officers[b.officerId];
       if (!oa?.forceId || !ob?.forceId || oa.forceId === ob.forceId) continue;
@@ -177,6 +186,25 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       const pb = armyPosition(b);
       if (!pa || !pb) continue;
       if (Math.hypot(pa.x - pb.x, pa.y - pb.y) > INTERCEPT_DIST) continue;
+
+      // AI 亲征 — a significant clash involving the player is handed off to an
+      // interactive tactical battle instead of being auto-resolved here. Both
+      // columns are left intact this season; the battle is fought after the
+      // season report and its result writes back to the armies.
+      const pf = input.playerForceId;
+      if (pf && (oa.forceId === pf || ob.forceId === pf)
+        && a.troops >= 2500 && b.troops >= 2500) {
+        const playerCmd = oa.forceId === pf ? a : b;
+        const enemyCmd = oa.forceId === pf ? b : a;
+        pendingFieldBattles.push({
+          playerArmyId: playerCmd.officerId,
+          enemyArmyId: enemyCmd.officerId,
+          x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2,
+        });
+        deferredOfficers.add(a.officerId);
+        deferredOfficers.add(b.officerId);
+        continue;
+      }
 
       // Field clash. A dug-in army (holding) fights from an earthwork camp,
       // with a power bonus that grows with terrain cover (mountains/forest/
@@ -302,7 +330,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   const SALLY_DIST = 55;
   const SALLY_MIN_GARRISON = 4000;
   for (const a of allMarches) {
-    if (cancelledMarchOfficers.has(a.officerId)) continue;
+    if (cancelledMarchOfficers.has(a.officerId) || deferredOfficers.has(a.officerId)) continue;
     const oa = officers[a.officerId];
     if (!oa?.forceId) continue;
     const pos = armyPosition(a);
@@ -1082,6 +1110,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     armies: outArmies,
     territoryOwnership,
     fieldBattleMarks: fieldBattleMarks.length > 0 ? fieldBattleMarks : undefined,
+    pendingFieldBattles: pendingFieldBattles.length > 0 ? pendingFieldBattles : undefined,
     delayedEffects: delayedEffects.length > 0 ? delayedEffects : undefined,
     deedDeltas: deedDeltas.length > 0 ? deedDeltas : undefined,
   };
