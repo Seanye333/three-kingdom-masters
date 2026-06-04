@@ -9,6 +9,41 @@ import type {
 } from '../types';
 import { HISTORICAL_EVENTS } from '../data/events';
 
+/**
+ * Resolve an event's force reference to a force id that actually exists in the
+ * running scenario. Events were authored with `force-{rulerName}` ids (e.g.
+ * 'force-cao-cao'), but scenarios key forces by short ids ('cao', 'liu-bei'),
+ * so a direct lookup always missed — silently breaking ~15 events. This maps
+ * the reference back to the live force by its ruler (the authoring convention),
+ * with dynasty aliases for the Shu/Wu/Wei references. Returns null if no such
+ * force is on the map.
+ */
+const DYNASTY_RULERS: Record<string, readonly string[]> = {
+  shu: ['liu-shan', 'liu-bei'],
+  wu: ['sun-hao', 'sun-quan', 'sun-ce', 'sun-jian'],
+  wei: ['cao-huan', 'cao-fang', 'cao-rui', 'cao-pi', 'cao-cao'],
+  han: ['xian-di', 'lu-zhi'],
+};
+export function resolveForceId(
+  forceId: EntityId,
+  forces: Record<EntityId, Force>,
+): EntityId | null {
+  if (forces[forceId]) return forceId;
+  if (!forceId.startsWith('force-')) return null;
+  const key = forceId.slice('force-'.length);
+  // 1. Live force whose ruler is this officer (force-cao-cao → ruler cao-cao).
+  const byRuler = Object.values(forces).find((f) => f.rulerOfficerId === key);
+  if (byRuler) return byRuler.id;
+  // 2. A force whose own short id matches (force-shu → id 'shu').
+  if (forces[key]) return key;
+  // 3. Dynasty references → whichever of its rulers currently leads a force.
+  for (const ruler of DYNASTY_RULERS[key] ?? []) {
+    const f = Object.values(forces).find((x) => x.rulerOfficerId === ruler);
+    if (f) return f.id;
+  }
+  return null;
+}
+
 export interface HistoricalEventContext {
   date: GameDate;
   cities: Record<EntityId, City>;
@@ -50,11 +85,11 @@ function conditionsMet(evt: HistoricalEvent, ctx: HistoricalEventContext): boole
   for (const req of evt.requires ?? []) {
     switch (req.kind) {
       case 'force-alive': {
-        const f = ctx.forces[req.forceId];
-        if (!f) return false;
+        const fid = resolveForceId(req.forceId, ctx.forces);
+        if (!fid) return false;
         // A force is "alive" if it still owns any city.
         const hasCity = Object.values(ctx.cities).some(
-          (c) => c.ownerForceId === req.forceId,
+          (c) => c.ownerForceId === fid,
         );
         if (!hasCity) return false;
         break;
@@ -142,8 +177,10 @@ function applySingleEffect(
   switch (e.kind) {
     case 'force-troops-multiplier': {
       // Multiply troops in every city owned by this force.
+      const fid = resolveForceId(e.forceId, mut.forces);
+      if (!fid) break;
       for (const c of Object.values(mut.cities)) {
-        if (c.ownerForceId === e.forceId) {
+        if (c.ownerForceId === fid) {
           mut.cities[c.id] = {
             ...c,
             troops: Math.max(100, Math.floor(c.troops * e.multiplier)),
@@ -154,7 +191,8 @@ function applySingleEffect(
     }
     case 'force-gold': {
       // Gold is held per-city. Deposit into the force's capital.
-      const f = mut.forces[e.forceId];
+      const fid = resolveForceId(e.forceId, mut.forces);
+      const f = fid ? mut.forces[fid] : undefined;
       if (f) {
         const capital = mut.cities[f.capitalCityId];
         if (capital) {
@@ -200,12 +238,13 @@ function applySingleEffect(
     }
     case 'officer-join': {
       const o = mut.officers[e.officerId];
-      const f = mut.forces[e.forceId];
+      const fid = resolveForceId(e.forceId, mut.forces);
+      const f = fid ? mut.forces[fid] : undefined;
       if (o && f) {
         mut.officers[e.officerId] = {
           ...o,
           status: 'idle',
-          forceId: e.forceId,
+          forceId: f.id,
           locationCityId: f.capitalCityId,
           loyalty: Math.max(o.loyalty, 90),
           task: null,
