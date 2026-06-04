@@ -918,6 +918,125 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
       { kind: 'flag', key: 'pang-tong-fallen' },
     ],
   },
+
+  // ── State-conditional events — fire on the emergent situation (a power's
+  //    rise), not a fixed date, via the officer-rules-cities-min predicate. ──
+  {
+    id: 'evt-cao-hegemony',
+    name: { en: 'The Hegemon of the North', zh: '霸業彰顯' },
+    yearMin: 205,
+    yearMax: 225,
+    requires: [
+      { kind: 'officer-active', officerId: 'cao-cao' },
+      { kind: 'officer-rules-cities-min', officerId: 'cao-cao', count: 8 },
+      { kind: 'flag-unset', key: 'cao-hegemony' },
+    ],
+    description:
+      'From the central plains, Cao Cao\'s domain now spans the breadth of the north. Holding the Emperor and commanding the nobles, his word moves armies across a dozen provinces — the realm\'s mightiest power, in fact if not yet in name.',
+    descriptionZh: "自中原而四向,曹操之疆域已橫亙北方。挾天子以令諸侯,一聲令下,十數州之兵皆動——雖未稱號,然天下第一強權之實,已成定局。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'cao-cao', delta: 5 },
+      { kind: 'flag', key: 'cao-hegemony' },
+    ],
+  },
+  {
+    id: 'evt-wu-established',
+    name: { en: 'The Founding of Wu', zh: '江東鼎立' },
+    yearMin: 200,
+    yearMax: 235,
+    requires: [
+      { kind: 'officer-active', officerId: 'sun-quan' },
+      { kind: 'officer-rules-cities-min', officerId: 'sun-quan', count: 5 },
+      { kind: 'flag-unset', key: 'wu-established' },
+    ],
+    description:
+      'Inheriting his father and brother\'s legacy, Sun Quan has welded the lands south of the Yangtze into a single power. With able men at his side and the great river for a wall, Jiangdong now stands as one of the realm\'s contending thrones.',
+    descriptionZh: "承父兄之基業,孫權已將江南諸地合為一體。賢才環侍,長江為壘,江東自此鼎立於天下諸雄之間,成割據一方之勢。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'sun-quan', delta: 5 },
+      { kind: 'flag', key: 'wu-established' },
+    ],
+  },
+
+  // ── Officer-discovery events — a famed talent enters service, joining
+  //    whatever force their lord rules (officer-join-ruler, scenario-agnostic). ──
+  {
+    id: 'evt-pang-tong-joins',
+    name: { en: 'The Fledgling Phoenix Takes Wing', zh: '鳳雛歸劉' },
+    yearMin: 209,
+    yearMax: 213,
+    requires: [
+      { kind: 'officer-alive', officerId: 'pang-tong' },
+      { kind: 'officer-active', officerId: 'liu-bei' },
+      { kind: 'flag-unset', key: 'pang-tong-fallen' },
+      { kind: 'flag-unset', key: 'pang-tong-joined' },
+    ],
+    description:
+      'Slighted as a mere county magistrate, Pang Tong clears a hundred days\' backlog of cases in half a morning — and Lu Su and Zhuge Liang reveal his worth. Liu Bei welcomes the Fledgling Phoenix as his strategist; with Sleeping Dragon and Phoenix both, the realm seems within reach.',
+    descriptionZh: "龐統屈居縣令,半晌即決百日積案,魯肅、諸葛亮並薦其才。劉備乃迎鳳雛為軍師中郎將。臥龍鳳雛得其一可安天下——今二者兼得,大業似在指掌之間。",
+    effects: [
+      { kind: 'officer-join-ruler', officerId: 'pang-tong', rulerOfficerId: 'liu-bei' },
+      { kind: 'officer-loyalty', officerId: 'pang-tong', delta: 20 },
+      { kind: 'flag', key: 'pang-tong-joined' },
+    ],
+  },
+  {
+    id: 'evt-ma-chao-joins',
+    name: { en: 'Ma Chao Comes to Shu', zh: '錦馬超歸蜀' },
+    yearMin: 214,
+    yearMax: 219,
+    requires: [
+      { kind: 'officer-alive', officerId: 'ma-chao' },
+      { kind: 'officer-active', officerId: 'liu-bei' },
+      { kind: 'flag-unset', key: 'ma-chao-joined' },
+    ],
+    description:
+      'Broken at Tongguan and harried from Liang province, the peerless Ma Chao — "Splendid Ma Chao", terror of the northwest — turns at last to Liu Bei. His arrival at the walls of Chengdu so unnerves Liu Zhang that the city surrenders within days.',
+    descriptionZh: "潼關敗後,流離涼州,一身白袍的「錦馬超」——西涼之畏,終投劉備。其軍臨成都城下,劉璋膽寒,旬日即降。猛將歸心,蜀中遂定。",
+    effects: [
+      { kind: 'officer-join-ruler', officerId: 'ma-chao', rulerOfficerId: 'liu-bei' },
+      { kind: 'officer-loyalty', officerId: 'ma-chao', delta: 15 },
+      { kind: 'flag', key: 'ma-chao-joined' },
+    ],
+  },
+  {
+    id: 'evt-gan-ning-joins',
+    name: { en: 'Gan Ning the Pirate Joins Wu', zh: '甘興霸投吳' },
+    yearMin: 208,
+    yearMax: 215,
+    requires: [
+      { kind: 'officer-alive', officerId: 'gan-ning' },
+      { kind: 'officer-active', officerId: 'sun-quan' },
+      { kind: 'flag-unset', key: 'gan-ning-joined' },
+    ],
+    description:
+      'Once a river pirate with bells on his belt, then ill-used under Huang Zu, Gan Ning crosses to Sun Quan and proves a thunderbolt — later raiding Cao Cao\'s camp with a hundred riders in the dead of night and returning without losing a man.',
+    descriptionZh: "甘寧,昔為錦帆游俠,腰懸銅鈴;後屈於黃祖帳下,鬱鬱不得志。乃渡江投孫權,果為猛將——日後百騎劫曹營,夜半襲寨而還,不折一人。",
+    effects: [
+      { kind: 'officer-join-ruler', officerId: 'gan-ning', rulerOfficerId: 'sun-quan' },
+      { kind: 'officer-loyalty', officerId: 'gan-ning', delta: 15 },
+      { kind: 'flag', key: 'gan-ning-joined' },
+    ],
+  },
+  {
+    id: 'evt-jiang-wei-joins',
+    name: { en: 'Jiang Wei Defects to Shu', zh: '姜維歸蜀' },
+    yearMin: 228,
+    yearMax: 234,
+    requires: [
+      { kind: 'officer-alive', officerId: 'jiang-wei' },
+      { kind: 'officer-active', officerId: 'zhuge-liang' },
+      { kind: 'flag-unset', key: 'jiang-wei-joined' },
+    ],
+    description:
+      'Cornered and distrusted by his own Wei commanders during the first northern campaign, the young Tianshui officer Jiang Wei surrenders to Zhuge Liang, who weeps for joy: "My life\'s learning has at last found an heir." The Sleeping Dragon has found the one to carry on his work.',
+    descriptionZh: "首次北伐,天水少年將姜維為魏將所疑,進退無路,乃降諸葛亮。亮喜極而泣:「吾平生所學,今得傳人矣!」臥龍之志,自此有繼。",
+    effects: [
+      { kind: 'officer-join-ruler', officerId: 'jiang-wei', rulerOfficerId: 'liu-shan' },
+      { kind: 'officer-loyalty', officerId: 'jiang-wei', delta: 20 },
+      { kind: 'flag', key: 'jiang-wei-joined' },
+    ],
+  },
 ];
 
 export const EVENTS_BY_ID: Record<string, HistoricalEvent> = Object.fromEntries(

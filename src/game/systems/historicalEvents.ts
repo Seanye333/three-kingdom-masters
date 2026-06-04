@@ -76,6 +76,18 @@ function conditionsMet(evt: HistoricalEvent, ctx: HistoricalEventContext): boole
       case 'flag-unset':
         if (ctx.eventFlags[req.key]) return false;
         break;
+      case 'officer-rules-cities-min': {
+        // Find the force this officer rules, then count its cities.
+        const f = Object.values(ctx.forces).find(
+          (force) => force.rulerOfficerId === req.officerId,
+        );
+        if (!f) return false;
+        const owned = Object.values(ctx.cities).filter(
+          (c) => c.ownerForceId === f.id,
+        ).length;
+        if (owned < req.count) return false;
+        break;
+      }
     }
   }
   return true;
@@ -194,6 +206,25 @@ function applySingleEffect(
           ...o,
           status: 'idle',
           forceId: e.forceId,
+          locationCityId: f.capitalCityId,
+          loyalty: Math.max(o.loyalty, 90),
+          task: null,
+        };
+      }
+      break;
+    }
+    case 'officer-join-ruler': {
+      // Join the force whose ruler is rulerOfficerId — resolved at runtime so
+      // it works whatever id that force carries in the running scenario.
+      const o = mut.officers[e.officerId];
+      const f = Object.values(mut.forces).find(
+        (force) => force.rulerOfficerId === e.rulerOfficerId,
+      );
+      if (o && f) {
+        mut.officers[e.officerId] = {
+          ...o,
+          status: 'idle',
+          forceId: f.id,
           locationCityId: f.capitalCityId,
           loyalty: Math.max(o.loyalty, 90),
           task: null,

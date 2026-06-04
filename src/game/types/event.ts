@@ -12,6 +12,7 @@ export type EventEffect =
   | { kind: 'officer-loyalty'; officerId: EntityId; delta: number }
   | { kind: 'officer-status'; officerId: EntityId; status: 'dead' | 'idle' | 'imprisoned' }
   | { kind: 'officer-join'; officerId: EntityId; forceId: EntityId }
+  | { kind: 'officer-join-ruler'; officerId: EntityId; rulerOfficerId: EntityId } // join the force whose ruler is rulerOfficerId (resolved at runtime — scenario-agnostic)
   | { kind: 'spawn-rebel-force'; cityId: EntityId; troops: number; label: BilingualName }
   | { kind: 'grant-title'; officerId: EntityId; titleId: import('./title').CivicTitleId; cityId?: EntityId }
   | { kind: 'force-wish'; officerId: EntityId; wishKind: import('./family').WishKind; text: BilingualName; rejectPenalty?: number; grantBonus?: number }
@@ -39,6 +40,9 @@ export interface HistoricalEvent {
     | { kind: 'officer-active'; officerId: EntityId }
     | { kind: 'flag-set'; key: string }
     | { kind: 'flag-unset'; key: string }
+    // The force ruled by officerId owns at least `count` cities — a dynamic,
+    // scenario-agnostic state predicate (resolves the force by its ruler).
+    | { kind: 'officer-rules-cities-min'; officerId: EntityId; count: number }
   >;
   /** Narrative description shown in the event modal. */
   description: string;
