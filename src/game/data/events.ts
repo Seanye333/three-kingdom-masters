@@ -779,6 +779,145 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
       { kind: 'flag', key: 'huarong-mercy' },
     ],
   },
+  {
+    id: 'evt-sun-jian-imperial-seal',
+    name: { en: 'The Imperial Seal', zh: '孫堅得玉璽' },
+    yearMin: 190,
+    yearMax: 191,
+    requires: [{ kind: 'officer-active', officerId: 'sun-jian' }],
+    description:
+      'Amid the ruins of burned Luoyang, Sun Jian\'s men draw a glittering object from a palace well — the Imperial Hereditary Seal of the Han. The Tiger of Jiangdong pockets the mandate of heaven, and with it, a fatal ambition.',
+    descriptionZh: "洛陽焚餘之廢墟,孫堅軍自宮中枯井打撈得一璀璨之物——傳國玉璽。江東猛虎私納天命於懷,亦自此種下取禍之心。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'sun-jian', delta: 10 },
+      { kind: 'flag', key: 'imperial-seal-found' },
+    ],
+  },
+  {
+    id: 'evt-baima-yan-liang',
+    name: { en: 'Slaying Yan Liang at Baima', zh: '白馬斬顏良' },
+    yearMin: 200,
+    yearMax: 200,
+    requires: [
+      { kind: 'officer-active', officerId: 'guan-yu' },
+      { kind: 'officer-alive', officerId: 'yan-liang' },
+    ],
+    description:
+      'At the siege of Baima, Guan Yu charges alone into Yuan Shao\'s host, cuts down the famed general Yan Liang amid ten thousand troops, and rides back with his head — repaying Cao Cao\'s hospitality before departing.',
+    descriptionZh: "白馬之圍,關羽單騎衝入袁紹萬軍之中,於亂軍斬名將顏良,提其首級而還——以報曹操款待之恩,然後掛印封金而去。",
+    effects: [
+      { kind: 'officer-status', officerId: 'yan-liang', status: 'dead' },
+      { kind: 'officer-loyalty', officerId: 'guan-yu', delta: 5 },
+      { kind: 'flag', key: 'yan-liang-slain' },
+    ],
+  },
+  {
+    id: 'evt-liu-bei-tan-stream',
+    name: { en: 'The Leap across Tan Stream', zh: '馬躍檀溪' },
+    yearMin: 201,
+    yearMax: 206,
+    requires: [{ kind: 'officer-active', officerId: 'liu-bei' }],
+    description:
+      'Ambushed at a banquet and run to the water\'s edge, Liu Bei spurs his horse Dilu into the Tan Stream. "Dilu! Today is life or death!" — and the steed clears the torrent in a single bound, carrying him to safety and the hermit Sima Hui beyond.',
+    descriptionZh: "席間遇伏,劉備倉皇走至檀溪。但見前無去路,乃策的盧入水,大呼:「的盧!今日妨吾!」——的盧一躍三丈,飛越激流,載主脫險,得遇水鏡先生於溪畔。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'liu-bei', delta: 5 },
+      { kind: 'flag', key: 'tan-stream-leap' },
+    ],
+  },
+  {
+    id: 'evt-xu-shu-recommends',
+    name: { en: 'Xu Shu Recommends the Sleeping Dragon', zh: '徐庶走馬薦諸葛' },
+    yearMin: 207,
+    yearMax: 207,
+    requires: [
+      { kind: 'officer-alive', officerId: 'xu-shu' },
+      { kind: 'flag-unset', key: 'three-visits-done' },
+    ],
+    description:
+      'Lured to Cao Cao\'s camp by a forged letter holding his mother hostage, Xu Shu departs Liu Bei in grief — but turns his horse back to name the one man greater than himself: Zhuge Liang, the Sleeping Dragon of Longzhong. He vows never to offer Cao a single plan.',
+    descriptionZh: "曹操偽書挾其母,徐庶含淚辭別劉備。行至中途,忽勒馬而回,薦一人勝己十倍——隆中臥龍諸葛孔明。庶身在曹營,終身不獻一謀。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'zhuge-liang', delta: 10 },
+      { kind: 'flag', key: 'xu-shu-recommendation' },
+    ],
+  },
+  {
+    id: 'evt-borrowing-arrows',
+    name: { en: 'Borrowing Arrows with Straw Boats', zh: '草船借箭' },
+    yearMin: 208,
+    yearMax: 209,
+    season: 'winter',
+    requires: [{ kind: 'officer-active', officerId: 'zhuge-liang' }],
+    description:
+      'Pressed by Zhou Yu to forge a hundred thousand arrows in three days, Zhuge Liang sends twenty straw-bound boats into the Yangtze fog before dawn, beating drums. Cao Cao\'s archers loose blindly into the mist — and the boats return bristling with arrows beyond count.',
+    descriptionZh: "周瑜限諸葛亮三日造箭十萬,亮以草船二十,趁大霧未明擂鼓佯攻。曹營弓弩齊發,亂射於霧中——草船兩面受箭,滿載而歸,得箭無數。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'zhuge-liang', delta: 10 },
+      { kind: 'flag', key: 'arrows-borrowed' },
+    ],
+  },
+  {
+    id: 'evt-pang-tong-chain-ships',
+    name: { en: 'Pang Tong\'s Chained-Ships Ruse', zh: '龐統獻連環計' },
+    yearMin: 208,
+    yearMax: 209,
+    season: 'winter',
+    requires: [{ kind: 'officer-alive', officerId: 'pang-tong' }],
+    description:
+      'Crossing to Cao Cao\'s camp, the Fledgling Phoenix Pang Tong counsels the northern host — sick on the rolling river — to chain their ships deck to deck for stability. The fleet is bound fast into a single floating fortress, perfect tinder for the coming fire.',
+    descriptionZh: "鳳雛龐統渡江入曹營,見北軍不慣水戰、暈眩嘔吐,獻連環之計:以鐵索連舟,首尾相接,如履平地。曹軍艨艟遂結為一體——正堪縱火之薪。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'pang-tong', delta: 10 },
+      { kind: 'flag', key: 'chain-ships-set' },
+    ],
+  },
+  {
+    id: 'evt-huang-gai-ruse',
+    name: { en: 'Huang Gai\'s Sacrifice', zh: '苦肉計·黃蓋詐降' },
+    yearMin: 208,
+    yearMax: 209,
+    season: 'winter',
+    requires: [{ kind: 'officer-active', officerId: 'huang-gai' }],
+    description:
+      'The old general Huang Gai takes fifty lashes before the army in a staged quarrel with Zhou Yu, then sends Cao Cao a secret offer of surrender. None suspect the bleeding veteran — whose fire-boats will soon lead the assault on the chained fleet. "One willing to suffer, one willing to be deceived."',
+    descriptionZh: "老將黃蓋與周瑜當眾佯爭,甘受五十脊杖,血肉模糊,然後密遣闞澤獻詐降書於曹操。曹營無人疑此重傷老臣——其火船,不日即引燃連環艨艟。所謂「一個願打,一個願挨」。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'huang-gai', delta: 15 },
+      { kind: 'flag', key: 'huang-gai-ruse' },
+    ],
+  },
+  {
+    id: 'evt-tongguan-beard',
+    name: { en: 'Cutting the Beard at Tongguan', zh: '割鬚棄袍' },
+    yearMin: 211,
+    yearMax: 211,
+    requires: [
+      { kind: 'officer-active', officerId: 'cao-cao' },
+      { kind: 'officer-active', officerId: 'ma-chao' },
+    ],
+    description:
+      'Routed at Tongguan by the vengeful Ma Chao, Cao Cao flees as his pursuers cry "the one in the red robe is Cao!" — so he casts off the robe; "the long-bearded one is Cao!" — so he hacks off his beard. The conqueror escapes by abandoning his very face.',
+    descriptionZh: "潼關大敗於馬超,曹操倉皇奔逃。追兵呼「穿紅袍者是曹操!」操即棄袍;又呼「長髯者是曹操!」操乃割鬚。一代梟雄,捨其鬚袍面目方得脫身。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'ma-chao', delta: 10 },
+      { kind: 'flag', key: 'tongguan-rout' },
+    ],
+  },
+  {
+    id: 'evt-pang-tong-falls',
+    name: { en: 'The Fledgling Phoenix Falls', zh: '落鳳坡' },
+    yearMin: 213,
+    yearMax: 214,
+    requires: [{ kind: 'officer-active', officerId: 'pang-tong' }],
+    description:
+      'Pressing the advance into Shu on Liu Bei\'s own white horse, Pang Tong rides into a narrow defile — the Slope of the Fallen Phoenix. Liu Zhang\'s archers, mistaking the rider for Liu Bei, loose as one. The Fledgling Phoenix dies at thirty-six, and the Longzhong Plan loses half its wings.',
+    descriptionZh: "龐統急進取蜀,乘劉備白馬居前,行入一狹谷——落鳳坡。劉璋伏兵見白馬,誤以為劉備,萬箭齊發。鳳雛歿於是,年僅三十六。隆中之策,自此折其一翼。",
+    effects: [
+      { kind: 'officer-status', officerId: 'pang-tong', status: 'dead' },
+      { kind: 'flag', key: 'pang-tong-fallen' },
+    ],
+  },
 ];
 
 export const EVENTS_BY_ID: Record<string, HistoricalEvent> = Object.fromEntries(
