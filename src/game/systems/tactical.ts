@@ -1633,6 +1633,20 @@ export function aiTakeTurn(
     if (myUnits.length === 0) break;
     let acted = false;
     for (const unit of myUnits) {
+      // Ambusher lies in wait: a hidden unit holds its concealed position and
+      // only springs when an enemy steps adjacent — striking from hiding lands
+      // the +30% ambush bonus. Moving toward the foe would reveal it early and
+      // squander the trap, so otherwise it simply waits (no action this pass).
+      if (unit.hidden) {
+        const adj = cur.units.find((e) =>
+          e.side !== unit.side && !e.hidden && hexDistance(unit.coord, e.coord) === 1);
+        if (adj) {
+          cur = attackUnits(cur, unit.id, adj.id, officers, rng);
+          acted = true;
+          break;
+        }
+        continue; // stay hidden
+      }
       // N1 — Try a stratagem first.
       const stratResult = aiTryStratagem(cur, unit, officers, rng);
       if (stratResult) {

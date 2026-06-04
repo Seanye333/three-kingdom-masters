@@ -190,10 +190,14 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       // AI 亲征 — a significant clash involving the player is handed off to an
       // interactive tactical battle instead of being auto-resolved here. Both
       // columns are left intact this season; the battle is fought after the
-      // season report and its result writes back to the armies.
+      // season report and its result writes back to the armies. Capped per
+      // season so the player isn't dragged into a string of battles in one
+      // turn — clashes past the cap resolve abstractly as usual.
       const pf = input.playerForceId;
+      const MAX_FIELD_BATTLES = 2;
       if (pf && (oa.forceId === pf || ob.forceId === pf)
-        && a.troops >= 2500 && b.troops >= 2500) {
+        && a.troops >= 2500 && b.troops >= 2500
+        && pendingFieldBattles.length < MAX_FIELD_BATTLES) {
         const playerCmd = oa.forceId === pf ? a : b;
         const enemyCmd = oa.forceId === pf ? b : a;
         pendingFieldBattles.push({
