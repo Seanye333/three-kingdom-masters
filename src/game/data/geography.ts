@@ -50,15 +50,31 @@ function coastXAt(y: number): number {
   return px;
 }
 
+// Offshore landmasses the simple eastern-coastline model misses but the 2D
+// map already draws: the Korean peninsula (Lelang/Daifang) and Hainan
+// (Zhuyai). Each is an axis-aligned region; a point inside reads as land.
+const ISLANDS: ReadonlyArray<{ cx: number; cy: number; hw: number; hh: number }> = [
+  { cx: 882, cy: 220, hw: 42, hh: 72 }, // Korea — Lelang (875,195), Daifang (880,245)
+  { cx: 625, cy: 697, hw: 32, hh: 24 }, // Hainan — Zhuyai (625,695)
+];
+function islandSDF(x: number, y: number): number {
+  let best = -Infinity;
+  for (const i of ISLANDS) {
+    best = Math.max(best, Math.min(i.hw - Math.abs(x - i.cx), i.hh - Math.abs(y - i.cy)));
+  }
+  return best;
+}
+
 /**
  * Signed distance to the land boundary in pixels: positive = inland,
  * negative = at sea. Land is bounded on the east by the coastline and
- * on the south by the map edge; north and west run to the map border.
+ * on the south by the map edge; north and west run to the map border —
+ * plus the offshore islands (Korea, Hainan) unioned in.
  */
 export function landSDF(x: number, y: number): number {
   const distEast = coastXAt(y) - x;
   const distSouth = MAP_H - y;
-  return Math.min(distEast, distSouth);
+  return Math.max(Math.min(distEast, distSouth), islandSDF(x, y));
 }
 
 /** True if the pixel is on land (with an optional inland margin). */

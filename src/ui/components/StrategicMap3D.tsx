@@ -263,12 +263,23 @@ function coastXAt(y: number): number {
   const [px] = geoToPixel(lon, lat);
   return px;
 }
+// Offshore islands the eastern-coastline model misses (Korea, Hainan) — kept
+// in sync with geography.ts so the 3D terrain raises land under those cities.
+const ISLANDS_3D: ReadonlyArray<{ cx: number; cy: number; hw: number; hh: number }> = [
+  { cx: 882, cy: 220, hw: 42, hh: 72 }, // Korea — Lelang, Daifang
+  { cx: 625, cy: 697, hw: 32, hh: 24 }, // Hainan — Zhuyai
+];
+
 /** Land = positive distance to coast, sea = negative. */
 function landSDF(x: number, y: number): number {
   const eastBoundary  = coastXAt(y);
   const distEast      = eastBoundary - x;
   const distSouth     = 720 - y;
-  return Math.min(distEast, distSouth);
+  let sdf = Math.min(distEast, distSouth);
+  for (const i of ISLANDS_3D) {
+    sdf = Math.max(sdf, Math.min(i.hw - Math.abs(x - i.cx), i.hh - Math.abs(y - i.cy)));
+  }
+  return sdf;
 }
 
 /** Real Chinese mountain ranges. Each entry's ridge is in (lon, lat).
