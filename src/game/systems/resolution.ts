@@ -689,7 +689,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     if (!officer || !city) continue;
     if (officer.status !== 'idle') continue;
     if (cmd.type === 'search') {
-      const result = handleSearch({ officer, city, officers, lostItems, rng });
+      const result = handleSearch({ officer, city, officers, lostItems, rng, year: input.date.year });
       officers = result.officers;
       lostItems = result.lostItems;
       entries.push(result.entry);

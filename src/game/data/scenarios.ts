@@ -8,7 +8,7 @@ import { buildInitialOfficers } from './officers';
 
 const FORCES_184: Force[] = [
   { id: 'han',         name: { en: 'Han Court',       zh: '漢室'     }, rulerOfficerId: 'lu-zhi',      capitalCityId: 'luoyang',  color: '#d4a84a', isPlayer: false },
-  { id: 'yellow-turban',name:{ en: 'Yellow Turbans',  zh: '黃巾'     }, rulerOfficerId: 'zhang-jiao',  capitalCityId: 'julu',     color: '#c19a3b', isPlayer: false },
+  { id: 'yellow-turban',name:{ en: 'Yellow Turbans',  zh: '黃巾'     }, rulerOfficerId: 'zhang-jiao',  capitalCityId: 'ye',       color: '#c19a3b', isPlayer: false },
   { id: 'huangfu',     name: { en: 'Huangfu Song',    zh: '皇甫嵩軍' }, rulerOfficerId: 'huangfu-song',capitalCityId: 'chenliu',  color: '#3a7dd9', isPlayer: false },
   { id: 'zhujun',      name: { en: 'Zhu Jun',         zh: '朱儁軍'   }, rulerOfficerId: 'zhu-jun',     capitalCityId: 'wancheng', color: '#5a9bb8', isPlayer: false },
   { id: 'dong-184',    name: { en: 'Dong Zhuo',       zh: '董卓軍'   }, rulerOfficerId: 'dong-zhuo',   capitalCityId: 'changan',  color: '#6b4a8a', isPlayer: false },
@@ -17,7 +17,6 @@ const FORCES_184: Force[] = [
 const CITY_OWNERSHIP_184: Record<string, string> = {
   luoyang:   'han',
   // Yellow Turbans control the troubled provinces.
-  julu:      'yellow-turban',
   ye:        'yellow-turban',
   pingyuan:  'yellow-turban',
   beihai:    'yellow-turban',
@@ -55,14 +54,14 @@ const OFFICER_ASSIGNMENTS_184: Record<string, { forceId: string; cityId: string 
   'huangfu-song': { forceId: 'huangfu',      cityId: 'chenliu' },
   'zhu-jun':      { forceId: 'zhujun',       cityId: 'wancheng' },
   // Yellow Turban core
-  'zhang-jiao':   { forceId: 'yellow-turban',cityId: 'julu' },
+  'zhang-jiao':   { forceId: 'yellow-turban',cityId: 'ye' },
   'zhang-bao-yt': { forceId: 'yellow-turban',cityId: 'pingyuan' },
   'zhang-liang-yt':{forceId: 'yellow-turban',cityId: 'ye' },
   'guan-hai':     { forceId: 'yellow-turban',cityId: 'beihai' },
   'pei-yuanshao': { forceId: 'yellow-turban',cityId: 'bohai' },
   'sun-zhong':    { forceId: 'yellow-turban',cityId: 'pingyuan' },
   'bo-cai':       { forceId: 'yellow-turban',cityId: 'ye' },
-  'ma-yuanyi':    { forceId: 'yellow-turban',cityId: 'julu' },
+  'ma-yuanyi':    { forceId: 'yellow-turban',cityId: 'ye' },
   // Dong Zhuo (still a general at this point)
   'dong-zhuo':    { forceId: 'dong-184',     cityId: 'changan' },
   'li-jue':       { forceId: 'dong-184',     cityId: 'changan' },
@@ -1514,7 +1513,7 @@ const FORCES_197: Force[] = [
   { id: 'lu-bu',     name: { en: 'Lü Bu',       zh: '呂布軍'   }, rulerOfficerId: 'lu-bu',       capitalCityId: 'xiapi',    color: '#c19a3b', isPlayer: false },
   { id: 'sun',       name: { en: 'Sun Ce',      zh: '孫策軍'   }, rulerOfficerId: 'sun-ce',      capitalCityId: 'jianye',   color: '#2f8e6f', isPlayer: false },
   { id: 'liu-biao',  name: { en: 'Liu Biao',    zh: '劉表軍'   }, rulerOfficerId: 'liu-biao',    capitalCityId: 'xiangyang',color: '#d9803a', isPlayer: false },
-  { id: 'liu-yan',   name: { en: 'Liu Yan',     zh: '劉焉軍'   }, rulerOfficerId: 'liu-yan',     capitalCityId: 'chengdu',  color: '#a8703a', isPlayer: false },
+  { id: 'liu-yan',   name: { en: 'Liu Zhang',   zh: '劉璋軍'   }, rulerOfficerId: 'liu-zhang',   capitalCityId: 'chengdu',  color: '#a8703a', isPlayer: false },
   { id: 'gongsun',   name: { en: 'Gongsun Zan', zh: '公孫瓚軍' }, rulerOfficerId: 'gongsun-zan', capitalCityId: 'beiping',  color: '#5a9bb8', isPlayer: false },
   { id: 'ma-teng',   name: { en: 'Ma Teng',     zh: '馬騰軍'   }, rulerOfficerId: 'ma-teng',     capitalCityId: 'wuwei',    color: '#8a5d3a', isPlayer: false },
 ];
@@ -1599,8 +1598,8 @@ const OFFICER_ASSIGNMENTS_197: Record<string, { forceId: string; cityId: string 
   'huang-gai':   { forceId: 'sun',       cityId: 'changsha' },
   // Liu Biao
   'liu-biao':    { forceId: 'liu-biao',  cityId: 'xiangyang' },
-  // Liu Yan
-  'liu-yan':     { forceId: 'liu-yan',   cityId: 'chengdu' },
+  // Liu Zhang (succeeded his father Liu Yan, d.194)
+  'liu-zhang':   { forceId: 'liu-yan',   cityId: 'chengdu' },
   // Gongsun
   'gongsun-zan': { forceId: 'gongsun',   cityId: 'beiping' },
   // Ma Teng
@@ -6650,3 +6649,24 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_WHATIF_CAO_WINS_CHIBI,
   SCENARIO_WHATIF_WOMEN,
 ];
+
+// ── Death-year normalization ───────────────────────────────────────────
+// Assignment tables sometimes place officers who were already dead by the
+// scenario's year (a stray entry copied between tables), and buildInitial
+// Officers keeps assigned officers alive regardless of death year. Sweep
+// every historical scenario and lay to rest anyone whose death predates the
+// start — so e.g. Guo Jia (d.207) isn't fighting at Red Cliffs (208). What-if
+// scenarios are exempt: their cross-era / resurrected rosters are the point.
+for (const scenario of SCENARIOS) {
+  if (scenario.kind === 'whatif') continue;
+  const year = scenario.startDate.year;
+  for (const o of scenario.officers) {
+    if (o.status !== 'dead' && o.deathYear !== undefined && o.deathYear < year) {
+      o.status = 'dead';
+      o.forceId = null;
+      o.locationCityId = null;
+      o.task = null;
+      o.loyalty = 0;
+    }
+  }
+}

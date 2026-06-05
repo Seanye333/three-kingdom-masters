@@ -322,7 +322,13 @@ export interface SearchInput {
   officers: Record<EntityId, Officer>;
   lostItems: LostItemRef[];
   rng: () => number;
+  /** Current year — talent below recruiting age (or not yet born) can't be
+   *  found. As the campaign advances, more officers come of age naturally. */
+  year?: number;
 }
+
+/** Officers younger than this (in the current year) aren't discoverable yet. */
+const MIN_RECRUIT_AGE = 15;
 
 export interface SearchOutput {
   officers: Record<EntityId, Officer>;
@@ -386,7 +392,9 @@ export function handleSearch(input: SearchInput): SearchOutput {
   // Officers without a hometown (locationCityId === null) form the fallback
   // pool — they can be discovered anywhere as before.
   const allUnsearched = Object.values(officers).filter(
-    (o) => o.status === 'unsearched',
+    (o) => o.status === 'unsearched' &&
+      // Not yet of age (or not yet born) this year — undiscoverable for now.
+      (input.year === undefined || input.year - o.birthYear >= MIN_RECRUIT_AGE),
   );
   const localUnsearched = allUnsearched.filter((o) => o.locationCityId === city.id);
   const rootlessUnsearched = allUnsearched.filter((o) => o.locationCityId === null);
