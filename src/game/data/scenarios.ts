@@ -6751,6 +6751,66 @@ export const SCENARIO_WHATIF_YUANSHU_EMPIRE: Scenario = {
   officers: buildInitialOfficers(whatIfOfficers(OFFICER_ASSIGNMENTS_198, CITY_OWNERSHIP_YUANSHU_EMPIRE, FORCES_198), DEAD_BY_198, 198),
 };
 
+// ── What-if: 若郭嘉不死 (208) ─ The Cao host marches on Jingzhou with its
+//    sharpest mind still alive to read the river and the southern wind. ──
+export const SCENARIO_WHATIF_GUOJIA_LIVES: Scenario = {
+  id: 'scn-whatif-guojia-lives',
+  name: { en: 'If Guo Jia Had Lived', zh: '若郭嘉不死' },
+  kind: 'whatif',
+  description:
+    'Autumn 208. The fever of the northern campaign never took Guo Jia; Cao Cao\'s finest strategist rides south with the great host toward the Yangtze. "Had Fengxiao lived," Cao Cao would later sigh at Red Cliffs — but here he lives, and the fire-ships and chained fleets are still to come. With the Ghost Master at his side, will Cao Cao still walk into the flames?',
+  descriptionZh: "建安十三年秋。北征之疾未奪郭嘉之命；曹操麾下第一謀主，隨大軍南下，直指長江。日後赤壁火起，曹操長嘆「若奉孝在，不使孤至此」——而此世奉孝尚在，連環火攻猶未發。鬼才在側，曹孟德可仍會自投火海？",
+  startDate: { year: 208, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_208),
+  forces: FORCES_208,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_208, DEAD_BY_208, 208),
+};
+
+// ── What-if: 若周瑜不死 (211) ─ The Grand Marshal of Wu survives Baqiu and
+//    presses his bold design — take Shu before Liu Bei can. ──
+export const SCENARIO_WHATIF_ZHOUYU_LIVES: Scenario = {
+  id: 'scn-whatif-zhouyu-lives',
+  name: { en: 'If Zhou Yu Had Lived', zh: '若周瑜不死' },
+  kind: 'whatif',
+  description:
+    'Spring 211. Zhou Yu did not sicken and die at Baqiu; the Grand Marshal lives to press the plan he begged of Sun Quan — march west, take Yi province before Liu Bei can, and split the realm in two against Cao Cao. With Gongjin alive, the alliance that won Red Cliffs need not curdle into the rivalry over Jing, and Wu eyes the conquest of Shu itself.',
+  descriptionZh: "建安十六年春。周瑜未病歿於巴丘；大都督尚在，得行其向孫權力請之策——西取益州，搶在劉備之前，與曹操二分天下。公瑾既在，赤壁之盟不必為荊州之爭所裂，江東之志，直指全蜀。",
+  startDate: { year: 211, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_211),
+  forces: FORCES_211,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_211, DEAD_BY_211, 211),
+};
+
+// ── What-if: 若龐統不死 (215) ─ The Fledgling Phoenix is not shot at Luofeng;
+//    he holds Shu so the Sleeping Dragon need never leave Jingzhou. ──
+export const SCENARIO_WHATIF_PANGTONG_LIVES: Scenario = {
+  id: 'scn-whatif-pangtong-lives',
+  name: { en: 'If Pang Tong Had Lived', zh: '若龐統不死' },
+  kind: 'whatif',
+  description:
+    'Year 215. The arrows of Luofeng Slope found another rider; Pang Tong lived to finish the conquest of Shu at Liu Bei\'s side. With the Fledgling Phoenix to govern Yi province, Zhuge Liang never had to leave Jingzhou — and the fatal split of Shu\'s strength between two fronts is undone. Both Dragon and Phoenix serve a single lord, exactly as the prophecy promised. The realm trembles.',
+  descriptionZh: "建安二十年。落鳳坡之箭射中他騎；龐統得生，佐劉備竟取西蜀之功。鳳雛既在以治益州，諸葛亮便無須西去入川——蜀漢兩線分兵之致命隱患，自此化解。臥龍鳳雛同事一主，正如水鏡之讖。天下為之震動。",
+  startDate: { year: 215, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_215),
+  forces: FORCES_215,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_215, [], 215),
+};
+
+// ── Historical: 第四次北伐 — 鹵城之戰 (231). Zhuge Liang's fourth sortie;
+//    reuses the stable 228-234 three-kingdoms board with Cao Zhen and Zhang
+//    He still in the field (both fall this year). ──
+export const SCENARIO_231_LUCHENG: Scenario = {
+  id: 'scn-231-lucheng',
+  name: { en: 'The Battle of Lucheng', zh: '鹵城之戰' },
+  description:
+    'Spring 231. Zhuge Liang marches out of Hanzhong a fourth time, this season reaping the wheat of Shanggui under Sima Yi\'s nose and crushing the Wei vanguard at Lucheng. Cao Zhen lies dying, Sima Yi holds the line at last, and the veteran Zhang He still rides — though the road through Mumen Gorge awaits him. The Han revival presses against the passes once more.',
+  descriptionZh: "太和五年春。諸葛亮第四次出漢中，本季於上邽司馬懿眼皮下搶割隴麥，又破魏軍前鋒於鹵城。曹真病篤，司馬懿終得拒守，老將張郃猶在馳驅——然木門道之伏，正待其行。漢室之興，再叩關隴。",
+  startDate: { year: 231, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_234),
+  forces: FORCES_234,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_234, [], 231),
+};
+
 export const SCENARIOS: Scenario[] = [
   // ── Historical (chronological 184–280 AD) ──
   SCENARIO_184_YELLOW_TURBAN,
@@ -6775,6 +6835,7 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_225_SOUTHERN,
   SCENARIO_228_JIETING,
   SCENARIO_229_THREE_EMPERORS,
+  SCENARIO_231_LUCHENG,
   SCENARIO_234_WUZHANG,
   SCENARIO_249_GAOPINGLING,
   SCENARIO_252_DONGXING,
@@ -6794,6 +6855,9 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_WHATIF_SUNCE_LIVES,
   SCENARIO_WHATIF_DONG_LIVES,
   SCENARIO_WHATIF_YUANSHU_EMPIRE,
+  SCENARIO_WHATIF_GUOJIA_LIVES,
+  SCENARIO_WHATIF_ZHOUYU_LIVES,
+  SCENARIO_WHATIF_PANGTONG_LIVES,
 ];
 
 // ── Death-year normalization ───────────────────────────────────────────
