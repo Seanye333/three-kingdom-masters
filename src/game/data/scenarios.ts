@@ -6811,6 +6811,95 @@ export const SCENARIO_231_LUCHENG: Scenario = {
   officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_234, [], 231),
 };
 
+// ── What-if: 水淹七軍·威震華夏 (219). Guan Yu's drowning of Yu Jin's seven
+//    armies is pressed to the hilt: Fan and Xiangyang fall, and the corridor
+//    up the Han River — Xiangyang, Xinye, Wancheng — becomes a dagger aimed at
+//    Xuchang. Cao Cao speaks aloud of moving the capital north. ──
+const CITY_OWNERSHIP_WHATIF_GUANYU_NORTH: Record<string, string> = {
+  ...CITY_OWNERSHIP_219,
+  xiangyang: 'liu-bei',
+  xinye: 'liu-bei',
+  wancheng: 'liu-bei',
+};
+export const SCENARIO_WHATIF_GUANYU_NORTH: Scenario = {
+  id: 'scn-whatif-guanyu-north',
+  name: { en: 'If Guan Yu Had Taken Fan', zh: '若關羽威震華夏' },
+  kind: 'whatif',
+  description:
+    'Autumn 219. The autumn rains came, the Han burst its banks, and Guan Yu drowned Yu Jin\'s seven armies — but this time the Marquis of Hanshou did not stop. Fan fell, Xiangyang opened its gates, and the Lord of Changsheng drove north up the river road through Xinye to Wancheng, until his banners were a hundred li from Xuchang. Cao Cao, his court in uproar, debates moving the Emperor beyond the Yellow River. Whether Jiangling holds at his back is another question — but for now, all China trembles at the name of Guan Yunchang.',
+  descriptionZh: "建安二十四年秋。秋雨大至，漢水暴溢，關羽水淹于禁七軍——然此番漢壽亭侯不止於此。樊城既破，襄陽開門，雲長沿漢北上，經新野直趨宛城，旌旗距許昌不過百里。曹操朝野震動，竟議遷天子於河北以避其鋒。江陵之後路能否守得，尚在未定之天——然此刻舉華夏皆為關雲長之名而戰栗。",
+  startDate: { year: 219, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WHATIF_GUANYU_NORTH),
+  forces: FORCES_219,
+  officers: buildInitialOfficers(
+    whatIfOfficers(
+      { ...OFFICER_ASSIGNMENTS_219, 'guan-yu': { forceId: 'liu-bei', cityId: 'xiangyang' } },
+      CITY_OWNERSHIP_WHATIF_GUANYU_NORTH,
+      FORCES_219,
+    ),
+    DEAD_BY_219,
+    219,
+  ),
+};
+
+// ── What-if: 高平陵之變·曹爽先發制人 (249). Warned in time, Cao Shuang does
+//    not surrender — he races back to hold Luoyang and the Emperor, and Sima
+//    Yi's coup miscarries. The old fox falls back on his Hebei power-base at
+//    Ye, and the realm of Wei splits in two along the Yellow River. ──
+const CITY_OWNERSHIP_WHATIF_GAOPINGLING: Record<string, string> = {
+  ...CITY_OWNERSHIP_249,
+  luoyang: 'cao',
+  xuchang: 'cao',
+  chenliu: 'cao',
+  hulao: 'cao',
+  guandu: 'cao',
+  runan: 'cao',
+  shouchun: 'cao',
+  hefei: 'cao',
+};
+const FORCES_WHATIF_GAOPINGLING: Force[] = [
+  { id: 'sima',    name: { en: 'Sima Faction', zh: '司馬黨' }, rulerOfficerId: 'sima-yi',    capitalCityId: 'ye',      color: '#3a4d8a', isPlayer: false },
+  { id: 'cao',     name: { en: 'Cao Shuang',   zh: '曹爽軍' }, rulerOfficerId: 'cao-shuang', capitalCityId: 'luoyang', color: '#3a7dd9', isPlayer: false },
+  { id: 'liu-bei', name: { en: 'Shu Han',      zh: '蜀漢'   }, rulerOfficerId: 'liu-shan',   capitalCityId: 'chengdu', color: '#a85d8a', isPlayer: false },
+  { id: 'sun',     name: { en: 'Wu',           zh: '吳'     }, rulerOfficerId: 'sun-quan',   capitalCityId: 'jianye',  color: '#2f8e6f', isPlayer: false },
+];
+export const SCENARIO_WHATIF_GAOPINGLING: Scenario = {
+  id: 'scn-whatif-gaopingling',
+  name: { en: 'If Cao Shuang Had Struck First', zh: '若曹爽先發制人' },
+  kind: 'whatif',
+  description:
+    'Spring 249. As Sima Yi seizes the gates of Luoyang behind his back, the regent Cao Shuang — escorting the young Emperor home from the Gaoping Tombs — does not falter. Huan Fan\'s counsel wins out: rather than lay down his seals, Cao Shuang gallops the Emperor to safety, raises the Guanzhong armies, and proclaims the Simas rebels. The capital, Xuchang, and the rich Huai frontier rally to the man who holds the Son of Heaven; Sima Yi, his lightning coup turned to open war, falls back on the family\'s old strength in Hebei. Wei is cloven in two, and the empire holds its breath.',
+  descriptionZh: "正始十年春。司馬懿閉洛陽城門於其後，而大將軍曹爽——方自高平陵奉幼帝還京——竟不自亂。桓範之謀得行：曹爽不肯解印就縛，反挾天子疾走，發關中之兵，傳檄討司馬為叛逆。京畿、許昌、淮南膏腴之地，皆歸於挾天子者；司馬懿閃電之變化為明火戰爭，退保河北司馬氏之舊基。魏室自此一分為二，天下屏息。",
+  startDate: { year: 249, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WHATIF_GAOPINGLING),
+  forces: FORCES_WHATIF_GAOPINGLING,
+  officers: buildInitialOfficers(
+    whatIfOfficers(
+      { ...OFFICER_ASSIGNMENTS_249, 'cao-shuang': { forceId: 'cao', cityId: 'luoyang' } },
+      CITY_OWNERSHIP_WHATIF_GAOPINGLING,
+      FORCES_WHATIF_GAOPINGLING,
+    ),
+    DEAD_BY_249,
+    249,
+  ),
+};
+
+// ── What-if: 若陸遜不冤死 (249). The poison of the Two-Palaces succession feud
+//    never reached him; Lu Xun, victor of Xiaoting and Shiting, lives on as the
+//    pillar of Wu into the age of the boy-emperor and the regents. ──
+export const SCENARIO_WHATIF_LUXUN_LIVES: Scenario = {
+  id: 'scn-whatif-luxun-lives',
+  name: { en: 'If Lu Xun Had Not Been Hounded to Death', zh: '若陸遜不冤死' },
+  kind: 'whatif',
+  description:
+    'Year 249. The Two-Palaces feud — Sun Quan\'s ruinous quarrel between crown prince and rival son — broke many great men of Wu with grief and disgrace; chief among them Lu Xun, the burner of Liu Bei\'s camps at Xiaoting and the breaker of Cao Xiu at Shiting, hounded into his grave by royal reproaches in 245. Here he weathered the storm. As Wei tears itself apart at the Gaoping Tombs and Shu drills for new northern campaigns, the aged Grand Marshal still stands at the head of Wu\'s armies on the Great River — the last of the founding generation, and worth a province to Sun Quan\'s failing house.',
+  descriptionZh: "赤烏十二年。二宮之爭——孫權於太子與魯王之間釀成的毀滅性內鬩——以憂憤與屈辱折損吳國無數棟梁；其首者，便是夷陵焚劉備連營、石亭破曹休的陸遜，竟於赤烏八年為君上詰責，憤恚而亡。此世他撐過了這場風暴。當魏室於高平陵自相撕裂、蜀漢整軍再圖北伐之際，這位老邁的上大將軍，仍立於大江之上、吳軍之首——開國一代之碩果僅存者，於孫權衰朽之家，一人可抵一州。",
+  startDate: { year: 249, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_249),
+  forces: FORCES_249,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_249, DEAD_BY_249, 249),
+};
+
 export const SCENARIOS: Scenario[] = [
   // ── Historical (chronological 184–280 AD) ──
   SCENARIO_184_YELLOW_TURBAN,
@@ -6858,6 +6947,9 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_WHATIF_GUOJIA_LIVES,
   SCENARIO_WHATIF_ZHOUYU_LIVES,
   SCENARIO_WHATIF_PANGTONG_LIVES,
+  SCENARIO_WHATIF_GUANYU_NORTH,
+  SCENARIO_WHATIF_GAOPINGLING,
+  SCENARIO_WHATIF_LUXUN_LIVES,
 ];
 
 // ── Death-year normalization ───────────────────────────────────────────
