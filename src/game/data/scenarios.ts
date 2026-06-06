@@ -6811,6 +6811,80 @@ export const SCENARIO_231_LUCHENG: Scenario = {
   officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_234, [], 231),
 };
 
+// ── Historical: the decade after Zhuge Liang — 吳攻魏·芍陂之戰 (241) &
+//    興勢之戰 (244). The three realms are stable, Cao Rui is dead, and the
+//    boy-emperor Cao Fang holds the Wei throne under his regents Cao Shuang
+//    and Sima Yi. Both reuse the 234 map with Wei's crown passed to Cao Fang. ──
+const FORCES_POST_CAORUI: Force[] = [
+  { id: 'cao',     name: { en: 'Wei',     zh: '魏'   }, rulerOfficerId: 'cao-fang',  capitalCityId: 'luoyang', color: '#3a7dd9', isPlayer: false },
+  { id: 'liu-bei', name: { en: 'Shu Han', zh: '蜀漢' }, rulerOfficerId: 'liu-shan',  capitalCityId: 'chengdu', color: '#a85d8a', isPlayer: false },
+  { id: 'sun',     name: { en: 'Wu',      zh: '吳'   }, rulerOfficerId: 'sun-quan',  capitalCityId: 'jianye',  color: '#2f8e6f', isPlayer: false },
+];
+const OFFICER_ASSIGNMENTS_POST_CAORUI = {
+  ...OFFICER_ASSIGNMENTS_234,
+  'cao-fang': { forceId: 'cao', cityId: 'luoyang' },
+};
+export const SCENARIO_241_SHAOPI: Scenario = {
+  id: 'scn-241-shaopi',
+  name: { en: 'Wu Strikes North: Shaobei', zh: '吳攻魏·芍陂之戰' },
+  description:
+    'Summer 241. Cao Rui is three years dead and the boy-emperor Cao Fang reigns under his regents, and the aged Sun Quan throws his last great war northward: Quan Cong drives on the Shaobei dykes of the Huai, Zhu Ran lays siege to Fan, and Zhuge Jin strikes at Zuzhong. The Wei line under Wang Ling and Sun Li holds the frontier — but this is the final roar of the founder of Wu, who will not march again.',
+  descriptionZh: "赤烏四年夏。曹叡崩已三載，幼帝曹芳受制於輔政諸公；老邁的孫權發動其畢生最後一次大舉北伐——全琮進逼淮南芍陂，朱然圍樊城，諸葛瑾攻柤中。魏軍賴王凌、孫禮拒守而得全。然此乃吳之開國者最後的咆哮，自此他再未能親征。",
+  startDate: { year: 241, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_234),
+  forces: FORCES_POST_CAORUI,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_POST_CAORUI, [], 241),
+};
+export const SCENARIO_244_XINGSHI: Scenario = {
+  id: 'scn-244-xingshi',
+  name: { en: 'The Battle of Xingshi', zh: '興勢之戰' },
+  description:
+    'Spring 244. The regent Cao Shuang, hungry for the martial glory that would cement his grip on Wei, pours a hundred thousand men up the Luo Valley into Hanzhong. But Wang Ping holds the heights of Xingshi with a few thousand, Fei Yi races north from Chengdu, and the Wei host starves on the broken mountain roads. The retreat becomes a rout — and Cao Shuang\'s prestige never recovers, paving the road that ends at the Gaoping Tombs.',
+  descriptionZh: "正始五年春。大將軍曹爽急於立武功以固其權柄，驅十萬之眾溯駱谷而入漢中。然鎮北大將軍王平以數千之卒拒守興勢之嶺，費禕自成都疾馳來援，魏軍困於崎嶇山道，糧盡而士卒死傷枕藉。其退也如潰——曹爽威望自此一蹶不振，通往高平陵之變的道路，由是而鋪。",
+  startDate: { year: 244, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_234),
+  forces: FORCES_POST_CAORUI,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_POST_CAORUI, [], 244),
+};
+
+// ── Historical: 合肥新城之戰 (253). Zhuge Ke, drunk on the Dongxing victory of
+//    the winter before, throws the whole strength of Wu against the Wei fortress
+//    of Hefei and bleeds it white — the disaster that will cost him his life. ──
+export const SCENARIO_253_HEFEI: Scenario = {
+  id: 'scn-253-hefei',
+  name: { en: 'The Siege of Hefei New City', zh: '合肥新城之戰' },
+  description:
+    'Summer 253. Drunk on his victory at Dongxing the winter before, the Grand Tutor Zhuge Ke throws two hundred thousand men — the whole strength of Wu — against the little Wei fortress of Hefei New City. Zhang Te holds the walls against all odds; the summer brings plague; the besiegers die in their thousands of disease and Wei arrows. Zhuge Ke\'s army melts away and his prestige with it — and within months Sun Jun\'s assassins will cut him down at a palace banquet.',
+  descriptionZh: "建興二年夏。前歲東興大捷之威猶在，太傅諸葛恪盡發吳國之眾二十萬，圍攻魏之合肥新城。守將張特力守孤城，魏援司馬孚、毌丘儉繼至；時值盛暑，疫癘大作，圍城之卒病死、中矢者以萬計。諸葛恪頓兵堅城而師徒喪敗，威望盡失——數月之後，孫峻之刃，便將於宮宴之上取其性命。",
+  startDate: { year: 253, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_252),
+  forces: FORCES_252,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_252, DEAD_BY_252, 253),
+};
+
+// ── Historical: 西陵之戰 (272). Bu Chan surrenders Xiling to Jin; Lu Kang — son
+//    of Lu Xun and the last great general Wu will produce — walls in the traitor,
+//    smashes Yang Hu's relief columns one by one, then takes the fortress. ──
+const CITY_OWNERSHIP_272: Record<string, string> = {
+  ...CITY_OWNERSHIP_265,
+  xiling: 'sima', // Bu Chan defects, opening the western gorge to Jin
+};
+const OFFICER_ASSIGNMENTS_272 = {
+  ...OFFICER_ASSIGNMENTS_265,
+  'bu-chan': { forceId: 'sima', cityId: 'xiling' }, // turned coat, holds Xiling for Jin
+};
+export const SCENARIO_272_XILING: Scenario = {
+  id: 'scn-272-xiling',
+  name: { en: 'The Battle of Xiling', zh: '西陵之戰' },
+  description:
+    'Autumn 272. Bu Chan, commander of Xiling, throws open the gorge that guards Wu\'s western door and surrenders it to Jin. Lu Kang — son of Lu Xun, and the last great general the dynasty will produce — rushes upriver and does the unthinkable: he walls in the traitor\'s fortress without storming it, smashes the three Jin relief columns of Yang Hu, Yang Zhao and Xu Yin one by one, then takes Xiling and puts the Bu clan to the sword. It is the final masterpiece of Wu\'s art of war, and it buys the doomed kingdom one last decade.',
+  descriptionZh: "鳳凰元年秋。西陵督步闡盡獻扼守吳國西門之峽口，叛降於晉。鎮軍大將軍陸抗——陸遜之子、吳國所能孕育的最後一員名將——溯江疾進，行常人所不敢為：圍叛城而不急攻，先逐一擊破羊祜、楊肇、徐胤三路晉援，再下西陵，盡誅步氏。此乃吳國兵法之最後傑作，為這氣數將盡的王朝，再續十年之命。",
+  startDate: { year: 272, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_272),
+  forces: FORCES_265,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_272, DEAD_BY_265, 272),
+};
+
 // ── What-if: 水淹七軍·威震華夏 (219). Guan Yu's drowning of Yu Jin's seven
 //    armies is pressed to the hilt: Fan and Xiangyang fall, and the corridor
 //    up the Han River — Xiangyang, Xinye, Wancheng — becomes a dagger aimed at
@@ -6926,11 +7000,15 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_229_THREE_EMPERORS,
   SCENARIO_231_LUCHENG,
   SCENARIO_234_WUZHANG,
+  SCENARIO_241_SHAOPI,
+  SCENARIO_244_XINGSHI,
   SCENARIO_249_GAOPINGLING,
   SCENARIO_252_DONGXING,
+  SCENARIO_253_HEFEI,
   SCENARIO_263_SHU_FALL,
   SCENARIO_264_ZHONGHUI,
   SCENARIO_265_JIN_FOUNDED,
+  SCENARIO_272_XILING,
   SCENARIO_280_JIN_UNITE,
   // ── What-if (alternate timelines) ──
   SCENARIO_GATHERING_OF_HEROES,
