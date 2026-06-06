@@ -7404,9 +7404,80 @@ export const SCENARIO_WS_SEVEN: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_WS_SEVEN),
 };
 
+// ── 長平之戰 (Warring States). Qin has seized the Shangdang plateau and Bai Qi
+//    stands upon it; Lian Po digs in and will not be drawn. In Handan the
+//    impatient boy-king listens to slander and to the book-general Zhao Kuo. ──
+const FORCES_WS_CHANGPING: Force[] = FORCES_WS_SEVEN.map((f) =>
+  f.id === 'zhao' ? { ...f, rulerOfficerId: 'hist-zhao-xiaocheng' } : f,
+);
+const CITY_OWNERSHIP_WS_CHANGPING: Record<string, string> = {
+  ...CITY_OWNERSHIP_WS_SEVEN,
+  shangdang: 'qin', // Qin has taken the Shangdang plateau — the war's spark
+};
+const ASSIGN_WS_CHANGPING: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  'hist-zhao-xiaocheng': { forceId: 'zhao', cityId: 'ye' },       // the impatient king
+  'hist-bai-qi':    { forceId: 'qin',  cityId: 'shangdang' },     // poised to encircle
+  'hist-wang-jian': { forceId: 'qin',  cityId: 'shangdang' },
+  'hist-lian-po':   { forceId: 'zhao', cityId: 'taiyuan' },       // dug in, holds the line
+  'hist-zhao-kuo':  { forceId: 'zhao', cityId: 'taiyuan' },       // the book-general at the front
+};
+export const SCENARIO_WS_CHANGPING: Scenario = {
+  id: 'scn-ws-changping',
+  name: { en: 'The Battle of Changping', zh: '戰國·長平之戰' },
+  description:
+    'The great bloodletting. Qin has seized the Shangdang plateau and Bai Qi\'s army stands upon it; across the line the aged Lian Po digs in behind deep walls and will not be drawn, trading ground for time. In Handan the impatient King Xiaocheng listens to slander and to Zhao Kuo — son of Zhao She, who has read every book of war and fought no battle. Replace Lian Po and march out, and Bai Qi waits to encircle four hundred thousand men and bury them in the earth. The other five kingdoms watch, and do not move.',
+  descriptionZh: "長平之殤。秦已取上黨高地，白起之軍臨之；隔陣相望，老將廉頗深溝高壘、堅守不出，以地易時。邯鄲城中，性急的孝成王聽信讒言，又信趙奢之子趙括——此人讀盡兵書而未嘗一戰。若以括代頗、出壘決戰，白起正待圍而坑之，四十萬眾將埋骨於此。其餘五國，作壁上觀，按兵不動。",
+  startDate: { year: 178, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_CHANGPING),
+  forces: FORCES_WS_CHANGPING,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_CHANGPING),
+};
+
+// ── 樂毅伐齊 / 五國伐齊 (Warring States). Yan's avenger has taken seventy cities
+//    of Qi and burned Linzi; the mighty east survives only at Ju and Jimo, where
+//    Tian Dan readies a thousand oxen with blades on their horns. ──
+const FORCES_WS_YUEYI: Force[] = FORCES_WS_SEVEN.map((f) =>
+  f.id === 'qi' ? { ...f, rulerOfficerId: 'hist-tian-fazhang', capitalCityId: 'langya' } : f,
+);
+const CITY_OWNERSHIP_WS_YUEYI: Record<string, string> = {
+  ...CITY_OWNERSHIP_WS_SEVEN,
+  linzi: 'yan', pengcheng: 'yan', xiapi: 'yan', xiaopei: 'yan', // Yan overruns Qi
+  // Qi clings to two towns: Ju (langya) and Jimo (beihai)
+};
+const ASSIGN_WS_YUEYI: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  // Yan's host holds the burned capital of Linzi
+  'hist-yue-yi': { forceId: 'yan', cityId: 'linzi' },
+  'hist-qi-jie': { forceId: 'yan', cityId: 'linzi' },
+  // Qi's last stand — King Xiang and the court in exile at Ju, Tian Dan at Jimo
+  'hist-tian-fazhang':  { forceId: 'qi', cityId: 'langya' },
+  'hist-tian-dan':      { forceId: 'qi', cityId: 'beihai' },
+  'hist-qi-xuanwang':   { forceId: 'qi', cityId: 'langya' },
+  'hist-sun-bin':       { forceId: 'qi', cityId: 'langya' },
+  'hist-mengchang-jun': { forceId: 'qi', cityId: 'langya' },
+  'hist-zou-ji':        { forceId: 'qi', cityId: 'langya' },
+  'hist-feng-xuan':     { forceId: 'qi', cityId: 'beihai' },
+  'hist-zou-yan':       { forceId: 'qi', cityId: 'langya' },
+  'hist-kuang-zhang':   { forceId: 'qi', cityId: 'beihai' },
+};
+export const SCENARIO_WS_YUEYI: Scenario = {
+  id: 'scn-ws-yueyi',
+  name: { en: 'Yue Yi Shatters Qi', zh: '戰國·樂毅伐齊' },
+  description:
+    'The avenger has come. King Zhao of Yan, who raised a golden terrace to gather the talent of the realm, has unleashed Yue Yi at the head of a five-kingdom host; in half a year they have taken seventy cities of Qi and burned Linzi to the ground. The mighty east is reduced to two towns — Ju, where King Xiang hides, and Jimo, where Tian Dan readies a thousand oxen with blades lashed to their horns and fire to their tails. Whoever holds this last line decides whether Qi dies, or rises from the ash to reclaim it all.',
+  descriptionZh: "復仇者已至。燕昭王築黃金台以攬天下之士，遂遣樂毅統五國之師伐齊；半歲之間，下齊七十餘城，焚臨淄為墟。煌煌東方之強齊，僅餘二城——莒，齊襄王潛匿之地；即墨，田單束千牛、縛刃於角、繫火於尾以待。守得此最後一線者，將決齊之亡，抑或自灰燼中復起而盡復其地。",
+  startDate: { year: 178, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_YUEYI),
+  forces: FORCES_WS_YUEYI,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_YUEYI),
+};
+
 export const SCENARIOS: Scenario[] = [
   // ── Warring States (parallel timeline) ──
   SCENARIO_WS_SEVEN,
+  SCENARIO_WS_CHANGPING,
+  SCENARIO_WS_YUEYI,
   // ── Historical (chronological 184–280 AD) ──
   SCENARIO_184_YELLOW_TURBAN,
   SCENARIO_189_EUNUCHS,
