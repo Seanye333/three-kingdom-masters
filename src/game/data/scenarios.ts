@@ -8121,12 +8121,13 @@ const CITY_OWNERSHIP_CH_JULU: Record<string, string> = Object.fromEntries(
 const FORCES_CH_JULU: Force[] = [
   { id: 'qin',  name: { en: 'Qin Empire', zh: '秦' }, rulerOfficerId: 'hist-zhang-han',     capitalCityId: 'changan',   color: '#3a3a4a', isPlayer: false },
   { id: 'chu',  name: { en: 'Chu',        zh: '楚' }, rulerOfficerId: 'hist-xiang-yu',      capitalCityId: 'pengcheng', color: '#c0392b', isPlayer: false },
-  { id: 'zhao', name: { en: 'Zhao',       zh: '趙' }, rulerOfficerId: 'hist-zhang-er',      capitalCityId: 'ye',        color: '#e07b39', isPlayer: false },
+  { id: 'zhao', name: { en: 'Zhao',       zh: '趙' }, rulerOfficerId: 'hist-zhao-xie',      capitalCityId: 'ye',        color: '#e07b39', isPlayer: false },
   { id: 'qi',   name: { en: 'Qi',         zh: '齊' }, rulerOfficerId: 'hist-tian-dan-chu',  capitalCityId: 'linzi',     color: '#2aa8c0', isPlayer: false },
   { id: 'wei',  name: { en: 'Wei',        zh: '魏' }, rulerOfficerId: 'hist-wei-bao',       capitalCityId: 'puyang',    color: '#2f8e6f', isPlayer: false },
 ];
 const ASSIGN_CH_JULU: Record<string, { forceId: string; cityId: string }> = {
-  // 秦 — the empire's two great armies
+  // 秦 — the boy-emperor in Xianyang and the empire's two great armies
+  'hist-qin-ershi':   { forceId: 'qin', cityId: 'changan' }, // the Second Emperor, Zhao Gao's puppet
   'hist-zhang-han':   { forceId: 'qin', cityId: 'changan' }, // guarding the supply road
   'hist-wang-li':     { forceId: 'qin', cityId: 'ye' },      // the Great Wall corps ringing Julu
   'hist-she-jian':    { forceId: 'qin', cityId: 'ye' },
@@ -8135,6 +8136,7 @@ const ASSIGN_CH_JULU: Record<string, { forceId: string; cityId: string }> = {
   'hist-dong-yi':     { forceId: 'qin', cityId: 'mei' },
   // 楚 — Xiang Yu's host, with the western column under Liu Bang (also Huai-king's man)
   'hist-xiang-yu':    { forceId: 'chu', cityId: 'pengcheng' },
+  'hist-song-yi':     { forceId: 'chu', cityId: 'pengcheng' }, // the dithering Qingzi commander Xiang Yu will kill
   'hist-fan-zeng':    { forceId: 'chu', cityId: 'pengcheng' },
   'hist-ying-bu':     { forceId: 'chu', cityId: 'pengcheng' }, // the vanguard across the river
   'hist-long-qu':     { forceId: 'chu', cityId: 'pengcheng' },
@@ -8144,8 +8146,9 @@ const ASSIGN_CH_JULU: Record<string, { forceId: string; cityId: string }> = {
   'hist-xiao-he':     { forceId: 'chu', cityId: 'xiaopei' },
   'hist-cao-can':     { forceId: 'chu', cityId: 'xiaopei' },
   'hist-fan-kuai':    { forceId: 'chu', cityId: 'xiaopei' },
-  // 趙 — besieged in Julu, and Chen Yu sitting outside who will not move
-  'hist-zhang-er':    { forceId: 'zhao', cityId: 'ye' },     // trapped within the walls
+  // 趙 — King Zhao Xie and Zhang Er besieged in Julu, Chen Yu frozen outside
+  'hist-zhao-xie':    { forceId: 'zhao', cityId: 'ye' },     // the King of Zhao, ringed
+  'hist-zhang-er':    { forceId: 'zhao', cityId: 'ye' },     // trapped within the walls with him
   'hist-chen-yu':     { forceId: 'zhao', cityId: 'bohai' },  // his army outside, frozen
   'hist-li-zuoche':   { forceId: 'zhao', cityId: 'ye' },
   // 齊

@@ -354,6 +354,7 @@ const TPL_WARRING_STATES: HistoricalOfficerTemplate[] = [
 
 ];
 const TPL_QIN: HistoricalOfficerTemplate[] = [
+  { id: 'hist-qin-ershi',  dynasty: 'qin', name: { en: 'Qin Er Shi', zh: '胡亥' }, birthYear: 158, hometownCityId: 'changan', stats: { leadership: 30, war: 35, intelligence: 35, politics: 30, charisma: 40 } },
   // ─── 秦 Qin ──────────────────────────────────────────────────────
   { id: 'hist-meng-tian',  dynasty: 'qin', name: { en: 'Meng Tian',  zh: '蒙恬'   },                                                            birthYear: 150, hometownCityId: 'changan',  stats: { leadership: 92, war: 90, intelligence: 80,  politics: 75, charisma: 85 } },
   { id: 'hist-wang-ben',   dynasty: 'qin', name: { en: 'Wang Ben',   zh: '王賁'   },                                                            birthYear: 152, hometownCityId: 'mei',      stats: { leadership: 88, war: 88, intelligence: 80,  politics: 70, charisma: 80 } },
@@ -394,6 +395,16 @@ const TPL_QIN: HistoricalOfficerTemplate[] = [
 
 ];
 const TPL_CHU_HAN: HistoricalOfficerTemplate[] = [
+  // ── Added: kings, lords and captains the Chu-Han / Qin-end roster was missing ──
+  { id: 'hist-song-yi',      dynasty: 'chu-han', name: { en: 'Song Yi',      zh: '宋義'   }, birthYear: 145, hometownCityId: 'pengcheng', stats: { leadership: 70, war: 55, intelligence: 75, politics: 68, charisma: 65 } },
+  { id: 'hist-zhao-xie',     dynasty: 'chu-han', name: { en: 'Zhao Xie',     zh: '趙歇'   }, birthYear: 150, hometownCityId: 'ye',        stats: { leadership: 50, war: 45, intelligence: 52, politics: 55, charisma: 60 } },
+  { id: 'hist-zang-tu',      dynasty: 'chu-han', name: { en: 'Zang Tu',      zh: '臧荼'   }, birthYear: 150, hometownCityId: 'ji',        stats: { leadership: 72, war: 75, intelligence: 60, politics: 58, charisma: 62 } },
+  { id: 'hist-han-guang',    dynasty: 'chu-han', name: { en: 'Han Guang',    zh: '韓廣'   }, birthYear: 150, hometownCityId: 'ji',        stats: { leadership: 60, war: 62, intelligence: 55, politics: 55, charisma: 58 } },
+  { id: 'hist-xiang-zhuang', dynasty: 'chu-han', name: { en: 'Xiang Zhuang', zh: '項莊'   }, birthYear: 155, hometownCityId: 'xiapi',    stats: { leadership: 65, war: 82, intelligence: 55, politics: 45, charisma: 55 } },
+  { id: 'hist-tian-du',      dynasty: 'chu-han', name: { en: 'Tian Du',      zh: '田都'   }, birthYear: 150, hometownCityId: 'linzi',     stats: { leadership: 62, war: 68, intelligence: 55, politics: 52, charisma: 58 } },
+  { id: 'hist-tian-an',      dynasty: 'chu-han', name: { en: 'Tian An',      zh: '田安'   }, birthYear: 150, hometownCityId: 'beihai',    stats: { leadership: 58, war: 62, intelligence: 52, politics: 50, charisma: 55 } },
+  { id: 'hist-ding-gong',    dynasty: 'chu-han', name: { en: 'Ding Gong',    zh: '丁公'   }, birthYear: 152, hometownCityId: 'pengcheng', stats: { leadership: 60, war: 75, intelligence: 55, politics: 42, charisma: 50 } },
+  { id: 'hist-shen-yiji',    dynasty: 'chu-han', name: { en: 'Shen Yiji',    zh: '審食其' }, birthYear: 150, hometownCityId: 'xiaopei',  stats: { leadership: 45, war: 35, intelligence: 70, politics: 75, charisma: 72 } },
   // ─── 楚漢 Chu-Han ────────────────────────────────────────────────
   { id: 'hist-xiang-yu',   dynasty: 'chu-han', name: { en: 'Xiang Yu',    zh: '項羽'   }, courtesyName: { en: 'Yu',         zh: '羽' },   birthYear: 159, hometownCityId: 'xiapi',    stats: { leadership: 96, war: 100, intelligence: 60, politics: 30, charisma: 90 } },
   { id: 'hist-han-xin',    dynasty: 'chu-han', name: { en: 'Han Xin',     zh: '韓信'   },                                                  birthYear: 158, hometownCityId: 'shouchun', stats: { leadership: 99, war: 88,  intelligence: 99, politics: 70, charisma: 78 } },
