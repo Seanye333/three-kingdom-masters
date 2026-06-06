@@ -7687,16 +7687,116 @@ export const SCENARIO_WS_HANGU: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_WS_HANGU),
 };
 
+// ── 伊闕之戰·白起破韓魏 (Warring States). Bai Qi's first masterpiece: he reads
+//    the distrust between the joint Han-Wei host at the Yi gorges, feints and
+//    falls on each in turn, and takes the road into the central plain. ──
+const CITY_OWNERSHIP_WS_YIQUE: Record<string, string> = {
+  ...CITY_OWNERSHIP_WS_SEVEN,
+  luoyang: 'qin', // Yiyang and the Yi gorges broken open
+  hulao: 'qin',
+};
+const ASSIGN_WS_YIQUE: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  'hist-bai-qi':    { forceId: 'qin', cityId: 'luoyang' }, // standing on the broken pass
+  'hist-wang-jian': { forceId: 'qin', cityId: 'luoyang' },
+};
+export const SCENARIO_WS_YIQUE: Scenario = {
+  id: 'scn-ws-yique',
+  name: { en: 'Bai Qi Breaks Han and Wei', zh: '戰國·伊闕之戰' },
+  description:
+    'The God of War\'s first masterpiece. Han and Wei, the two heirs of Jin, throw a joint army across the Yi River gorges to bar Qin\'s road east — but their commanders distrust each other and neither will lead. Bai Qi, reading the seam between them, feints at one and falls upon the other, then wheels and destroys the first: two hundred and forty thousand heads taken in a day. The gate to the central plain stands open, Yiyang and the Zhou heartland are in Qin\'s hand, and a young general has announced his name to history.',
+  descriptionZh: "戰神之初篇傑作。韓魏二晉之裔，合師於伊水之闕以拒秦東出——然二帥相疑，莫肯先進。白起察其罅隙，佯攻其一而襲其一，復回師滅其先者：一日之間，斬首二十四萬。中原之門洞開，宜陽與周室腹地入於秦手，而一位年輕的將軍，自此向歷史報出了自己的名姓。",
+  startDate: { year: 178, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_YIQUE),
+  forces: FORCES_WS_SEVEN,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_YIQUE),
+};
+
+// ── 閼與之戰·趙奢破秦 (Warring States). Before Changping, the day Zhao could
+//    still beat Qin in the field: Qin has seized Yuyu in the Shangdang hills,
+//    and only Zhao She dares the narrow road — "the braver rat wins the hole." ──
+const FORCES_WS_YUYU: Force[] = FORCES_WS_SEVEN.map((f) =>
+  f.id === 'zhao' ? { ...f, rulerOfficerId: 'hist-zhao-huiwen' } : f,
+);
+const CITY_OWNERSHIP_WS_YUYU: Record<string, string> = {
+  ...CITY_OWNERSHIP_WS_SEVEN,
+  shangdang: 'qin', // Qin holds Yuyu deep in the hills
+};
+const ASSIGN_WS_YUYU: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  'hist-zhao-huiwen': { forceId: 'zhao', cityId: 'ye' },
+  'hist-bai-qi':      { forceId: 'qin',  cityId: 'shangdang' }, // the Qin army holding Yuyu
+  'hist-zhao-she':    { forceId: 'zhao', cityId: 'taiyuan' },   // the relief march, "Lord Mafu"
+  'hist-zhao-kuo':    { forceId: 'zhao', cityId: 'taiyuan' },   // the son who watches, learns wrong
+  'hist-lian-po':     { forceId: 'zhao', cityId: 'taiyuan' },
+};
+export const SCENARIO_WS_YUYU: Scenario = {
+  id: 'scn-ws-yuyu',
+  name: { en: 'The Battle of Yuyu', zh: '戰國·閼與之戰' },
+  description:
+    'Before Changping, before the burying, there was a day when Zhao could still beat Qin in open field. The Qin army has driven deep into the Shangdang hills and seized Yuyu, and the council at Handan calls the road too far and too narrow to save it. Only Zhao She says otherwise: "On a road this cramped, two rats fighting in a hole — the braver wins." He marches in secret, feigns timidity to lull the enemy, then covers fifty li in a day and a night, seizes the heights, and shatters the Qin host. For this King Huiwen makes him Lord Mafu — while his son Zhao Kuo, who reads every book of war, watches and learns all the wrong lessons.',
+  descriptionZh: "在長平之前，在坑殺之前，曾有一日趙尚能於野戰勝秦。秦軍已深入上黨山中，取閼與；邯鄲之廷皆言道遠險狹、不可救。獨趙奢曰：『其道甚狹，譬兩鼠鬥於穴中，將勇者勝。』乃潛師急進，先示怯以驕敵，後一日一夜行五十里，據北山而大破秦軍。惠文王為此封其馬服君——而其子趙括，讀盡兵書，旁觀此役，所學盡是錯處。",
+  startDate: { year: 178, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_YUYU),
+  forces: FORCES_WS_YUYU,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_YUYU),
+};
+
+// ── 田單復國·火牛破燕 (Warring States). The ash stirs: King Hui of Yan recalls
+//    the brilliant Yue Yi and sends the lesser Qi Jie before Qi's last two towns,
+//    and in Jimo Tian Dan readies the fire-oxen for the turn of the tide. ──
+const FORCES_WS_TIANDAN: Force[] = FORCES_WS_SEVEN.map((f) => {
+  if (f.id === 'yan') return { ...f, rulerOfficerId: 'hist-yan-huiwang' };
+  if (f.id === 'qi') return { ...f, rulerOfficerId: 'hist-tian-fazhang', capitalCityId: 'beihai' };
+  return f;
+});
+const CITY_OWNERSHIP_WS_TIANDAN: Record<string, string> = {
+  ...CITY_OWNERSHIP_WS_SEVEN,
+  linzi: 'yan', pengcheng: 'yan', xiapi: 'yan', xiaopei: 'yan', // Yan still holds conquered Qi
+};
+const ASSIGN_WS_TIANDAN: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  // The suspicious new king who recalled Yue Yi
+  'hist-yan-huiwang': { forceId: 'yan', cityId: 'ji' },
+  // Yue Yi recalled home in disgrace; the lesser Qi Jie left holding the line
+  'hist-yue-yi': { forceId: 'yan', cityId: 'ji' },
+  'hist-qi-jie': { forceId: 'yan', cityId: 'linzi' },
+  // Qi's last stand, now poised to strike back — Tian Dan and the fire-oxen at Jimo
+  'hist-tian-dan':      { forceId: 'qi', cityId: 'beihai' },
+  'hist-tian-fazhang':  { forceId: 'qi', cityId: 'langya' },
+  'hist-qi-xuanwang':   { forceId: 'qi', cityId: 'langya' },
+  'hist-sun-bin':       { forceId: 'qi', cityId: 'beihai' },
+  'hist-mengchang-jun': { forceId: 'qi', cityId: 'langya' },
+  'hist-zou-ji':        { forceId: 'qi', cityId: 'langya' },
+  'hist-feng-xuan':     { forceId: 'qi', cityId: 'beihai' },
+  'hist-zou-yan':       { forceId: 'qi', cityId: 'langya' },
+  'hist-kuang-zhang':   { forceId: 'qi', cityId: 'beihai' },
+};
+export const SCENARIO_WS_TIANDAN: Scenario = {
+  id: 'scn-ws-tiandan',
+  name: { en: 'Tian Dan\'s Fire-Oxen', zh: '戰國·田單復國' },
+  description:
+    'The ash stirs. King Hui, new on the throne of Yan, mistrusts the brilliant Yue Yi who has all but ended Qi, and recalls him — replacing the conqueror with the lesser Qi Jie before the last two towns of the east. In Jimo, Tian Dan has been waiting for exactly this. He has spread the rumor that drove Yue Yi out; he feigns surrender to make the Yan army careless; and now he lashes blades to the horns of a thousand oxen and fire to their tails, and waits for the night to drive them into the Yan camp. From two cities, in a single season, Qi will reclaim seventy.',
+  descriptionZh: "灰燼復動。燕新君惠王，疑那幾乎滅齊的天才樂毅，召之還——以庸劣的騎劫代此征服者於齊最後之二城前。即墨城中，田單正等的便是此刻。他已縱反間以去樂毅；他詐降以驕燕師；今束刃於千牛之角、繫火於其尾，只待夜色，驅之衝燕營。自二城之地，一季之間，齊將盡復七十城。",
+  startDate: { year: 178, season: 'winter' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_TIANDAN),
+  forces: FORCES_WS_TIANDAN,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_TIANDAN),
+};
+
 export const SCENARIOS: Scenario[] = [
   // ── Warring States (parallel timeline) ──
   SCENARIO_WS_SEVEN,
   SCENARIO_WS_SHANGYANG,
   SCENARIO_WS_GUILING,
   SCENARIO_WS_HANGU,
+  SCENARIO_WS_YIQUE,
   SCENARIO_WS_YANYING,
+  SCENARIO_WS_YUYU,
   SCENARIO_WS_CHANGPING,
   SCENARIO_WS_HANDAN,
   SCENARIO_WS_YUEYI,
+  SCENARIO_WS_TIANDAN,
   SCENARIO_WS_QIN_UNIFY,
   // ── Historical (chronological 184–280 AD) ──
   SCENARIO_184_YELLOW_TURBAN,

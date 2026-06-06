@@ -52,7 +52,8 @@
       "Bash(xxd)",
       "Bash(curl -s http://localhost:5173/ -o /dev/null -w \"%{http_code}\\\\n\")",
       "Bash(node verify-sort.mjs)",
-      "Bash(node verify-bigger-battles.mjs)"
+      "Bash(node verify-bigger-battles.mjs)",
+      "Bash(node audit-scenarios.mjs)"
     ],
     "additionalDirectories": [
       "/private/tmp/tkm-scaffold"
