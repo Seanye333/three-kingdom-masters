@@ -8171,7 +8171,92 @@ export const SCENARIO_CH_JULU: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_CH_JULU, ['chu-han', 'qin']),
 };
 
+// ════════════════════════════════════════════════════════════════════════
+// 隋末群雄 — Sui-end Warlords (parallel timeline). buildWarringStatesOfficers
+// fed the Sui + Tang rosters: Emperor Yang dead, the realm aflame, the seven
+// great contenders carve up the north while the south stays unclaimed — and the
+// captains who will found the Tang are scattered among the rebels to be won.
+// ════════════════════════════════════════════════════════════════════════
+const FORCES_ST_SUIEND: Force[] = [
+  { id: 'tang',     name: { en: 'Tang',      zh: '唐'   }, rulerOfficerId: 'hist-li-yuan',      capitalCityId: 'changan',  color: '#d4af37', isPlayer: false },
+  { id: 'wagang',   name: { en: 'Wagang',    zh: '瓦崗' }, rulerOfficerId: 'hist-li-mi-sui',    capitalCityId: 'puyang',   color: '#c0392b', isPlayer: false },
+  { id: 'zheng',    name: { en: 'Zheng',     zh: '鄭'   }, rulerOfficerId: 'hist-wang-shichong',capitalCityId: 'luoyang',  color: '#9a5a9a', isPlayer: false },
+  { id: 'xia',      name: { en: 'Xia',       zh: '夏'   }, rulerOfficerId: 'hist-dou-jiande',   capitalCityId: 'ye',       color: '#2aa8c0', isPlayer: false },
+  { id: 'xiqin',    name: { en: 'Western Qin', zh: '西秦' }, rulerOfficerId: 'hist-xue-ju',     capitalCityId: 'tianshui', color: '#8a6d3b', isPlayer: false },
+  { id: 'dingyang', name: { en: 'Dingyang',  zh: '定楊' }, rulerOfficerId: 'hist-liu-wuzhou',   capitalCityId: 'beiping',  color: '#5a7a8a', isPlayer: false },
+  { id: 'wu',       name: { en: 'Wu (Du)',   zh: '杜伏威' }, rulerOfficerId: 'hist-du-fuwei',   capitalCityId: 'shouchun', color: '#2f8e6f', isPlayer: false },
+];
+const CITY_OWNERSHIP_ST_SUIEND: Record<string, string> = {
+  // 唐 — the Tang, risen from Taiyuan and holding Guanzhong
+  changan: 'tang', mei: 'tang', chencang: 'tang', tongguan: 'tang', wuguan: 'tang',
+  sanguan: 'tang', xiaoguan: 'tang', baishuiguan: 'tang', jianmen: 'tang',
+  hanzhong: 'tang', yangping: 'tang', xincheng: 'tang', wudu: 'tang', taiyuan: 'tang',
+  yanmen: 'tang', shangdang: 'tang',
+  // 西秦 — Xue Ju on the Long passes
+  tianshui: 'xiqin', anding: 'xiqin', longxi: 'xiqin', shanggui: 'xiqin',
+  jincheng: 'xiqin', wuwei: 'xiqin', jiuquan: 'xiqin', dunhuang: 'xiqin',
+  // 瓦崗 — Li Mi's army, gorged on the Luokou granaries, astride the central plain
+  puyang: 'wagang', chenliu: 'wagang', xuchang: 'wagang', runan: 'wagang',
+  guandu: 'wagang', hulao: 'wagang', baima: 'wagang', yanjin: 'wagang', liyang: 'wagang',
+  // 鄭 — Wang Shichong in Luoyang
+  luoyang: 'zheng',
+  // 夏 — Dou Jiande's Hebei, reaching into Shandong
+  ye: 'xia', bohai: 'xia', pingyuan: 'xia', nanpi: 'xia', boling: 'xia',
+  linzi: 'xia', beihai: 'xia', langya: 'xia',
+  // 定楊 — Liu Wuzhou in the north under Turkic patronage
+  beiping: 'dingyang', yuyang: 'dingyang', yunzhong: 'dingyang', wuyuan: 'dingyang',
+  shuofang: 'dingyang',
+  // 杜伏威 — the Huai and the Jiangdong shore
+  shouchun: 'wu', hefei: 'wu', lujiang: 'wu', ruxu: 'wu', guangling: 'wu',
+  jianye: 'wu', wu: 'wu', wuxi: 'wu', kuaiji: 'wu', danyang: 'wu',
+  // (the south — Jing, Shu, Lingnan — and the far frontier stay unclaimed:
+  //  Xiao Xian, Lin Shihong, Feng Ang and the rest are not yet on this board)
+};
+const ASSIGN_ST_SUIEND: Record<string, { forceId: string; cityId: string }> = {
+  // 唐 — Li Yuan and the future Taizong; the great Tang generals are NOT here yet
+  'hist-li-yuan':      { forceId: 'tang', cityId: 'changan' },
+  'hist-tang-taizong': { forceId: 'tang', cityId: 'changan' }, // Li Shimin, age 19
+  'hist-li-jing':      { forceId: 'tang', cityId: 'changan' },
+  'hist-qutu-tong':    { forceId: 'tang', cityId: 'tongguan' }, // the Sui general gone to Tang
+  // 瓦崗 — Li Mi, mightiest in the land, with the captains Tang will later win
+  'hist-li-mi-sui':    { forceId: 'wagang', cityId: 'puyang' },
+  'hist-zhai-rang':    { forceId: 'wagang', cityId: 'puyang' },
+  'hist-shan-xiongxin':{ forceId: 'wagang', cityId: 'hulao' },
+  'hist-wang-bodang':  { forceId: 'wagang', cityId: 'puyang' },
+  'hist-qin-qiong':    { forceId: 'wagang', cityId: 'xuchang' }, // Qin Shubao, still under Li Mi
+  'hist-cheng-yaojin': { forceId: 'wagang', cityId: 'xuchang' }, // Cheng Zhijie, still under Li Mi
+  'hist-li-ji':        { forceId: 'wagang', cityId: 'liyang' },  // Xu Shiji, holds Liyang for Wagang
+  // 鄭 — Wang Shichong, with the puppet Sui prince Yang Tong
+  'hist-wang-shichong':{ forceId: 'zheng', cityId: 'luoyang' },
+  'hist-yang-tong':    { forceId: 'zheng', cityId: 'luoyang' }, // the Sui prince he holds
+  'hist-duan-da':      { forceId: 'zheng', cityId: 'luoyang' },
+  // 夏 — Dou Jiande and Liu Heita
+  'hist-dou-jiande':   { forceId: 'xia', cityId: 'ye' },
+  'hist-liu-heita':    { forceId: 'xia', cityId: 'bohai' },
+  // 西秦 — Xue Ju
+  'hist-xue-ju':       { forceId: 'xiqin', cityId: 'tianshui' },
+  // 定楊 — Liu Wuzhou, and Yuchi Gong who fights for him (and will go to Tang)
+  'hist-liu-wuzhou':   { forceId: 'dingyang', cityId: 'beiping' },
+  'hist-yuchi-gong':   { forceId: 'dingyang', cityId: 'yanmen' }, // Yuchi Jingde, under Liu Wuzhou
+  // 杜伏威 — and his lieutenant Fu Gongshi
+  'hist-du-fuwei':     { forceId: 'wu', cityId: 'shouchun' },
+  'hist-fu-gongshi':   { forceId: 'wu', cityId: 'jianye' },
+};
+export const SCENARIO_ST_SUIEND: Scenario = {
+  id: 'scn-st-suiend',
+  name: { en: 'Warlords of the Sui Collapse', zh: '隋末群雄逐鹿' },
+  description:
+    'The Sui have burned themselves out. Emperor Yang lies dead at Jiangdu, the canal-digging and the Korean wars have broken the realm, and rebellion blazes from every province. In the heartland Li Mi\'s Wagang army is the mightiest force in the land, gorged on the granaries of Luokou; Wang Shichong holds Luoyang with a puppet Sui prince, Dou Jiande the Hebei plain, Xue Ju the Long passes, Liu Wuzhou the north under Turkic patronage, Du Fuwei the Huai. And in Guanzhong, the Duke of Tang Li Yuan and his second son — a youth of nineteen named Li Shimin who has not yet shown the world what he is — hold Chang\'an. The greatest captains of the age are scattered among the rebels: Qin Qiong and Cheng Yaojin under Li Mi, Yuchi Gong under Liu Wuzhou. Whoever gathers them gathers the empire.',
+  descriptionZh: "隋室已自焚殆盡。煬帝橫死江都，鑿河與征遼之役耗盡天下，叛火燃於每一州郡。中原之地，李密之瓦崗軍為當世最強，飽掠洛口之倉；王世充挾隋室幼主據洛陽，竇建德有河北之野，薛舉扼隴關，劉武周恃突厥而王於北，杜伏威據淮。而於關中，唐國公李淵與其次子——年方十九、尚未向世人顯露其為何物的李世民——已據長安。當世名將散於群雄之間：秦瓊、程咬金在李密麾下，尉遲恭在劉武周帳中。能聚之者，即聚天下。",
+  startDate: { year: 178, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_ST_SUIEND),
+  forces: FORCES_ST_SUIEND,
+  officers: buildWarringStatesOfficers(ASSIGN_ST_SUIEND, ['sui', 'tang']),
+};
+
 export const SCENARIOS: Scenario[] = [
+  // ── Sui-end Warlords (parallel timeline) ──
+  SCENARIO_ST_SUIEND,
   // ── Chu-Han Contention (parallel timeline) ──
   SCENARIO_CH_JULU,
   SCENARIO_CH_CHUHAN,
