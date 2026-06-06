@@ -345,8 +345,12 @@ export function loadScenario(
   // Pull in historical officers from enabled dynasties — these arrive as
   // unsearched free agents at their hometown city.
   const historicalOfficers = buildHistoricalOfficers(state.enabledDynasties);
+  // De-dupe by id so a scenario shipping its own copies of historical officers
+  // (e.g. the Warring States board, where they start already enfeoffed to a
+  // state) wins over the unsearched free-agent injection of the same ids.
+  const inScenario = new Set(scenario.officers.map((o) => o.id));
   const baseOfficers = historicalOfficers.length > 0
-    ? [...scenario.officers, ...historicalOfficers]
+    ? [...scenario.officers, ...historicalOfficers.filter((o) => !inScenario.has(o.id))]
     : scenario.officers;
 
   // If the player chose 'random' placement, scrub the historical hometowns

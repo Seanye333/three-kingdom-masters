@@ -1,6 +1,6 @@
-import type { Force, Scenario } from '../types';
+import type { Force, Scenario, Officer } from '../types';
 import { buildInitialCities } from './cities';
-import { buildInitialOfficers } from './officers';
+import { buildInitialOfficers, buildHistoricalOfficers } from './officers';
 
 // ──────────────────────────────────────────────────────────────────────
 // Scenario 0 — 184 AD The Yellow Turban Rebellion
@@ -7256,7 +7256,157 @@ export const SCENARIO_WHATIF_LUXUN_LIVES: Scenario = {
   officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_249, DEAD_BY_249, 249),
 };
 
+// ════════════════════════════════════════════════════════════════════════
+// 戰國七雄 — Warring States (parallel timeline on the AD engine). The 歷代名將
+// Warring-States roster already carries playable birthYears ~140–158 AD, so the
+// seven kingdoms field on a Three-Kingdoms map mapped onto the old states at a
+// 178 AD datum (the great names are then ~20–45). Generals not enfeoffed to a
+// state stay as unsearched free agents — the wandering persuaders (Su Qin, Zhang
+// Yi), philosophers (Mencius, Xunzi, Mozi) and assassins drift between courts.
+// ════════════════════════════════════════════════════════════════════════
+function buildWarringStatesOfficers(
+  assignments: Record<string, { forceId: string; cityId: string }>,
+): Officer[] {
+  return buildHistoricalOfficers(['warring-states']).map((o) => {
+    const a = assignments[o.id];
+    return a
+      ? { ...o, forceId: a.forceId, locationCityId: a.cityId, status: 'idle' as const, loyalty: 100 }
+      : o;
+  });
+}
+
+const FORCES_WS_SEVEN: Force[] = [
+  { id: 'qin',  name: { en: 'Qin',  zh: '秦' }, rulerOfficerId: 'hist-qin-zhaoxiang', capitalCityId: 'changan',   color: '#4a4a6a', isPlayer: false },
+  { id: 'chu',  name: { en: 'Chu',  zh: '楚' }, rulerOfficerId: 'hist-chu-huaiwang',  capitalCityId: 'jiangling', color: '#c0392b', isPlayer: false },
+  { id: 'qi',   name: { en: 'Qi',   zh: '齊' }, rulerOfficerId: 'hist-qi-xuanwang',   capitalCityId: 'linzi',     color: '#2aa8c0', isPlayer: false },
+  { id: 'yan',  name: { en: 'Yan',  zh: '燕' }, rulerOfficerId: 'hist-yan-zhaowang',  capitalCityId: 'ji',        color: '#5a7a8a', isPlayer: false },
+  { id: 'zhao', name: { en: 'Zhao', zh: '趙' }, rulerOfficerId: 'hist-zhao-wuling',   capitalCityId: 'ye',        color: '#e07b39', isPlayer: false },
+  { id: 'wei',  name: { en: 'Wei',  zh: '魏' }, rulerOfficerId: 'hist-wei-huiwang',   capitalCityId: 'chenliu',   color: '#2f8e6f', isPlayer: false },
+  { id: 'han',  name: { en: 'Han',  zh: '韓' }, rulerOfficerId: 'hist-han-zhaohou',   capitalCityId: 'xuchang',   color: '#d4af37', isPlayer: false },
+];
+
+const CITY_OWNERSHIP_WS_SEVEN: Record<string, string> = {
+  // 秦 — Guanzhong, the Long corridor, Hanzhong and the conquered Ba-Shu.
+  changan: 'qin', mei: 'qin', chencang: 'qin', tongguan: 'qin', wuguan: 'qin',
+  sanguan: 'qin', xiaoguan: 'qin', baishuiguan: 'qin', jianmen: 'qin', jieting: 'qin',
+  hanzhong: 'qin', yangping: 'qin', xincheng: 'qin', wudu: 'qin', shangyong: 'qin',
+  anding: 'qin', tianshui: 'qin', longxi: 'qin', shanggui: 'qin', jincheng: 'qin',
+  wuwei: 'qin', jiuquan: 'qin', dunhuang: 'qin', chengdu: 'qin', jiangzhou: 'qin',
+  yongan: 'qin', zitong: 'qin', fucheng: 'qin', mianzhu: 'qin', luocheng: 'qin',
+  jiameng: 'qin', baxi: 'qin', yinping: 'qin', nanzhong: 'qin', jianning: 'qin',
+  yunnan: 'qin', yongchang: 'qin', yuexi: 'qin',
+  // 趙 — Jin highlands, Yanmen, the northern frontier and Handan (Ye).
+  taiyuan: 'zhao', yanmen: 'zhao', shangdang: 'zhao', yunzhong: 'zhao', wuyuan: 'zhao',
+  shuofang: 'zhao', ye: 'zhao', boling: 'zhao', bohai: 'zhao', pingyuan: 'zhao',
+  nanpi: 'zhao',
+  // 燕 — the cold northeast out to Liaodong.
+  ji: 'yan', beiping: 'yan', yuyang: 'yan', liaodong: 'yan', xiangping: 'yan',
+  liucheng: 'yan', wuhuan: 'yan', lelang: 'yan', daifang: 'yan',
+  // 齊 — the Shandong peninsula around Linzi.
+  linzi: 'qi', beihai: 'qi', langya: 'qi', pengcheng: 'qi', xiapi: 'qi', xiaopei: 'qi',
+  // 魏 — Daliang and the central plain.
+  chenliu: 'wei', puyang: 'wei', guandu: 'wei', hulao: 'wei', baima: 'wei',
+  yanjin: 'wei', liyang: 'wei',
+  // 韓 — Xinzheng, Yiyang and the smith-cities of the centre.
+  xuchang: 'han', luoyang: 'han', runan: 'han', xinye: 'han',
+  // 楚 — the vast south, from Ying to the Yangtze, Huai and Lingnan.
+  jiangling: 'chu', wancheng: 'chu', wan: 'chu', xiangyang: 'chu', fancheng: 'chu',
+  shouchun: 'chu', hefei: 'chu', lujiang: 'chu', ruxu: 'chu', jiangxia: 'chu',
+  jianye: 'chu', wu: 'chu', wuxi: 'chu', kuaiji: 'chu', danyang: 'chu',
+  yuzhang: 'chu', chaisang: 'chu', poyang: 'chu', hukou: 'chu', changsha: 'chu',
+  lingling: 'chu', wuling: 'chu', guiyang: 'chu', luling: 'chu', baqiu: 'chu',
+  wuchang: 'chu', xiling: 'chu', yiling: 'chu', xiaoting: 'chu', maicheng: 'chu',
+  gongan: 'chu', bowang: 'chu', guangling: 'chu', nanhai: 'chu', hepu: 'chu',
+  jiaozhi: 'chu', guilin: 'chu', cangwu: 'chu', jiuzhen: 'chu', rinan: 'chu',
+  zhuyai: 'chu', linhai: 'chu', 'yi-county': 'chu', chibi: 'chu', changban: 'chu',
+};
+
+const ASSIGN_WS_SEVEN: Record<string, { forceId: string; cityId: string }> = {
+  // 秦 — king, the spear (Bai Qi, Wang Jian, Sima Cuo, Meng Ao), the law (Shang
+  //     Yang, Fan Ju, Zhang Yi, Lü Buwei, Cai Ze, Gan Mao, Chuli Ji).
+  'hist-qin-zhaoxiang': { forceId: 'qin', cityId: 'changan' },
+  'hist-bai-qi':        { forceId: 'qin', cityId: 'changan' },
+  'hist-wang-jian':     { forceId: 'qin', cityId: 'mei' },
+  'hist-sima-cuo':      { forceId: 'qin', cityId: 'hanzhong' },
+  'hist-meng-ao':       { forceId: 'qin', cityId: 'chencang' },
+  'hist-shang-yang':    { forceId: 'qin', cityId: 'changan' },
+  'hist-fan-ju':        { forceId: 'qin', cityId: 'changan' },
+  'hist-zhang-yi':      { forceId: 'qin', cityId: 'changan' },
+  'hist-lu-buwei':      { forceId: 'qin', cityId: 'changan' },
+  'hist-cai-ze':        { forceId: 'qin', cityId: 'changan' },
+  'hist-gan-mao':       { forceId: 'qin', cityId: 'chengdu' },
+  'hist-chuli-ji':      { forceId: 'qin', cityId: 'changan' },
+  // 趙 — Wuling Wang, the four generals (Lian Po, Zhao She, Li Mu, Pang Xuan,
+  //     Yue Cheng, Zhao Kuo) and Lin Xiangru / Pingyuan Jun / Mao Sui.
+  'hist-zhao-wuling':   { forceId: 'zhao', cityId: 'ye' },
+  'hist-lian-po':       { forceId: 'zhao', cityId: 'ye' },
+  'hist-zhao-she':      { forceId: 'zhao', cityId: 'ye' },
+  'hist-li-mu':         { forceId: 'zhao', cityId: 'yanmen' },
+  'hist-pang-xuan':     { forceId: 'zhao', cityId: 'taiyuan' },
+  'hist-yue-cheng':     { forceId: 'zhao', cityId: 'ye' },
+  'hist-zhao-kuo':      { forceId: 'zhao', cityId: 'ye' },
+  'hist-lin-xiangru':   { forceId: 'zhao', cityId: 'ye' },
+  'hist-pingyuan-jun':  { forceId: 'zhao', cityId: 'ye' },
+  'hist-mao-sui':       { forceId: 'zhao', cityId: 'ye' },
+  // 齊 — Xuan Wang, Tian Dan & Sun Bin & Kuang Zhang, and the Jixia court
+  //     (Mengchang Jun, Zou Ji, Feng Xuan, Zou Yan).
+  'hist-qi-xuanwang':   { forceId: 'qi', cityId: 'linzi' },
+  'hist-tian-dan':      { forceId: 'qi', cityId: 'linzi' },
+  'hist-sun-bin':       { forceId: 'qi', cityId: 'linzi' },
+  'hist-kuang-zhang':   { forceId: 'qi', cityId: 'langya' },
+  'hist-mengchang-jun': { forceId: 'qi', cityId: 'linzi' },
+  'hist-zou-ji':        { forceId: 'qi', cityId: 'linzi' },
+  'hist-feng-xuan':     { forceId: 'qi', cityId: 'linzi' },
+  'hist-zou-yan':       { forceId: 'qi', cityId: 'linzi' },
+  // 楚 — Huai Wang, Chunshen Jun, Qu Yuan, Zhuang Qiao, Zhuang Xin, Zheng Xiu.
+  'hist-chu-huaiwang':  { forceId: 'chu', cityId: 'jiangling' },
+  'hist-chunshen-jun':  { forceId: 'chu', cityId: 'jiangling' },
+  'hist-qu-yuan':       { forceId: 'chu', cityId: 'jiangling' },
+  'hist-zhuang-qiao':   { forceId: 'chu', cityId: 'shouchun' },
+  'hist-zhuang-xin':    { forceId: 'chu', cityId: 'jiangling' },
+  'hist-zheng-xiu':     { forceId: 'chu', cityId: 'jiangling' },
+  // 燕 — Zhao Wang and his golden terrace: Yue Yi, Ju Xin, Su Dai, and the
+  //     assassins around Crown Prince Dan (Jing Ke, Gao Jianli).
+  'hist-yan-zhaowang':  { forceId: 'yan', cityId: 'ji' },
+  'hist-yue-yi':        { forceId: 'yan', cityId: 'ji' },
+  'hist-ju-xin':        { forceId: 'yan', cityId: 'ji' },
+  'hist-su-dai':        { forceId: 'yan', cityId: 'ji' },
+  'hist-taizi-dan':     { forceId: 'yan', cityId: 'beiping' },
+  'hist-jing-ke':       { forceId: 'yan', cityId: 'beiping' },
+  'hist-gao-jianli':    { forceId: 'yan', cityId: 'beiping' },
+  // 魏 — Hui Wang, the generals it squandered (Pang Juan, Wu Qi, Yue Yang) and
+  //     Lord Xinling with Zhu Hai / Hou Ying / Gongshu Cuo.
+  'hist-wei-huiwang':   { forceId: 'wei', cityId: 'chenliu' },
+  'hist-pang-juan':     { forceId: 'wei', cityId: 'chenliu' },
+  'hist-wu-qi':         { forceId: 'wei', cityId: 'puyang' },
+  'hist-yue-yang':      { forceId: 'wei', cityId: 'chenliu' },
+  'hist-xinling-jun':   { forceId: 'wei', cityId: 'chenliu' },
+  'hist-zhu-hai':       { forceId: 'wei', cityId: 'chenliu' },
+  'hist-hou-ying':      { forceId: 'wei', cityId: 'chenliu' },
+  'hist-gongshu-cuo':   { forceId: 'wei', cityId: 'puyang' },
+  // 韓 — Zhao Hou and the Legalists (Shen Buhai, Han Fei), plus Nie Zheng.
+  'hist-han-zhaohou':   { forceId: 'han', cityId: 'xuchang' },
+  'hist-shen-buhai':    { forceId: 'han', cityId: 'xuchang' },
+  'hist-han-fei':       { forceId: 'han', cityId: 'xuchang' },
+  'hist-nie-zheng':     { forceId: 'han', cityId: 'xuchang' },
+  'hist-gong-zhong':    { forceId: 'han', cityId: 'luoyang' },
+};
+
+export const SCENARIO_WS_SEVEN: Scenario = {
+  id: 'scn-ws-seven',
+  name: { en: 'The Seven Warring States', zh: '戰國七雄·逐鹿' },
+  description:
+    'A parallel age of iron and intrigue. The house of Zhou is a shadow, and seven kingdoms contend for all under heaven: Qin rising in the west behind Shang Yang\'s laws and Bai Qi\'s spear; Zhao with its hu-fu cavalry and the generals Lian Po and Li Mu; wealthy Qi at Linzi with its Jixia academy; the vast southern Chu; Yan of the cold north and its avenger Yue Yi; Wei that was first to power and squandered it; and Han, smith of the realm\'s finest iron. The persuaders Su Qin and Zhang Yi wander between the courts, selling alliance and betrayal. Whoever masters the others will forge the first empire under heaven.',
+  descriptionZh: "鐵與謀的並世之局。周室如影，七雄爭天下：秦據西陲，恃商鞅之法、白起之矛而崛起；趙有胡服騎射、廉頗李牧之師；臨淄之齊富甲東方，稷下學宮冠絕諸侯；南方之楚廣袤無垠；北地之燕與其復仇者樂毅；魏為最先稱霸而又自棄之者；韓鑄天下之利兵。蘇秦張儀縱橫於列國之間，售合縱連橫、賣背盟負約。能制群雄者，將鑄天下第一帝國。",
+  startDate: { year: 178, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_SEVEN),
+  forces: FORCES_WS_SEVEN,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_SEVEN),
+};
+
 export const SCENARIOS: Scenario[] = [
+  // ── Warring States (parallel timeline) ──
+  SCENARIO_WS_SEVEN,
   // ── Historical (chronological 184–280 AD) ──
   SCENARIO_184_YELLOW_TURBAN,
   SCENARIO_189_EUNUCHS,
