@@ -7492,7 +7492,8 @@ const ASSIGN_WS_GUILING: Record<string, { forceId: string; cityId: string }> = {
   'hist-qi-weiwang': { forceId: 'qi', cityId: 'linzi' },
   'hist-pang-juan':  { forceId: 'wei',  cityId: 'ye' },      // holds taken Handan, far from home
   'hist-sun-bin':    { forceId: 'qi',   cityId: 'linzi' },   // the crippled strategist
-  'hist-kuang-zhang':{ forceId: 'qi',   cityId: 'linzi' },   // Qi's field commander
+  'hist-tian-ji':    { forceId: 'qi',   cityId: 'linzi' },   // Qi's commander, Sun Bin's general
+  'hist-kuang-zhang':{ forceId: 'qi',   cityId: 'linzi' },
   // Zhao, thrown out of Handan, regroups at Jinyang (Taiyuan)
   'hist-zhao-wuling': { forceId: 'zhao', cityId: 'taiyuan' },
   'hist-lian-po':     { forceId: 'zhao', cityId: 'taiyuan' },
@@ -7574,8 +7575,10 @@ const ASSIGN_WS_QIN_UNIFY: Record<string, { forceId: string; cityId: string }> =
   'hist-meng-tian':    { forceId: 'qin', cityId: 'shangdang' },
   'hist-li-si':        { forceId: 'qin', cityId: 'changan' }, // chancellor
   'hist-wei-liao':     { forceId: 'qin', cityId: 'changan' }, // grand commandant
-  // The last defenders of the six: Li Mu for Zhao, and the assassins of Yan
+  // The last defenders of the six: Li Mu for Zhao, Xiang Yan for Chu, the
+  // assassins of Yan
   'hist-li-mu':     { forceId: 'zhao', cityId: 'yanmen' },
+  'hist-xiang-yan': { forceId: 'chu',  cityId: 'shouchun' }, // Chu's last great general
   'hist-taizi-dan': { forceId: 'yan',  cityId: 'ji' },
   'hist-jing-ke':   { forceId: 'yan',  cityId: 'beiping' }, // the dagger in the map-scroll
   'hist-gao-jianli':{ forceId: 'yan',  cityId: 'beiping' },
@@ -7699,6 +7702,9 @@ const ASSIGN_WS_YIQUE: Record<string, { forceId: string; cityId: string }> = {
   ...ASSIGN_WS_SEVEN,
   'hist-bai-qi':    { forceId: 'qin', cityId: 'luoyang' }, // standing on the broken pass
   'hist-wang-jian': { forceId: 'qin', cityId: 'luoyang' },
+  // the joint Han-Wei commanders Bai Qi outwitted at the Yi gorges
+  'hist-gongsun-xi':{ forceId: 'wei', cityId: 'chenliu' }, // Wei's commander in the joint host
+  'hist-bao-yuan':  { forceId: 'han', cityId: 'xuchang' }, // Han's general
 };
 export const SCENARIO_WS_YIQUE: Scenario = {
   id: 'scn-ws-yique',

@@ -65,6 +65,18 @@ export const HISTORICAL_LIFESPANS: Record<string, { zh: string; en: string }> = 
   'hist-yan-zhaowang':    { zh: '戰國 ?–前279',           en: 'Warring States ?–279 BCE' },
   'hist-fan-ju':          { zh: '戰國 ?–前255',           en: 'Warring States ?–255 BCE' },
   'hist-lin-xiangru':     { zh: '戰國 ?–?',              en: 'Warring States ?–?' },
+  'hist-wei-wenhou':      { zh: '戰國 ?–前396',          en: 'Warring States ?–396 BCE' },
+  'hist-wei-wuhou':       { zh: '戰國 ?–前370',          en: 'Warring States ?–370 BCE' },
+  'hist-wei-anxiwang':    { zh: '戰國 ?–前243',          en: 'Warring States ?–243 BCE' },
+  'hist-qi-minwang':      { zh: '戰國 ?–前284',          en: 'Warring States ?–284 BCE' },
+  'hist-xiang-yan':       { zh: '戰國 ?–前223',          en: 'Warring States ?–223 BCE' },
+  'hist-li-kui':          { zh: '戰國 前455–前395',      en: 'Warring States 455–395 BCE' },
+  'hist-ximen-bao':       { zh: '戰國 ?–?（魏文侯時）',   en: 'Warring States (Marquis Wen era)' },
+  'hist-qin-kai':         { zh: '戰國 ?–?',              en: 'Warring States ?–?' },
+  'hist-gongsun-xi':      { zh: '戰國 ?–前293',          en: 'Warring States ?–293 BCE' },
+  'hist-bao-yuan':        { zh: '戰國 ?–?',              en: 'Warring States ?–?' },
+  'hist-hui-shi':         { zh: '戰國 約前370–前310',    en: 'Warring States ~370–310 BCE' },
+  'hist-song-kangwang':   { zh: '戰國 ?–前286',          en: 'Warring States ?–286 BCE' },
 
   // ─── 秦 / 楚漢 ──────────────────────────────────────────
   'hist-qin-shihuang':    { zh: '秦 前259–前210',         en: 'Qin 259–210 BCE' },
