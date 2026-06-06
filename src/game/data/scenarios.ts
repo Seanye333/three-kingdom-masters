@@ -6885,6 +6885,106 @@ export const SCENARIO_272_XILING: Scenario = {
   officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_272, DEAD_BY_265, 272),
 };
 
+// ── Historical: 遼東·襄平之戰 (238). Gongsun Yuan, third of his line to rule
+//    Liaodong as a private kingdom, has thrown off Wei and styled himself King
+//    of Yan. Cao Rui still reigns; he sends Sima Yi four thousand li to erase
+//    the upstart realm at Xiangping. (New 'yan' force on the 234 board.) ──
+const CITY_OWNERSHIP_238: Record<string, string> = {
+  ...CITY_OWNERSHIP_234,
+  liaodong: 'yan',
+  xiangping: 'yan',
+  lelang: 'yan',
+  daifang: 'yan',
+};
+const FORCES_238: Force[] = [
+  { id: 'cao',     name: { en: 'Wei',     zh: '魏'   }, rulerOfficerId: 'cao-rui',      capitalCityId: 'luoyang',   color: '#3a7dd9', isPlayer: false },
+  { id: 'liu-bei', name: { en: 'Shu Han', zh: '蜀漢' }, rulerOfficerId: 'liu-shan',     capitalCityId: 'chengdu',   color: '#a85d8a', isPlayer: false },
+  { id: 'sun',     name: { en: 'Wu',      zh: '吳'   }, rulerOfficerId: 'sun-quan',     capitalCityId: 'jianye',    color: '#2f8e6f', isPlayer: false },
+  { id: 'yan',     name: { en: 'Yan',     zh: '燕'   }, rulerOfficerId: 'gongsun-yuan', capitalCityId: 'xiangping', color: '#b8723a', isPlayer: false },
+];
+const OFFICER_ASSIGNMENTS_238 = {
+  ...OFFICER_ASSIGNMENTS_234,
+  'sima-yi': { forceId: 'cao', cityId: 'beiping' }, // marching the long road on Liaodong
+  'gongsun-yuan': { forceId: 'yan', cityId: 'xiangping' },
+};
+export const SCENARIO_238_LIAODONG: Scenario = {
+  id: 'scn-238-liaodong',
+  name: { en: 'The Liaodong Campaign', zh: '遼東·襄平之戰' },
+  description:
+    'Spring 238. Far in the northeast, Gongsun Yuan — third of his line to rule Liaodong as a private kingdom — has thrown off Wei, taken the title King of Yan, and even courted Wu for an alliance. The Emperor Cao Rui sends his deadliest weapon: Sima Yi, with forty thousand, marches four thousand li to the walls of Xiangping. The autumn rains will flood the siege lines, the city will fall, and the house of Gongsun will be wiped from the earth.',
+  descriptionZh: "景初二年春。極北之地，公孫淵——割據遼東、世代自立者三世——叛魏自王，僭號燕王，更遣使通吳以為奧援。魏帝曹叡乃遣其最鋒利之兵刃：司馬懿提四萬之眾，行四千里而臨襄平城下。秋雨將漲其圍塹，孤城終破，公孫一族，自此族滅於天壤之間。",
+  startDate: { year: 238, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_238),
+  forces: FORCES_238,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_238, [], 238),
+};
+
+// ── Historical: 淮南二叛·毌丘儉文欽之亂 (255). Sima Shi has deposed the emperor
+//    Cao Fang and rules Wei in all but name. Guanqiu Jian and Wen Qin raise the
+//    Huai to avenge the throne; the dying Sima Shi rides out to crush them.
+//    (252 board: Shouchun + Lujiang split off as the loyalist 'guanqiu' force.) ──
+const CITY_OWNERSHIP_255: Record<string, string> = {
+  ...CITY_OWNERSHIP_252,
+  shouchun: 'guanqiu',
+  lujiang: 'guanqiu',
+};
+const FORCES_255: Force[] = [
+  { id: 'cao',     name: { en: 'Sima Shi',     zh: '司馬師' }, rulerOfficerId: 'sima-shi',     capitalCityId: 'luoyang',  color: '#3a4d8a', isPlayer: false },
+  { id: 'guanqiu', name: { en: 'Guanqiu Jian', zh: '毌丘儉' }, rulerOfficerId: 'guanqiu-jian', capitalCityId: 'shouchun', color: '#c0392b', isPlayer: false },
+  { id: 'liu-bei', name: { en: 'Shu Han',      zh: '蜀漢'  }, rulerOfficerId: 'liu-shan',     capitalCityId: 'chengdu',  color: '#a85d8a', isPlayer: false },
+  { id: 'sun',     name: { en: 'Wu',           zh: '吳'    }, rulerOfficerId: 'sun-liang',    capitalCityId: 'jianye',   color: '#2f8e6f', isPlayer: false },
+];
+const OFFICER_ASSIGNMENTS_255 = {
+  ...OFFICER_ASSIGNMENTS_252,
+  'guanqiu-jian': { forceId: 'guanqiu', cityId: 'shouchun' },
+  'wen-qin': { forceId: 'guanqiu', cityId: 'shouchun' },
+  'wen-yang': { forceId: 'guanqiu', cityId: 'shouchun' },
+};
+export const SCENARIO_255_HUAINAN2: Scenario = {
+  id: 'scn-255-huainan2',
+  name: { en: 'Second Huainan Revolt', zh: '淮南二叛·毌丘儉文欽之亂' },
+  description:
+    'Spring 255. Sima Shi has deposed the emperor Cao Fang and rules Wei in all but name. In the Huai, the veteran Guanqiu Jian and the fierce Wen Qin raise the standard of revolt to avenge the insulted throne, forging the dowager\'s edict and marching on Xuchang. The half-blind Sima Shi, a tumour bursting behind his eye, rides out to meet them — and at Le\'jia, Wen Qin\'s teenage son Wen Yang charges the imperial camp again and again, alone, and very nearly ends the house of Sima then and there.',
+  descriptionZh: "正元二年春。司馬師既廢曹芳，魏室名存而實亡。淮南之地，宿將毌丘儉與驍將文欽舉義旗以雪君辱，矯太后之詔，進兵許昌。目疾方劇、目瘤迸裂的司馬師強起親征——樂嘉之戰，文欽之子文鴦，年方十八，單騎數入魏營，往返衝突，幾乎當場傾覆司馬之基業。",
+  startDate: { year: 255, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_255),
+  forces: FORCES_255,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_255, DEAD_BY_252, 255),
+};
+
+// ── Historical: 淮南三叛·諸葛誕之亂 (257). The greatest and last of the three
+//    Huai revolts. Zhuge Dan seizes Shouchun, sends his son hostage to Wu for
+//    aid, and defies Sima Zhao; the regent rings the city with a quarter-million
+//    men. (252 board: Shouchun + Lujiang split off as the 'huainan' force.) ──
+const CITY_OWNERSHIP_257: Record<string, string> = {
+  ...CITY_OWNERSHIP_252,
+  shouchun: 'huainan',
+  lujiang: 'huainan',
+};
+const FORCES_257: Force[] = [
+  { id: 'cao',     name: { en: 'Sima Zhao', zh: '司馬昭' }, rulerOfficerId: 'sima-zhao',  capitalCityId: 'luoyang',  color: '#3a4d8a', isPlayer: false },
+  { id: 'huainan', name: { en: 'Zhuge Dan', zh: '諸葛誕' }, rulerOfficerId: 'zhuge-dan',  capitalCityId: 'shouchun', color: '#c0392b', isPlayer: false },
+  { id: 'liu-bei', name: { en: 'Shu Han',   zh: '蜀漢'  }, rulerOfficerId: 'liu-shan',   capitalCityId: 'chengdu',  color: '#a85d8a', isPlayer: false },
+  { id: 'sun',     name: { en: 'Wu',        zh: '吳'    }, rulerOfficerId: 'sun-liang',  capitalCityId: 'jianye',   color: '#2f8e6f', isPlayer: false },
+];
+const OFFICER_ASSIGNMENTS_257 = {
+  ...OFFICER_ASSIGNMENTS_252,
+  'zhuge-dan': { forceId: 'huainan', cityId: 'shouchun' },
+  'wen-qin': { forceId: 'huainan', cityId: 'shouchun' }, // fled to Wu in 255, returns with its relief
+  'wen-yang': { forceId: 'huainan', cityId: 'shouchun' },
+};
+export const SCENARIO_257_HUAINAN3: Scenario = {
+  id: 'scn-257-huainan3',
+  name: { en: 'Third Huainan Revolt', zh: '淮南三叛·諸葛誕之亂' },
+  description:
+    'Summer 257. The greatest and last of the three Huai revolts. Zhuge Dan — kinsman to Zhuge Liang and Zhuge Ke, and the last of the loyalist generals — seizes Shouchun, kills Sima Zhao\'s inspector, sends his own son hostage to Wu, and defies the regent who now openly reaches for the throne. Wu pours in relief under Wen Qin, Tang Zi and Quan Yi; Sima Zhao marches the boy-emperor and a quarter-million men east to ring the city in siege walls. Within those walls, the alliance of rebels and Wu will curdle into mutual slaughter before the year is out.',
+  descriptionZh: "甘露二年夏。淮南三叛之最大者，亦其終局。諸葛誕——諸葛亮、諸葛恪之族親，忠魏諸將之碩果——據壽春，斬司馬昭之刺史，遣子質於吳，公然抗拒這位已露篡心的權臣。吳發大軍，以文欽、唐咨、全懌入援；司馬昭挾幼帝、提二十六萬之眾東出，築壘環城而圍之。然城中叛軍與吳援，未及歲終，便將在猜忌中自相屠戮。",
+  startDate: { year: 257, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_257),
+  forces: FORCES_257,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_257, DEAD_BY_252, 257),
+};
+
 // ── What-if: 水淹七軍·威震華夏 (219). Guan Yu's drowning of Yu Jin's seven
 //    armies is pressed to the hilt: Fan and Xiangyang fall, and the corridor
 //    up the Han River — Xiangyang, Xinye, Wancheng — becomes a dagger aimed at
@@ -7000,11 +7100,14 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_229_THREE_EMPERORS,
   SCENARIO_231_LUCHENG,
   SCENARIO_234_WUZHANG,
+  SCENARIO_238_LIAODONG,
   SCENARIO_241_SHAOPI,
   SCENARIO_244_XINGSHI,
   SCENARIO_249_GAOPINGLING,
   SCENARIO_252_DONGXING,
   SCENARIO_253_HEFEI,
+  SCENARIO_255_HUAINAN2,
+  SCENARIO_257_HUAINAN3,
   SCENARIO_263_SHU_FALL,
   SCENARIO_264_ZHONGHUI,
   SCENARIO_265_JIN_FOUNDED,
