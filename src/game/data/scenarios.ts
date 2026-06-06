@@ -7592,10 +7592,108 @@ export const SCENARIO_WS_QIN_UNIFY: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_WS_QIN_UNIFY, ['warring-states', 'qin']),
 };
 
+// ── 商鞅變法·秦之崛起 (Warring States). The west before it was a wolf. Qin is a
+//    backward border state holding only Guanzhong; Ba-Shu, the Long corridor and
+//    Hexi are not yet its own. Duke Xiao gives Shang Yang a free hand to forge a
+//    war-machine out of law. (Qin's outer lands revert to neutral.) ──
+const WS_SHANGYANG_NEUTRAL = new Set([
+  'chengdu', 'jiangzhou', 'yongan', 'zitong', 'fucheng', 'mianzhu', 'luocheng',
+  'jiameng', 'jianmen', 'baishuiguan', 'baxi', 'yinping', 'nanzhong', 'jianning',
+  'yunnan', 'yongchang', 'yuexi', 'hanzhong', 'yangping', 'xincheng', 'shangyong',
+  'wudu', 'shanggui', 'jincheng', 'wuwei', 'jiuquan', 'dunhuang', 'jieting',
+]);
+const FORCES_WS_SHANGYANG: Force[] = FORCES_WS_SEVEN.map((f) =>
+  f.id === 'qin' ? { ...f, rulerOfficerId: 'hist-qin-xiaogong' } : f,
+);
+const CITY_OWNERSHIP_WS_SHANGYANG: Record<string, string> = Object.fromEntries(
+  Object.entries(CITY_OWNERSHIP_WS_SEVEN).filter(([c]) => !WS_SHANGYANG_NEUTRAL.has(c)),
+);
+const ASSIGN_WS_SHANGYANG: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  'hist-qin-xiaogong': { forceId: 'qin', cityId: 'changan' }, // Duke Xiao
+  'hist-shang-yang':   { forceId: 'qin', cityId: 'changan' }, // the architect of the law
+  'hist-sima-cuo':     { forceId: 'qin', cityId: 'changan' }, // (Ba-Shu not yet his)
+  'hist-gan-mao':      { forceId: 'qin', cityId: 'changan' },
+};
+export const SCENARIO_WS_SHANGYANG: Scenario = {
+  id: 'scn-ws-shangyang',
+  name: { en: 'Shang Yang\'s Reforms', zh: '戰國·商鞅變法' },
+  description:
+    'The west, before it was a wolf. Qin is a backward marcher state, mocked at the conferences of the central plain, holding only the Guanzhong basin — Ba-Shu is still its own kingdoms, the Long corridor and the Hexi lands beyond Qin\'s reach, while in the east Wei stands first among the powers. Duke Xiao, burning to lift his house, gives the Wey exile Shang Yang an absolutely free hand: to abolish the old aristocracy of blood, reward only farming and war, and forge from cold law the most terrible military machine the age will know. The reforms will cost Shang Yang his life and remake the world.',
+  descriptionZh: "西陲未為狼時。秦乃僻處邊鄙之國，為中原會盟所輕，僅守關中盆地——巴蜀尚為其國，隴右、河西之地皆非秦有，而東方魏為諸侯之首。孝公切於振作其室，授衛人商鞅以全權：廢世卿世祿之舊貴，獎耕戰，以冷酷之法，鑄就此世所未見之可怖戰爭機器。此變法將以商鞅之命為代價，而重塑天下。",
+  startDate: { year: 178, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_SHANGYANG),
+  forces: FORCES_WS_SHANGYANG,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_SHANGYANG),
+};
+
+// ── 鄢郢之戰·白起破楚 (Warring States). Bai Qi floods Yan and storms the Chu
+//    capital of Ying; Qu Yuan drowns himself in grief, and Chu flees east to
+//    Shouchun, never to recover the Yangzi heartland it loses here. ──
+const FORCES_WS_YANYING: Force[] = FORCES_WS_SEVEN.map((f) =>
+  f.id === 'chu' ? { ...f, rulerOfficerId: 'hist-chu-qingxiang', capitalCityId: 'shouchun' } : f,
+);
+const CITY_OWNERSHIP_WS_YANYING: Record<string, string> = {
+  ...CITY_OWNERSHIP_WS_SEVEN,
+  // Bai Qi takes the Chu heartland of the Jianghan — Ying and the western towns
+  jiangling: 'qin', wancheng: 'qin', xiangyang: 'qin', fancheng: 'qin',
+  yiling: 'qin', xiling: 'qin', maicheng: 'qin', gongan: 'qin', wan: 'qin',
+};
+const ASSIGN_WS_YANYING: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  'hist-bai-qi':    { forceId: 'qin', cityId: 'jiangling' }, // stands in the burned Ying
+  'hist-wang-jian': { forceId: 'qin', cityId: 'wancheng' },
+  // Chu, gutted, flees its court east to Shouchun
+  'hist-chu-qingxiang': { forceId: 'chu', cityId: 'shouchun' },
+  'hist-chunshen-jun':  { forceId: 'chu', cityId: 'shouchun' },
+  'hist-qu-yuan':       { forceId: 'chu', cityId: 'shouchun' }, // the poet in despair
+  'hist-zhuang-qiao':   { forceId: 'chu', cityId: 'shouchun' },
+  'hist-zhuang-xin':    { forceId: 'chu', cityId: 'shouchun' },
+  'hist-zheng-xiu':     { forceId: 'chu', cityId: 'shouchun' },
+};
+export const SCENARIO_WS_YANYING: Scenario = {
+  id: 'scn-ws-yanying',
+  name: { en: 'Bai Qi Shatters Chu', zh: '戰國·鄢郢之戰' },
+  description:
+    'The God of War turns south. Bai Qi drives into Chu, dams a river to drown the city of Yan with hundreds of thousands within, and storms Ying, the ancient capital, putting the royal tombs to the torch. The court of King Qingxiang flees east in ruin to Shouchun and will never reclaim the Jianghan heartland it loses here; the poet-minister Qu Yuan, watching his world end, fills his robes with stones and walks into the Miluo. Vast Chu, the largest realm under heaven, is broken in a single campaign — and Qin\'s shadow lengthens over all the south.',
+  descriptionZh: "戰神南向。白起深入楚境，壅水以灌鄢城，溺數十萬於其中，又拔故都郢，焚其先王之陵。頃襄王之朝廷崩潰東奔壽春，自此永失江漢腹心；三閭大夫屈原，目睹其世之傾覆，懷石自沉於汨羅。煌煌大楚，天下之最廣者，一役而折——秦之陰影，自此長籠南天。",
+  startDate: { year: 178, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_YANYING),
+  forces: FORCES_WS_YANYING,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_YANYING),
+};
+
+// ── 五國攻秦·函谷關 (Warring States). Su Qin binds the six kingdoms with a single
+//    seal of alliance and hurls them west at the gate of Hangu; behind it Zhang Yi
+//    works to split them apart again. The eternal contest of vertical and horizontal. ──
+const ASSIGN_WS_HANGU: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_WS_SEVEN,
+  'hist-su-qin':  { forceId: 'zhao', cityId: 'ye' },      // chancellor of the alliance, six seals
+  'hist-zhang-yi':{ forceId: 'qin',  cityId: 'changan' }, // the horizontal counter, in Qin
+  // the allied vanguards gathered toward the Qin gate
+  'hist-pang-juan':   { forceId: 'wei',  cityId: 'hulao' },
+  'hist-lian-po':     { forceId: 'zhao', cityId: 'shangdang' },
+  'hist-chunshen-jun':{ forceId: 'chu',  cityId: 'wancheng' },
+};
+export const SCENARIO_WS_HANGU: Scenario = {
+  id: 'scn-ws-hangu',
+  name: { en: 'Six Kingdoms Storm Hangu Pass', zh: '戰國·五國攻秦' },
+  description:
+    'The vertical alliance made manifest. Su Qin, a starving scholar who once could not borrow a coin from his own family, has talked his way into the chancellorships of all six kingdoms at once and wears their six seals on one sash, binding them north-to-south against the wolf of the west. Now the armies of the alliance roll toward the great gate of Hangu, the only road into Guanzhong. But inside, Su Qin\'s fellow-student Zhang Yi sells Qin the counter — the horizontal: buy off one ally, frighten another, and the great coalition rots from within before it can force the pass.',
+  descriptionZh: "合縱之成形。蘇秦，昔日向親族借錢而不得的窮士，竟一舌而並佩六國相印於一身，合天下南北之眾以抗西方之狼。今合縱之師滾滾西向函谷大關——入關中之唯一通道。然關內，蘇秦之同門張儀，正為秦售其反制之策連橫：賂一國、懼一國，使這龐大的聯盟未及叩關，先自內潰。",
+  startDate: { year: 178, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_WS_SEVEN),
+  forces: FORCES_WS_SEVEN,
+  officers: buildWarringStatesOfficers(ASSIGN_WS_HANGU),
+};
+
 export const SCENARIOS: Scenario[] = [
   // ── Warring States (parallel timeline) ──
   SCENARIO_WS_SEVEN,
+  SCENARIO_WS_SHANGYANG,
   SCENARIO_WS_GUILING,
+  SCENARIO_WS_HANGU,
+  SCENARIO_WS_YANYING,
   SCENARIO_WS_CHANGPING,
   SCENARIO_WS_HANDAN,
   SCENARIO_WS_YUEYI,
