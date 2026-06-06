@@ -8254,9 +8254,110 @@ export const SCENARIO_ST_SUIEND: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_ST_SUIEND, ['sui', 'tang']),
 };
 
+// ── 淺水原之戰 (Sui-Tang). Xue Ju's Western Qin cavalry drives east out of the
+//    Long passes for Chang'an; Li Shimin's first great campaign, and his first
+//    taste of defeat before he comes again and takes the whole Qin army. ──
+const CITY_OWNERSHIP_ST_QIANSHUI: Record<string, string> = {
+  ...CITY_OWNERSHIP_ST_SUIEND,
+  chencang: 'xiqin', // Xue Ju has driven east through the Long passes toward Chang'an
+};
+const ASSIGN_ST_QIANSHUI: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_ST_SUIEND,
+  'hist-tang-taizong': { forceId: 'tang', cityId: 'mei' },      // out to meet the Qin horse
+  'hist-li-jing':      { forceId: 'tang', cityId: 'mei' },
+  'hist-xue-ju':       { forceId: 'xiqin', cityId: 'chencang' }, // pressing on the capital
+};
+export const SCENARIO_ST_QIANSHUI: Scenario = {
+  id: 'scn-st-qianshui',
+  name: { en: 'The Battle of Qianshuiyuan', zh: '隋唐·淺水原之戰' },
+  description:
+    'The young commander\'s first great campaign — and his first lesson in defeat. Xue Ju\'s Western Qin cavalry, the finest horse in the realm, drives east out of the Long passes straight for Chang\'an. Li Shimin\'s plan is to wait behind walls until their supply fails; but while he lies ill in camp, his deputies are goaded into the open at Qianshuiyuan and shattered. He will have to come a second time — and the second time, run Xue Rengao\'s army to exhaustion and take it whole, the first of the rivals he will swallow on his road to the throne.',
+  descriptionZh: "少年統帥之初戰——亦其敗績之初課。薛舉西秦之騎，天下之精，東出隴關，直趨長安。李世民之策，乃堅壁以待其糧盡；然當其臥病軍中，部將為敵所激，出戰於淺水原而大敗。他將再來——第二次，他將拖垮薛仁杲之軍而全取之，此乃其登基之路上所吞群雄之第一個。",
+  startDate: { year: 178, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_ST_QIANSHUI),
+  forces: FORCES_ST_SUIEND,
+  officers: buildWarringStatesOfficers(ASSIGN_ST_QIANSHUI, ['sui', 'tang']),
+};
+
+// ── 柏壁之戰 (Sui-Tang). Liu Wuzhou, Turk-backed, has stormed down and taken
+//    Taiyuan, the cradle of the Tang rising; Li Shimin digs in at Bobi, waits him
+//    out, and out of the wreck comes the great prize — Yuchi Gong, kneeling. ──
+const CITY_OWNERSHIP_ST_BOBI: Record<string, string> = {
+  ...CITY_OWNERSHIP_ST_SUIEND,
+  taiyuan: 'dingyang',  // Liu Wuzhou has stormed down and taken Taiyuan
+  shangdang: 'dingyang',
+};
+const ASSIGN_ST_BOBI: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_ST_SUIEND,
+  'hist-liu-wuzhou':   { forceId: 'dingyang', cityId: 'taiyuan' }, // in the captured cradle
+  'hist-yuchi-gong':   { forceId: 'dingyang', cityId: 'taiyuan' }, // Song Jingang's spearhead
+  'hist-tang-taizong': { forceId: 'tang', cityId: 'tongguan' },    // dug in at Bobi to the south
+  'hist-li-jing':      { forceId: 'tang', cityId: 'tongguan' },
+};
+export const SCENARIO_ST_BOBI: Scenario = {
+  id: 'scn-st-bobi',
+  name: { en: 'The Battle of Bobi', zh: '隋唐·柏壁之戰' },
+  description:
+    'Liu Wuzhou, backed by the Turks and led by the fierce Song Jingang, has stormed down out of Mayi and taken Taiyuan — the very cradle of the Tang rising — and the court cries to abandon all the land east of the passes. Li Shimin refuses. He digs in at Bobi through the winter, refusing battle, letting the enemy\'s supply rot; then, when they break and run, he pursues two days and a night without rest and destroys them at Que\'shu Valley. And out of the wreck of the beaten army comes the greatest prize of the war: the unstoppable Yuchi Gong, who kneels to Tang.',
+  descriptionZh: "劉武周恃突厥，以驍將宋金剛為鋒，自馬邑南下，拔太原——唐興之搖籃——朝廷皆議棄關以東之地。李世民不可。乃深壁柏壁，經冬不戰，坐視敵糧自潰；及其敗走，晝夜兼程追之二日一夜，殲之於雀鼠谷。而自敗軍之中，得此役最大之獲：萬人不當的尉遲恭，跪降於唐。",
+  startDate: { year: 178, season: 'winter' },
+  cities: buildInitialCities(CITY_OWNERSHIP_ST_BOBI),
+  forces: FORCES_ST_SUIEND,
+  officers: buildWarringStatesOfficers(ASSIGN_ST_BOBI, ['sui', 'tang']),
+};
+
+// ── 虎牢之戰 (Sui-Tang). One battle, two kings. Li Shimin has broken all the
+//    western rivals and their captains now ride for Tang; he pens Wang Shichong
+//    in Luoyang, seizes the Hulao pass, and breaks Dou Jiande's relief host. ──
+const FORCES_ST_HULAO: Force[] = [
+  { id: 'tang',  name: { en: 'Tang', zh: '唐' }, rulerOfficerId: 'hist-li-yuan',       capitalCityId: 'changan', color: '#d4af37', isPlayer: false },
+  { id: 'zheng', name: { en: 'Zheng', zh: '鄭' }, rulerOfficerId: 'hist-wang-shichong', capitalCityId: 'luoyang', color: '#9a5a9a', isPlayer: false },
+  { id: 'xia',   name: { en: 'Xia',  zh: '夏' }, rulerOfficerId: 'hist-dou-jiande',    capitalCityId: 'ye',      color: '#2aa8c0', isPlayer: false },
+];
+const CITY_OWNERSHIP_ST_HULAO: Record<string, string> = Object.fromEntries(
+  Object.entries(CITY_OWNERSHIP_ST_SUIEND).map(([c, f]) => {
+    if (f === 'zheng') return [c, 'zheng']; // Luoyang
+    if (f === 'xia') return [c, 'xia'];     // Dou Jiande's Hebei and Shandong
+    return [c, 'tang'];                     // Tang has swallowed Wagang/Xiqin/Dingyang/Wu
+  }),
+);
+const ASSIGN_ST_HULAO: Record<string, { forceId: string; cityId: string }> = {
+  // 唐 — the captains all gathered now, the siege of Luoyang and the race to Hulao
+  'hist-li-yuan':      { forceId: 'tang', cityId: 'changan' },
+  'hist-tang-taizong': { forceId: 'tang', cityId: 'hulao' },   // racing to seize the pass
+  'hist-li-jing':      { forceId: 'tang', cityId: 'changan' },
+  'hist-li-ji':        { forceId: 'tang', cityId: 'hulao' },
+  'hist-qin-qiong':    { forceId: 'tang', cityId: 'hulao' },    // won from Wagang, now Tang's
+  'hist-cheng-yaojin': { forceId: 'tang', cityId: 'hulao' },
+  'hist-yuchi-gong':   { forceId: 'tang', cityId: 'hulao' },    // won at Bobi, now Tang's
+  'hist-qutu-tong':    { forceId: 'tang', cityId: 'tongguan' },
+  // 鄭 — Wang Shichong penned in Luoyang, with Shan Xiongxin gone over to him
+  'hist-wang-shichong':{ forceId: 'zheng', cityId: 'luoyang' },
+  'hist-shan-xiongxin':{ forceId: 'zheng', cityId: 'luoyang' }, // Wagang's old tiger, now Zheng's
+  'hist-duan-da':      { forceId: 'zheng', cityId: 'luoyang' },
+  'hist-yang-tong':    { forceId: 'zheng', cityId: 'luoyang' },
+  // 夏 — Dou Jiande's whole host marching to break the siege
+  'hist-dou-jiande':   { forceId: 'xia', cityId: 'ye' },
+  'hist-liu-heita':    { forceId: 'xia', cityId: 'bohai' },
+};
+export const SCENARIO_ST_HULAO: Scenario = {
+  id: 'scn-st-hulao',
+  name: { en: 'The Battle of Hulao', zh: '隋唐·虎牢之戰' },
+  description:
+    'One battle, two kings. Li Shimin has run the table — Xue Ju\'s Qin, Liu Wuzhou\'s north and Li Mi\'s Wagang all broken, their captains (Qin Qiong, Cheng Yaojin, Yuchi Gong) now riding under Tang banners. He has Wang Shichong\'s Zheng penned starving inside Luoyang. Then Dou Jiande marches his whole Hebei host — a hundred thousand — to save his rival, knowing that if Luoyang falls he is next. Li Shimin does the audacious thing: he leaves a screen to hold the siege and races a small picked force to seize the Hulao pass, the one gate Dou Jiande must force. Hold the pass and shatter the relief, and the two greatest rivals of the age fall on a single day.',
+  descriptionZh: "一戰擒兩王。李世民已席捲群雄——薛舉之秦、劉武周之北、李密之瓦崗皆破，其將(秦瓊、程咬金、尉遲恭)今皆隸唐旗之下。他已將王世充之鄭困於洛陽，城中食盡。於是竇建德盡發河北之眾——十萬——以救其敵，蓋知洛陽若破，己為下一個。李世民乃行險著：留偏師續圍，自將精銳疾趨虎牢，扼竇建德必爭之關。守關而破援，則當世兩大勁敵，一日俱擒。",
+  startDate: { year: 178, season: 'spring' },
+  cities: buildInitialCities(CITY_OWNERSHIP_ST_HULAO),
+  forces: FORCES_ST_HULAO,
+  officers: buildWarringStatesOfficers(ASSIGN_ST_HULAO, ['sui', 'tang']),
+};
+
 export const SCENARIOS: Scenario[] = [
   // ── Sui-end Warlords (parallel timeline) ──
   SCENARIO_ST_SUIEND,
+  SCENARIO_ST_QIANSHUI,
+  SCENARIO_ST_BOBI,
+  SCENARIO_ST_HULAO,
   // ── Chu-Han Contention (parallel timeline) ──
   SCENARIO_CH_JULU,
   SCENARIO_CH_CHUHAN,
