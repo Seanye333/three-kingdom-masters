@@ -7083,6 +7083,90 @@ export const SCENARIO_228_SHITING: Scenario = {
   officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_228_SHITING, DEAD_BY_228, 228),
 };
 
+// ── Historical: 孫策定江東 (195). With a thousand borrowed troops and his
+//    father's veterans, the twenty-year-old Sun Ce crosses the Yangtze to carve
+//    a kingdom from the lords of the southeast — Liu Yao, Yan Baihu, Wang Lang,
+//    Hua Xin. (197 board, the southeast shattered back into its rival lords.) ──
+const CITY_OWNERSHIP_195_JIANGDONG: Record<string, string> = {
+  ...CITY_OWNERSHIP_197,
+  danyang: 'sun',       // Sun Ce's bridgehead, his uncle Wu Jing's ground
+  jianye: 'liu-yao',    // Liu Yao, Inspector of Yang, holds Moling / Qu'a
+  wu: 'yan-baihu',      // Yan Baihu, the "Lord of Dongye", in Wu commandery
+  kuaiji: 'wang-lang',  // Wang Lang, Grand Administrator of Kuaiji
+  yuzhang: 'hua-xin',   // Hua Xin in Yuzhang
+  changsha: 'liu-biao', // Sun Ce has not yet reached the south
+};
+const FORCES_195_JIANGDONG: Force[] = [
+  ...FORCES_197.filter((f) => f.id !== 'sun'),
+  { id: 'sun',       name: { en: 'Sun Ce',    zh: '孫策軍' }, rulerOfficerId: 'sun-ce',    capitalCityId: 'danyang', color: '#2f8e6f', isPlayer: false },
+  { id: 'liu-yao',   name: { en: 'Liu Yao',   zh: '劉繇'   }, rulerOfficerId: 'liu-yao',   capitalCityId: 'jianye',  color: '#6a4c93', isPlayer: false },
+  { id: 'yan-baihu', name: { en: 'Yan Baihu', zh: '嚴白虎' }, rulerOfficerId: 'yan-baihu', capitalCityId: 'wu',      color: '#8b2e2e', isPlayer: false },
+  { id: 'wang-lang', name: { en: 'Wang Lang', zh: '王朗'   }, rulerOfficerId: 'wang-lang', capitalCityId: 'kuaiji',  color: '#2c7da0', isPlayer: false },
+  { id: 'hua-xin',   name: { en: 'Hua Xin',   zh: '華歆'   }, rulerOfficerId: 'hua-xin',   capitalCityId: 'yuzhang', color: '#7f8c2a', isPlayer: false },
+];
+const OFFICER_ASSIGNMENTS_195_JIANGDONG = {
+  ...OFFICER_ASSIGNMENTS_197,
+  'sun-ce': { forceId: 'sun', cityId: 'danyang' },
+  'sun-quan': { forceId: 'sun', cityId: 'danyang' },
+  'zhou-yu': { forceId: 'sun', cityId: 'danyang' },
+  'cheng-pu': { forceId: 'sun', cityId: 'danyang' },
+  'huang-gai': { forceId: 'sun', cityId: 'danyang' },
+  'liu-yao': { forceId: 'liu-yao', cityId: 'jianye' },
+  'taishi-ci': { forceId: 'liu-yao', cityId: 'jianye' }, // Liu Yao's champion; the duel at Shenting
+  'yan-baihu': { forceId: 'yan-baihu', cityId: 'wu' },
+  'wang-lang': { forceId: 'wang-lang', cityId: 'kuaiji' },
+  'hua-xin': { forceId: 'hua-xin', cityId: 'yuzhang' },
+};
+export const SCENARIO_195_JIANGDONG: Scenario = {
+  id: 'scn-195-jiangdong',
+  name: { en: 'Sun Ce Conquers the Southeast', zh: '孫策定江東' },
+  description:
+    'Winter 195. With barely a thousand troops borrowed from Yuan Shu and his late father\'s hardened veterans, the twenty-year-old Sun Ce crosses the Great River to make his own destiny in the southeast. Arrayed against the Little Conqueror are the lords of the Wu country: Liu Yao, the court-appointed Inspector of Yang province, at Moling; the bandit-magnate Yan Baihu in Wu; Wang Lang, the scholar-governor of Kuaiji; and Hua Xin in Yuzhang. Within three years Sun Ce will break them all and lay the foundation of a kingdom — if the assassin\'s arrow does not find him first.',
+  descriptionZh: "興平二年冬。孫策年方二十，僅以借自袁術之千餘兵卒、並其亡父之百戰舊部，渡大江而自立基業於東南。與這位小霸王為敵者，乃江東群雄：朝廷所命之揚州刺史劉繇，據秣陵曲阿；吳郡豪強「東冶之主」嚴白虎；會稽儒宗太守王朗；及豫章華歆。三年之內，孫策將盡破之，奠一國之基——倘若刺客之矢不先尋上他。",
+  startDate: { year: 195, season: 'winter' },
+  cities: buildInitialCities(CITY_OWNERSHIP_195_JIANGDONG),
+  forces: FORCES_195_JIANGDONG,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_195_JIANGDONG, [], 195),
+};
+
+// ── Historical: 定軍山·漢中之戰 (218). Zhang Lu's theocracy has fallen to Cao
+//    Cao and Xiahou Yuan holds Hanzhong; now Liu Bei, urged on by Fa Zheng,
+//    hurls his new realm of Yi against the Qinling passes. At Mount Dingjun the
+//    old tiger Huang Zhong will take Xiahou Yuan's head. (215 board, Hanzhong
+//    flipped to Cao, Zhang Lu's faction dissolved.) ──
+const CITY_OWNERSHIP_218_DINGJUN: Record<string, string> = {
+  ...CITY_OWNERSHIP_215,
+  hanzhong: 'cao', // Zhang Lu subdued 215; Hanzhong now Cao's, held by Xiahou Yuan
+  wudu: 'cao',
+  yangping: 'cao', // the Yangping passes — the gate Liu Bei must force
+};
+const FORCES_218_DINGJUN: Force[] = FORCES_215.filter((f) => f.id !== 'zhang-lu');
+const OFFICER_ASSIGNMENTS_218_DINGJUN = {
+  ...OFFICER_ASSIGNMENTS_215,
+  // Hanzhong's defence under Xiahou Yuan; Zhang Lu's men gone over to Cao (Zhang
+  // Lu himself, dead by 216, is swept out by date).
+  'xiahou-yuan': { forceId: 'cao', cityId: 'hanzhong' },
+  'zhang-he': { forceId: 'cao', cityId: 'hanzhong' },
+  'yang-song': { forceId: 'cao', cityId: 'hanzhong' },
+  'zhang-wei': { forceId: 'cao', cityId: 'hanzhong' },
+  // Liu Bei's army gathered at Jiameng, the springboard up the Jinniu road.
+  'liu-bei': { forceId: 'liu-bei', cityId: 'jiameng' },
+  'huang-zhong': { forceId: 'liu-bei', cityId: 'jiameng' },
+  'fa-zheng': { forceId: 'liu-bei', cityId: 'jiameng' },
+  'zhao-yun': { forceId: 'liu-bei', cityId: 'jiameng' },
+};
+export const SCENARIO_218_DINGJUN: Scenario = {
+  id: 'scn-218-dingjun',
+  name: { en: 'Mount Dingjun', zh: '定軍山·漢中之戰' },
+  description:
+    'Winter 218. Zhang Lu\'s theocracy has fallen and Hanzhong is Cao Cao\'s, held by the fierce Xiahou Yuan and Zhang He. Now Liu Bei, master of Yi province and pressed hard by his strategist Fa Zheng, hurls his army north against the Qinling passes for the prize that will make him a king. The campaign grinds for a year in the gorges — until, on the slopes of Mount Dingjun, the old tiger Huang Zhong charges downhill and takes Xiahou Yuan\'s head, and the gate to Hanzhong swings open.',
+  descriptionZh: "建安二十三年冬。張魯之政教既亡，漢中歸於曹操，以驍將夏侯淵、張郃守之。今劉備既得益州，又為謀主法正所激，遂揮師北出，仰攻秦嶺諸隘，以爭此使他得王天下之地。是役於峽谷間鏖戰經年——直至定軍山之坡，老虎黃忠居高馳下，斬夏侯淵之首，漢中之門遂為之洞開。",
+  startDate: { year: 218, season: 'winter' },
+  cities: buildInitialCities(CITY_OWNERSHIP_218_DINGJUN),
+  forces: FORCES_218_DINGJUN,
+  officers: buildInitialOfficers(OFFICER_ASSIGNMENTS_218_DINGJUN, [], 218),
+};
+
 // ── What-if: 水淹七軍·威震華夏 (219). Guan Yu's drowning of Yu Jin's seven
 //    armies is pressed to the hilt: Fan and Xiangyang fall, and the corridor
 //    up the Han River — Xiangyang, Xinye, Wancheng — becomes a dagger aimed at
@@ -7179,6 +7263,7 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_190_ANTI_DONG_ZHUO,
   SCENARIO_192_WANGYUN,
   SCENARIO_194_XUZHOU,
+  SCENARIO_195_JIANGDONG,
   SCENARIO_197_BOHAI,
   SCENARIO_198_XIAPI,
   SCENARIO_199_YIJING,
@@ -7191,6 +7276,7 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_213_FENGPO,
   SCENARIO_214_XICHUAN,
   SCENARIO_215_HEFEI,
+  SCENARIO_218_DINGJUN,
   SCENARIO_219_HANZHONG,
   SCENARIO_220_DECLARATION,
   SCENARIO_221_SHU_EMPEROR,
