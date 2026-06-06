@@ -7969,9 +7969,108 @@ export const SCENARIO_CH_CHUHAN: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_CHUHAN, ['chu-han', 'qin']),
 };
 
+// ── 還定三秦 (Chu-Han). Han Xin makes the burned plank-roads a feint and slips
+//    the army through Chencang to fall on the Three Qin — Liu Bang breaks out
+//    of the western dead-end to win a base for the world. ──
+const CITY_OWNERSHIP_CH_SANQIN: Record<string, string> = {
+  ...CITY_OWNERSHIP_CHUHAN,
+  chencang: 'han', // Han Xin slips out the back road and takes Chencang
+};
+const ASSIGN_CH_SANQIN: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_CHUHAN,
+  'hist-han-xin':  { forceId: 'han', cityId: 'chencang' }, // the secret march
+  'hist-fan-kuai': { forceId: 'han', cityId: 'chencang' },
+};
+export const SCENARIO_CH_SANQIN: Scenario = {
+  id: 'scn-ch-sanqin',
+  name: { en: 'Han Xin Retakes the Three Qin', zh: '楚漢·還定三秦' },
+  description:
+    'The feint that won an empire. Marching into Hanzhong, Liu Bang burned the plank-roads behind him to convince Xiang Yu he would never come out — and now his new marshal Han Xin turns the ashes into a ruse. He sends men to make a show of "repairing" the galleries while the army slips through the back road of Chencang, bursting into Guanzhong to fall on Zhang Han\'s Three Qin before they can react. Take the Wei river basin, and the King of Han has at last a base from which to contend for all under heaven.',
+  descriptionZh: "贏得天下的疑兵。劉邦入漢中時，燒絕棧道於身後，使項羽信其永不復出——今其新拜大將韓信，化此灰燼為詭計。遣人佯作『修復』棧道，而大軍暗出陳倉故道，驟入關中，趁三秦章邯未及反應而擊之。得渭水盆地，漢王便終有爭天下之基。",
+  startDate: { year: 178, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_CH_SANQIN),
+  forces: FORCES_CHUHAN,
+  officers: buildWarringStatesOfficers(ASSIGN_CH_SANQIN, ['chu-han', 'qin']),
+};
+
+// ── 彭城之戰 (Chu-Han). With Xiang Yu away crushing Qi, Liu Bang's grand
+//    coalition walks into Pengcheng to feast — and the Hegemon turns, takes
+//    thirty thousand horse, and shatters the drunken host at dawn. ──
+const CITY_OWNERSHIP_CH_PENGCHENG: Record<string, string> = {
+  ...CITY_OWNERSHIP_CHUHAN,
+  // the coalition has rolled east and seized the Hegemon's own capital
+  pengcheng: 'han', xiapi: 'han', xuchang: 'han', chenliu: 'han', runan: 'han',
+};
+const ASSIGN_CH_PENGCHENG: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_CHUHAN,
+  'hist-liu-bang': { forceId: 'han', cityId: 'pengcheng' }, // feasting in the taken capital
+  'hist-zhang-liang': { forceId: 'han', cityId: 'pengcheng' },
+  'hist-xiang-yu': { forceId: 'chu', cityId: 'linzi' },     // away in the north, crushing Qi
+  'hist-fan-zeng': { forceId: 'chu', cityId: 'linzi' },
+  'hist-long-qu':  { forceId: 'chu', cityId: 'linzi' },
+};
+export const SCENARIO_CH_PENGCHENG: Scenario = {
+  id: 'scn-ch-pengcheng',
+  name: { en: 'The Battle of Pengcheng', zh: '楚漢·彭城之戰' },
+  description:
+    'The high tide of folly. While Xiang Yu is away in the north crushing Qi\'s revolt, Liu Bang gathers a grand coalition of five kingdoms — five hundred and sixty thousand men — and walks into Pengcheng, the Hegemon\'s own capital, to feast in his halls. Then Xiang Yu turns. Leaving the siege of Qi, he takes thirty thousand cavalry, rides through the night, and falls on the drunken coalition at dawn; by dusk the Si and Sui rivers run choked with Han dead and Liu Bang flees for his life. It is the most crushing defeat of his career — and he will still, somehow, win the war.',
+  descriptionZh: "得意之巔，亦愚妄之巔。當項羽北上平齊之叛，劉邦糾合五國之眾——五十六萬——徑入彭城，霸王之都，宴於其殿。然後項羽回師。棄平齊之圍，提三萬精騎，連夜奔襲，黎明掩殺沉醉之聯軍；至暮，泗水睢水為漢屍所塞，劉邦亡命而逃。此其生涯最慘之敗——而他終將，竟然，贏得此戰爭。",
+  startDate: { year: 178, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_CH_PENGCHENG),
+  forces: FORCES_CHUHAN,
+  officers: buildWarringStatesOfficers(ASSIGN_CH_PENGCHENG, ['chu-han', 'qin']),
+};
+
+// ── 垓下之戰 (Chu-Han). The endgame. Han Xin has conquered the whole north and
+//    east, Peng Yue has bled Chu's supply white; the Hegemon, starving, is ringed
+//    at Gaixia and the night fills with the songs of Chu on every side. ──
+const GAIXIA_CHU_CITIES = [
+  'pengcheng', 'xiapi', 'xiaopei', 'jianye', 'wu', 'wuxi', 'kuaiji', 'danyang',
+  'yuzhang', 'chaisang', 'poyang', 'hukou', 'jiangling', 'wancheng', 'xiangyang',
+];
+const CITY_OWNERSHIP_CH_GAIXIA: Record<string, string> = Object.fromEntries(
+  Object.keys(CITY_OWNERSHIP_CHUHAN).map((c) => [c, GAIXIA_CHU_CITIES.includes(c) ? 'chu' : 'han']),
+);
+const FORCES_CH_GAIXIA: Force[] = FORCES_CHUHAN.filter((f) => f.id === 'chu' || f.id === 'han');
+const ASSIGN_CH_GAIXIA: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_CHUHAN,
+  // the former lords, all crushed or gone over to Han by now
+  'hist-tian-rong': { forceId: 'han', cityId: 'linzi' },
+  'hist-tian-heng': { forceId: 'han', cityId: 'linzi' },
+  'hist-tian-guang':{ forceId: 'han', cityId: 'beihai' },
+  'hist-chen-yu':   { forceId: 'han', cityId: 'ye' },
+  'hist-zhang-er':  { forceId: 'han', cityId: 'taiyuan' },
+  'hist-li-zuoche': { forceId: 'han', cityId: 'ye' },   // Han Xin's captured strategist, now serving
+  'hist-wei-bao':   { forceId: 'han', cityId: 'puyang' },
+  'hist-wei-jiu':   { forceId: 'han', cityId: 'luoyang' },
+  'hist-ying-bu':   { forceId: 'han', cityId: 'shouchun' }, // the tattooed king, defected to Han
+  'hist-zhang-han': { forceId: 'han', cityId: 'changan' },
+  'hist-sima-xin':  { forceId: 'han', cityId: 'tongguan' },
+  'hist-dong-yi':   { forceId: 'han', cityId: 'mei' },
+  // the encirclement
+  'hist-xiang-yu':  { forceId: 'chu', cityId: 'pengcheng' }, // ringed at Gaixia
+  'hist-cao-jiu':   { forceId: 'chu', cityId: 'pengcheng' },
+  'hist-han-xin':   { forceId: 'han', cityId: 'xuchang' },   // the ten-sided ambush
+  'hist-peng-yue':  { forceId: 'han', cityId: 'chenliu' },   // joined the kill
+};
+export const SCENARIO_CH_GAIXIA: Scenario = {
+  id: 'scn-ch-gaixia',
+  name: { en: 'The Battle of Gaixia', zh: '楚漢·垓下之戰' },
+  description:
+    'Four sides of Chu songs. The four years are almost run. Han Xin has conquered the whole north and east for Han — Wei, Zhao, Qi all fallen — and Peng Yue has bled Chu\'s supply lines white; now the Hegemon, his army starving, is ringed at Gaixia by a host many times his size. In the night the Han camps raise the songs of Chu on every side, and Xiang Yu, believing his homeland wholly lost, rises to drink and sing his last with Lady Yu: the strength to uproot mountains, and an age that would not go his way. From a hundred thousand he will cut his way to twenty-eight riders at the Wu River — and there, refusing the ferry home, make his end.',
+  descriptionZh: "四面楚歌。四年之期將盡。韓信已為漢盡取北方與東土——魏、趙、齊皆下——彭越又斷楚糧道殆盡；今霸王之軍饑餒，為數倍於己之眾圍於垓下。是夜，漢營四面皆起楚歌，項羽以為江東盡失，乃起飲，與虞姬作其最後之歌：力拔山兮氣蓋世，時不利兮騅不逝。自十萬之眾，他將殺至烏江僅餘二十八騎——而於彼處，辭舟不渡，了此一生。",
+  startDate: { year: 178, season: 'winter' },
+  cities: buildInitialCities(CITY_OWNERSHIP_CH_GAIXIA),
+  forces: FORCES_CH_GAIXIA,
+  officers: buildWarringStatesOfficers(ASSIGN_CH_GAIXIA, ['chu-han', 'qin']),
+};
+
 export const SCENARIOS: Scenario[] = [
   // ── Chu-Han Contention (parallel timeline) ──
   SCENARIO_CH_CHUHAN,
+  SCENARIO_CH_SANQIN,
+  SCENARIO_CH_PENGCHENG,
+  SCENARIO_CH_GAIXIA,
   // ── Warring States (parallel timeline) ──
   SCENARIO_WS_SEVEN,
   SCENARIO_WS_WEIWEN,
