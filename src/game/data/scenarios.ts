@@ -1109,7 +1109,7 @@ const FORCES_220: Force[] = [
   { id: 'sun',     name: { en: 'Wu',      zh: '吳'    }, rulerOfficerId: 'sun-quan', capitalCityId: 'jianye',   color: '#2f8e6f', isPlayer: false },
   { id: 'shi-xie', name: { en: 'Shi Xie', zh: '士燮'  }, rulerOfficerId: 'shi-xie',  capitalCityId: 'jiaozhi',  color: '#5a8a3a', isPlayer: false },
   { id: 'xianbei', name: { en: 'Xianbei', zh: '鮮卑'  }, rulerOfficerId: 'kebi-neng',capitalCityId: 'wuhuan',   color: '#7a5a3a', isPlayer: false },
-  { id: 'nanman',  name: { en: 'Nanman',  zh: '南蛮'  }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',  name: { en: 'Nanman',  zh: '南蛮'  }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#b5651d', isPlayer: false },
 ];
 
 const CITY_OWNERSHIP_220: Record<string, string> = {
@@ -1327,7 +1327,7 @@ const FORCES_215: Force[] = [
   { id: 'zhang-lu',  name: { en: 'Zhang Lu',   zh: '張魯軍' }, rulerOfficerId: 'zhang-lu',  capitalCityId: 'hanzhong', color: '#6b8a6b', isPlayer: false },
   { id: 'shi-xie',   name: { en: 'Shi Xie',    zh: '士燮軍' }, rulerOfficerId: 'shi-xie',   capitalCityId: 'jiaozhi',  color: '#5a8a3a', isPlayer: false },
   { id: 'xianbei',   name: { en: 'Xianbei',    zh: '鮮卑'   }, rulerOfficerId: 'kebi-neng', capitalCityId: 'wuhuan',   color: '#7a5a3a', isPlayer: false },
-  { id: 'nanman',    name: { en: 'Nanman',     zh: '南蛮'   }, rulerOfficerId: 'meng-huo',  capitalCityId: 'jianning', color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',    name: { en: 'Nanman',     zh: '南蛮'   }, rulerOfficerId: 'meng-huo',  capitalCityId: 'jianning', color: '#b5651d', isPlayer: false },
 ];
 
 const CITY_OWNERSHIP_215: Record<string, string> = {
@@ -1633,7 +1633,7 @@ const FORCES_219: Force[] = [
   { id: 'liu-bei', name: { en: 'Liu Bei',  zh: '劉備軍' }, rulerOfficerId: 'liu-bei', capitalCityId: 'chengdu',  color: '#a85d8a', isPlayer: false },
   { id: 'sun',     name: { en: 'Sun Quan', zh: '孫權軍' }, rulerOfficerId: 'sun-quan', capitalCityId: 'jianye',  color: '#2f8e6f', isPlayer: false },
   { id: 'xianbei', name: { en: 'Xianbei',  zh: '鮮卑'   }, rulerOfficerId: 'kebi-neng', capitalCityId: 'wuhuan', color: '#7a5a3a', isPlayer: false },
-  { id: 'nanman',  name: { en: 'Nanman',   zh: '南蛮'   }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',  name: { en: 'Nanman',   zh: '南蛮'   }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#b5651d', isPlayer: false },
 ];
 
 const CITY_OWNERSHIP_219: Record<string, string> = {
@@ -1740,7 +1740,7 @@ const FORCES_222: Force[] = [
   { id: 'liu-bei', name: { en: 'Liu Bei',  zh: '蜀漢'  }, rulerOfficerId: 'liu-bei',  capitalCityId: 'chengdu',  color: '#a85d8a', isPlayer: false },
   { id: 'sun',     name: { en: 'Sun Quan', zh: '吳'    }, rulerOfficerId: 'sun-quan', capitalCityId: 'jianye',   color: '#2f8e6f', isPlayer: false },
   { id: 'xianbei', name: { en: 'Xianbei',  zh: '鮮卑'  }, rulerOfficerId: 'kebi-neng',capitalCityId: 'wuhuan',   color: '#7a5a3a', isPlayer: false },
-  { id: 'nanman',  name: { en: 'Nanman',   zh: '南蛮'  }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',  name: { en: 'Nanman',   zh: '南蛮'  }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#b5651d', isPlayer: false },
 ];
 
 const CITY_OWNERSHIP_222: Record<string, string> = {
@@ -1836,7 +1836,7 @@ const FORCES_225: Force[] = [
   { id: 'liu-bei', name: { en: 'Shu',     zh: '蜀漢'  }, rulerOfficerId: 'liu-shan', capitalCityId: 'chengdu', color: '#a85d8a', isPlayer: false },
   { id: 'cao',     name: { en: 'Wei',     zh: '魏'    }, rulerOfficerId: 'cao-pi',   capitalCityId: 'luoyang', color: '#3a7dd9', isPlayer: false },
   { id: 'sun',     name: { en: 'Wu',      zh: '吳'    }, rulerOfficerId: 'sun-quan', capitalCityId: 'jianye',  color: '#2f8e6f', isPlayer: false },
-  { id: 'nanman',  name: { en: 'Nanman',  zh: '南蛮'  }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning',color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',  name: { en: 'Nanman',  zh: '南蛮'  }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning',color: '#b5651d', isPlayer: false },
 ];
 
 const CITY_OWNERSHIP_225: Record<string, string> = {
@@ -4552,7 +4552,7 @@ const FORCES_221: Force[] = [
   { id: 'sun',     name: { en: 'Wu',           zh: '吳'      }, rulerOfficerId: 'sun-quan', capitalCityId: 'wuchang', color: '#2f8e6f', isPlayer: false },
   { id: 'shi-xie', name: { en: 'Shi Xie',      zh: '士燮'    }, rulerOfficerId: 'shi-xie',  capitalCityId: 'jiaozhi', color: '#5a8a3a', isPlayer: false },
   { id: 'xianbei', name: { en: 'Xianbei',      zh: '鮮卑'    }, rulerOfficerId: 'kebi-neng',capitalCityId: 'wuhuan',  color: '#7a5a3a', isPlayer: false },
-  { id: 'nanman',  name: { en: 'Nanman',       zh: '南蛮'    }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning',color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',  name: { en: 'Nanman',       zh: '南蛮'    }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning',color: '#b5651d', isPlayer: false },
 ];
 
 const CITY_OWNERSHIP_221: Record<string, string> = {
@@ -4824,7 +4824,7 @@ const FORCES_229: Force[] = [
   { id: 'sun',     name: { en: 'Wu',        zh: '吳'    }, rulerOfficerId: 'sun-quan',  capitalCityId: 'jianye',  color: '#2f8e6f', isPlayer: false },
   { id: 'xianbei', name: { en: 'Xianbei',   zh: '鮮卑'  }, rulerOfficerId: 'kebi-neng', capitalCityId: 'wuhuan',  color: '#7a5a3a', isPlayer: false },
   { id: 'gongsun', name: { en: 'Gongsun',   zh: '公孫'  }, rulerOfficerId: 'gongsun-yuan',capitalCityId: 'liaodong',color: '#5a9bb8', isPlayer: false },
-  { id: 'nanman',  name: { en: 'Nanman',    zh: '南蛮'  }, rulerOfficerId: 'meng-huo',  capitalCityId: 'jianning',color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',  name: { en: 'Nanman',    zh: '南蛮'  }, rulerOfficerId: 'meng-huo',  capitalCityId: 'jianning',color: '#b5651d', isPlayer: false },
 ];
 
 const CITY_OWNERSHIP_229: Record<string, string> = {
@@ -5764,7 +5764,7 @@ const FORCES_GUANYU_JING: Force[] = [
   { id: 'liu-bei', name: { en: 'Shu Han', zh: '蜀漢' }, rulerOfficerId: 'liu-bei',  capitalCityId: 'chengdu',  color: '#a85d8a', isPlayer: false },
   { id: 'sun',     name: { en: 'Wu',      zh: '吳'   }, rulerOfficerId: 'sun-quan', capitalCityId: 'jianye',   color: '#2f8e6f', isPlayer: false },
   { id: 'shi-xie', name: { en: 'Shi Xie', zh: '士燮' }, rulerOfficerId: 'shi-xie',  capitalCityId: 'jiaozhi',  color: '#5a8a3a', isPlayer: false },
-  { id: 'nanman',  name: { en: 'Nanman',  zh: '南蠻' }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#6e8a2a', isPlayer: false },
+  { id: 'nanman',  name: { en: 'Nanman',  zh: '南蠻' }, rulerOfficerId: 'meng-huo', capitalCityId: 'jianning', color: '#b5651d', isPlayer: false },
   { id: 'xianbei', name: { en: 'Xianbei', zh: '鮮卑' }, rulerOfficerId: 'kebi-neng',capitalCityId: 'wuhuan',   color: '#7a5a3a', isPlayer: false },
 ];
 
@@ -6402,7 +6402,7 @@ const FORCES_WOMEN: Force[] = [
   { id: 'diaochan-han', name: { en: 'Diao Chan',     zh: '貂蟬軍'   }, rulerOfficerId: 'diaochan',     capitalCityId: 'changan',  color: '#c8417a', isPlayer: false },
   { id: 'lady-sun',     name: { en: 'Lady Sun',      zh: '孫尚香軍' }, rulerOfficerId: 'lady-sun',     capitalCityId: 'jianye',   color: '#2f8e6f', isPlayer: false },
   { id: 'yueying',      name: { en: 'Huang Yueying', zh: '黃月英軍' }, rulerOfficerId: 'lady-huang',   capitalCityId: 'xiangyang',color: '#7d9be0', isPlayer: false },
-  { id: 'zhurong-nan',  name: { en: 'Zhu Rong',      zh: '祝融軍'   }, rulerOfficerId: 'zhu-rong',     capitalCityId: 'jianning', color: '#6e8a2a', isPlayer: false },
+  { id: 'zhurong-nan',  name: { en: 'Zhu Rong',      zh: '祝融軍'   }, rulerOfficerId: 'zhu-rong',     capitalCityId: 'jianning', color: '#b5651d', isPlayer: false },
   { id: 'caiyan-ye',    name: { en: 'Cai Yan',       zh: '蔡琰軍'   }, rulerOfficerId: 'cai-yan',      capitalCityId: 'ye',       color: '#a85d8a', isPlayer: false },
   { id: 'qiao',         name: { en: 'Qiao Sisters',  zh: '二喬軍'   }, rulerOfficerId: 'da-qiao',      capitalCityId: 'wancheng', color: '#d96aa0', isPlayer: false },
   { id: 'bian-liang',   name: { en: 'Lady Bian',     zh: '卞夫人軍' }, rulerOfficerId: 'lady-bian',    capitalCityId: 'jincheng', color: '#b8803a', isPlayer: false },
