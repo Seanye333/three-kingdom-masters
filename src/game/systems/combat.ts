@@ -41,6 +41,27 @@ function computePolicyCombat(
   return combatPolicyEffects(officers, { terrain, weather: ctx?.weather as string | undefined });
 }
 
+/** A water battle: a riverine/coastal/wetland city, or a port. */
+function isWaterBattle(ctx?: { city?: City }): boolean {
+  const c = ctx?.city;
+  if (!c) return false;
+  if (c.terrain === 'water' || c.terrain === 'wetland' || c.port) return true;
+  const name = c.name.en.toLowerCase();
+  return /jiang|river|chibi|red cliff|fan|jianye|\bwu\b|huai|han.river|lake|\bsea\b|bay/.test(name);
+}
+
+/**
+ * Naval prowess multiplier. On a water battle a side rich in 水軍 specialists
+ * (navy-master) presses its advantage — +8% per such officer, capped at +24%
+ * — mirroring the river dominance ships enjoy in the hex tactical battle. On
+ * land it has no effect.
+ */
+function navalProwessMul(pool: Officer[], ctx?: { city?: City }): number {
+  if (!isWaterBattle(ctx)) return 1;
+  const navy = pool.filter((o) => o.skills.includes('navy-master')).length;
+  return navy === 0 ? 1 : 1 + Math.min(0.24, 0.08 * navy);
+}
+
 interface AggregatedSkillEffects {
   warBonus: number;
   leadershipBonus: number;
@@ -244,7 +265,6 @@ export function resolveBattle(
         defenderAvgLoyalty: avgLoyalty([defender.commander, ...(defender.companions ?? [])]),
       }
     : null;
-  let stratagemSucceeded = false;
   let stratEffect: StratagemEffect = {};
   let stratagemRecord: BattleResult['stratagem'] = undefined;
   let delayedEffects: BattleResult['delayedEffects'] = undefined;
@@ -252,7 +272,7 @@ export function resolveBattle(
     const sid: BattleStratagemId | null = pickAutoStratagem(stratagemPool);
     if (sid) {
       const def = STRATAGEM_DEFS[sid];
-      stratagemSucceeded = rollStratagemSuccess(def, stratagemPool, rng);
+      const stratagemSucceeded = rollStratagemSuccess(def, stratagemPool, rng);
       stratagemRecord = {
         id: def.id,
         name: def.name,
@@ -367,10 +387,13 @@ export function resolveBattle(
   const dTitlePowerMul = ctx?.defenderTitlePowerMul ?? 1;
   const aCasusMul = ctx?.attackerCasusBelliMul ?? 1;
   const dCasusMul = ctx?.defenderCasusBelliMul ?? 1;
+  // 水戰 — navy specialists dominate a river/coastal engagement.
+  const aNavalMul = navalProwessMul(attackerPool, ctx);
+  const dNavalMul = navalProwessMul(defenderPool, ctx);
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
     (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul *
-    aRelBonus.powerMul * rivalMul * aTitlePowerMul * aCasusMul;
+    aRelBonus.powerMul * rivalMul * aTitlePowerMul * aCasusMul * aNavalMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -406,7 +429,7 @@ export function resolveBattle(
     dElitePower *
     (stratEffect.defenderPowerMul ?? 1) *
     dPolicy.attackMul * dTraitMods.attackMul * dComboMul * dRelBonus.powerMul * rivalMul *
-    dTitlePowerMul * dCasusMul / Math.max(0.5, dPolicy.defenseMul);
+    dTitlePowerMul * dCasusMul * dNavalMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;
@@ -537,7 +560,7 @@ export function resolveBattle(
 
   // Phase 4 — Pursuit (追擊). Only if attacker won + chose to pursue.
   let pursued = false;
-  let captured: EntityId[] = [];
+  const captured: EntityId[] = [];
   if (finalAttackerWins && (ctx?.allowPursuit ?? true) && aMorale > 50) {
     pursued = true;
     extraDefenderLosses += Math.floor(defenderSurvivors * 0.15);
