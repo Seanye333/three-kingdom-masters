@@ -469,6 +469,29 @@ export function moveCost(b: TacticalBattle, to: HexCoord): number {
   return TERRAIN_MOVE_COST[t.terrain];
 }
 
+/** Enemies (living, visible) currently adjacent to a unit — its zone-of-control
+ *  captors. Breaking away from all of them costs an extra AP. */
+function engagedFoes(b: TacticalBattle, unit: TacticalUnit): TacticalUnit[] {
+  return b.units.filter(
+    (e) => e.side !== unit.side && e.troops > 0 && !e.hidden && hexDistance(e.coord, unit.coord) === 1,
+  );
+}
+
+/**
+ * Movement cost into a hex including a +1 zone-of-control surcharge when the
+ * unit breaks contact with every enemy it was engaged with — melee is sticky,
+ * so peeling a unit off the line costs extra. Repositioning while staying in
+ * contact is free of the surcharge.
+ */
+export function movementCost(b: TacticalBattle, unit: TacticalUnit, to: HexCoord): number {
+  const base = moveCost(b, to);
+  if (base >= 99) return base;
+  const foes = engagedFoes(b, unit);
+  if (foes.length === 0) return base;
+  const stillEngaged = foes.some((e) => hexDistance(e.coord, to) === 1);
+  return stillEngaged ? base : base + 1;
+}
+
 export function canMove(
   b: TacticalBattle,
   unit: TacticalUnit,
@@ -477,7 +500,7 @@ export function canMove(
   if (unit.ap <= 0) return false;
   const dist = hexDistance(unit.coord, to);
   if (dist !== 1) return false;
-  const cost = moveCost(b, to);
+  const cost = movementCost(b, unit, to);
   if (cost > unit.ap) return false;
   if (unitAt(b, to)) return false;
   return true;
@@ -490,7 +513,7 @@ export function moveUnit(
 ): TacticalBattle {
   const unit = b.units.find((u) => u.id === unitId);
   if (!unit || !canMove(b, unit, to)) return b;
-  const cost = moveCost(b, to);
+  const cost = movementCost(b, unit, to);
   // Reveal any hidden enemy that just became adjacent to the moved unit
   // (and any hidden unit adjacent to a watchtower the moved unit reveals).
   const adj = hexNeighbours(to);
@@ -715,11 +738,19 @@ export function attackUnits(
   // Naval: a bigger hull (樓船/大翼) hits harder than a 走舸 skiff.
   const shipMul = shipPowerMul(attacker.shipClass);
 
+  // 夾擊 — pincer bonus: every *other* friendly unit also pressing the target
+  // adds +12% (a surrounded foe can't guard every side), capped at +36%.
+  const pincers = b.units.filter(
+    (u) => u.side === attacker.side && u.id !== attacker.id && u.troops > 0 &&
+      hexDistance(u.coord, target.coord) === 1,
+  ).length;
+  const pincerMul = 1 + Math.min(0.36, 0.12 * pincers);
+
   const base =
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
     base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
-    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul,
+    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul * pincerMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
@@ -1542,8 +1573,8 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   // Objective progress.
   let attackerObj = b.attackerObjective;
   let defenderObj = b.defenderObjective;
-  attackerObj = tickObjective(attackerObj, surviving, 'attacker');
-  defenderObj = tickObjective(defenderObj, surviving, 'defender');
+  attackerObj = tickObjective(attackerObj, surviving, 'attacker', b.width);
+  defenderObj = tickObjective(defenderObj, surviving, 'defender', b.width);
 
   // Winner check.
   const attackerLeft = surviving.some((u) => u.side === 'attacker');
@@ -1661,6 +1692,7 @@ function tickObjective(
   obj: BattleObjective | undefined,
   units: TacticalUnit[],
   side: 'attacker' | 'defender',
+  width: number,
 ): BattleObjective | undefined {
   if (!obj || obj.resolved) return obj;
   if (obj.kind === 'hold-tile' && obj.tileCoord) {
@@ -1684,10 +1716,12 @@ function tickObjective(
     return { ...obj, progress };
   }
   if (obj.kind === 'escape') {
+    // Spirit the commander off the field via their own edge: attackers exit the
+    // way they came (col 0), defenders out the far edge (col width-1).
     const cmd = units.find((u) => u.side === side && u.isCommander);
     if (!cmd) return { ...obj, resolved: 'failure' };
-    const atEdge = cmd.coord.col === 0 || cmd.coord.col === cmd.coord.col; // placeholder
-    if (atEdge) return { ...obj, resolved: 'success' };
+    const homeCol = side === 'attacker' ? 0 : width - 1;
+    if (cmd.coord.col === homeCol) return { ...obj, resolved: 'success' };
   }
   return obj;
 }
