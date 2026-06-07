@@ -405,18 +405,34 @@ export function TitleScreen() {
         {/* ───────────────── STEP 3 — Setup ───────────────── */}
         {step === 'options' && (
           <section className={styles.scenarioCard} style={{ width: 'min(720px, 94vw)', maxWidth: 'none' }}>
-            <div style={{ fontSize: '0.95rem', color: '#d4a84a', marginBottom: '0.9rem', textAlign: 'center' }}>
-              {lang === 'en' ? scenario.name.en : scenario.name.zh}
-              {selectedForce && selectedRuler && (
-                <>
-                  {' · '}
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: selectedForce.color, display: 'inline-block' }} />
-                    {lang === 'en' ? selectedRuler.name.en : `${selectedForce.name.zh}（${selectedRuler.name.zh}）`}
-                  </span>
-                </>
-              )}
+            <div style={{ textAlign: 'center', marginBottom: '0.6rem' }}>
+              <div style={{ fontSize: '1.05rem', color: '#d4a84a' }}>{lang === 'en' ? scenario.name.en : scenario.name.zh}</div>
+              <div style={{ fontSize: '0.74rem', color: '#8a7050' }}>{startYear} AD</div>
             </div>
+            {selectedForce && selectedRuler && (() => {
+              const st = forceStats(selectedForce.id);
+              return (
+                <div style={{ display: 'flex', gap: '0.9rem', alignItems: 'center', border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)', padding: '0.7rem', marginBottom: '0.9rem' }}>
+                  <OfficerPortrait officer={selectedRuler} size={64} forceColor={selectedForce.color} year={startYear} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '1rem', color: '#d4a84a', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: selectedForce.color }} />
+                      {lang === 'en' ? selectedForce.name.en : selectedForce.name.zh}
+                      <span style={{ color: '#a08c6a', fontSize: '0.85rem' }}>{lang === 'en' ? selectedRuler.name.en : selectedRuler.name.zh}</span>
+                    </div>
+                    <div style={{ fontSize: '0.73rem', color: '#8a7050', margin: '0.3rem 0' }}>
+                      統{selectedRuler.stats.leadership} 武{selectedRuler.stats.war} 智{selectedRuler.stats.intelligence} 政{selectedRuler.stats.politics} 魅{selectedRuler.stats.charisma}
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#a08c6a' }}>
+                      {t('城', 'Cities')} {st.cities} · {t('將', 'Officers')} {st.officers.length} · {t('兵', 'Troops')} {st.troops.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{ width: 156, flexShrink: 0 }}>
+                    <MiniMap scenario={scenario} highlightForceId={selectedForce.id} />
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className={styles.difficultyLabel}>{t('難易度', 'Difficulty')}</div>
             <div className={styles.difficultyRow}>
