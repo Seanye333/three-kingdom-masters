@@ -201,7 +201,7 @@ export function TitleScreen() {
       <main className={styles.main} style={{ flexDirection: 'column', alignItems: 'center' }}>
         {/* ───────────────── STEP 1 — Scenario ───────────────── */}
         {step === 'scenario' && (
-          <section className={styles.scenarioCard} style={{ width: 'min(920px, 94vw)', maxWidth: 'none' }}>
+          <section className={styles.scenarioCard} style={{ width: 'min(1060px, 96vw)', maxWidth: 'none' }}>
             {/* Era tabs */}
             <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.7rem', flexWrap: 'wrap' }}>
               {ERAS.map((e) => {
@@ -226,27 +226,33 @@ export function TitleScreen() {
               })}
             </div>
 
-            <ul className={styles.scenarioList}>
-              {eraScenarios.map((s) => (
-                <li key={s.id}>
-                  <button
-                    className={`${styles.scenarioButton} ${scenarioId === s.id ? styles.scenarioSelected : ''}`}
-                    onClick={() => { setScenarioId(s.id); setSelectedForceId(null); }}
-                  >
-                    <span className={styles.scenarioYear}>{s.startDate.year} AD</span>
-                    <span className={styles.scenarioName}>
-                      {lang !== 'en' && <span className={styles.scenarioNameZh}>{s.name.zh}</span>}
-                      {lang !== 'zh' && <span className={styles.scenarioNameEn}>{s.name.en}</span>}
-                    </span>
-                    {s.kind === 'whatif' && <span style={whatIfBadge}>{t('假想', 'WHAT-IF')}</span>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <p className={styles.scenarioDesc}>{desc(scenario)}</p>
-            <div style={{ fontSize: '0.78rem', color: '#8a7050', marginBottom: '0.7rem' }}>
-              {startYear} AD · {scenario.forces.length} {t('勢力', 'forces')}
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '0.7rem' }}>
+              {/* Left — scenario list (scrolls) */}
+              <ul className={styles.scenarioList} style={{ flex: '1 1 0', minWidth: 0, maxHeight: 460, overflowY: 'auto' }}>
+                {eraScenarios.map((s) => (
+                  <li key={s.id}>
+                    <button
+                      className={`${styles.scenarioButton} ${scenarioId === s.id ? styles.scenarioSelected : ''}`}
+                      onClick={() => { setScenarioId(s.id); setSelectedForceId(null); }}
+                    >
+                      <span className={styles.scenarioYear}>{s.startDate.year} AD</span>
+                      <span className={styles.scenarioName}>
+                        {lang !== 'en' && <span className={styles.scenarioNameZh}>{s.name.zh}</span>}
+                        {lang !== 'zh' && <span className={styles.scenarioNameEn}>{s.name.en}</span>}
+                      </span>
+                      {s.kind === 'whatif' && <span style={whatIfBadge}>{t('假想', 'WHAT-IF')}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {/* Right — description + territory preview for the highlighted scenario */}
+              <div style={{ flex: '1 1 0', minWidth: 0 }}>
+                <p className={styles.scenarioDesc} style={{ marginTop: 0 }}>{desc(scenario)}</p>
+                <div style={{ fontSize: '0.78rem', color: '#8a7050', marginBottom: '0.5rem' }}>
+                  {startYear} AD · {scenario.forces.length} {t('勢力', 'forces')}
+                </div>
+                <MiniMap scenario={scenario} />
+              </div>
             </div>
 
             <button
@@ -369,6 +375,10 @@ export function TitleScreen() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                      {/* mini territory map spotlighting this force's holdings */}
+                      <div style={{ marginTop: '0.7rem', borderTop: '1px solid #3a2818', paddingTop: '0.6rem' }}>
+                        <MiniMap scenario={scenario} highlightForceId={selectedForce.id} />
                       </div>
                     </div>
                   );
@@ -571,4 +581,50 @@ function miniBtn(disabled: boolean): CSSProperties {
     fontFamily: 'inherit',
     fontSize: '0.7rem',
   };
+}
+
+// A compact territory map of a scenario: every city a dot coloured by its owning
+// force (neutral = dark), with adjacency lines for a sense of the road network.
+// Pass highlightForceId to spotlight one force's holdings.
+function MiniMap({ scenario, highlightForceId }: { scenario: Scenario; highlightForceId?: string | null }) {
+  const colorOf = (fid: string | null) =>
+    fid ? (scenario.forces.find((f) => f.id === fid)?.color ?? '#4a3a28') : '#4a3a28';
+  return (
+    <svg
+      viewBox="110 150 790 570"
+      preserveAspectRatio="xMidYMid meet"
+      style={{ width: '100%', height: 'auto', display: 'block', background: '#14100c', border: '1px solid #3a2818', borderRadius: 4 }}
+    >
+      {scenario.cities.map((c) =>
+        c.adjacentCityIds.map((aid) => {
+          if (aid <= c.id) return null; // draw each edge once
+          const a = scenario.cities.find((x) => x.id === aid);
+          if (!a) return null;
+          return (
+            <line
+              key={`${c.id}-${aid}`}
+              x1={c.coords.x} y1={c.coords.y}
+              x2={a.coords.x} y2={a.coords.y}
+              stroke="#2a2018" strokeWidth={1}
+            />
+          );
+        }),
+      )}
+      {scenario.cities.map((c) => {
+        const hl = !!highlightForceId && c.ownerForceId === highlightForceId;
+        const dim = !!highlightForceId && !hl;
+        return (
+          <circle
+            key={c.id}
+            cx={c.coords.x} cy={c.coords.y}
+            r={hl ? 9 : 6}
+            fill={colorOf(c.ownerForceId)}
+            stroke={hl ? '#fff5e0' : '#1a1410'}
+            strokeWidth={hl ? 1.6 : 0.8}
+            opacity={dim ? 0.4 : 1}
+          />
+        );
+      })}
+    </svg>
+  );
 }
