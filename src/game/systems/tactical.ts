@@ -22,6 +22,7 @@ import { pickVoiceLine } from '../data/voiceLines';
 import { generateTerrain, type TerrainHint } from './battlefieldTerrain';
 import { effectiveStats } from './traitEffects';
 import { SIGNATURE_OVERRIDES } from './personalTactics';
+import { predictAttackDamage } from './damagePredict';
 
 /**
  * Unit-type counter matrix. counterBonus[attacker][defender] = multiplier on
@@ -1764,11 +1765,31 @@ export function aiTakeTurn(
       enemies.sort((a, b1) => targetScore(a) - targetScore(b1));
       const target = enemies[0];
       // Never walk past a free hit: if any enemy is already adjacent, strike the
-      // best-scored adjacent one (weakest / most exposed) this turn instead of
-      // marching toward a juicier but distant target.
+      // best adjacent foe this turn instead of marching toward a distant target.
+      // The pick is mechanically grounded via predictAttackDamage + the same
+      // terrain/counter multipliers attackUnits applies, so the AI: (1) secures
+      // kills — a foe it can finish this hit deals NO counter-attack, hugely
+      // valuable; (2) maximises the net troop swing (damage dealt − counter
+      // taken), so it won't throw itself at a high-WAR target it can't dent; and
+      // (3) still decapitates enemy commanders.
       const adjacentEnemies = enemies.filter((e) => hexDistance(unit.coord, e.coord) === 1);
       if (adjacentEnemies.length > 0) {
-        cur = attackUnits(cur, unit.id, adjacentEnemies[0].id, officers, rng);
+        const aTerrMod = terrainDamageMod(unit.unitType, tileTerrain(cur, unit.coord));
+        const combatValue = (e: TacticalUnit): number => {
+          const p = predictAttackDamage(cur, unit, e, officers);
+          const fwdMul = counterMultiplier(unit.unitType, e.unitType) * aTerrMod *
+            defenderTerrainShield(tileTerrain(cur, e.coord));
+          const expDmg = ((p.min + p.max) / 2) * fwdMul;
+          const willKill = p.max * fwdMul >= e.troops;
+          const ctrMul = counterMultiplier(e.unitType, unit.unitType);
+          const expCounter = willKill ? 0 : ((p.counterMin + p.counterMax) / 2) * ctrMul;
+          let v = expDmg - expCounter;            // net troop swing in our favour
+          if (willKill) v += e.troops * 0.5 + 500; // remove a unit AND dodge the counter
+          if (e.isCommander) v += 800;             // decapitation strike
+          return v;
+        };
+        const best = adjacentEnemies.reduce((a, b1) => (combatValue(b1) > combatValue(a) ? b1 : a));
+        cur = attackUnits(cur, unit.id, best.id, officers, rng);
         acted = true;
         break;
       }
