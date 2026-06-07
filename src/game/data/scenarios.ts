@@ -8171,6 +8171,112 @@ export const SCENARIO_CH_JULU: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_CH_JULU, ['chu-han', 'qin']),
 };
 
+// ── 大澤鄉起義 (Qin's end, the first spark). Chen Sheng and Wu Guang, conscripts
+//    halted by floods and facing death for lateness, raise the first revolt against
+//    Qin — "are kings and nobles born to their blood?" — while the empire is still
+//    vast under the fool Er Shi. ──
+const DAZE_ZHANGCHU = ['runan', 'chenliu', 'xuchang', 'guandu'];
+const DAZE_CHU = ['jianye', 'wu', 'wuxi', 'kuaiji', 'danyang'];
+const DAZE_QI = ['linzi', 'beihai', 'langya'];
+const CITY_OWNERSHIP_CH_DAZE: Record<string, string> = Object.fromEntries(
+  Object.keys(CITY_OWNERSHIP_CHUHAN).map((c) => {
+    if (DAZE_ZHANGCHU.includes(c)) return [c, 'zhangchu'];
+    if (DAZE_CHU.includes(c)) return [c, 'chu'];
+    if (DAZE_QI.includes(c)) return [c, 'qi'];
+    return [c, 'qin']; // the empire still holds everything else
+  }),
+);
+const FORCES_CH_DAZE: Force[] = [
+  { id: 'qin',      name: { en: 'Qin Empire', zh: '秦'   }, rulerOfficerId: 'hist-qin-ershi',    capitalCityId: 'changan',   color: '#3a3a4a', isPlayer: false },
+  { id: 'zhangchu', name: { en: 'Zhang Chu',  zh: '張楚' }, rulerOfficerId: 'hist-chen-sheng',   capitalCityId: 'runan',     color: '#c0392b', isPlayer: false },
+  { id: 'chu',      name: { en: 'Chu (Xiang)', zh: '楚' }, rulerOfficerId: 'hist-xiang-liang',  capitalCityId: 'jianye',    color: '#e07b39', isPlayer: false },
+  { id: 'qi',       name: { en: 'Qi',         zh: '齊'   }, rulerOfficerId: 'hist-tian-dan-chu', capitalCityId: 'linzi',     color: '#2aa8c0', isPlayer: false },
+];
+const ASSIGN_CH_DAZE: Record<string, { forceId: string; cityId: string }> = {
+  // 秦 — the empire, vast but rotting under Er Shi and Zhao Gao
+  'hist-qin-ershi': { forceId: 'qin', cityId: 'changan' },
+  'hist-zhao-gao':  { forceId: 'qin', cityId: 'changan' },
+  'hist-li-si':     { forceId: 'qin', cityId: 'changan' },
+  'hist-zhang-han': { forceId: 'qin', cityId: 'changan' }, // soon to take the field
+  'hist-wang-li':   { forceId: 'qin', cityId: 'beiping' },
+  'hist-li-you':    { forceId: 'qin', cityId: 'luoyang' }, // guarding the Sanchuan approaches
+  // 張楚 — Chen Sheng's risen conscripts, blazing west
+  'hist-chen-sheng':{ forceId: 'zhangchu', cityId: 'runan' },
+  'hist-wu-guang':  { forceId: 'zhangchu', cityId: 'xuchang' },
+  'hist-zhou-wen':  { forceId: 'zhangchu', cityId: 'guandu' }, // the column driving for the passes
+  'hist-wu-chen':   { forceId: 'zhangchu', cityId: 'chenliu' },
+  'hist-ge-ying':   { forceId: 'zhangchu', cityId: 'runan' },
+  // 楚 — Xiang Liang and the young Xiang Yu, just risen at Kuaiji
+  'hist-xiang-liang':{ forceId: 'chu', cityId: 'jianye' },
+  'hist-xiang-yu':  { forceId: 'chu', cityId: 'jianye' },
+  'hist-ji-bu':     { forceId: 'chu', cityId: 'wu' },
+  'hist-huan-chu':  { forceId: 'chu', cityId: 'jianye' },
+  // 齊 — the Tian clan restoring Qi
+  'hist-tian-dan-chu':{ forceId: 'qi', cityId: 'linzi' },
+  'hist-tian-rong': { forceId: 'qi', cityId: 'linzi' },
+  'hist-tian-heng': { forceId: 'qi', cityId: 'beihai' },
+};
+export const SCENARIO_CH_DAZE: Scenario = {
+  id: 'scn-ch-daze',
+  name: { en: 'The Dazexiang Uprising', zh: '大澤鄉起義' },
+  description:
+    'Where there is no seed of kings. In the seventh month of rain, nine hundred conscripts bound for the northern garrisons are halted by floods at Dazexiang — and Qin law says a man late to his post dies. So Chen Sheng and Wu Guang reason it out: death for desertion, death for revolt, the same death — better to die for a kingdom. They kill the escort officers, raise the cry "Are kings and nobles born to their blood?", and the first fire of rebellion against Qin catches and roars across the realm. Within weeks the old six kingdoms stir — Xiang Liang in the south, the Tian clan in Qi — while the empire of the First Emperor, still vast and terrible under the fool Er Shi and the eunuch Zhao Gao, gathers its armies to stamp out the spark.',
+  descriptionZh: "王侯將相，寧有種乎。七月霖雨，九百戍卒赴漁陽，為大水阻於大澤鄉——而秦法，失期當斬。陳勝吳廣乃謀：亡亦死，舉大計亦死，等死，死國可乎？遂殺尉，舉「王侯將相寧有種乎」之號，反秦之第一把火，燃而怒捲天下。旬月之間，六國舊地皆動——項梁起於江東，田氏王於齊——而始皇之帝國，在愚主二世與閹宦趙高之下，雖暴虐猶廣且強，正集其兵以撲滅此星火。",
+  startDate: { year: 178, season: 'summer' },
+  cities: buildInitialCities(CITY_OWNERSHIP_CH_DAZE),
+  forces: FORCES_CH_DAZE,
+  officers: buildWarringStatesOfficers(ASSIGN_CH_DAZE, ['chu-han', 'qin']),
+};
+
+// ── 濰水之戰 (Chu-Han). Han Xin, having swept the north into Liu Bang's hand,
+//    falls on Qi; Xiang Yu sends Long Ju with 200,000 to save it, and Han Xin
+//    dams the Wei river and breaks the dam on the half-crossed Chu host. ──
+const CITY_OWNERSHIP_CH_WEISHUI: Record<string, string> = Object.fromEntries(
+  Object.entries(CITY_OWNERSHIP_CHUHAN).map(([c, f]) =>
+    [c, f === 'chu' ? 'chu' : f === 'qi' ? 'qi' : 'han'],
+  ),
+);
+const FORCES_CH_WEISHUI: Force[] = [
+  { id: 'chu', name: { en: 'Chu', zh: '楚' }, rulerOfficerId: 'hist-xiang-yu',   capitalCityId: 'pengcheng', color: '#c0392b', isPlayer: false },
+  { id: 'han', name: { en: 'Han', zh: '漢' }, rulerOfficerId: 'hist-liu-bang',   capitalCityId: 'changan',   color: '#3a7dd9', isPlayer: false },
+  { id: 'qi',  name: { en: 'Qi',  zh: '齊' }, rulerOfficerId: 'hist-tian-guang', capitalCityId: 'linzi',     color: '#2aa8c0', isPlayer: false },
+];
+const ASSIGN_CH_WEISHUI: Record<string, { forceId: string; cityId: string }> = {
+  ...ASSIGN_CHUHAN,
+  // the north all swept into Han's hand; the old lords folded in
+  'hist-zhang-han':  { forceId: 'han', cityId: 'changan' },
+  'hist-sima-xin':   { forceId: 'han', cityId: 'tongguan' },
+  'hist-dong-yi':    { forceId: 'han', cityId: 'mei' },
+  'hist-chen-yu':    { forceId: 'han', cityId: 'ye' },
+  'hist-zhang-er':   { forceId: 'han', cityId: 'taiyuan' },
+  'hist-li-zuoche':  { forceId: 'han', cityId: 'ye' },     // captured at Jingxing, now advising Han
+  'hist-wei-bao':    { forceId: 'han', cityId: 'puyang' },
+  'hist-wei-jiu':    { forceId: 'han', cityId: 'luoyang' },
+  'hist-ying-bu':    { forceId: 'han', cityId: 'shouchun' },
+  // Han Xin's drive on Qi
+  'hist-han-xin':    { forceId: 'han', cityId: 'pengcheng' }, // poised on the Qi border
+  'hist-guan-ying':  { forceId: 'han', cityId: 'pengcheng' },
+  // Qi, taken by surprise, the Tian clan at bay
+  'hist-tian-guang': { forceId: 'qi', cityId: 'linzi' },
+  'hist-tian-heng':  { forceId: 'qi', cityId: 'beihai' },
+  'hist-tian-rong':  { forceId: 'qi', cityId: 'linzi' },
+  // Chu's rescue: Long Ju with 200,000
+  'hist-xiang-yu':   { forceId: 'chu', cityId: 'pengcheng' },
+  'hist-long-qu':    { forceId: 'chu', cityId: 'linzi' },   // marched to save Qi, into the trap
+  'hist-fan-zeng':   { forceId: 'chu', cityId: 'pengcheng' },
+};
+export const SCENARIO_CH_WEISHUI: Scenario = {
+  id: 'scn-ch-weishui',
+  name: { en: 'The Battle of the Wei River', zh: '楚漢·濰水之戰' },
+  description:
+    'The water-trick that ended a kingdom. Han Xin, having swept Wei, Dai, Zhao and Yan into Liu Bang\'s hand, turns on Qi — and storms Linzi in a rush before the persuader Li Yiji\'s peace can take hold. Xiang Yu, alarmed at last, sends his finest general Long Ju with two hundred thousand to save it. Long Ju scorns his enemy and will not wait. So in the night Han Xin dams the Wei river upstream with ten thousand sandbags, lures Long Ju half across the dry bed, then breaks the dam — and the flood takes half the Chu host as it struggles in the water. Long Ju dies on the far bank, Qi falls, and the balance of the whole war tips toward Han.',
+  descriptionZh: "水淹一國之計。韓信既掃魏、代、趙、燕入於劉邦之手，遂轉兵向齊——趁說客酈食其之和未定，急襲破臨淄。項羽至此始驚，遣其第一名將龍且，提二十萬以救之。龍且輕敵，不肯持重。韓信乃夜以萬囊壅濰水上流，誘龍且半渡涸床，決囊放水——洪流挾去半數楚師於水中掙扎之際。龍且死於彼岸，齊遂平，而舉世戰局之勢，自此傾於漢矣。",
+  startDate: { year: 178, season: 'autumn' },
+  cities: buildInitialCities(CITY_OWNERSHIP_CH_WEISHUI),
+  forces: FORCES_CH_WEISHUI,
+  officers: buildWarringStatesOfficers(ASSIGN_CH_WEISHUI, ['chu-han', 'qin']),
+};
+
 // ════════════════════════════════════════════════════════════════════════
 // 隋末群雄 — Sui-end Warlords (parallel timeline). buildWarringStatesOfficers
 // fed the Sui + Tang rosters: Emperor Yang dead, the realm aflame, the seven
@@ -8404,10 +8510,12 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_ST_HULAO,
   SCENARIO_ST_ANSHI,
   // ── Chu-Han Contention (parallel timeline) ──
+  SCENARIO_CH_DAZE,
   SCENARIO_CH_JULU,
   SCENARIO_CH_CHUHAN,
   SCENARIO_CH_SANQIN,
   SCENARIO_CH_PENGCHENG,
+  SCENARIO_CH_WEISHUI,
   SCENARIO_CH_JINGXING,
   SCENARIO_CH_GAIXIA,
   // ── Warring States (parallel timeline) ──
