@@ -150,13 +150,15 @@ export function OfficerDetail({
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <PortraitColumn
+          officer={officer}
+          zh={officer.name.zh}
+          color={force?.color ?? '#5a4530'}
+          archetype={inferArchetype(officer)}
+          age={age}
+        />
+        <div className={styles.detailBody}>
         <header className={styles.header}>
-          <Portrait
-            zh={officer.name.zh}
-            color={force?.color ?? '#5a4530'}
-            archetype={inferArchetype(officer)}
-            age={age}
-          />
           <div className={styles.titleBlock}>
             {lang !== 'en' && <div className={styles.titleZh}>{officer.name.zh}</div>}
             {lang === 'en' && <div className={styles.titleZh}>{officer.name.en}</div>}
@@ -762,6 +764,7 @@ export function OfficerDetail({
             {t('* 歷史卒年。衰老擲骰集中於此日期前後。', '* Historical death year. Aging rolls cluster around this date.')}
           </p>
         )}
+        </div>
       </div>
     </div>
   );
@@ -1070,6 +1073,48 @@ function getSurname(zh: string): string {
     if (zh.startsWith(s)) return s;
   }
   return zh.charAt(0);
+}
+
+// Officer ids whose full-body portrait (public/portraits/<id>-full.webp) 404'd
+// this session — skip re-requesting so we don't re-fire a failing GET.
+const missingFullPortraits = new Set<string>();
+
+/**
+ * Left column of the officer-detail modal. Shows a hand-drawn full-body
+ * portrait (public/portraits/<id>-full.webp) at its natural proportions when
+ * one exists; otherwise falls back to the procedural circular Portrait.
+ */
+function PortraitColumn({
+  officer,
+  zh,
+  color,
+  archetype,
+  age,
+}: {
+  officer: Officer;
+  zh: string;
+  color: string;
+  archetype: PortraitArchetype;
+  age: number;
+}) {
+  const [imgFailed, setImgFailed] = useState(() => missingFullPortraits.has(officer.id));
+  const src = `${import.meta.env.BASE_URL}portraits/${officer.id}-full.webp`;
+
+  return (
+    <div className={styles.portraitColumn}>
+      {imgFailed ? (
+        <Portrait zh={zh} color={color} archetype={archetype} age={age} />
+      ) : (
+        <img
+          className={styles.portraitFull}
+          src={src}
+          alt={zh}
+          loading="lazy"
+          onError={() => { missingFullPortraits.add(officer.id); setImgFailed(true); }}
+        />
+      )}
+    </div>
+  );
 }
 
 function Portrait({
