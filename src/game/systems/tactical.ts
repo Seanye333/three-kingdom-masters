@@ -7,6 +7,7 @@ import type {
   NamedBattleMap,
   Officer,
   Reinforcement,
+  ShipClass,
   StratagemId,
   TacticalBattle,
   TacticalStatus,
@@ -18,6 +19,7 @@ import type {
   Weather,
 } from '../types';
 import { NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../data/namedMaps';
+import { SHIP_CLASSES_BY_ID } from '../data/ships';
 import { pickVoiceLine } from '../data/voiceLines';
 import { generateTerrain, type TerrainHint } from './battlefieldTerrain';
 import { effectiveStats } from './traitEffects';
@@ -82,6 +84,32 @@ export function inferUnitType(o: Officer | undefined): UnitType {
   if (o.stats.war >= 85) return 'cavalry';
   if (o.stats.intelligence >= 80) return 'archers';
   return 'infantry';
+}
+
+// ─── Naval helpers ──────────────────────────────────────────────────────
+
+/**
+ * Pick a ship class for a contingent by its size — the flagship anchors the
+ * line, big detachments crew proper warships, small ones ride fast skiffs.
+ */
+export function assignShipClass(troops: number, isCommander: boolean): ShipClass {
+  if (isCommander) return 'flagship';
+  if (troops >= 6000) return 'da-yi';
+  if (troops >= 4000) return 'hai-hu';
+  if (troops >= 2500) return 'warship';
+  if (troops >= 1200) return 'dou-jian';
+  return 'zou-ge';
+}
+
+/**
+ * Hull-strength multiplier on a ship's combat output, derived from its class'
+ * combat strength (warship = 200 = 1.0× baseline). A 樓船 flagship hits ~1.4×,
+ * a 走舸 skiff ~0.85×.
+ */
+export function shipPowerMul(shipClass: ShipClass | undefined): number {
+  if (!shipClass) return 1;
+  const cs = SHIP_CLASSES_BY_ID[shipClass]?.combatStrength ?? 200;
+  return Math.max(0.85, Math.min(1.6, 1 + (cs - 200) / 1000));
 }
 
 // ─── Hex grid helpers (offset coordinates, "odd-q" flat-top) ──────────
@@ -201,8 +229,18 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   const weather: Weather = namedMap?.weather ?? p.weather ?? 'clear';
   const timeOfDay: TimeOfDay = namedMap?.timeOfDay ?? p.timeOfDay ?? 'day';
 
+  // A water city (and no scripted named-map terrain) makes this a naval
+  // engagement: open-water board, every contingent crews a ship.
+  const isNaval = !namedMap && p.terrainHint?.terrain === 'water';
+
   // Geography-aware terrain — uses the city's terrain/port/coords if provided.
-  const tiles = generateTerrain(p.cityId, width, height, p.terrainHint ?? {}, namedMap?.terrainOverrides);
+  const tiles = generateTerrain(
+    p.cityId,
+    width,
+    height,
+    { ...(p.terrainHint ?? {}), naval: isNaval },
+    namedMap?.terrainOverrides,
+  );
 
   const placeUnits = (
     pool: Array<{ officer: Officer; troops: number; unitType?: UnitType }>,
@@ -219,7 +257,11 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
       // Interleave around the vertical center: 0, +1, -1, +2, -2, ...
       const row = Math.floor(height / 2)
         + (rankIndex % 2 === 0 ? -Math.floor(rankIndex / 2) : Math.floor((rankIndex + 1) / 2));
-      const unitType = entry.unitType ?? inferUnitType(entry.officer);
+      // In a naval battle every contingent is a ship crew, regardless of the
+      // officer's land specialty.
+      const unitType = isNaval ? 'navy' : (entry.unitType ?? inferUnitType(entry.officer));
+      const isCommander = i === 0;
+      const shipClass = isNaval ? assignShipClass(entry.troops, isCommander) : undefined;
       const maxAp = unitType === 'cavalry' ? 4 : unitType === 'siege' ? 2 : 3;
       return {
         id: `${side}-${entry.officer.id}`,
@@ -234,9 +276,10 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
         ap: maxAp,
         maxAp,
         morale: 100,
-        isCommander: i === 0,
+        isCommander,
         effects: [],
         unitType,
+        ...(shipClass ? { shipClass } : {}),
       };
     });
   };
@@ -326,6 +369,7 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     damagePopups: [],
     log,
     cityStructures: cityStructures.length > 0 ? cityStructures : undefined,
+    naval: isNaval || undefined,
   };
 }
 
@@ -560,11 +604,14 @@ export function attackUnits(
     ? Math.max(0.6, 1 - 0.05 * (b.turn - 9))
     : 1.0;
 
+  // Naval: a bigger hull (樓船/大翼) hits harder than a 走舸 skiff.
+  const shipMul = shipPowerMul(attacker.shipClass);
+
   const base =
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
     base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
-    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul,
+    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
@@ -1075,6 +1122,87 @@ export function applyStratagem(
       };
       return finalize(next, unitId, stratagem, 3);
     }
+    case 'ram': {
+      // 撞角 — drive the prow into an adjacent ship. Heavy hull damage scaled
+      // by this ship's class; spends all AP like a charge.
+      if (hexDistance(unit.coord, targetCoord) > 1)
+        return { battle: b, ok: false, reason: 'adjacent only' };
+      const target = unitAt(b, targetCoord);
+      if (!target || target.side === unit.side)
+        return { battle: b, ok: false, reason: 'invalid target' };
+      const aWar = off?.stats.war ?? 60;
+      const dLead = officers[target.officerId]?.stats.leadership ?? 50;
+      const damage = Math.floor(
+        (unit.troops * (aWar + 30) * 1.6 * shipPowerMul(unit.shipClass)) / (dLead + 50),
+      );
+      const next: TacticalBattle = {
+        ...b,
+        units: b.units.map((u) => {
+          if (u.id === target.id)
+            return { ...u, troops: Math.max(0, u.troops - damage), morale: Math.max(0, u.morale - 20) };
+          if (u.id === unit.id) return { ...u, ap: 0 };
+          return u;
+        }),
+        damagePopups: [
+          ...(b.damagePopups ?? []),
+          { id: `dmg-${Date.now()}-ram`, coord: target.coord, text: `-${damage.toLocaleString()}!`, color: '#ff6a4a', spawnedAt: Date.now() },
+        ],
+      };
+      return finalize(next, unitId, stratagem, 2);
+    }
+    case 'board': {
+      // 接舷 — grapple an adjacent ship and fight it out on the decks. War-based
+      // marine melee that shatters morale and costs the boarder little.
+      if (hexDistance(unit.coord, targetCoord) > 1)
+        return { battle: b, ok: false, reason: 'adjacent only' };
+      const target = unitAt(b, targetCoord);
+      if (!target || target.side === unit.side)
+        return { battle: b, ok: false, reason: 'invalid target' };
+      const aWar = off?.stats.war ?? 60;
+      const dWar = officers[target.officerId]?.stats.war ?? 50;
+      const damage = Math.floor((unit.troops * (aWar + 30) * 1.1) / (dWar + 60));
+      const selfLoss = Math.floor(damage * 0.25);
+      const next: TacticalBattle = {
+        ...b,
+        units: b.units.map((u) => {
+          if (u.id === target.id)
+            return { ...u, troops: Math.max(0, u.troops - damage), morale: Math.max(0, u.morale - 35) };
+          if (u.id === unit.id) return { ...u, troops: Math.max(0, u.troops - selfLoss) };
+          return u;
+        }),
+        damagePopups: [
+          ...(b.damagePopups ?? []),
+          { id: `dmg-${Date.now()}-board`, coord: target.coord, text: `-${damage.toLocaleString()}`, color: '#ff8a4a', spawnedAt: Date.now() },
+        ],
+      };
+      return finalize(next, unitId, stratagem, 1);
+    }
+    case 'fire-ship': {
+      // 火船 — send blazing hulks downwind into the enemy line. Sets fire (long
+      // in wind, doused in rain) plus immediate damage; ruinous against a fleet
+      // chained together (連環計 + 火船 = 赤壁).
+      if ((off?.stats.intelligence ?? 0) < 65)
+        return { battle: b, ok: false, reason: 'requires INT 65' };
+      if (hexDistance(unit.coord, targetCoord) > 3)
+        return { battle: b, ok: false, reason: 'out of range' };
+      const target = unitAt(b, targetCoord);
+      if (!target || target.side === unit.side)
+        return { battle: b, ok: false, reason: 'invalid target' };
+      const turns = b.weather === 'wind' ? 5 : b.weather === 'rain' ? 1 : 4;
+      const damage = Math.floor(target.troops * 0.12);
+      let next: TacticalBattle = {
+        ...b,
+        units: b.units.map((u) =>
+          u.id === target.id ? { ...u, troops: Math.max(0, u.troops - damage) } : u,
+        ),
+        damagePopups: [
+          ...(b.damagePopups ?? []),
+          { id: `dmg-${Date.now()}-fireship`, coord: target.coord, text: `-${damage.toLocaleString()}🔥`, color: '#ff7a3a', spawnedAt: Date.now() },
+        ],
+      };
+      next = setStatus(next, target.id, { kind: 'burning', turnsLeft: turns });
+      return finalize(next, unitId, stratagem, 3);
+    }
   }
 }
 
@@ -1124,9 +1252,10 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   let tickedUnits = b.units.map((u) => {
     let troops = u.troops;
     const newEffects: TacticalStatus[] = [];
-    // Rattan-armor doubles fire damage (oil-cured rattan ignites).
+    // Rattan-armor doubles fire damage (oil-cured rattan ignites); so do
+    // pitch-caulked wooden ships — fire is death on the water (赤壁).
     const uSideFormation = u.side === 'attacker' ? b.attackerFormation : b.defenderFormation;
-    const fireMul = uSideFormation === 'rattan-armor' ? 2.0 : 1.0;
+    const fireMul = uSideFormation === 'rattan-armor' || u.unitType === 'navy' ? 2.0 : 1.0;
     for (const e of u.effects) {
       if (e.kind === 'burning') {
         const burn = Math.floor(u.maxTroops * 0.08 * fireMul);
@@ -1189,6 +1318,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
       let chance = baseSpreadChance;
       if (tile?.terrain === 'forest') chance *= 1.6;
       if (adjFormation === 'rattan-armor') chance *= 2.0;
+      if (adjUnit.unitType === 'navy') chance *= 2.0; // fire leaps hull to hull
       // Strong wind alignment bonus when picked unit is downwind.
       if (scored[0].score > 0 && b.windDirection !== 'calm') chance *= 1.3;
       if (Math.random() < chance) {
@@ -1590,6 +1720,26 @@ function aiTryStratagem(
       .filter((e) => hexDistance(unit.coord, e.coord) <= 3)
       .sort((a, b1) => hexDistance(unit.coord, a.coord) - hexDistance(unit.coord, b1.coord));
     if (inRange.length > 0) candidates.push({ id: 'gallop', target: inRange[0].coord });
+  }
+  // 10. naval play for ships — fireships (best vs a chained/clustered fleet),
+  //     then ram or board an adjacent enemy ship.
+  if (unit.unitType === 'navy') {
+    if (off.stats.intelligence >= 65) {
+      const inRange = enemies
+        .filter((e) => hexDistance(unit.coord, e.coord) <= 3)
+        .sort((a, b1) => {
+          // Prefer chained targets (fire will spread through the whole fleet).
+          const ac = a.effects.some((x) => x.kind === 'chained') ? 1 : 0;
+          const bc = b1.effects.some((x) => x.kind === 'chained') ? 1 : 0;
+          return bc - ac || b1.troops - a.troops;
+        });
+      if (inRange.length > 0) candidates.push({ id: 'fire-ship', target: inRange[0].coord });
+    }
+    if (adjEnemies.length > 0) {
+      const ramTarget = [...adjEnemies].sort((a, b1) => b1.troops - a.troops)[0];
+      if (off.stats.war >= 60) candidates.push({ id: 'board', target: ramTarget.coord });
+      if (off.stats.war >= 55) candidates.push({ id: 'ram', target: ramTarget.coord });
+    }
   }
 
   for (const c of candidates) {

@@ -1,4 +1,5 @@
 import type { BilingualName, EntityId } from './common';
+import type { ShipClass } from './naval';
 
 // ─── Weather, time of day, formations, objectives ────────────────────
 
@@ -171,6 +172,9 @@ export interface TacticalUnit {
   effects: TacticalStatus[];
   /** Unit type (combat arm). */
   unitType: UnitType;
+  /** Ship class — set only for units in a naval battle. Drives hull strength
+   *  (ramming/boarding power) and fire vulnerability. */
+  shipClass?: ShipClass;
   /** Hidden ambushers — only revealed when an enemy steps adjacent or
    *  the unit attacks. Set when starting in forest with the
    *  ten-ambush formation. */
@@ -199,7 +203,11 @@ export type StratagemId =
   | 'lightning'     // 落雷 — direct damage with chance to confuse
   | 'supply-strike' // 兵糧攻 — sap morale of all enemies on map
   | 'gallop'        // 飛将 — Lü Bu's signature: charge 3 hexes + strike
-  | 'dragon-veil';  // 龍威 — Zhao Yun's signature: free hit on every adjacent enemy
+  | 'dragon-veil'   // 龍威 — Zhao Yun's signature: free hit on every adjacent enemy
+  // ── Naval (water battles only) ──
+  | 'ram'           // 撞角 — warship rams an adjacent ship; heavy hull damage
+  | 'board'         // 接舷 — board an adjacent ship; marine melee, shatters morale
+  | 'fire-ship';    // 火船 — fireships; devastating against chained fleets (赤壁)
 
 export interface Stratagem {
   id: StratagemId;
@@ -291,6 +299,12 @@ export interface TacticalBattle {
   attackerArmyId?: EntityId;
   /** The enemy (defender) army id, for field-battle casualty writeback. */
   defenderArmyId?: EntityId;
+  /**
+   * Naval engagement — the battlefield is open water, every unit is a ship,
+   * and fire spreads ruinously through chained fleets. Set automatically when
+   * the contested city's terrain is `water`.
+   */
+  naval?: boolean;
 }
 
 export interface TacticalCityStructure {

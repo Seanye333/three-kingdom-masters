@@ -24,6 +24,9 @@ export interface TerrainHint {
   /** Map coords (0-1000 east-west, 0-720 north-south). */
   x?: number;
   y?: number;
+  /** Naval battle — generate an open-water board (river everywhere, with a
+   *  few bridge crossings, shoals/marsh, and the odd island of plain). */
+  naval?: boolean;
 }
 
 interface TerrainMix {
@@ -111,6 +114,29 @@ export function generateTerrain(
   overrides?: Record<string, TerrainKind>,
 ): TacticalTile[] {
   const rng = makeRng(cityId);
+
+  // ── Naval board: open water with scattered crossings, shoals and islets ──
+  if (hint.naval && !overrides) {
+    const tiles: TacticalTile[] = [];
+    const midRow = Math.floor(height / 2);
+    for (let row = 0; row < height; row++) {
+      for (let col = 0; col < width; col++) {
+        let terrain: TerrainKind = 'river';
+        const r = rng();
+        // A couple of bridge crossings let any straggling land unit traverse.
+        if (col === Math.floor(width / 3) || col === Math.floor((2 * width) / 3)) {
+          if (row === midRow) terrain = 'bridge';
+        }
+        if (terrain === 'river') {
+          if (r < 0.06) terrain = 'marsh';        // shoals / reed banks
+          else if (r < 0.10) terrain = 'plain';   // a small islet
+        }
+        tiles.push({ coord: { col, row }, terrain });
+      }
+    }
+    return tiles;
+  }
+
   const baseMix = BASE_MIX[hint.terrain ?? 'plain'];
   const mix = biased(baseMix, hint.x, hint.y);
   const tiles: TacticalTile[] = [];
