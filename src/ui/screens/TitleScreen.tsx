@@ -327,8 +327,9 @@ export function TitleScreen() {
                   );
                 })}
               </ul>
-              {/* Right — detail panel for the highlighted force */}
+              {/* Right — clickable territory map + force detail */}
               <div style={{ flex: '1 1 0', minWidth: 0, border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)', padding: '1rem', minHeight: 340 }}>
+                <MiniMap scenario={scenario} highlightForceId={selectedForceId} labelCapitals onSelectForce={setSelectedForceId} />
                 {selectedForce && selectedRuler ? (() => {
                   const st = forceStats(selectedForce.id);
                   const top = [...st.officers]
@@ -336,7 +337,7 @@ export function TitleScreen() {
                     .slice(0, 6);
                   const strength = st.cities >= 8 ? t('強', 'Strong') : st.cities >= 3 ? t('中', 'Moderate') : t('弱（高難度）', 'Weak (hard)');
                   return (
-                    <div>
+                    <div style={{ marginTop: '0.8rem', borderTop: '1px solid #3a2818', paddingTop: '0.7rem' }}>
                       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
                         <OfficerPortrait officer={selectedRuler} size={72} forceColor={selectedForce.color} year={startYear} />
                         <div>
@@ -376,15 +377,11 @@ export function TitleScreen() {
                           ))}
                         </div>
                       </div>
-                      {/* mini territory map spotlighting this force's holdings */}
-                      <div style={{ marginTop: '0.7rem', borderTop: '1px solid #3a2818', paddingTop: '0.6rem' }}>
-                        <MiniMap scenario={scenario} highlightForceId={selectedForce.id} labelCapitals />
-                      </div>
                     </div>
                   );
                 })() : (
-                  <div style={{ color: '#6a5238', textAlign: 'center', paddingTop: '7rem', fontSize: '0.9rem' }}>
-                    {t('← 選擇一個勢力查看詳情', '← Select a force to see details')}
+                  <div style={{ color: '#6a5238', textAlign: 'center', padding: '1.2rem 1rem 0.5rem', fontSize: '0.85rem' }}>
+                    {t('點擊地圖上的城池，或左側列表，選擇勢力', 'Click a city on the map — or the list — to pick a force')}
                   </div>
                 )}
               </div>
@@ -586,7 +583,7 @@ function miniBtn(disabled: boolean): CSSProperties {
 // A compact territory map of a scenario: every city a dot coloured by its owning
 // force (neutral = dark), with adjacency lines for a sense of the road network.
 // Pass highlightForceId to spotlight one force's holdings.
-function MiniMap({ scenario, highlightForceId, labelCapitals }: { scenario: Scenario; highlightForceId?: string | null; labelCapitals?: boolean }) {
+function MiniMap({ scenario, highlightForceId, labelCapitals, onSelectForce }: { scenario: Scenario; highlightForceId?: string | null; labelCapitals?: boolean; onSelectForce?: (fid: string) => void }) {
   const [hoverId, setHoverId] = useState<string | null>(null);
   const colorOf = (fid: string | null) =>
     fid ? (scenario.forces.find((f) => f.id === fid)?.color ?? '#4a3a28') : '#4a3a28';
@@ -633,6 +630,7 @@ function MiniMap({ scenario, highlightForceId, labelCapitals }: { scenario: Scen
             style={{ cursor: 'pointer' }}
             onMouseEnter={() => setHoverId(c.id)}
             onMouseLeave={() => setHoverId((p) => (p === c.id ? null : p))}
+            onClick={() => { if (onSelectForce && c.ownerForceId) onSelectForce(c.ownerForceId); }}
           />
         );
       })}
