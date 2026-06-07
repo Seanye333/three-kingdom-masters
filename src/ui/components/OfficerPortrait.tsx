@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Officer } from '../../game/types';
 
 /**
@@ -61,6 +62,10 @@ interface PortraitProps {
   faction?: 'wei' | 'shu' | 'wu' | 'warlord';
 }
 
+// Officer ids whose portrait image 404'd this session — skip re-requesting so we
+// don't re-fire a failing GET for every list cell.
+const missingPortraits = new Set<string>();
+
 export function OfficerPortrait({
   officer,
   size = 48,
@@ -73,6 +78,11 @@ export function OfficerPortrait({
   const factionAttr: Record<string, boolean> = {};
   if (faction) factionAttr[`data-faction-${faction}`] = true;
 
+  // Prefer a hand-drawn portrait at public/portraits/<id>.webp if present; fall
+  // back to the procedural SVG silhouette when there is no image for this id.
+  const [imgFailed, setImgFailed] = useState(() => missingPortraits.has(officer.id));
+  const src = `${import.meta.env.BASE_URL}portraits/${officer.id}.webp`;
+
   return (
     <div
       className="tkm-portrait"
@@ -80,9 +90,21 @@ export function OfficerPortrait({
       title={`${officer.name.zh} · ${ARCH_LABEL[arch]}`}
       {...factionAttr}
     >
-      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-        <ArchetypeSilhouette arch={arch} accent={accent} />
-      </svg>
+      {imgFailed ? (
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <ArchetypeSilhouette arch={arch} accent={accent} />
+        </svg>
+      ) : (
+        <img
+          src={src}
+          alt={officer.name.zh}
+          width={size}
+          height={size}
+          loading="lazy"
+          onError={() => { missingPortraits.add(officer.id); setImgFailed(true); }}
+          style={{ width: size, height: size, objectFit: 'cover', display: 'block', border: `1px solid ${accent}` }}
+        />
+      )}
     </div>
   );
 }
