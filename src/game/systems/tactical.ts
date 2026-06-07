@@ -7,6 +7,7 @@ import type {
   NamedBattleMap,
   Officer,
   Reinforcement,
+  ShipClass,
   StratagemId,
   TacticalBattle,
   TacticalStatus,
@@ -18,6 +19,7 @@ import type {
   Weather,
 } from '../types';
 import { NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../data/namedMaps';
+import { SHIP_CLASSES_BY_ID } from '../data/ships';
 import { pickVoiceLine } from '../data/voiceLines';
 import { generateTerrain, type TerrainHint } from './battlefieldTerrain';
 import { effectiveStats } from './traitEffects';
@@ -64,6 +66,7 @@ export function defenderTerrainShield(terrain: TerrainKind): number {
     case 'mountain':   return 0.85;
     case 'forest':     return 0.92;
     case 'gate':       return 0.6;  // city gate is tough to crack
+    case 'wall':       return 0.5;  // rampart — brutal to assault directly
     default:           return 1.0;
   }
 }
@@ -83,6 +86,32 @@ export function inferUnitType(o: Officer | undefined): UnitType {
   if (o.stats.war >= 85) return 'cavalry';
   if (o.stats.intelligence >= 80) return 'archers';
   return 'infantry';
+}
+
+// ─── Naval helpers ──────────────────────────────────────────────────────
+
+/**
+ * Pick a ship class for a contingent by its size — the flagship anchors the
+ * line, big detachments crew proper warships, small ones ride fast skiffs.
+ */
+export function assignShipClass(troops: number, isCommander: boolean): ShipClass {
+  if (isCommander) return 'flagship';
+  if (troops >= 6000) return 'da-yi';
+  if (troops >= 4000) return 'hai-hu';
+  if (troops >= 2500) return 'warship';
+  if (troops >= 1200) return 'dou-jian';
+  return 'zou-ge';
+}
+
+/**
+ * Hull-strength multiplier on a ship's combat output, derived from its class'
+ * combat strength (warship = 200 = 1.0× baseline). A 樓船 flagship hits ~1.4×,
+ * a 走舸 skiff ~0.85×.
+ */
+export function shipPowerMul(shipClass: ShipClass | undefined): number {
+  if (!shipClass) return 1;
+  const cs = SHIP_CLASSES_BY_ID[shipClass]?.combatStrength ?? 200;
+  return Math.max(0.85, Math.min(1.6, 1 + (cs - 200) / 1000));
 }
 
 // ─── Hex grid helpers (offset coordinates, "odd-q" flat-top) ──────────
@@ -145,6 +174,8 @@ export interface SetupParams {
   buildSlots?: ReadonlyArray<{ slot: number; buildingId?: import('../data/defenseBuildings').DefenseBuildingId; level: number }>;
   /** Geography hint (terrain category, port flag, coords) — drives terrain generation. */
   terrainHint?: TerrainHint;
+  /** Field battle (army vs army in the open) — no city, so no rampart wall. */
+  field?: boolean;
 }
 
 // (Legacy TERRAIN_RNG_SEED removed — terrain generation now lives in
@@ -202,8 +233,18 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   const weather: Weather = namedMap?.weather ?? p.weather ?? 'clear';
   const timeOfDay: TimeOfDay = namedMap?.timeOfDay ?? p.timeOfDay ?? 'day';
 
+  // A water city (and no scripted named-map terrain) makes this a naval
+  // engagement: open-water board, every contingent crews a ship.
+  const isNaval = !namedMap && p.terrainHint?.terrain === 'water';
+
   // Geography-aware terrain — uses the city's terrain/port/coords if provided.
-  const tiles = generateTerrain(p.cityId, width, height, p.terrainHint ?? {}, namedMap?.terrainOverrides);
+  const tiles = generateTerrain(
+    p.cityId,
+    width,
+    height,
+    { ...(p.terrainHint ?? {}), naval: isNaval },
+    namedMap?.terrainOverrides,
+  );
 
   const placeUnits = (
     pool: Array<{ officer: Officer; troops: number; unitType?: UnitType }>,
@@ -220,7 +261,11 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
       // Interleave around the vertical center: 0, +1, -1, +2, -2, ...
       const row = Math.floor(height / 2)
         + (rankIndex % 2 === 0 ? -Math.floor(rankIndex / 2) : Math.floor((rankIndex + 1) / 2));
-      const unitType = entry.unitType ?? inferUnitType(entry.officer);
+      // In a naval battle every contingent is a ship crew, regardless of the
+      // officer's land specialty.
+      const unitType = isNaval ? 'navy' : (entry.unitType ?? inferUnitType(entry.officer));
+      const isCommander = i === 0;
+      const shipClass = isNaval ? assignShipClass(entry.troops, isCommander) : undefined;
       const maxAp = unitType === 'cavalry' ? 4 : unitType === 'siege' ? 2 : 3;
       return {
         id: `${side}-${entry.officer.id}`,
@@ -235,9 +280,10 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
         ap: maxAp,
         maxAp,
         morale: 100,
-        isCommander: i === 0,
+        isCommander,
         effects: [],
         unitType,
+        ...(shipClass ? { shipClass } : {}),
       };
     });
   };
@@ -301,6 +347,34 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     return next;
   });
 
+  // ── City rampart: procedural sieges get a battered wall line just in front
+  // of the defender with a central gate. The wall spans only the middle rows,
+  // so an army without siege gear can still flow around the flanks (just
+  // slower) and the fight never hard-stalls. Named maps (their own terrain),
+  // field battles and naval engagements stay unwalled.
+  let battleTiles = tiles;
+  let wallHp: Record<string, number> | undefined;
+  if (!isNaval && !p.field && !namedMap && width >= 8 && height >= 6) {
+    const wallCol = Math.max(2, width - 3);
+    const r0 = Math.floor(height * 0.28);
+    const r1 = Math.ceil(height * 0.72) - 1;
+    const gateRow = Math.floor(height / 2);
+    const occupied = new Set(finalUnits.map((u) => `${u.coord.col},${u.coord.row}`));
+    const hp: Record<string, number> = {};
+    battleTiles = tiles.map((t) => {
+      if (t.coord.col !== wallCol || t.coord.row < r0 || t.coord.row > r1) return t;
+      const key = `${t.coord.col},${t.coord.row}`;
+      if (occupied.has(key)) return t; // never wall over a unit
+      if (t.coord.row === gateRow) {
+        hp[key] = 700;
+        return { ...t, terrain: 'gate' as TerrainKind };
+      }
+      hp[key] = 1000;
+      return { ...t, terrain: 'wall' as TerrainKind };
+    });
+    if (Object.keys(hp).length > 0) wallHp = hp;
+  }
+
   return {
     id: `tac-${p.cityId}-${Date.now()}`,
     cityId: p.cityId,
@@ -308,7 +382,7 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     defenderForceId: p.defenderForceId,
     width,
     height,
-    tiles,
+    tiles: battleTiles,
     units: finalUnits,
     turn: 1,
     activeSide: 'attacker',
@@ -327,6 +401,9 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     damagePopups: [],
     log,
     cityStructures: cityStructures.length > 0 ? cityStructures : undefined,
+    naval: isNaval || undefined,
+    wallHp,
+    field: p.field || undefined,
   };
 }
 
@@ -370,6 +447,7 @@ const TERRAIN_MOVE_COST: Record<TerrainKind, number> = {
   chokepoint: 1,  // narrow but flat
   bridge: 1,      // crosses river cheaply
   gate: 99,       // impassable until siege breaks it (handled elsewhere)
+  wall: 99,       // impassable rampart until battered down (handled elsewhere)
   watchtower: 2,  // climbable
 };
 
@@ -392,6 +470,29 @@ export function moveCost(b: TacticalBattle, to: HexCoord): number {
   return TERRAIN_MOVE_COST[t.terrain];
 }
 
+/** Enemies (living, visible) currently adjacent to a unit — its zone-of-control
+ *  captors. Breaking away from all of them costs an extra AP. */
+function engagedFoes(b: TacticalBattle, unit: TacticalUnit): TacticalUnit[] {
+  return b.units.filter(
+    (e) => e.side !== unit.side && e.troops > 0 && !e.hidden && hexDistance(e.coord, unit.coord) === 1,
+  );
+}
+
+/**
+ * Movement cost into a hex including a +1 zone-of-control surcharge when the
+ * unit breaks contact with every enemy it was engaged with — melee is sticky,
+ * so peeling a unit off the line costs extra. Repositioning while staying in
+ * contact is free of the surcharge.
+ */
+export function movementCost(b: TacticalBattle, unit: TacticalUnit, to: HexCoord): number {
+  const base = moveCost(b, to);
+  if (base >= 99) return base;
+  const foes = engagedFoes(b, unit);
+  if (foes.length === 0) return base;
+  const stillEngaged = foes.some((e) => hexDistance(e.coord, to) === 1);
+  return stillEngaged ? base : base + 1;
+}
+
 export function canMove(
   b: TacticalBattle,
   unit: TacticalUnit,
@@ -400,7 +501,7 @@ export function canMove(
   if (unit.ap <= 0) return false;
   const dist = hexDistance(unit.coord, to);
   if (dist !== 1) return false;
-  const cost = moveCost(b, to);
+  const cost = movementCost(b, unit, to);
   if (cost > unit.ap) return false;
   if (unitAt(b, to)) return false;
   return true;
@@ -413,7 +514,7 @@ export function moveUnit(
 ): TacticalBattle {
   const unit = b.units.find((u) => u.id === unitId);
   if (!unit || !canMove(b, unit, to)) return b;
-  const cost = moveCost(b, to);
+  const cost = movementCost(b, unit, to);
   // Reveal any hidden enemy that just became adjacent to the moved unit
   // (and any hidden unit adjacent to a watchtower the moved unit reveals).
   const adj = hexNeighbours(to);
@@ -432,33 +533,106 @@ export function moveUnit(
 }
 
 /**
- * Siege units adjacent to a gate hex can spend an attack action to break
- * it open — converts the gate tile to plain (passable) and consumes AP.
- * Non-siege units cannot break gates.
+ * Battering power a siege contingent brings to bear on a wall or gate per
+ * assault — scales with the size of the engine crew.
  */
-export function breakGate(b: TacticalBattle, unitId: EntityId, gateCoord: HexCoord): TacticalBattle {
+export function siegeAssaultPower(troops: number): number {
+  return Math.floor(troops * 0.15) + 120;
+}
+
+/**
+ * Siege units adjacent to a 城門 gate or 城牆 wall hex spend an attack action to
+ * batter it. Destructible hexes (those tracked in `wallHp`) chip down over
+ * several assaults and only become a passable breach at 0 HP; hexes without
+ * tracked HP (e.g. named-map gates) break in a single hit, as they always did.
+ * Non-siege units cannot batter fortifications.
+ *
+ * Kept named `breakGate` for its existing callers; it now handles walls too.
+ */
+export function breakGate(b: TacticalBattle, unitId: EntityId, coord: HexCoord): TacticalBattle {
   const unit = b.units.find((u) => u.id === unitId);
   if (!unit || unit.unitType !== 'siege') return b;
   if (unit.ap <= 0) return b;
-  const tile = tileAt(b, gateCoord);
-  if (!tile || tile.terrain !== 'gate') return b;
-  if (hexDistance(unit.coord, gateCoord) !== 1) return b;
+  const tile = tileAt(b, coord);
+  if (!tile || (tile.terrain !== 'gate' && tile.terrain !== 'wall')) return b;
+  if (hexDistance(unit.coord, coord) !== 1) return b;
+
+  const key = `${coord.col},${coord.row}`;
+  const isGate = tile.terrain === 'gate';
+  const curHp = b.wallHp?.[key];
+  const spendAp = (u: TacticalUnit) => (u.id === unitId ? { ...u, ap: 0 } : u);
+
+  // Tracked HP — chip it down; breach only at 0.
+  if (curHp !== undefined) {
+    const newHp = curHp - siegeAssaultPower(unit.troops);
+    if (newHp > 0) {
+      return {
+        ...b,
+        wallHp: { ...b.wallHp, [key]: newHp },
+        units: b.units.map(spendAp),
+        log: [
+          ...(b.log ?? []),
+          { turn: b.turn, text: isGate ? '攻城槌猛撞城門！' : '投石轟擊城牆！', kind: 'event' },
+        ],
+      };
+    }
+    const nextWallHp = { ...(b.wallHp ?? {}) };
+    delete nextWallHp[key];
+    return {
+      ...b,
+      tiles: b.tiles.map((t) =>
+        t.coord.col === coord.col && t.coord.row === coord.row ? { ...t, terrain: 'plain' } : t,
+      ),
+      wallHp: Object.keys(nextWallHp).length > 0 ? nextWallHp : undefined,
+      units: b.units.map(spendAp),
+      log: [
+        ...(b.log ?? []),
+        { turn: b.turn, text: isGate ? '城門告破！' : '城牆崩塌，缺口洞開！', kind: 'event' },
+      ],
+    };
+  }
+
+  // No tracked HP — one-shot (legacy named-map gate behaviour).
   return {
     ...b,
     tiles: b.tiles.map((t) =>
-      t.coord.col === gateCoord.col && t.coord.row === gateCoord.row
-        ? { ...t, terrain: 'plain' }
-        : t,
+      t.coord.col === coord.col && t.coord.row === coord.row ? { ...t, terrain: 'plain' } : t,
     ),
-    units: b.units.map((u) => u.id === unitId ? { ...u, ap: 0 } : u),
-    log: [
-      ...(b.log ?? []),
-      {
-        turn: b.turn,
-        text: `Siege engine smashes the gate down!`,
-        kind: 'event',
-      },
-    ],
+    units: b.units.map(spendAp),
+    log: [...(b.log ?? []), { turn: b.turn, text: 'Siege engine smashes the gate down!', kind: 'event' }],
+  };
+}
+
+/**
+ * 雲梯登城 — a (non-siege) foot unit adjacent to a 城牆 wall can scale it and
+ * drop onto the far side, *if* a friendly siege engine (the ladder/tower) is
+ * also adjacent to that same wall hex. Spends all AP. Lets an assault pour
+ * through the rampart without first reducing it to rubble.
+ */
+export function scaleWall(b: TacticalBattle, unitId: EntityId, wallCoord: HexCoord): TacticalBattle {
+  const unit = b.units.find((u) => u.id === unitId);
+  if (!unit || unit.ap <= 0 || unit.unitType === 'siege') return b;
+  const tile = tileAt(b, wallCoord);
+  if (!tile || tile.terrain !== 'wall') return b;
+  if (hexDistance(unit.coord, wallCoord) !== 1) return b;
+  // Need a siege engine of our side braced against the same wall.
+  const hasLadder = b.units.some(
+    (u) => u.side === unit.side && u.unitType === 'siege' && u.troops > 0 &&
+      hexDistance(u.coord, wallCoord) === 1,
+  );
+  if (!hasLadder) return b;
+  // Land on a free, passable hex on the far side of the wall.
+  const landing = hexNeighbours(wallCoord).find((c) => {
+    const t = tileAt(b, c);
+    if (!t || TERRAIN_MOVE_COST[t.terrain] >= 99) return false;
+    if (unitAt(b, c)) return false;
+    return unit.side === 'attacker' ? c.col > wallCoord.col : c.col < wallCoord.col;
+  });
+  if (!landing) return b;
+  return {
+    ...b,
+    units: b.units.map((u) => (u.id === unitId ? { ...u, coord: landing, ap: 0 } : u)),
+    log: [...(b.log ?? []), { turn: b.turn, text: '雲梯架起，士卒踏牆而入！', kind: 'event' }],
   };
 }
 
@@ -529,6 +703,7 @@ export function attackUnits(
   // Burning status: 5% troops of attacker added to damage (the flames keep eating).
   const attackerBurning = attacker.effects.some((e) => e.kind === 'burning');
   const attackerDemoralized = attacker.effects.some((e) => e.kind === 'demoralized');
+  const attackerStarving = attacker.effects.some((e) => e.kind === 'starving');
 
   const counter = counterMultiplier(attacker.unitType, target.unitType);
   const aTerrainTile = tileAt(b, attacker.coord);
@@ -561,15 +736,27 @@ export function attackUnits(
     ? Math.max(0.6, 1 - 0.05 * (b.turn - 9))
     : 1.0;
 
+  // Naval: a bigger hull (樓船/大翼) hits harder than a 走舸 skiff.
+  const shipMul = shipPowerMul(attacker.shipClass);
+
+  // 夾擊 — pincer bonus: every *other* friendly unit also pressing the target
+  // adds +12% (a surrounded foe can't guard every side), capped at +36%.
+  const pincers = b.units.filter(
+    (u) => u.side === attacker.side && u.id !== attacker.id && u.troops > 0 &&
+      hexDistance(u.coord, target.coord) === 1,
+  ).length;
+  const pincerMul = 1 + Math.min(0.36, 0.12 * pincers);
+
   const base =
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
     base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
-    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul,
+    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul * pincerMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
   if (attackerDemoralized) damage = Math.floor(damage * 0.8);
+  if (attackerStarving) damage = Math.floor(damage * 0.85); // 糧盡兵疲
 
   // Critical hit on natural high roll.
   const isCrit = rng() < 0.12;
@@ -1076,6 +1263,112 @@ export function applyStratagem(
       };
       return finalize(next, unitId, stratagem, 3);
     }
+    case 'ram': {
+      // 撞角 — drive the prow into an adjacent ship. Heavy hull damage scaled
+      // by this ship's class; spends all AP like a charge.
+      if (hexDistance(unit.coord, targetCoord) > 1)
+        return { battle: b, ok: false, reason: 'adjacent only' };
+      const target = unitAt(b, targetCoord);
+      if (!target || target.side === unit.side)
+        return { battle: b, ok: false, reason: 'invalid target' };
+      const aWar = off?.stats.war ?? 60;
+      const dLead = officers[target.officerId]?.stats.leadership ?? 50;
+      const damage = Math.floor(
+        (unit.troops * (aWar + 30) * 1.6 * shipPowerMul(unit.shipClass)) / (dLead + 50),
+      );
+      const next: TacticalBattle = {
+        ...b,
+        units: b.units.map((u) => {
+          if (u.id === target.id)
+            return { ...u, troops: Math.max(0, u.troops - damage), morale: Math.max(0, u.morale - 20) };
+          if (u.id === unit.id) return { ...u, ap: 0 };
+          return u;
+        }),
+        damagePopups: [
+          ...(b.damagePopups ?? []),
+          { id: `dmg-${Date.now()}-ram`, coord: target.coord, text: `-${damage.toLocaleString()}!`, color: '#ff6a4a', spawnedAt: Date.now() },
+        ],
+      };
+      return finalize(next, unitId, stratagem, 2);
+    }
+    case 'board': {
+      // 接舷 — grapple an adjacent ship and fight it out on the decks. War-based
+      // marine melee that shatters morale and costs the boarder little.
+      if (hexDistance(unit.coord, targetCoord) > 1)
+        return { battle: b, ok: false, reason: 'adjacent only' };
+      const target = unitAt(b, targetCoord);
+      if (!target || target.side === unit.side)
+        return { battle: b, ok: false, reason: 'invalid target' };
+      const aWar = off?.stats.war ?? 60;
+      const dWar = officers[target.officerId]?.stats.war ?? 50;
+      const damage = Math.floor((unit.troops * (aWar + 30) * 1.1) / (dWar + 60));
+      const selfLoss = Math.floor(damage * 0.25);
+      const next: TacticalBattle = {
+        ...b,
+        units: b.units.map((u) => {
+          if (u.id === target.id)
+            return { ...u, troops: Math.max(0, u.troops - damage), morale: Math.max(0, u.morale - 35) };
+          if (u.id === unit.id) return { ...u, troops: Math.max(0, u.troops - selfLoss) };
+          return u;
+        }),
+        damagePopups: [
+          ...(b.damagePopups ?? []),
+          { id: `dmg-${Date.now()}-board`, coord: target.coord, text: `-${damage.toLocaleString()}`, color: '#ff8a4a', spawnedAt: Date.now() },
+        ],
+      };
+      return finalize(next, unitId, stratagem, 1);
+    }
+    case 'fire-ship': {
+      // 火船 — send blazing hulks downwind into the enemy line. Sets fire (long
+      // in wind, doused in rain) plus immediate damage; ruinous against a fleet
+      // chained together (連環計 + 火船 = 赤壁).
+      if ((off?.stats.intelligence ?? 0) < 65)
+        return { battle: b, ok: false, reason: 'requires INT 65' };
+      if (hexDistance(unit.coord, targetCoord) > 3)
+        return { battle: b, ok: false, reason: 'out of range' };
+      const target = unitAt(b, targetCoord);
+      if (!target || target.side === unit.side)
+        return { battle: b, ok: false, reason: 'invalid target' };
+      const turns = b.weather === 'wind' ? 5 : b.weather === 'rain' ? 1 : 4;
+      const damage = Math.floor(target.troops * 0.12);
+      let next: TacticalBattle = {
+        ...b,
+        units: b.units.map((u) =>
+          u.id === target.id ? { ...u, troops: Math.max(0, u.troops - damage) } : u,
+        ),
+        damagePopups: [
+          ...(b.damagePopups ?? []),
+          { id: `dmg-${Date.now()}-fireship`, coord: target.coord, text: `-${damage.toLocaleString()}🔥`, color: '#ff7a3a', spawnedAt: Date.now() },
+        ],
+      };
+      next = setStatus(next, target.id, { kind: 'burning', turnsLeft: turns });
+      return finalize(next, unitId, stratagem, 3);
+    }
+    case 'raid-supply': {
+      // 劫糧道 — only from deep in the enemy rear (flank a raider around the
+      // line, 烏巢-style). Torches the grain: every enemy unit starts starving
+      // — bleeding deserters and morale each turn. Long cooldown: the depot
+      // only burns once.
+      const inRear = unit.side === 'attacker'
+        ? unit.coord.col >= b.width - 3
+        : unit.coord.col <= 2;
+      if (!inRear)
+        return { battle: b, ok: false, reason: 'must reach the enemy rear' };
+      const foes = b.units.filter((u) => u.side !== unit.side && u.troops > 0);
+      if (foes.length === 0) return { battle: b, ok: false, reason: 'no enemy supply to burn' };
+      let next = b;
+      for (const e of foes) {
+        next = setStatus(next, e.id, { kind: 'starving', turnsLeft: 5 });
+      }
+      next = {
+        ...next,
+        log: [
+          ...(next.log ?? []),
+          { turn: b.turn, text: '糧道斷絕，敵軍大亂！', speaker: unit.officerId, kind: 'event' },
+        ],
+      };
+      return finalize(next, unitId, stratagem, 6);
+    }
   }
 }
 
@@ -1124,14 +1417,21 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   // Apply ongoing effects (burning), tick durations, then flip side.
   let tickedUnits = b.units.map((u) => {
     let troops = u.troops;
+    let morale = u.morale;
     const newEffects: TacticalStatus[] = [];
-    // Rattan-armor doubles fire damage (oil-cured rattan ignites).
+    // Rattan-armor doubles fire damage (oil-cured rattan ignites); so do
+    // pitch-caulked wooden ships — fire is death on the water (赤壁).
     const uSideFormation = u.side === 'attacker' ? b.attackerFormation : b.defenderFormation;
-    const fireMul = uSideFormation === 'rattan-armor' ? 2.0 : 1.0;
+    const fireMul = uSideFormation === 'rattan-armor' || u.unitType === 'navy' ? 2.0 : 1.0;
     for (const e of u.effects) {
       if (e.kind === 'burning') {
         const burn = Math.floor(u.maxTroops * 0.08 * fireMul);
         troops = Math.max(0, troops - burn);
+      }
+      // 糧盡 — a starving host bleeds deserters and loses heart each turn.
+      if (e.kind === 'starving') {
+        troops = Math.max(0, troops - Math.floor(u.maxTroops * 0.06));
+        morale = Math.max(0, morale - 5);
       }
       if (e.turnsLeft > 1) {
         newEffects.push({ ...e, turnsLeft: e.turnsLeft - 1 });
@@ -1141,7 +1441,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     if (inFormation(u.side)) {
       troops = Math.min(u.maxTroops, troops + Math.floor(u.maxTroops * 0.04));
     }
-    return { ...u, troops, effects: newEffects, ap: u.maxAp };
+    return { ...u, troops, morale, effects: newEffects, ap: u.maxAp };
   });
 
   // ── Fire spread: each burning unit may set an adjacent unit alight.
@@ -1190,6 +1490,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
       let chance = baseSpreadChance;
       if (tile?.terrain === 'forest') chance *= 1.6;
       if (adjFormation === 'rattan-armor') chance *= 2.0;
+      if (adjUnit.unitType === 'navy') chance *= 2.0; // fire leaps hull to hull
       // Strong wind alignment bonus when picked unit is downwind.
       if (scored[0].score > 0 && b.windDirection !== 'calm') chance *= 1.3;
       if (Math.random() < chance) {
@@ -1273,8 +1574,8 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   // Objective progress.
   let attackerObj = b.attackerObjective;
   let defenderObj = b.defenderObjective;
-  attackerObj = tickObjective(attackerObj, surviving, 'attacker', b.turn + 1);
-  defenderObj = tickObjective(defenderObj, surviving, 'defender', b.turn + 1);
+  attackerObj = tickObjective(attackerObj, surviving, 'attacker', b.width);
+  defenderObj = tickObjective(defenderObj, surviving, 'defender', b.width);
 
   // Winner check.
   const attackerLeft = surviving.some((u) => u.side === 'attacker');
@@ -1320,7 +1621,9 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
       const attackerUnits = unitsAfterStructures.filter((u) => u.side === 'attacker' && u.troops > 0);
       if (attackerUnits.length === 0) continue;
       // Range and damage per kind.
-      let range = 0, dmg = 0, oneShot = false;
+      let range: number;
+      let dmg: number;
+      let oneShot = false;
       switch (s.buildingId) {
         case 'watchtower':       range = 4; dmg = 80 * s.level; break;
         case 'arrow-platform':   range = 5; dmg = 100 * s.level; break;
@@ -1369,6 +1672,51 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     updatedStructures = next;
   }
 
+  // ── 滾木礌石 / 金汁 — a manned rampart pours death on attackers at its base.
+  // Triggers at the end of the attacker's turn for each intact wall/gate hex
+  // that still has a living defender within 2 hexes (an abandoned wall is
+  // silent). A battered wall pours less. Brutal on units hugging the wall to
+  // assault it — bring siege engines to breach fast, or flank the open ends.
+  if (turnEndingForAttacker && b.wallHp) {
+    const oilByUnit: Record<string, number> = {};
+    for (const [key, hp] of Object.entries(b.wallHp)) {
+      if (hp <= 0) continue;
+      const [wc, wr] = key.split(',').map(Number);
+      const wallCoord = { col: wc, row: wr };
+      const tile = b.tiles.find((t) => t.coord.col === wc && t.coord.row === wr);
+      if (!tile || (tile.terrain !== 'wall' && tile.terrain !== 'gate')) continue;
+      const manned = unitsAfterStructures.some(
+        (u) => u.side === 'defender' && u.troops > 0 && hexDistance(u.coord, wallCoord) <= 2,
+      );
+      if (!manned) continue;
+      const initialHp = tile.terrain === 'gate' ? 700 : 1000;
+      const frac = Math.max(0.3, Math.min(1, hp / initialHp));
+      const dmg = Math.round((tile.terrain === 'gate' ? 180 : 300) * frac);
+      for (const u of unitsAfterStructures) {
+        if (u.side === 'attacker' && u.troops > 0 && hexDistance(u.coord, wallCoord) === 1) {
+          oilByUnit[u.id] = (oilByUnit[u.id] ?? 0) + dmg;
+        }
+      }
+    }
+    if (Object.keys(oilByUnit).length > 0) {
+      unitsAfterStructures = unitsAfterStructures.map((u) => {
+        const oil = oilByUnit[u.id];
+        if (!oil) return u;
+        const loss = Math.min(u.troops, Math.min(oil, 700)); // cap per turn
+        additionalAttackerLoss += loss;
+        structurePopups.push({
+          id: `oil-${u.id}-t${b.turn}`,
+          coord: u.coord,
+          text: `−${loss}`,
+          color: '#e0a040',
+          spawnedAt: Date.now(),
+        });
+        return { ...u, troops: Math.max(0, u.troops - loss), morale: Math.max(0, u.morale - 5) };
+      });
+      structureLog.push({ turn: b.turn, text: '城上滾木礌石、金汁傾下！', kind: 'event' });
+    }
+  }
+
   return {
     ...b,
     units: unitsAfterStructures.filter((u) => u.troops > 0 && u.morale > 0),
@@ -1390,7 +1738,7 @@ function tickObjective(
   obj: BattleObjective | undefined,
   units: TacticalUnit[],
   side: 'attacker' | 'defender',
-  _nextTurn: number,
+  width: number,
 ): BattleObjective | undefined {
   if (!obj || obj.resolved) return obj;
   if (obj.kind === 'hold-tile' && obj.tileCoord) {
@@ -1414,10 +1762,12 @@ function tickObjective(
     return { ...obj, progress };
   }
   if (obj.kind === 'escape') {
+    // Spirit the commander off the field via their own edge: attackers exit the
+    // way they came (col 0), defenders out the far edge (col width-1).
     const cmd = units.find((u) => u.side === side && u.isCommander);
     if (!cmd) return { ...obj, resolved: 'failure' };
-    const atEdge = cmd.coord.col === 0 || cmd.coord.col === cmd.coord.col; // placeholder
-    if (atEdge) return { ...obj, resolved: 'success' };
+    const homeCol = side === 'attacker' ? 0 : width - 1;
+    if (cmd.coord.col === homeCol) return { ...obj, resolved: 'success' };
   }
   return obj;
 }
@@ -1518,12 +1868,14 @@ function aiTryStratagem(
   unit: TacticalUnit,
   officers: Record<EntityId, Officer>,
   rng: () => number,
+  skill = 0.7,
 ): TacticalBattle | null {
   if (unit.ap < 1) return null;
   const off = officers[unit.officerId];
   if (!off) return null;
-  // Probability to attempt a stratagem at all (high INT casts more).
-  const baseChance = 0.20 + Math.max(0, (off.stats.intelligence - 60)) / 200;
+  // Probability to attempt a stratagem at all (high INT casts more; a more
+  // skilled AI reaches for its tricks more readily).
+  const baseChance = (0.20 + Math.max(0, (off.stats.intelligence - 60)) / 200) * (0.6 + 0.6 * skill);
   if (rng() > baseChance) return null;
 
   const enemies = b.units.filter((u) => u.side !== unit.side);
@@ -1590,6 +1942,32 @@ function aiTryStratagem(
       .sort((a, b1) => hexDistance(unit.coord, a.coord) - hexDistance(unit.coord, b1.coord));
     if (inRange.length > 0) candidates.push({ id: 'gallop', target: inRange[0].coord });
   }
+  // 10. naval play for ships — fireships (best vs a chained/clustered fleet),
+  //     then ram or board an adjacent enemy ship.
+  if (unit.unitType === 'navy') {
+    if (off.stats.intelligence >= 65) {
+      const inRange = enemies
+        .filter((e) => hexDistance(unit.coord, e.coord) <= 3)
+        .sort((a, b1) => {
+          // Prefer chained targets (fire will spread through the whole fleet).
+          const ac = a.effects.some((x) => x.kind === 'chained') ? 1 : 0;
+          const bc = b1.effects.some((x) => x.kind === 'chained') ? 1 : 0;
+          return bc - ac || b1.troops - a.troops;
+        });
+      if (inRange.length > 0) candidates.push({ id: 'fire-ship', target: inRange[0].coord });
+    }
+    if (adjEnemies.length > 0) {
+      const ramTarget = [...adjEnemies].sort((a, b1) => b1.troops - a.troops)[0];
+      if (off.stats.war >= 60) candidates.push({ id: 'board', target: ramTarget.coord });
+      if (off.stats.war >= 55) candidates.push({ id: 'ram', target: ramTarget.coord });
+    }
+  }
+  // 11. burn the enemy grain once a raider has reached their rear (烏巢).
+  if (off.stats.war >= 60) {
+    const inRear = unit.side === 'attacker' ? unit.coord.col >= b.width - 3 : unit.coord.col <= 2;
+    const enemyStarving = enemies.some((e) => e.effects.some((x) => x.kind === 'starving'));
+    if (inRear && !enemyStarving) candidates.push({ id: 'raid-supply', target: unit.coord });
+  }
 
   for (const c of candidates) {
     const r = applyStratagem(b, unit.id, c.id, c.target, officers);
@@ -1621,211 +1999,418 @@ function inferSignatureTactic(
   return stratagemId;
 }
 
-/** A 軍師-type officer: leans on stratagems, not melee. The AI keeps these
- *  out of harm's way so they survive to keep casting. */
-function isStrategist(o: Officer): boolean {
-  return o.stats.intelligence >= 80 && o.stats.war < 70;
+// ─── AI movement & role helpers ────────────────────────────────────────
+
+/** Map the global game difficulty onto the tactical AI's competence knob. */
+export function aiSkillForDifficulty(difficulty: 'easy' | 'normal' | 'hard'): number {
+  return difficulty === 'easy' ? 0.35 : difficulty === 'hard' ? 1.0 : 0.7;
 }
 
-/** Terrain of a tile (defaults to plain off-map / on missing tiles). */
-function tileTerrain(b: TacticalBattle, c: HexCoord): TerrainKind {
-  return tileAt(b, c)?.terrain ?? 'plain';
+/** Battlefield role drives how the AI positions and fights a unit. */
+export type TacticalRole = 'melee' | 'ranged' | 'strategist' | 'siege';
+
+/** Classify a unit: siege heads for gates, ranged kite, fragile high-INT
+ *  officers hang back and cast, everyone else brawls on the front line. */
+export function unitRole(o: Officer | undefined, unitType: UnitType): TacticalRole {
+  if (unitType === 'siege') return 'siege';
+  if (unitType === 'archers' || unitType === 'navy') return 'ranged';
+  const war = o?.stats.war ?? 60;
+  const int = o?.stats.intelligence ?? 60;
+  if (war < 65 && int >= 75) return 'strategist';
+  return 'melee';
 }
 
-/** How good a tile is for THIS unit to stand on: damage it deals there ÷
- *  damage it takes there. >1 = advantageous ground (hill/chokepoint, river for
- *  navy), <1 = poor footing (marsh/forest for cavalry, land for navy). */
-function tileValueFor(unit: TacticalUnit, terrain: TerrainKind): number {
+/** Acting order: front line first so the squishy units can react. */
+function roleRank(role: TacticalRole): number {
+  return role === 'melee' ? 0 : role === 'siege' ? 1 : role === 'ranged' ? 2 : 3;
+}
+
+/** How much a tile suits this unit type — rewards attack-boosting terrain and
+ *  cover (low incoming-damage terrain). Higher is better for positioning. */
+function terrainAffinity(type: UnitType, terrain: TerrainKind): number {
+  return terrainDamageMod(type, terrain) + (1 - defenderTerrainShield(terrain));
+}
+
+/** Standing value of a tile for a unit: damage it deals there ÷ damage it
+ *  takes there. ≥1.2 = advantageous ground worth holding (hill/chokepoint,
+ *  river for navy); <1 = poor footing. */
+export function tileValueFor(unit: TacticalUnit, terrain: TerrainKind): number {
   return terrainDamageMod(unit.unitType, terrain) / defenderTerrainShield(terrain);
 }
 
+/**
+ * Dijkstra cost field flowing outward from `goal` over passable terrain.
+ * Other units block their hex (you can't march through a stack) — except the
+ * goal hex itself, so we can path *up to* an enemy and stop adjacent. Gates
+ * (cost ≥ 99) are impassable. Returns cost keyed by "col,row".
+ */
+function costFieldTo(b: TacticalBattle, goal: HexCoord, mover: TacticalUnit): Map<string, number> {
+  const key = (c: HexCoord) => `${c.col},${c.row}`;
+  const goalKey = key(goal);
+  const blocked = new Set(
+    b.units
+      .filter((u) => u.troops > 0 && u.id !== mover.id && key(u.coord) !== goalKey)
+      .map((u) => key(u.coord)),
+  );
+  const dist = new Map<string, number>([[goalKey, 0]]);
+  const frontier: Array<{ c: HexCoord; d: number }> = [{ c: goal, d: 0 }];
+  while (frontier.length > 0) {
+    // Grid is small — a linear scan for the cheapest node is plenty fast.
+    let bi = 0;
+    for (let i = 1; i < frontier.length; i++) if (frontier[i].d < frontier[bi].d) bi = i;
+    const { c, d } = frontier.splice(bi, 1)[0];
+    if (d > (dist.get(key(c)) ?? Infinity)) continue;
+    for (const n of hexNeighbours(c)) {
+      const t = tileAt(b, n);
+      if (!t) continue;
+      const nk = key(n);
+      if (blocked.has(nk)) continue;
+      const step = TERRAIN_MOVE_COST[t.terrain];
+      if (step >= 99) continue; // gate / impassable
+      const nd = d + step;
+      if (nd < (dist.get(nk) ?? Infinity)) {
+        dist.set(nk, nd);
+        frontier.push({ c: n, d: nd });
+      }
+    }
+  }
+  return dist;
+}
+
+/**
+ * Best single step toward a goal: follows the cost field so the unit routes
+ * *around* mountains, rivers and friendly stacks instead of stalling against
+ * them, breaking ties toward terrain that suits the unit.
+ */
+export function bestStepToward(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  goal: HexCoord,
+  bonus?: (c: HexCoord) => number,
+): HexCoord | null {
+  const field = costFieldTo(b, goal, unit);
+  const key = (c: HexCoord) => `${c.col},${c.row}`;
+  let best: HexCoord | null = null;
+  let bestScore = Infinity;
+  for (const n of hexNeighbours(unit.coord)) {
+    if (!canMove(b, unit, n)) continue;
+    const d = field.get(key(n));
+    if (d === undefined) continue;
+    const tile = tileAt(b, n);
+    const aff = tile ? terrainAffinity(unit.unitType, tile.terrain) : 0;
+    // Lower score wins; terrain affinity and the optional bonus (cohesion /
+    // escort) shave it so the unit drifts toward good ground and its allies.
+    const score = d - aff * 0.1 - (bonus ? bonus(n) : 0);
+    if (score < bestScore) {
+      bestScore = score;
+      best = n;
+    }
+  }
+  return best;
+}
+
+/**
+ * Reposition a kiting unit to sit in its preferred [lo,hi] distance band from
+ * the nearest enemy, favouring terrain that boosts it. Returns the chosen
+ * hex, or null if simply holding position is already best.
+ */
+export function bandRepositionStep(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  enemies: TacticalUnit[],
+  lo: number,
+  hi: number,
+): HexCoord | null {
+  if (enemies.length === 0) return null;
+  const score = (c: HexCoord): number => {
+    const nd = Math.min(...enemies.map((e) => hexDistance(c, e.coord)));
+    let band: number;
+    if (nd < lo) band = (nd - lo) * 2; // too close → strong penalty
+    else if (nd <= hi) band = 2; // sweet spot
+    else band = (hi - nd) * 0.5; // too far → mild penalty
+    const tile = tileAt(b, c);
+    return band + (tile ? terrainAffinity(unit.unitType, tile.terrain) : 0);
+  };
+  let best: HexCoord | null = null;
+  let bestScore = score(unit.coord);
+  for (const n of hexNeighbours(unit.coord)) {
+    if (!canMove(b, unit, n)) continue;
+    const s = score(n);
+    if (s > bestScore) {
+      bestScore = s;
+      best = n;
+    }
+  }
+  return best;
+}
+
+/** Pick the juiciest target: nearby, countered by us, wounded, or a commander.
+ *  Weighting wounded enemies low makes the side gang up (focus fire). */
+export function pickAiTarget(
+  unit: TacticalUnit,
+  candidates: TacticalUnit[],
+): TacticalUnit | undefined {
+  if (candidates.length === 0) return undefined;
+  const score = (e: TacticalUnit): number => {
+    const counter = counterMultiplier(unit.unitType, e.unitType);
+    let s = hexDistance(unit.coord, e.coord);
+    if (e.isCommander) s *= 0.5;
+    if (counter >= 1.4) s *= 0.6; // we counter them — pursue
+    if (counter <= 0.8) s *= 1.8; // they counter us — avoid
+    const woundedRatio = e.troops / Math.max(1, e.maxTroops);
+    s *= 0.4 + woundedRatio; // weaker = juicier → focus fire
+    return s;
+  };
+  return [...candidates].sort((a, c) => score(a) - score(c))[0];
+}
+
+/**
+ * Choose which *adjacent* enemy to actually strike — never walk past a free
+ * hit. Mechanically grounded via predictAttackDamage + the same terrain/counter
+ * multipliers attackUnits applies, so the AI: (1) secures kills (a foe it can
+ * finish this hit deals no counter-attack — hugely valuable), (2) maximises the
+ * net troop swing (damage dealt − counter taken), and (3) decapitates enemy
+ * commanders.
+ */
+export function pickAdjacentTarget(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  adjEnemies: TacticalUnit[],
+  officers: Record<EntityId, Officer>,
+): TacticalUnit | undefined {
+  if (adjEnemies.length === 0) return undefined;
+  const aTerr = tileAt(b, unit.coord)?.terrain ?? 'plain';
+  const aTerrMod = terrainDamageMod(unit.unitType, aTerr);
+  const value = (e: TacticalUnit): number => {
+    const p = predictAttackDamage(b, unit, e, officers);
+    const eTerr = tileAt(b, e.coord)?.terrain ?? 'plain';
+    const fwdMul = counterMultiplier(unit.unitType, e.unitType) * aTerrMod * defenderTerrainShield(eTerr);
+    const expDmg = ((p.min + p.max) / 2) * fwdMul;
+    const willKill = p.max * fwdMul >= e.troops;
+    const ctrMul = counterMultiplier(e.unitType, unit.unitType);
+    const expCounter = willKill ? 0 : ((p.counterMin + p.counterMax) / 2) * ctrMul;
+    let v = expDmg - expCounter; // net troop swing in our favour
+    if (willKill) v += e.troops * 0.5 + 500; // remove a unit AND dodge the counter
+    if (e.isCommander) v += 800; // decapitation strike
+    return v;
+  };
+  return adjEnemies.reduce((a, c) => (value(c) > value(a) ? c : a));
+}
+
+/** A commander steers toward an unresolved movement objective. */
+function objectiveStep(b: TacticalBattle, unit: TacticalUnit): HexCoord | null {
+  if (!unit.isCommander) return null;
+  const obj = unit.side === 'attacker' ? b.attackerObjective : b.defenderObjective;
+  if (!obj || obj.resolved) return null;
+  let goal: HexCoord | null = null;
+  if ((obj.kind === 'hold-tile' || obj.kind === 'capture-supply') && obj.tileCoord) {
+    goal = obj.tileCoord;
+  } else if (obj.kind === 'escape') {
+    goal = { col: unit.side === 'attacker' ? 0 : b.width - 1, row: unit.coord.row };
+  }
+  if (!goal || hexDistance(unit.coord, goal) === 0) return null;
+  return bestStepToward(b, unit, goal);
+}
+
+/** Diff stratagem cooldowns to recover which (signature) tactic a unit fired. */
+function detectSignature(
+  prev: TacticalBattle,
+  next: TacticalBattle,
+  unit: TacticalUnit,
+  officers: Record<EntityId, Officer>,
+): AITurnResult['signatures'] {
+  const out: AITurnResult['signatures'] = [];
+  const prefix = `${unit.id}-`;
+  for (const [k, val] of Object.entries(next.stratagemCooldowns)) {
+    if (!k.startsWith(prefix)) continue;
+    if ((prev.stratagemCooldowns[k] ?? -1) >= val) continue;
+    const stratagemId = k.slice(prefix.length) as StratagemId;
+    const after = next.units.find((u) => u.id === unit.id);
+    if (!after) continue;
+    const tacticId = inferSignatureTactic(officers[after.officerId], stratagemId);
+    out.push({ tacticId, coord: after.coord, unitId: after.id, stratagemId });
+  }
+  return out;
+}
+
+/** One AI decision for a single unit. Returns the (possibly unchanged) battle,
+ *  whether it actually acted, and any signature tactics fired. */
+function aiActOnce(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  officers: Record<EntityId, Officer>,
+  rng: () => number,
+  skill: number,
+): { battle: TacticalBattle; acted: boolean; signatures: AITurnResult['signatures'] } {
+  const hold = { battle: b, acted: false, signatures: [] as AITurnResult['signatures'] };
+  const off = officers[unit.officerId];
+
+  // Ambusher lies in wait — springs only when an enemy is adjacent (landing
+  // the +30% ambush bonus); otherwise holds its concealed position.
+  if (unit.hidden) {
+    const adj = b.units.find(
+      (e) => e.side !== unit.side && !e.hidden && e.troops > 0 && hexDistance(unit.coord, e.coord) === 1,
+    );
+    if (adj) return { battle: attackUnits(b, unit.id, adj.id, officers, rng), acted: true, signatures: [] };
+    return hold;
+  }
+
+  const enemies = b.units.filter((u) => u.side !== unit.side && !u.hidden && u.troops > 0);
+  if (enemies.length === 0) return hold;
+  const role = unitRole(off, unit.unitType);
+  const fragile = role === 'ranged' || role === 'strategist';
+
+  // Reach for a stratagem first (skill-gated). Ranged units lob arrows here;
+  // casters unleash fire / confusion / lightning.
+  const stratResult = aiTryStratagem(b, unit, officers, rng, skill);
+  if (stratResult) {
+    return { battle: stratResult, acted: true, signatures: detectSignature(b, stratResult, unit, officers) };
+  }
+
+  // Siege engines batter an adjacent wall or gate.
+  if (unit.unitType === 'siege') {
+    const fort = hexNeighbours(unit.coord)
+      .map((c) => tileAt(b, c))
+      .find((t) => t?.terrain === 'gate' || t?.terrain === 'wall');
+    if (fort) return { battle: breakGate(b, unit.id, fort.coord), acted: true, signatures: [] };
+  }
+
+  // Broken units flee off their own edge instead of dying in place.
+  if (!unit.isCommander && unit.troops < unit.maxTroops * 0.3 && unit.morale < 30) {
+    const edgeCol = unit.side === 'attacker' ? 0 : b.width - 1;
+    if (Math.abs(unit.coord.col - edgeCol) <= 2) {
+      return { battle: retreatUnit(b, unit.id), acted: true, signatures: [] };
+    }
+  }
+
+  const adjEnemies = enemies.filter((e) => hexDistance(unit.coord, e.coord) === 1);
+
+  // Fragile units (archers, casters) keep their distance once the AI is
+  // skilled enough to micro; a clumsy low-skill AI just brawls in line.
+  const micro = skill >= 0.4;
+  if (fragile && micro) {
+    const lo = role === 'strategist' ? 3 : 2;
+    const hi = role === 'strategist' ? 6 : 4;
+    if (adjEnemies.length > 0) {
+      // Enemy in our face — back off if we can, else fight.
+      const step = bandRepositionStep(b, unit, enemies, lo, hi);
+      if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+      const t = pickAiTarget(unit, adjEnemies);
+      if (t) return { battle: attackUnits(b, unit.id, t.id, officers, rng), acted: true, signatures: [] };
+    }
+    // Drifted out of the firing band — slide back into it.
+    const nearest = Math.min(...enemies.map((e) => hexDistance(unit.coord, e.coord)));
+    if (nearest < lo || nearest > hi + 1) {
+      const step = bandRepositionStep(b, unit, enemies, lo, hi);
+      if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+    }
+    return hold; // in a good spot — don't charge into melee
+  }
+
+  // Melee: never walk past a free hit. Strike the best adjacent foe —
+  // kill-secure / best net troop swing / decapitation (pickAdjacentTarget).
+  if (adjEnemies.length > 0) {
+    const t = pickAdjacentTarget(b, unit, adjEnemies, officers);
+    if (t) return { battle: attackUnits(b, unit.id, t.id, officers, rng), acted: true, signatures: [] };
+  }
+
+  // Foot troops scale an adjacent wall when a friendly engine braces it.
+  if (!fragile) {
+    const wall = hexNeighbours(unit.coord)
+      .map((c) => tileAt(b, c))
+      .find((t) => t?.terrain === 'wall');
+    if (wall) {
+      const scaled = scaleWall(b, unit.id, wall.coord);
+      if (scaled !== b) return { battle: scaled, acted: true, signatures: [] };
+    }
+  }
+
+  // Elite light cavalry peel off to flank a supply raid on the enemy rear
+  // (烏巢). Only when the side can spare them and the grain isn't already
+  // burning — they aim for the back corner away from the enemy mass.
+  if (
+    skill >= 0.7 && unit.unitType === 'cavalry' && !unit.isCommander &&
+    (off?.stats.war ?? 0) >= 70 && adjEnemies.length === 0
+  ) {
+    const friendsAlive = b.units.filter((u) => u.side === unit.side && u.troops > 0).length;
+    const enemyStarving = enemies.some((e) => e.effects.some((x) => x.kind === 'starving'));
+    const inRear = unit.side === 'attacker' ? unit.coord.col >= b.width - 3 : unit.coord.col <= 2;
+    if (friendsAlive >= 4 && !enemyStarving && !inRear) {
+      const edgeCol = unit.side === 'attacker' ? b.width - 1 : 0;
+      const avgRow = enemies.reduce((s, e) => s + e.coord.row, 0) / enemies.length;
+      const targetRow = avgRow < b.height / 2 ? b.height - 1 : 0; // opposite corner
+      const step = bestStepToward(b, unit, { col: edgeCol, row: targetRow });
+      if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+    }
+  }
+
+  // Pursue a battlefield objective (commander only) before chasing kills.
+  const objStep = objectiveStep(b, unit);
+  if (objStep) return { battle: moveUnit(b, unit.id, objStep), acted: true, signatures: [] };
+
+  // A defender already dug into advantageous ground (chokepoint / hill / gate /
+  // river-for-navy) stands fast rather than abandon the edge to chase — let the
+  // attacker assault into it.
+  if (unit.side === 'defender' && tileValueFor(unit, tileAt(b, unit.coord)?.terrain ?? 'plain') >= 1.2) {
+    return hold;
+  }
+
+  // Approach the best target via terrain-aware pathfinding, weighted toward
+  // cohesion (advance as a body, not piecemeal) and escorting a pressed 軍師.
+  const target = pickAiTarget(unit, enemies);
+  if (target) {
+    const friends = b.units.filter((u) => u.side === unit.side && u.id !== unit.id && u.troops > 0);
+    const guard = friends.find((f) => {
+      const fo = officers[f.officerId];
+      return fo && unitRole(fo, f.unitType) === 'strategist' &&
+        enemies.some((e) => hexDistance(f.coord, e.coord) <= 3);
+    });
+    const bonus = (c: HexCoord): number => {
+      let bdg = 0;
+      if (friends.some((f) => hexDistance(c, f.coord) === 1)) bdg += 0.25; // cohesion
+      if (guard && hexDistance(c, guard.coord) <= 1) bdg += 0.3; // escort the 軍師
+      return bdg;
+    };
+    const step = bestStepToward(b, unit, target.coord, bonus);
+    if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+  }
+
+  return hold;
+}
+
+/**
+ * Run a full AI side-turn. `opts.skill` (0–1) scales competence: below 0.4 the
+ * AI brawls without kiting; higher values micro ranged units, lean on
+ * stratagems, and path intelligently. Maps from game difficulty by the caller.
+ */
 export function aiTakeTurn(
   b: TacticalBattle,
   officers: Record<EntityId, Officer>,
   rng: () => number,
+  opts?: { skill?: number },
 ): AITurnResult {
+  const skill = Math.max(0, Math.min(1, opts?.skill ?? 0.7));
   let cur = b;
   const signatures: AITurnResult['signatures'] = [];
-  let safety = 30;
-  // Units that have chosen to hold position this turn — excluded from further
-  // passes so a defender on good ground / a kiting strategist isn't re-polled.
-  const passed = new Set<EntityId>();
+  let safety = 120;
   while (safety-- > 0) {
-    const myUnits = cur.units.filter((u) => u.side === cur.activeSide && u.ap > 0 && !passed.has(u.id));
+    const myUnits = cur.units.filter((u) => u.side === cur.activeSide && u.ap > 0 && u.troops > 0);
     if (myUnits.length === 0) break;
+    // Front line acts before ranged/casters so the squishy units can react to
+    // how the melee shapes up.
+    const ordered = [...myUnits].sort(
+      (a, c) =>
+        roleRank(unitRole(officers[a.officerId], a.unitType)) -
+        roleRank(unitRole(officers[c.officerId], c.unitType)),
+    );
     let acted = false;
-    for (const unit of myUnits) {
-      // Ambusher lies in wait: a hidden unit holds its concealed position and
-      // only springs when an enemy steps adjacent — striking from hiding lands
-      // the +30% ambush bonus. Moving toward the foe would reveal it early and
-      // squander the trap, so otherwise it simply waits (no action this pass).
-      if (unit.hidden) {
-        const adj = cur.units.find((e) =>
-          e.side !== unit.side && !e.hidden && hexDistance(unit.coord, e.coord) === 1);
-        if (adj) {
-          cur = attackUnits(cur, unit.id, adj.id, officers, rng);
-          acted = true;
-          break;
-        }
-        continue; // stay hidden
-      }
-      // N1 — Try a stratagem first.
-      const stratResult = aiTryStratagem(cur, unit, officers, rng);
-      if (stratResult) {
-        // Detect which stratagem was actually used by diffing cooldowns.
-        for (const [key, val] of Object.entries(stratResult.stratagemCooldowns)) {
-          if ((cur.stratagemCooldowns[key] ?? -1) >= val) continue;
-          const dash = key.indexOf('-');
-          if (dash < 0) continue;
-          const unitId = key.slice(0, dash);
-          if (unitId !== unit.id) continue;
-          const stratagemId = key.slice(dash + 1) as StratagemId;
-          const after = stratResult.units.find((u) => u.id === unit.id);
-          if (!after) continue;
-          const off = officers[after.officerId];
-          const tacticId = inferSignatureTactic(off, stratagemId);
-          signatures.push({ tacticId, coord: after.coord, unitId: after.id, stratagemId });
-        }
-        cur = stratResult;
+    for (const unit of ordered) {
+      const r = aiActOnce(cur, unit, officers, rng, skill);
+      if (r.acted) {
+        cur = r.battle;
+        signatures.push(...r.signatures);
         acted = true;
-        break;
-      }
-      // Beaten unit retreats: non-commander, < 30% troops AND < 30 morale,
-      // within reach of own edge. Prevents pointless death animations.
-      if (!unit.isCommander &&
-          unit.troops < unit.maxTroops * 0.3 &&
-          unit.morale < 30) {
-        const ownEdgeCol = unit.side === 'attacker' ? 0 : cur.width - 1;
-        if (Math.abs(unit.coord.col - ownEdgeCol) <= 2) {
-          cur = retreatUnit(cur, unit.id);
-          acted = true;
-          break;
-        }
-      }
-      // Siege unit adjacent to a gate hex: break it open instead.
-      if (unit.unitType === 'siege') {
-        const gateNeighbour = hexNeighbours(unit.coord)
-          .map((c) => cur.tiles.find((t) => t.coord.col === c.col && t.coord.row === c.row))
-          .find((t) => t?.terrain === 'gate');
-        if (gateNeighbour) {
-          cur = breakGate(cur, unit.id, gateNeighbour.coord);
-          acted = true;
-          break;
-        }
-      }
-      // Find target: prefer enemies we counter, avoid those who counter us.
-      // Hidden enemies are invisible to the AI.
-      const enemies = cur.units.filter((u) => u.side !== unit.side && !u.hidden);
-      if (enemies.length === 0) break;
-      // 軍師 self-preservation: a strategist never wades into melee. If a foe is
-      // closing (≤2 hexes), sidestep to the reachable tile that maximises the
-      // gap to enemies (and the footing); otherwise it holds at casting range so
-      // it keeps throwing stratagems on later turns instead of trading blows.
-      const me = officers[unit.officerId];
-      if (me && isStrategist(me)) {
-        const nearestD = Math.min(...enemies.map((e) => hexDistance(unit.coord, e.coord)));
-        if (nearestD <= 5) {
-          if (nearestD <= 2) {
-            const safety = (c: HexCoord) =>
-              Math.min(...enemies.map((e) => hexDistance(c, e.coord))) +
-              (tileValueFor(unit, tileTerrain(cur, c)) - 1) * 0.5;
-            const hereSafety = safety(unit.coord);
-            const escape = hexNeighbours(unit.coord)
-              .filter((c) => canMove(cur, unit, c))
-              .sort((a, b1) => safety(b1) - safety(a))[0];
-            if (escape && safety(escape) > hereSafety) {
-              cur = moveUnit(cur, unit.id, escape);
-              acted = true;
-              break;
-            }
-          }
-          passed.add(unit.id); // hold at range, keep casting
-          continue;
-        }
-      }
-      const maxEnemyTroops = Math.max(...enemies.map((e) => e.troops), 1);
-      const targetScore = (e: TacticalUnit): number => {
-        const counter = counterMultiplier(unit.unitType, e.unitType);
-        const dist = hexDistance(unit.coord, e.coord);
-        // Lower score = better target. Prefer commanders (×0.5), high counter (×/1.5),
-        // wounded (×troops%), and closer.
-        let s = dist;
-        if (e.isCommander) s *= 0.5;
-        if (counter >= 1.4) s *= 0.6;       // we counter them — pursue
-        if (counter <= 0.8) s *= 1.8;       // they counter us — avoid
-        const woundedRatio = e.troops / Math.max(1, e.maxTroops);
-        s *= (0.5 + woundedRatio);          // wounded by % = juicier
-        // Focus fire: the side gravitates to the weakest unit on the board so it
-        // dies and stops hitting back (absolute troops, normalised to the field).
-        s *= (0.6 + 0.4 * (e.troops / maxEnemyTroops));
-        // Prefer foes caught in the open over ones dug into defensive terrain.
-        s *= (0.7 + 0.3 / defenderTerrainShield(tileTerrain(cur, e.coord)));
-        return s;
-      };
-      enemies.sort((a, b1) => targetScore(a) - targetScore(b1));
-      const target = enemies[0];
-      // Never walk past a free hit: if any enemy is already adjacent, strike the
-      // best adjacent foe this turn instead of marching toward a distant target.
-      // The pick is mechanically grounded via predictAttackDamage + the same
-      // terrain/counter multipliers attackUnits applies, so the AI: (1) secures
-      // kills — a foe it can finish this hit deals NO counter-attack, hugely
-      // valuable; (2) maximises the net troop swing (damage dealt − counter
-      // taken), so it won't throw itself at a high-WAR target it can't dent; and
-      // (3) still decapitates enemy commanders.
-      const adjacentEnemies = enemies.filter((e) => hexDistance(unit.coord, e.coord) === 1);
-      if (adjacentEnemies.length > 0) {
-        const aTerrMod = terrainDamageMod(unit.unitType, tileTerrain(cur, unit.coord));
-        const combatValue = (e: TacticalUnit): number => {
-          const p = predictAttackDamage(cur, unit, e, officers);
-          const fwdMul = counterMultiplier(unit.unitType, e.unitType) * aTerrMod *
-            defenderTerrainShield(tileTerrain(cur, e.coord));
-          const expDmg = ((p.min + p.max) / 2) * fwdMul;
-          const willKill = p.max * fwdMul >= e.troops;
-          const ctrMul = counterMultiplier(e.unitType, unit.unitType);
-          const expCounter = willKill ? 0 : ((p.counterMin + p.counterMax) / 2) * ctrMul;
-          let v = expDmg - expCounter;            // net troop swing in our favour
-          if (willKill) v += e.troops * 0.5 + 500; // remove a unit AND dodge the counter
-          if (e.isCommander) v += 800;             // decapitation strike
-          return v;
-        };
-        const best = adjacentEnemies.reduce((a, b1) => (combatValue(b1) > combatValue(a) ? b1 : a));
-        cur = attackUnits(cur, unit.id, best.id, officers, rng);
-        acted = true;
-        break;
-      }
-      // Defender holds advantageous ground: if already on strong footing
-      // (chokepoint/hill/gate/river-for-navy) with no enemy adjacent, stand fast
-      // rather than abandon the terrain edge to chase — let the attacker assault
-      // into it.
-      if (unit.side === 'defender' &&
-          tileValueFor(unit, tileTerrain(cur, unit.coord)) >= 1.2) {
-        passed.add(unit.id);
-        continue;
-      }
-      const dist = hexDistance(unit.coord, target.coord);
-      const friends = cur.units.filter((u) => u.side === unit.side && u.id !== unit.id);
-      // A friendly 軍師 a foe is pressing wants a screen: combat allies steer to
-      // stand beside it, putting bodies between the strategist and the enemy.
-      const guard = friends.find((f) => {
-        const fo = officers[f.officerId];
-        return fo && isStrategist(fo) && enemies.some((e) => hexDistance(f.coord, e.coord) <= 3);
-      });
-      // Step toward the target, weighting terrain (favour good ground, shun poor
-      // footing — progress still dominates), cohesion (advance as a body so units
-      // back each other / earn formation bonuses, not piecemeal), and escort.
-      const candidates = hexNeighbours(unit.coord).filter((c) => canMove(cur, unit, c));
-      if (candidates.length > 0) {
-        const stepScore = (c: HexCoord) => {
-          const progress = dist - hexDistance(c, target.coord); // +1 closer, −1 farther
-          const terrainVal = tileValueFor(unit, tileTerrain(cur, c));
-          const cohesion = friends.some((f) => hexDistance(c, f.coord) === 1) ? 0.25 : 0;
-          const escort = guard && hexDistance(c, guard.coord) <= 1 ? 0.3 : 0;
-          return progress * 1.0 + (terrainVal - 1) * 0.6 + cohesion + escort;
-        };
-        candidates.sort((a, b1) => stepScore(b1) - stepScore(a));
-        cur = moveUnit(cur, unit.id, candidates[0]);
-        acted = true;
-        break;
+        break; // recompute the board after every action
       }
     }
     if (!acted) break;

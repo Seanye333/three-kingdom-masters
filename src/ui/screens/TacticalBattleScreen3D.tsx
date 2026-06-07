@@ -6,7 +6,7 @@ import { useGameStore } from '../../game/state/store';
 import type { EntityId, HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
 import type { DefenseBuildingId } from '../../game/data/defenseBuildings';
 import {
-  aiTakeTurn, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
+  aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
   moveUnit, resolveBattleEnd, unitAt,
 } from '../../game/systems/tactical';
 import { canDuel, resolveDuel, type DuelResult } from '../../game/systems/duel';
@@ -108,6 +108,7 @@ export const TERRAIN_HEIGHT: Record<TerrainKind, number> = {
   chokepoint: 0.04,
   bridge:     0.06,
   gate:       0.20,
+  wall:       0.32,
   watchtower: 0.20,
 };
 export const TERRAIN_COLOR: Record<TerrainKind, string> = {
@@ -121,6 +122,7 @@ export const TERRAIN_COLOR: Record<TerrainKind, string> = {
   chokepoint: '#5a4530',  // narrow defile (darker road)
   bridge:     '#8a6840',  // timber
   gate:       '#4a2820',  // dark masonry
+  wall:       '#6a5650',  // grey rampart stone
   watchtower: '#8a7050',  // stone platform
 };
 
@@ -1388,6 +1390,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
   const start = useGameStore((s) => s.startTacticalBattle);
   const applyResolution = useGameStore((s) => s.applyTacticalResolution);
   const battleSpeed = useGameStore((s) => s.battleSpeed);
+  const difficulty = useGameStore((s) => s.difficulty);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hovered, setHovered] = useState<HexCoord | null>(null);
@@ -1460,7 +1463,9 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
     if (playerSide && battle.activeSide !== playerSide) {
       const delay = Math.max(150, 700 / Math.max(1, battleSpeed));
       const id = setTimeout(() => {
-        const result = aiTakeTurn(battle, officers, Math.random);
+        const result = aiTakeTurn(battle, officers, Math.random, {
+          skill: aiSkillForDifficulty(difficulty),
+        });
         const next = result.battle;
         // For each AI signature usage, spawn FX + banner + flavor log entry.
         const fxToAdd: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }> = [];
@@ -1506,7 +1511,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
       }, delay);
       return () => clearTimeout(id);
     }
-  }, [battle, officers, playerSide, start, battleSpeed]);
+  }, [battle, officers, playerSide, start, battleSpeed, difficulty]);
 
   // Show results modal when a winner is decided.
   useEffect(() => {
@@ -1976,10 +1981,14 @@ function UnitPanel3D({
               border: `1px solid ${
                 e.kind === 'burning' ? '#ff7050'
                 : e.kind === 'confused' ? '#c19a3b'
+                : e.kind === 'starving' ? '#d8b24a'
+                : e.kind === 'demoralized' ? '#c89090'
                 : '#88b7e8'
               }`,
               color: e.kind === 'burning' ? '#ff7050'
                 : e.kind === 'confused' ? '#c19a3b'
+                : e.kind === 'starving' ? '#d8b24a'
+                : e.kind === 'demoralized' ? '#c89090'
                 : '#88b7e8',
               borderRadius: 2,
             }}>{e.kind} {e.turnsLeft}t</span>

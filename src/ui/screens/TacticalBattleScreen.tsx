@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FORMATIONS_BY_ID, NAMED_MAPS_BY_ID, STRATAGEMS } from '../../game/data';
 import {
   aiTakeTurn,
+  aiSkillForDifficulty,
   applyStratagem,
   attackUnits,
   breakGate,
@@ -108,6 +109,7 @@ const TERRAIN_FILL: Record<TerrainKind, string> = {
   chokepoint: 'url(#tkmChokepointGrad)',
   bridge:     'url(#tkmBridgeGrad)',
   gate:       'url(#tkmGateGrad)',
+  wall:       'url(#tkmGateGrad)',
   watchtower: 'url(#tkmWatchtowerGrad)',
 };
 
@@ -131,6 +133,7 @@ export function TacticalBattleScreen() {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const battleSpeed = useGameStore((s) => s.battleSpeed);
   const setBattleSpeed = useGameStore((s) => s.setBattleSpeed);
+  const difficulty = useGameStore((s) => s.difficulty);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionMode, setActionMode] = useState<ActionMode>({ kind: 'none' });
@@ -213,12 +216,14 @@ export function TacticalBattleScreen() {
     if (battle.activeSide !== playerSide) {
       const delay = Math.max(150, 700 / Math.max(1, battleSpeed));
       const id = setTimeout(() => {
-        const result = aiTakeTurn(battle, officers, Math.random);
+        const result = aiTakeTurn(battle, officers, Math.random, {
+          skill: aiSkillForDifficulty(difficulty),
+        });
         start(result.battle);
       }, delay);
       return () => clearTimeout(id);
     }
-  }, [battle, officers, playerSide, start, battleSpeed]);
+  }, [battle, officers, playerSide, start, battleSpeed, difficulty]);
 
   // Pop voice lines from the log to the ticker.
   useEffect(() => {
@@ -977,6 +982,27 @@ export function TacticalBattleScreen() {
                     }
                   />
                   <SharedTerrainArt x={x} y={y} terrain={t.terrain} />
+                  {(t.terrain === 'wall' || t.terrain === 'gate') &&
+                    battle.wallHp?.[`${t.coord.col},${t.coord.row}`] !== undefined &&
+                    (() => {
+                      const hp = battle.wallHp![`${t.coord.col},${t.coord.row}`];
+                      const max = t.terrain === 'gate' ? 700 : 1000;
+                      const frac = Math.max(0, Math.min(1, hp / max));
+                      const bw = 28;
+                      return (
+                        <g pointerEvents="none">
+                          <rect x={x - bw / 2} y={y + 16} width={bw} height={4} rx={1} fill="#1a1410" opacity={0.85} />
+                          <rect
+                            x={x - bw / 2}
+                            y={y + 16}
+                            width={bw * frac}
+                            height={4}
+                            rx={1}
+                            fill={frac > 0.5 ? '#8a9a6a' : frac > 0.25 ? '#d4a84a' : '#b8442e'}
+                          />
+                        </g>
+                      );
+                    })()}
                 </g>
               );
             })}
@@ -1520,6 +1546,9 @@ function UnitPanel({
               className={`${styles.statusChip} ${
                 e.kind === 'burning' ? styles.statusBurning
                 : e.kind === 'confused' ? styles.statusConfused
+                : e.kind === 'starving' ? styles.statusStarving
+                : e.kind === 'demoralized' ? styles.statusDemoralized
+                : e.kind === 'chained' ? styles.statusChained
                 : styles.statusDefending
               }`}
             >
@@ -1590,28 +1619,32 @@ function UnitPanel({
             </button>
           );
         })()}
-        {/* Break Gate — siege unit adjacent to a gate hex */}
+        {/* Assault Wall/Gate — siege unit adjacent to a gate or wall hex */}
         {unit.unitType === 'siege' && (() => {
           const adj = hexNeighbours(unit.coord);
-          const gateCoord = adj.map((c) => battle.tiles.find((t) => t.coord.col === c.col && t.coord.row === c.row))
-            .find((t) => t?.terrain === 'gate');
-          if (!gateCoord) return null;
+          const fort = adj.map((c) => battle.tiles.find((t) => t.coord.col === c.col && t.coord.row === c.row))
+            .find((t) => t?.terrain === 'gate' || t?.terrain === 'wall');
+          if (!fort) return null;
+          const isGate = fort.terrain === 'gate';
+          const hp = battle.wallHp?.[`${fort.coord.col},${fort.coord.row}`];
           return (
             <button
               className={styles.actionButton}
               disabled={!canAct || unit.ap === 0}
               onClick={() => {
                 if (!canAct || unit.ap === 0) return;
-                start(breakGate(battle, unit.id, gateCoord.coord));
+                start(breakGate(battle, unit.id, fort.coord));
                 setActionMode({ kind: 'none' });
               }}
             >
               <div className={styles.actionTitle}>
-                <span><span className={styles.actionLabel}>{t('破城門', 'Break Gate')}</span></span>
+                <span><span className={styles.actionLabel}>{isGate ? t('破城門', 'Assault Gate') : t('攻城牆', 'Assault Wall')}</span></span>
                 <span style={{ fontSize: '0.7rem', color: '#b8442e' }}>siege only</span>
               </div>
               <div className={styles.actionDesc}>
-                Smash an adjacent gate hex open into plain terrain. Consumes all AP.
+                {hp !== undefined
+                  ? `Batter the ${isGate ? 'gate' : 'wall'} — ${hp.toLocaleString()} HP left. Breaches at 0. Consumes all AP.`
+                  : `Smash an adjacent ${isGate ? 'gate' : 'wall'} hex open into a breach. Consumes all AP.`}
               </div>
             </button>
           );

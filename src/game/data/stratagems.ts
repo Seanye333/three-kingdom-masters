@@ -140,6 +140,56 @@ export const STRATAGEMS: Stratagem[] = [
     range: 0,
     cooldown: 3,
   },
+
+  // ── Naval stratagems (water battles only) ──
+  {
+    id: 'ram',
+    name: { en: 'Ram', zh: '撞角' },
+    description:
+      'Drive the prow into an adjacent ship. Heavy hull damage that scales with your ship class; spends all remaining AP.',
+    descriptionZh: "以艦首衝角猛撞鄰船。傷害隨己方船級而增，耗盡所餘行動力。",
+    minIntelligence: 0,
+    minWar: 55,
+    requiresUnitType: ['navy'],
+    range: 1,
+    cooldown: 2,
+  },
+  {
+    id: 'board',
+    name: { en: 'Board', zh: '接舷' },
+    description:
+      'Grapple an adjacent ship and storm its decks. War-based marine melee that shatters morale and costs you little.',
+    descriptionZh: "鉤索接舷，躍上敵船血戰。以武力決勝之水戰肉搏，重挫敵士氣而己損甚微。",
+    minIntelligence: 0,
+    minWar: 60,
+    requiresUnitType: ['navy'],
+    range: 1,
+    cooldown: 1,
+  },
+  {
+    id: 'fire-ship',
+    name: { en: 'Fireships', zh: '火船' },
+    description:
+      'Send blazing hulks downwind into the enemy line. Sets a long-burning fire (doused by rain) — ruinous against a fleet chained together (連環計 + 火船 = 赤壁).',
+    descriptionZh: "縱火船順風直撞敵陣，縱起烈焰（雨中則熄）。對以鐵索連環之艦隊尤為致命——連環計加火船，赤壁之火也。",
+    minIntelligence: 65,
+    requiresUnitType: ['navy'],
+    range: 3,
+    cooldown: 3,
+  },
+
+  // ── Supply raiding ──
+  {
+    id: 'raid-supply',
+    name: { en: 'Raid Supply Line', zh: '劫糧道' },
+    description:
+      'Only from deep in the enemy rear (flank a raider around the line, 烏巢-style). Burn their grain: every enemy unit starts starving — bleeding deserters and morale for 5 turns. Long cooldown.',
+    descriptionZh: "須深入敵後方可施（繞襲側翼，烏巢之計）。焚其糧秣，敵全軍陷入糧盡：逐回合潰逃、士氣日減，持續五回合。冷卻甚長。",
+    minIntelligence: 0,
+    minWar: 60,
+    range: 0,
+    cooldown: 6,
+  },
 ];
 
 export const STRATAGEMS_BY_ID: Record<string, Stratagem> = Object.fromEntries(

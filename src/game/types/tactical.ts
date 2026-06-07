@@ -1,4 +1,5 @@
 import type { BilingualName, EntityId } from './common';
+import type { ShipClass } from './naval';
 
 // ─── Weather, time of day, formations, objectives ────────────────────
 
@@ -129,6 +130,7 @@ export type TerrainKind =
   | 'chokepoint'  // 隘口 — only 1 unit can pass; defenders +30% defense
   | 'bridge'      // 橋樑 — river-crossing bridge; allows non-navy over rivers
   | 'gate'        // 城門 — siege-only; tougher than wall but a bottleneck
+  | 'wall'        // 城牆 — impassable rampart; siege engines batter it down (HP)
   | 'watchtower'; // 瞭望台 — +1 range + reveals hidden adjacent units
 
 /**
@@ -171,6 +173,9 @@ export interface TacticalUnit {
   effects: TacticalStatus[];
   /** Unit type (combat arm). */
   unitType: UnitType;
+  /** Ship class — set only for units in a naval battle. Drives hull strength
+   *  (ramming/boarding power) and fire vulnerability. */
+  shipClass?: ShipClass;
   /** Hidden ambushers — only revealed when an enemy steps adjacent or
    *  the unit attacks. Set when starting in forest with the
    *  ten-ambush formation. */
@@ -183,7 +188,8 @@ export type TacticalStatus =
   | { kind: 'defending'; turnsLeft: number }
   | { kind: 'chained'; turnsLeft: number; chainedWith: EntityId[] }
   | { kind: 'revealed'; turnsLeft: number }
-  | { kind: 'demoralized'; turnsLeft: number };
+  | { kind: 'demoralized'; turnsLeft: number }
+  | { kind: 'starving'; turnsLeft: number }; // 糧盡 — desertion + sapped fighting power
 
 /** Stratagem types — single-use special actions during the battle. */
 export type StratagemId =
@@ -199,7 +205,13 @@ export type StratagemId =
   | 'lightning'     // 落雷 — direct damage with chance to confuse
   | 'supply-strike' // 兵糧攻 — sap morale of all enemies on map
   | 'gallop'        // 飛将 — Lü Bu's signature: charge 3 hexes + strike
-  | 'dragon-veil';  // 龍威 — Zhao Yun's signature: free hit on every adjacent enemy
+  | 'dragon-veil'   // 龍威 — Zhao Yun's signature: free hit on every adjacent enemy
+  // ── Naval (water battles only) ──
+  | 'ram'           // 撞角 — warship rams an adjacent ship; heavy hull damage
+  | 'board'         // 接舷 — board an adjacent ship; marine melee, shatters morale
+  | 'fire-ship'     // 火船 — fireships; devastating against chained fleets (赤壁)
+  // ── Supply raiding ──
+  | 'raid-supply';  // 劫糧道 — from deep in the enemy rear, burn their grain (烏巢)
 
 export interface Stratagem {
   id: StratagemId;
@@ -291,6 +303,19 @@ export interface TacticalBattle {
   attackerArmyId?: EntityId;
   /** The enemy (defender) army id, for field-battle casualty writeback. */
   defenderArmyId?: EntityId;
+  /**
+   * Naval engagement — the battlefield is open water, every unit is a ship,
+   * and fire spreads ruinously through chained fleets. Set automatically when
+   * the contested city's terrain is `water`.
+   */
+  naval?: boolean;
+  /**
+   * Hit points of destructible 城牆 / 城門 hexes, keyed by "col,row". Siege
+   * units batter these down (assaultStructure); at 0 HP the hex becomes a
+   * passable breach. Hexes absent from this map (e.g. named-map gates) break
+   * in a single hit, preserving the old behaviour.
+   */
+  wallHp?: Record<string, number>;
 }
 
 export interface TacticalCityStructure {
