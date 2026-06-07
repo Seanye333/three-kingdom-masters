@@ -1671,6 +1671,51 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     updatedStructures = next;
   }
 
+  // ── 滾木礌石 / 金汁 — a manned rampart pours death on attackers at its base.
+  // Triggers at the end of the attacker's turn for each intact wall/gate hex
+  // that still has a living defender within 2 hexes (an abandoned wall is
+  // silent). A battered wall pours less. Brutal on units hugging the wall to
+  // assault it — bring siege engines to breach fast, or flank the open ends.
+  if (turnEndingForAttacker && b.wallHp) {
+    const oilByUnit: Record<string, number> = {};
+    for (const [key, hp] of Object.entries(b.wallHp)) {
+      if (hp <= 0) continue;
+      const [wc, wr] = key.split(',').map(Number);
+      const wallCoord = { col: wc, row: wr };
+      const tile = b.tiles.find((t) => t.coord.col === wc && t.coord.row === wr);
+      if (!tile || (tile.terrain !== 'wall' && tile.terrain !== 'gate')) continue;
+      const manned = unitsAfterStructures.some(
+        (u) => u.side === 'defender' && u.troops > 0 && hexDistance(u.coord, wallCoord) <= 2,
+      );
+      if (!manned) continue;
+      const initialHp = tile.terrain === 'gate' ? 700 : 1000;
+      const frac = Math.max(0.3, Math.min(1, hp / initialHp));
+      const dmg = Math.round((tile.terrain === 'gate' ? 180 : 300) * frac);
+      for (const u of unitsAfterStructures) {
+        if (u.side === 'attacker' && u.troops > 0 && hexDistance(u.coord, wallCoord) === 1) {
+          oilByUnit[u.id] = (oilByUnit[u.id] ?? 0) + dmg;
+        }
+      }
+    }
+    if (Object.keys(oilByUnit).length > 0) {
+      unitsAfterStructures = unitsAfterStructures.map((u) => {
+        const oil = oilByUnit[u.id];
+        if (!oil) return u;
+        const loss = Math.min(u.troops, Math.min(oil, 700)); // cap per turn
+        additionalAttackerLoss += loss;
+        structurePopups.push({
+          id: `oil-${u.id}-t${b.turn}`,
+          coord: u.coord,
+          text: `−${loss}`,
+          color: '#e0a040',
+          spawnedAt: Date.now(),
+        });
+        return { ...u, troops: Math.max(0, u.troops - loss), morale: Math.max(0, u.morale - 5) };
+      });
+      structureLog.push({ turn: b.turn, text: '城上滾木礌石、金汁傾下！', kind: 'event' });
+    }
+  }
+
   return {
     ...b,
     units: unitsAfterStructures.filter((u) => u.troops > 0 && u.morale > 0),
