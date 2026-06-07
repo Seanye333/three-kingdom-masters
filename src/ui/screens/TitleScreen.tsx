@@ -587,8 +587,12 @@ function miniBtn(disabled: boolean): CSSProperties {
 // force (neutral = dark), with adjacency lines for a sense of the road network.
 // Pass highlightForceId to spotlight one force's holdings.
 function MiniMap({ scenario, highlightForceId, labelCapitals }: { scenario: Scenario; highlightForceId?: string | null; labelCapitals?: boolean }) {
+  const [hoverId, setHoverId] = useState<string | null>(null);
   const colorOf = (fid: string | null) =>
     fid ? (scenario.forces.find((f) => f.id === fid)?.color ?? '#4a3a28') : '#4a3a28';
+  const forceName = (fid: string | null) =>
+    fid ? (scenario.forces.find((f) => f.id === fid)?.name.zh ?? '—') : '中立';
+  const hc = hoverId ? scenario.cities.find((c) => c.id === hoverId) ?? null : null;
   return (
     <svg
       viewBox="110 150 790 570"
@@ -616,15 +620,19 @@ function MiniMap({ scenario, highlightForceId, labelCapitals }: { scenario: Scen
       {scenario.cities.map((c) => {
         const hl = !!highlightForceId && c.ownerForceId === highlightForceId;
         const dim = !!highlightForceId && !hl;
+        const isHover = hoverId === c.id;
         return (
           <circle
             key={c.id}
             cx={c.coords.x} cy={c.coords.y}
-            r={hl ? 9 : 6}
+            r={isHover ? 10 : hl ? 9 : 6}
             fill={colorOf(c.ownerForceId)}
-            stroke={hl ? '#fff5e0' : '#1a1410'}
-            strokeWidth={hl ? 1.6 : 0.8}
-            opacity={dim ? 0.4 : 1}
+            stroke={isHover ? '#ffffff' : hl ? '#fff5e0' : '#1a1410'}
+            strokeWidth={isHover ? 2 : hl ? 1.6 : 0.8}
+            opacity={dim && !isHover ? 0.4 : 1}
+            style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setHoverId(c.id)}
+            onMouseLeave={() => setHoverId((p) => (p === c.id ? null : p))}
           />
         );
       })}
@@ -640,12 +648,26 @@ function MiniMap({ scenario, highlightForceId, labelCapitals }: { scenario: Scen
             fontSize={22} textAnchor="middle"
             fill={f.color} stroke="#14100c" strokeWidth={0.7}
             opacity={dim ? 0.4 : 1}
-            style={{ paintOrder: 'stroke', fontWeight: 'bold' }}
+            style={{ paintOrder: 'stroke', fontWeight: 'bold', pointerEvents: 'none' }}
           >
             {cap.name.zh}
           </text>
         );
       })}
+      {/* Hover tooltip — city name, owner and garrison */}
+      {hc && (() => {
+        const left = hc.coords.x > 540;
+        const tx = left ? -206 : 14;
+        return (
+          <g transform={`translate(${hc.coords.x}, ${hc.coords.y})`} pointerEvents="none">
+            <rect x={tx} y={-36} width={192} height={50} rx={3} fill="#1a1410" stroke={colorOf(hc.ownerForceId)} strokeWidth={1.5} />
+            <text x={tx + 11} y={-15} fontSize={18} fill="#d4a84a" style={{ fontWeight: 'bold' }}>{hc.name.zh}</text>
+            <text x={tx + 11} y={6} fontSize={14} fill="#a08c6a">
+              {forceName(hc.ownerForceId)} · {hc.troops.toLocaleString()}{hc.ownerForceId ? ' 兵' : ''}
+            </text>
+          </g>
+        );
+      })()}
     </svg>
   );
 }
