@@ -88,6 +88,20 @@ export function TitleScreen() {
     () => SCENARIOS.filter((s) => eraOf(s) === activeEra),
     [activeEra],
   );
+  // The "歷代名將" cross-over list offers eras OTHER than the one this scenario
+  // already belongs to — those officers are native to the board already. This
+  // is what surfaces the 三國 toggle on a Warring-States / Chu-Han / Sui-Tang
+  // board (and, conversely, hides it on a Three-Kingdoms board).
+  const NATIVE_DYNASTIES: Record<string, Dynasty[]> = {
+    warring: ['warring-states'],
+    chuhan: ['chu-han', 'qin'],
+    suitang: ['sui', 'tang'],
+    sanguo: ['three-kingdoms'],
+    whatif: ['three-kingdoms'],
+  };
+  const visibleDynasties = DYNASTY_DEFS.filter(
+    (d) => !(NATIVE_DYNASTIES[eraOf(scenario)] ?? []).includes(d.id),
+  );
   const selectedForce = scenario.forces.find((f) => f.id === selectedForceId) ?? null;
   const selectedRuler = selectedForce
     ? scenario.officers.find((o) => o.id === selectedForce.rulerOfficerId) ?? null
@@ -495,11 +509,11 @@ export function TitleScreen() {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem' }}>
-                  <button type="button" onClick={() => setEnabledDynasties(DYNASTY_DEFS.map((d) => d.id))} style={miniBtn(false)}>{t('全選', 'All')}</button>
+                  <button type="button" onClick={() => setEnabledDynasties(visibleDynasties.map((d) => d.id))} style={miniBtn(false)}>{t('全選', 'All')}</button>
                   <button type="button" onClick={() => setEnabledDynasties([])} style={miniBtn(false)}>{t('清除', 'None')}</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
-                  {DYNASTY_DEFS.map((d) => {
+                  {visibleDynasties.map((d) => {
                     const on = enabledDynasties.includes(d.id);
                     return (
                       <label

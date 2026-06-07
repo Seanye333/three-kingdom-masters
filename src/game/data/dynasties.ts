@@ -10,6 +10,7 @@ export type Dynasty =
   | 'qin'
   | 'chu-han'
   | 'western-han'
+  | 'three-kingdoms'
   | 'jin'
   | 'southern-northern'
   | 'sui'
@@ -35,6 +36,7 @@ export const DYNASTY_DEFS: DynastyDef[] = [
   { id: 'qin',               name: { zh: '秦',       en: 'Qin' },             era: { zh: '前221–前206', en: '221–206 BC' },  color: '#222222' },
   { id: 'chu-han',           name: { zh: '楚漢',     en: 'Chu-Han' },         era: { zh: '前206–前202', en: '206–202 BC' },  color: '#c0392b' },
   { id: 'western-han',       name: { zh: '西漢',     en: 'Western Han' },     era: { zh: '前202–9',     en: '202 BC–9 AD' }, color: '#d4a84a' },
+  { id: 'three-kingdoms',    name: { zh: '三國',     en: 'Three Kingdoms' },  era: { zh: '184–280',     en: '184–280' },     color: '#3a7dd9' },
   { id: 'jin',               name: { zh: '兩晉',     en: 'Jin' },             era: { zh: '266–420',     en: '266–420' },     color: '#5a7a90' },
   { id: 'southern-northern', name: { zh: '南北朝',   en: 'Southern & Northern' }, era: { zh: '420–589', en: '420–589' },    color: '#8a5a90' },
   { id: 'sui',               name: { zh: '隋',       en: 'Sui' },             era: { zh: '581–618',     en: '581–618' },     color: '#3a7d6a' },

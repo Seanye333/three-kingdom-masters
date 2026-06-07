@@ -2797,7 +2797,7 @@ export const TALENT_POOL_IDS = TALENT_POOL_TEMPLATES.map((t) => t.id);
 export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>): Officer[] {
   if (enabledDynasties.length === 0) return [];
   const set = new Set(enabledDynasties);
-  return HISTORICAL_OFFICER_TEMPLATES
+  const historical = HISTORICAL_OFFICER_TEMPLATES
     .filter((t) => set.has(t.dynasty))
     .map<Officer>((t) => {
       // Mirror the TKM pattern: prefer curated lookups by id, fall back to
@@ -2849,4 +2849,49 @@ export function buildHistoricalOfficers(enabledDynasties: ReadonlyArray<Dynasty>
         female: t.female,
       };
     });
+
+  // The Three Kingdoms roster can also be summoned into *other* eras' boards
+  // as a cross-over pool (mirroring how Warring States / Tang officers join a
+  // Three-Kingdoms board). They live in OFFICER_TEMPLATES with real AD
+  // birthYears, so we shift each onto the shared cross-era timeline — all such
+  // boards open ~178 AD — using the officer's canonical 200-AD prime age
+  // (clamped to 16–55 so everyone arrives as a usable adult), and drop the
+  // historical deathYear so they don't expire on the Three-Kingdoms schedule.
+  if (!set.has('three-kingdoms')) return historical;
+  const TK_PRIME = 200;
+  const CROSS_START = 178;
+  const crossAge = (birth: number) => Math.max(16, Math.min(55, TK_PRIME - birth));
+  const threeKingdoms = [...OFFICER_TEMPLATES, ...TALENT_POOL_TEMPLATES].map<Officer>((t) => {
+    const { skills, rank, traits, doctrine, formations, tactics, policies, level } = resolveSkillsAndRank(t);
+    const equipment: string[] = [];
+    const primaryItem = CANONICAL_ITEMS_PRIMARY[t.id];
+    if (primaryItem && ITEMS_BY_ID[primaryItem]) equipment.push(primaryItem);
+    for (const itemId of CANONICAL_ITEMS_SECONDARY[t.id] ?? []) {
+      if (ITEMS_BY_ID[itemId] && !equipment.includes(itemId)) equipment.push(itemId);
+    }
+    return {
+      id: t.id,
+      name: t.name,
+      courtesyName: t.courtesyName,
+      birthYear: CROSS_START - crossAge(t.birthYear),
+      hometownCityId: t.hometownCityId,
+      stats: t.stats,
+      loyalty: 0,
+      locationCityId: t.hometownCityId ?? null,
+      forceId: null,
+      status: 'unsearched',
+      task: null,
+      equipment,
+      skills,
+      rank,
+      traits,
+      doctrine,
+      formations,
+      tactics,
+      policies,
+      level,
+      dynasty: 'three-kingdoms',
+    };
+  });
+  return [...historical, ...threeKingdoms];
 }
