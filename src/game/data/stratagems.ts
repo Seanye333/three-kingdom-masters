@@ -177,6 +177,19 @@ export const STRATAGEMS: Stratagem[] = [
     range: 3,
     cooldown: 3,
   },
+
+  // ── Supply raiding ──
+  {
+    id: 'raid-supply',
+    name: { en: 'Raid Supply Line', zh: '劫糧道' },
+    description:
+      'Only from deep in the enemy rear (flank a raider around the line, 烏巢-style). Burn their grain: every enemy unit starts starving — bleeding deserters and morale for 5 turns. Long cooldown.',
+    descriptionZh: "須深入敵後方可施（繞襲側翼，烏巢之計）。焚其糧秣，敵全軍陷入糧盡：逐回合潰逃、士氣日減，持續五回合。冷卻甚長。",
+    minIntelligence: 0,
+    minWar: 60,
+    range: 0,
+    cooldown: 6,
+  },
 ];
 
 export const STRATAGEMS_BY_ID: Record<string, Stratagem> = Object.fromEntries(

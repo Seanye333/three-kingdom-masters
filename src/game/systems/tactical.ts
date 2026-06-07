@@ -679,6 +679,7 @@ export function attackUnits(
   // Burning status: 5% troops of attacker added to damage (the flames keep eating).
   const attackerBurning = attacker.effects.some((e) => e.kind === 'burning');
   const attackerDemoralized = attacker.effects.some((e) => e.kind === 'demoralized');
+  const attackerStarving = attacker.effects.some((e) => e.kind === 'starving');
 
   const counter = counterMultiplier(attacker.unitType, target.unitType);
   const aTerrainTile = tileAt(b, attacker.coord);
@@ -723,6 +724,7 @@ export function attackUnits(
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
   if (attackerDemoralized) damage = Math.floor(damage * 0.8);
+  if (attackerStarving) damage = Math.floor(damage * 0.85); // 糧盡兵疲
 
   // Critical hit on natural high roll.
   const isCrit = rng() < 0.12;
@@ -1310,6 +1312,31 @@ export function applyStratagem(
       next = setStatus(next, target.id, { kind: 'burning', turnsLeft: turns });
       return finalize(next, unitId, stratagem, 3);
     }
+    case 'raid-supply': {
+      // 劫糧道 — only from deep in the enemy rear (flank a raider around the
+      // line, 烏巢-style). Torches the grain: every enemy unit starts starving
+      // — bleeding deserters and morale each turn. Long cooldown: the depot
+      // only burns once.
+      const inRear = unit.side === 'attacker'
+        ? unit.coord.col >= b.width - 3
+        : unit.coord.col <= 2;
+      if (!inRear)
+        return { battle: b, ok: false, reason: 'must reach the enemy rear' };
+      const foes = b.units.filter((u) => u.side !== unit.side && u.troops > 0);
+      if (foes.length === 0) return { battle: b, ok: false, reason: 'no enemy supply to burn' };
+      let next = b;
+      for (const e of foes) {
+        next = setStatus(next, e.id, { kind: 'starving', turnsLeft: 5 });
+      }
+      next = {
+        ...next,
+        log: [
+          ...(next.log ?? []),
+          { turn: b.turn, text: '糧道斷絕，敵軍大亂！', speaker: unit.officerId, kind: 'event' },
+        ],
+      };
+      return finalize(next, unitId, stratagem, 6);
+    }
   }
 }
 
@@ -1358,6 +1385,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   // Apply ongoing effects (burning), tick durations, then flip side.
   let tickedUnits = b.units.map((u) => {
     let troops = u.troops;
+    let morale = u.morale;
     const newEffects: TacticalStatus[] = [];
     // Rattan-armor doubles fire damage (oil-cured rattan ignites); so do
     // pitch-caulked wooden ships — fire is death on the water (赤壁).
@@ -1368,6 +1396,11 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
         const burn = Math.floor(u.maxTroops * 0.08 * fireMul);
         troops = Math.max(0, troops - burn);
       }
+      // 糧盡 — a starving host bleeds deserters and loses heart each turn.
+      if (e.kind === 'starving') {
+        troops = Math.max(0, troops - Math.floor(u.maxTroops * 0.06));
+        morale = Math.max(0, morale - 5);
+      }
       if (e.turnsLeft > 1) {
         newEffects.push({ ...e, turnsLeft: e.turnsLeft - 1 });
       }
@@ -1376,7 +1409,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     if (inFormation(u.side)) {
       troops = Math.min(u.maxTroops, troops + Math.floor(u.maxTroops * 0.04));
     }
-    return { ...u, troops, effects: newEffects, ap: u.maxAp };
+    return { ...u, troops, morale, effects: newEffects, ap: u.maxAp };
   });
 
   // ── Fire spread: each burning unit may set an adjacent unit alight.
@@ -1848,6 +1881,12 @@ function aiTryStratagem(
       if (off.stats.war >= 55) candidates.push({ id: 'ram', target: ramTarget.coord });
     }
   }
+  // 11. burn the enemy grain once a raider has reached their rear (烏巢).
+  if (off.stats.war >= 60) {
+    const inRear = unit.side === 'attacker' ? unit.coord.col >= b.width - 3 : unit.coord.col <= 2;
+    const enemyStarving = enemies.some((e) => e.effects.some((x) => x.kind === 'starving'));
+    if (inRear && !enemyStarving) candidates.push({ id: 'raid-supply', target: unit.coord });
+  }
 
   for (const c of candidates) {
     const r = applyStratagem(b, unit.id, c.id, c.target, officers);
@@ -2158,6 +2197,25 @@ function aiActOnce(
     if (wall) {
       const scaled = scaleWall(b, unit.id, wall.coord);
       if (scaled !== b) return { battle: scaled, acted: true, signatures: [] };
+    }
+  }
+
+  // Elite light cavalry peel off to flank a supply raid on the enemy rear
+  // (烏巢). Only when the side can spare them and the grain isn't already
+  // burning — they aim for the back corner away from the enemy mass.
+  if (
+    skill >= 0.7 && unit.unitType === 'cavalry' && !unit.isCommander &&
+    (off?.stats.war ?? 0) >= 70 && adjEnemies.length === 0
+  ) {
+    const friendsAlive = b.units.filter((u) => u.side === unit.side && u.troops > 0).length;
+    const enemyStarving = enemies.some((e) => e.effects.some((x) => x.kind === 'starving'));
+    const inRear = unit.side === 'attacker' ? unit.coord.col >= b.width - 3 : unit.coord.col <= 2;
+    if (friendsAlive >= 4 && !enemyStarving && !inRear) {
+      const edgeCol = unit.side === 'attacker' ? b.width - 1 : 0;
+      const avgRow = enemies.reduce((s, e) => s + e.coord.row, 0) / enemies.length;
+      const targetRow = avgRow < b.height / 2 ? b.height - 1 : 0; // opposite corner
+      const step = bestStepToward(b, unit, { col: edgeCol, row: targetRow });
+      if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
     }
   }
 

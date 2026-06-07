@@ -188,7 +188,8 @@ export type TacticalStatus =
   | { kind: 'defending'; turnsLeft: number }
   | { kind: 'chained'; turnsLeft: number; chainedWith: EntityId[] }
   | { kind: 'revealed'; turnsLeft: number }
-  | { kind: 'demoralized'; turnsLeft: number };
+  | { kind: 'demoralized'; turnsLeft: number }
+  | { kind: 'starving'; turnsLeft: number }; // 糧盡 — desertion + sapped fighting power
 
 /** Stratagem types — single-use special actions during the battle. */
 export type StratagemId =
@@ -208,7 +209,9 @@ export type StratagemId =
   // ── Naval (water battles only) ──
   | 'ram'           // 撞角 — warship rams an adjacent ship; heavy hull damage
   | 'board'         // 接舷 — board an adjacent ship; marine melee, shatters morale
-  | 'fire-ship';    // 火船 — fireships; devastating against chained fleets (赤壁)
+  | 'fire-ship'     // 火船 — fireships; devastating against chained fleets (赤壁)
+  // ── Supply raiding ──
+  | 'raid-supply';  // 劫糧道 — from deep in the enemy rear, burn their grain (烏巢)
 
 export interface Stratagem {
   id: StratagemId;
