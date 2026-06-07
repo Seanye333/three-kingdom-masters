@@ -1742,6 +1742,7 @@ export function aiTakeTurn(
           continue;
         }
       }
+      const maxEnemyTroops = Math.max(...enemies.map((e) => e.troops), 1);
       const targetScore = (e: TacticalUnit): number => {
         const counter = counterMultiplier(unit.unitType, e.unitType);
         const dist = hexDistance(unit.coord, e.coord);
@@ -1752,14 +1753,22 @@ export function aiTakeTurn(
         if (counter >= 1.4) s *= 0.6;       // we counter them — pursue
         if (counter <= 0.8) s *= 1.8;       // they counter us — avoid
         const woundedRatio = e.troops / Math.max(1, e.maxTroops);
-        s *= (0.5 + woundedRatio);          // wounded = juicier
+        s *= (0.5 + woundedRatio);          // wounded by % = juicier
+        // Focus fire: the side gravitates to the weakest unit on the board so it
+        // dies and stops hitting back (absolute troops, normalised to the field).
+        s *= (0.6 + 0.4 * (e.troops / maxEnemyTroops));
+        // Prefer foes caught in the open over ones dug into defensive terrain.
+        s *= (0.7 + 0.3 / defenderTerrainShield(tileTerrain(cur, e.coord)));
         return s;
       };
       enemies.sort((a, b1) => targetScore(a) - targetScore(b1));
       const target = enemies[0];
-      const dist = hexDistance(unit.coord, target.coord);
-      if (dist === 1) {
-        cur = attackUnits(cur, unit.id, target.id, officers, rng);
+      // Never walk past a free hit: if any enemy is already adjacent, strike the
+      // best-scored adjacent one (weakest / most exposed) this turn instead of
+      // marching toward a juicier but distant target.
+      const adjacentEnemies = enemies.filter((e) => hexDistance(unit.coord, e.coord) === 1);
+      if (adjacentEnemies.length > 0) {
+        cur = attackUnits(cur, unit.id, adjacentEnemies[0].id, officers, rng);
         acted = true;
         break;
       }
@@ -1768,21 +1777,29 @@ export function aiTakeTurn(
       // rather than abandon the terrain edge to chase — let the attacker assault
       // into it.
       if (unit.side === 'defender' &&
-          tileValueFor(unit, tileTerrain(cur, unit.coord)) >= 1.2 &&
-          !enemies.some((e) => hexDistance(unit.coord, e.coord) === 1)) {
+          tileValueFor(unit, tileTerrain(cur, unit.coord)) >= 1.2) {
         passed.add(unit.id);
         continue;
       }
-      // Step toward the target, but weight terrain so the unit favours good
-      // ground on the way in and shuns poor footing — progress still dominates
-      // so it keeps closing, terrain only sways otherwise-equal steps and steers
-      // it off marsh/forest (cavalry) or onto hills/chokepoints/rivers (navy).
+      const dist = hexDistance(unit.coord, target.coord);
+      const friends = cur.units.filter((u) => u.side === unit.side && u.id !== unit.id);
+      // A friendly 軍師 a foe is pressing wants a screen: combat allies steer to
+      // stand beside it, putting bodies between the strategist and the enemy.
+      const guard = friends.find((f) => {
+        const fo = officers[f.officerId];
+        return fo && isStrategist(fo) && enemies.some((e) => hexDistance(f.coord, e.coord) <= 3);
+      });
+      // Step toward the target, weighting terrain (favour good ground, shun poor
+      // footing — progress still dominates), cohesion (advance as a body so units
+      // back each other / earn formation bonuses, not piecemeal), and escort.
       const candidates = hexNeighbours(unit.coord).filter((c) => canMove(cur, unit, c));
       if (candidates.length > 0) {
         const stepScore = (c: HexCoord) => {
           const progress = dist - hexDistance(c, target.coord); // +1 closer, −1 farther
           const terrainVal = tileValueFor(unit, tileTerrain(cur, c));
-          return progress * 1.0 + (terrainVal - 1) * 0.6;
+          const cohesion = friends.some((f) => hexDistance(c, f.coord) === 1) ? 0.25 : 0;
+          const escort = guard && hexDistance(c, guard.coord) <= 1 ? 0.3 : 0;
+          return progress * 1.0 + (terrainVal - 1) * 0.6 + cohesion + escort;
         };
         candidates.sort((a, b1) => stepScore(b1) - stepScore(a));
         cur = moveUnit(cur, unit.id, candidates[0]);
