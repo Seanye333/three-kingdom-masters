@@ -111,7 +111,7 @@ export function DuelModal({ result, onClose }: Props) {
               animation: phase !== 'standoff' ? 'duelClash 0.6s ease-out' : undefined,
             }}
           >
-            <DuelPortrait zh={a?.name.zh ?? '?'} color="#b8442e" side="attacker" />
+            <DuelPortrait id={a?.id} zh={a?.name.zh ?? '?'} color="#b8442e" side="attacker" />
             <div className="duel-name" style={{ fontSize: '1.6rem', color: '#d4a84a', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
               {lang === 'en' ? a?.name.en : a?.name.zh}
             </div>
@@ -162,7 +162,7 @@ export function DuelModal({ result, onClose }: Props) {
               animation: phase !== 'standoff' ? 'duelClashRight 0.6s ease-out' : undefined,
             }}
           >
-            <DuelPortrait zh={d?.name.zh ?? '?'} color="#3a7dd9" side="defender" />
+            <DuelPortrait id={d?.id} zh={d?.name.zh ?? '?'} color="#3a7dd9" side="defender" />
             <div className="duel-name" style={{ fontSize: '1.6rem', color: '#d4a84a', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
               {lang === 'en' ? d?.name.en : d?.name.zh}
             </div>
@@ -294,8 +294,31 @@ function RollBox({ label, roll, winner }: { label: string; roll: import('../../g
   );
 }
 
-function DuelPortrait({ zh, color, side }: { zh: string; color: string; side: 'attacker' | 'defender' }) {
+function DuelPortrait({ id, zh, color, side }: { id?: string; zh: string; color: string; side: 'attacker' | 'defender' }) {
   const s = zh.charAt(0);
+  // Prefer the hand-drawn portrait (square face crop) framed in the duel ring;
+  // fall back to the calligraphic surname glyph when there's no art for this id.
+  const [imgFailed, setImgFailed] = useState(!id);
+  if (id && !imgFailed) {
+    return (
+      <div
+        style={{
+          width: 120, height: 120, borderRadius: '50%', display: 'inline-block',
+          overflow: 'hidden', border: '2px solid #d4a84a',
+          boxShadow: `0 0 18px ${color}aa`,
+        }}
+      >
+        <img
+          src={`${import.meta.env.BASE_URL}portraits/${id}.webp`}
+          alt={zh}
+          width={120}
+          height={120}
+          onError={() => setImgFailed(true)}
+          style={{ width: 120, height: 120, objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+        />
+      </div>
+    );
+  }
   return (
     <svg width="120" height="120" viewBox="0 0 120 120" style={{ display: 'inline-block' }}>
       <defs>

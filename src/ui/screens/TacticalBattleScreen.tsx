@@ -35,6 +35,7 @@ import type {
 } from '../../game/types';
 import { BattleResultsModal } from '../components/BattleResultsModal';
 import { DuelModal } from '../components/DuelModal';
+import { OfficerPortrait } from '../components/OfficerPortrait';
 import { MapDefs as SharedMapDefs, MapFrame as SharedMapFrame, CompassRose as SharedCompassRose, TerrainArt as SharedTerrainArt } from '../components/hexMapShared';
 import { TacticalBattleScreen3D } from './TacticalBattleScreen3D';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -800,15 +801,24 @@ export function TacticalBattleScreen() {
                   {terrainEffect[tile.terrain] ?? ''}
                 </div>
                 {u && (
-                  <div style={{ marginTop: '0.4rem', paddingTop: '0.4rem', borderTop: '1px solid #4a3520' }}>
-                    <div style={{ color: u.side === 'attacker' ? '#b8442e' : '#3a7dd9' }}>
-                      {officers[u.officerId]?.name.zh ?? '?'} ({u.unitType})
-                    </div>
-                    <div style={{ color: '#c0a878', fontSize: '0.72rem' }}>
-                      {u.troops}/{u.maxTroops} 兵 · AP {u.ap}/{u.maxAp}
-                    </div>
-                    <div style={{ color: '#8a7050', fontSize: '0.7rem' }}>
-                      士気 {u.morale}{u.effects.length > 0 && ` · ${u.effects.map((e) => e.kind).join(', ')}`}
+                  <div style={{ marginTop: '0.4rem', paddingTop: '0.4rem', borderTop: '1px solid #4a3520', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                    {officers[u.officerId] && (
+                      <OfficerPortrait
+                        officer={officers[u.officerId]}
+                        size={48}
+                        forceColor={u.side === 'attacker' ? '#b8442e' : '#3a7dd9'}
+                      />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: u.side === 'attacker' ? '#b8442e' : '#3a7dd9' }}>
+                        {officers[u.officerId]?.name.zh ?? '?'} ({u.unitType})
+                      </div>
+                      <div style={{ color: '#c0a878', fontSize: '0.72rem' }}>
+                        {u.troops}/{u.maxTroops} 兵 · AP {u.ap}/{u.maxAp}
+                      </div>
+                      <div style={{ color: '#8a7050', fontSize: '0.7rem' }}>
+                        士気 {u.morale}{u.effects.length > 0 && ` · ${u.effects.map((e) => e.kind).join(', ')}`}
+                      </div>
                     </div>
                   </div>
                 )}
