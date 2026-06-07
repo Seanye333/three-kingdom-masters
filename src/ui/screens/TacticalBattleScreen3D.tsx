@@ -6,7 +6,7 @@ import { useGameStore } from '../../game/state/store';
 import type { EntityId, HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
 import type { DefenseBuildingId } from '../../game/data/defenseBuildings';
 import {
-  aiTakeTurn, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
+  aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
   moveUnit, resolveBattleEnd, unitAt,
 } from '../../game/systems/tactical';
 import { canDuel, resolveDuel, type DuelResult } from '../../game/systems/duel';
@@ -1388,6 +1388,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
   const start = useGameStore((s) => s.startTacticalBattle);
   const applyResolution = useGameStore((s) => s.applyTacticalResolution);
   const battleSpeed = useGameStore((s) => s.battleSpeed);
+  const difficulty = useGameStore((s) => s.difficulty);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hovered, setHovered] = useState<HexCoord | null>(null);
@@ -1460,7 +1461,9 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
     if (playerSide && battle.activeSide !== playerSide) {
       const delay = Math.max(150, 700 / Math.max(1, battleSpeed));
       const id = setTimeout(() => {
-        const result = aiTakeTurn(battle, officers, Math.random);
+        const result = aiTakeTurn(battle, officers, Math.random, {
+          skill: aiSkillForDifficulty(difficulty),
+        });
         const next = result.battle;
         // For each AI signature usage, spawn FX + banner + flavor log entry.
         const fxToAdd: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }> = [];
@@ -1506,7 +1509,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
       }, delay);
       return () => clearTimeout(id);
     }
-  }, [battle, officers, playerSide, start, battleSpeed]);
+  }, [battle, officers, playerSide, start, battleSpeed, difficulty]);
 
   // Show results modal when a winner is decided.
   useEffect(() => {

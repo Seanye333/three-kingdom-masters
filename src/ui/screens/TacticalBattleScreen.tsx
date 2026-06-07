@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FORMATIONS_BY_ID, NAMED_MAPS_BY_ID, STRATAGEMS } from '../../game/data';
 import {
   aiTakeTurn,
+  aiSkillForDifficulty,
   applyStratagem,
   attackUnits,
   breakGate,
@@ -131,6 +132,7 @@ export function TacticalBattleScreen() {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const battleSpeed = useGameStore((s) => s.battleSpeed);
   const setBattleSpeed = useGameStore((s) => s.setBattleSpeed);
+  const difficulty = useGameStore((s) => s.difficulty);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionMode, setActionMode] = useState<ActionMode>({ kind: 'none' });
@@ -213,12 +215,14 @@ export function TacticalBattleScreen() {
     if (battle.activeSide !== playerSide) {
       const delay = Math.max(150, 700 / Math.max(1, battleSpeed));
       const id = setTimeout(() => {
-        const result = aiTakeTurn(battle, officers, Math.random);
+        const result = aiTakeTurn(battle, officers, Math.random, {
+          skill: aiSkillForDifficulty(difficulty),
+        });
         start(result.battle);
       }, delay);
       return () => clearTimeout(id);
     }
-  }, [battle, officers, playerSide, start, battleSpeed]);
+  }, [battle, officers, playerSide, start, battleSpeed, difficulty]);
 
   // Pop voice lines from the log to the ticker.
   useEffect(() => {

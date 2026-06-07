@@ -1517,12 +1517,14 @@ function aiTryStratagem(
   unit: TacticalUnit,
   officers: Record<EntityId, Officer>,
   rng: () => number,
+  skill = 0.7,
 ): TacticalBattle | null {
   if (unit.ap < 1) return null;
   const off = officers[unit.officerId];
   if (!off) return null;
-  // Probability to attempt a stratagem at all (high INT casts more).
-  const baseChance = 0.20 + Math.max(0, (off.stats.intelligence - 60)) / 200;
+  // Probability to attempt a stratagem at all (high INT casts more; a more
+  // skilled AI reaches for its tricks more readily).
+  const baseChance = (0.20 + Math.max(0, (off.stats.intelligence - 60)) / 200) * (0.6 + 0.6 * skill);
   if (rng() > baseChance) return null;
 
   const enemies = b.units.filter((u) => u.side !== unit.side);
@@ -1620,110 +1622,324 @@ function inferSignatureTactic(
   return stratagemId;
 }
 
+// ─── AI movement & role helpers ────────────────────────────────────────
+
+/** Map the global game difficulty onto the tactical AI's competence knob. */
+export function aiSkillForDifficulty(difficulty: 'easy' | 'normal' | 'hard'): number {
+  return difficulty === 'easy' ? 0.35 : difficulty === 'hard' ? 1.0 : 0.7;
+}
+
+/** Battlefield role drives how the AI positions and fights a unit. */
+export type TacticalRole = 'melee' | 'ranged' | 'strategist' | 'siege';
+
+/** Classify a unit: siege heads for gates, ranged kite, fragile high-INT
+ *  officers hang back and cast, everyone else brawls on the front line. */
+export function unitRole(o: Officer | undefined, unitType: UnitType): TacticalRole {
+  if (unitType === 'siege') return 'siege';
+  if (unitType === 'archers' || unitType === 'navy') return 'ranged';
+  const war = o?.stats.war ?? 60;
+  const int = o?.stats.intelligence ?? 60;
+  if (war < 65 && int >= 75) return 'strategist';
+  return 'melee';
+}
+
+/** Acting order: front line first so the squishy units can react. */
+function roleRank(role: TacticalRole): number {
+  return role === 'melee' ? 0 : role === 'siege' ? 1 : role === 'ranged' ? 2 : 3;
+}
+
+/** How much a tile suits this unit type — rewards attack-boosting terrain and
+ *  cover (low incoming-damage terrain). Higher is better for positioning. */
+function terrainAffinity(type: UnitType, terrain: TerrainKind): number {
+  return terrainDamageMod(type, terrain) + (1 - defenderTerrainShield(terrain));
+}
+
+/**
+ * Dijkstra cost field flowing outward from `goal` over passable terrain.
+ * Other units block their hex (you can't march through a stack) — except the
+ * goal hex itself, so we can path *up to* an enemy and stop adjacent. Gates
+ * (cost ≥ 99) are impassable. Returns cost keyed by "col,row".
+ */
+function costFieldTo(b: TacticalBattle, goal: HexCoord, mover: TacticalUnit): Map<string, number> {
+  const key = (c: HexCoord) => `${c.col},${c.row}`;
+  const goalKey = key(goal);
+  const blocked = new Set(
+    b.units
+      .filter((u) => u.troops > 0 && u.id !== mover.id && key(u.coord) !== goalKey)
+      .map((u) => key(u.coord)),
+  );
+  const dist = new Map<string, number>([[goalKey, 0]]);
+  const frontier: Array<{ c: HexCoord; d: number }> = [{ c: goal, d: 0 }];
+  while (frontier.length > 0) {
+    // Grid is small — a linear scan for the cheapest node is plenty fast.
+    let bi = 0;
+    for (let i = 1; i < frontier.length; i++) if (frontier[i].d < frontier[bi].d) bi = i;
+    const { c, d } = frontier.splice(bi, 1)[0];
+    if (d > (dist.get(key(c)) ?? Infinity)) continue;
+    for (const n of hexNeighbours(c)) {
+      const t = tileAt(b, n);
+      if (!t) continue;
+      const nk = key(n);
+      if (blocked.has(nk)) continue;
+      const step = TERRAIN_MOVE_COST[t.terrain];
+      if (step >= 99) continue; // gate / impassable
+      const nd = d + step;
+      if (nd < (dist.get(nk) ?? Infinity)) {
+        dist.set(nk, nd);
+        frontier.push({ c: n, d: nd });
+      }
+    }
+  }
+  return dist;
+}
+
+/**
+ * Best single step toward a goal: follows the cost field so the unit routes
+ * *around* mountains, rivers and friendly stacks instead of stalling against
+ * them, breaking ties toward terrain that suits the unit.
+ */
+export function bestStepToward(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  goal: HexCoord,
+): HexCoord | null {
+  const field = costFieldTo(b, goal, unit);
+  const key = (c: HexCoord) => `${c.col},${c.row}`;
+  let best: HexCoord | null = null;
+  let bestScore = Infinity;
+  for (const n of hexNeighbours(unit.coord)) {
+    if (!canMove(b, unit, n)) continue;
+    const d = field.get(key(n));
+    if (d === undefined) continue;
+    const tile = tileAt(b, n);
+    const aff = tile ? terrainAffinity(unit.unitType, tile.terrain) : 0;
+    const score = d - aff * 0.1; // mild terrain tie-break
+    if (score < bestScore) {
+      bestScore = score;
+      best = n;
+    }
+  }
+  return best;
+}
+
+/**
+ * Reposition a kiting unit to sit in its preferred [lo,hi] distance band from
+ * the nearest enemy, favouring terrain that boosts it. Returns the chosen
+ * hex, or null if simply holding position is already best.
+ */
+export function bandRepositionStep(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  enemies: TacticalUnit[],
+  lo: number,
+  hi: number,
+): HexCoord | null {
+  if (enemies.length === 0) return null;
+  const score = (c: HexCoord): number => {
+    const nd = Math.min(...enemies.map((e) => hexDistance(c, e.coord)));
+    let band: number;
+    if (nd < lo) band = (nd - lo) * 2; // too close → strong penalty
+    else if (nd <= hi) band = 2; // sweet spot
+    else band = (hi - nd) * 0.5; // too far → mild penalty
+    const tile = tileAt(b, c);
+    return band + (tile ? terrainAffinity(unit.unitType, tile.terrain) : 0);
+  };
+  let best: HexCoord | null = null;
+  let bestScore = score(unit.coord);
+  for (const n of hexNeighbours(unit.coord)) {
+    if (!canMove(b, unit, n)) continue;
+    const s = score(n);
+    if (s > bestScore) {
+      bestScore = s;
+      best = n;
+    }
+  }
+  return best;
+}
+
+/** Pick the juiciest target: nearby, countered by us, wounded, or a commander.
+ *  Weighting wounded enemies low makes the side gang up (focus fire). */
+export function pickAiTarget(
+  unit: TacticalUnit,
+  candidates: TacticalUnit[],
+): TacticalUnit | undefined {
+  if (candidates.length === 0) return undefined;
+  const score = (e: TacticalUnit): number => {
+    const counter = counterMultiplier(unit.unitType, e.unitType);
+    let s = hexDistance(unit.coord, e.coord);
+    if (e.isCommander) s *= 0.5;
+    if (counter >= 1.4) s *= 0.6; // we counter them — pursue
+    if (counter <= 0.8) s *= 1.8; // they counter us — avoid
+    const woundedRatio = e.troops / Math.max(1, e.maxTroops);
+    s *= 0.4 + woundedRatio; // weaker = juicier → focus fire
+    return s;
+  };
+  return [...candidates].sort((a, c) => score(a) - score(c))[0];
+}
+
+/** A commander steers toward an unresolved movement objective. */
+function objectiveStep(b: TacticalBattle, unit: TacticalUnit): HexCoord | null {
+  if (!unit.isCommander) return null;
+  const obj = unit.side === 'attacker' ? b.attackerObjective : b.defenderObjective;
+  if (!obj || obj.resolved) return null;
+  let goal: HexCoord | null = null;
+  if ((obj.kind === 'hold-tile' || obj.kind === 'capture-supply') && obj.tileCoord) {
+    goal = obj.tileCoord;
+  } else if (obj.kind === 'escape') {
+    goal = { col: unit.side === 'attacker' ? 0 : b.width - 1, row: unit.coord.row };
+  }
+  if (!goal || hexDistance(unit.coord, goal) === 0) return null;
+  return bestStepToward(b, unit, goal);
+}
+
+/** Diff stratagem cooldowns to recover which (signature) tactic a unit fired. */
+function detectSignature(
+  prev: TacticalBattle,
+  next: TacticalBattle,
+  unit: TacticalUnit,
+  officers: Record<EntityId, Officer>,
+): AITurnResult['signatures'] {
+  const out: AITurnResult['signatures'] = [];
+  const prefix = `${unit.id}-`;
+  for (const [k, val] of Object.entries(next.stratagemCooldowns)) {
+    if (!k.startsWith(prefix)) continue;
+    if ((prev.stratagemCooldowns[k] ?? -1) >= val) continue;
+    const stratagemId = k.slice(prefix.length) as StratagemId;
+    const after = next.units.find((u) => u.id === unit.id);
+    if (!after) continue;
+    const tacticId = inferSignatureTactic(officers[after.officerId], stratagemId);
+    out.push({ tacticId, coord: after.coord, unitId: after.id, stratagemId });
+  }
+  return out;
+}
+
+/** One AI decision for a single unit. Returns the (possibly unchanged) battle,
+ *  whether it actually acted, and any signature tactics fired. */
+function aiActOnce(
+  b: TacticalBattle,
+  unit: TacticalUnit,
+  officers: Record<EntityId, Officer>,
+  rng: () => number,
+  skill: number,
+): { battle: TacticalBattle; acted: boolean; signatures: AITurnResult['signatures'] } {
+  const hold = { battle: b, acted: false, signatures: [] as AITurnResult['signatures'] };
+  const off = officers[unit.officerId];
+
+  // Ambusher lies in wait — springs only when an enemy is adjacent (landing
+  // the +30% ambush bonus); otherwise holds its concealed position.
+  if (unit.hidden) {
+    const adj = b.units.find(
+      (e) => e.side !== unit.side && !e.hidden && e.troops > 0 && hexDistance(unit.coord, e.coord) === 1,
+    );
+    if (adj) return { battle: attackUnits(b, unit.id, adj.id, officers, rng), acted: true, signatures: [] };
+    return hold;
+  }
+
+  const enemies = b.units.filter((u) => u.side !== unit.side && !u.hidden && u.troops > 0);
+  if (enemies.length === 0) return hold;
+  const role = unitRole(off, unit.unitType);
+  const fragile = role === 'ranged' || role === 'strategist';
+
+  // Reach for a stratagem first (skill-gated). Ranged units lob arrows here;
+  // casters unleash fire / confusion / lightning.
+  const stratResult = aiTryStratagem(b, unit, officers, rng, skill);
+  if (stratResult) {
+    return { battle: stratResult, acted: true, signatures: detectSignature(b, stratResult, unit, officers) };
+  }
+
+  // Siege engines make for the gate.
+  if (unit.unitType === 'siege') {
+    const gate = hexNeighbours(unit.coord)
+      .map((c) => tileAt(b, c))
+      .find((t) => t?.terrain === 'gate');
+    if (gate) return { battle: breakGate(b, unit.id, gate.coord), acted: true, signatures: [] };
+  }
+
+  // Broken units flee off their own edge instead of dying in place.
+  if (!unit.isCommander && unit.troops < unit.maxTroops * 0.3 && unit.morale < 30) {
+    const edgeCol = unit.side === 'attacker' ? 0 : b.width - 1;
+    if (Math.abs(unit.coord.col - edgeCol) <= 2) {
+      return { battle: retreatUnit(b, unit.id), acted: true, signatures: [] };
+    }
+  }
+
+  const adjEnemies = enemies.filter((e) => hexDistance(unit.coord, e.coord) === 1);
+
+  // Fragile units (archers, casters) keep their distance once the AI is
+  // skilled enough to micro; a clumsy low-skill AI just brawls in line.
+  const micro = skill >= 0.4;
+  if (fragile && micro) {
+    const lo = role === 'strategist' ? 3 : 2;
+    const hi = role === 'strategist' ? 6 : 4;
+    if (adjEnemies.length > 0) {
+      // Enemy in our face — back off if we can, else fight.
+      const step = bandRepositionStep(b, unit, enemies, lo, hi);
+      if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+      const t = pickAiTarget(unit, adjEnemies);
+      if (t) return { battle: attackUnits(b, unit.id, t.id, officers, rng), acted: true, signatures: [] };
+    }
+    // Drifted out of the firing band — slide back into it.
+    const nearest = Math.min(...enemies.map((e) => hexDistance(unit.coord, e.coord)));
+    if (nearest < lo || nearest > hi + 1) {
+      const step = bandRepositionStep(b, unit, enemies, lo, hi);
+      if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+    }
+    return hold; // in a good spot — don't charge into melee
+  }
+
+  // Melee: strike an adjacent target if there is one.
+  if (adjEnemies.length > 0) {
+    const t = pickAiTarget(unit, adjEnemies);
+    if (t) return { battle: attackUnits(b, unit.id, t.id, officers, rng), acted: true, signatures: [] };
+  }
+
+  // Pursue a battlefield objective (commander only) before chasing kills.
+  const objStep = objectiveStep(b, unit);
+  if (objStep) return { battle: moveUnit(b, unit.id, objStep), acted: true, signatures: [] };
+
+  // Approach the best target via terrain-aware pathfinding.
+  const target = pickAiTarget(unit, enemies);
+  if (target) {
+    const step = bestStepToward(b, unit, target.coord);
+    if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+  }
+
+  return hold;
+}
+
+/**
+ * Run a full AI side-turn. `opts.skill` (0–1) scales competence: below 0.4 the
+ * AI brawls without kiting; higher values micro ranged units, lean on
+ * stratagems, and path intelligently. Maps from game difficulty by the caller.
+ */
 export function aiTakeTurn(
   b: TacticalBattle,
   officers: Record<EntityId, Officer>,
   rng: () => number,
+  opts?: { skill?: number },
 ): AITurnResult {
+  const skill = Math.max(0, Math.min(1, opts?.skill ?? 0.7));
   let cur = b;
   const signatures: AITurnResult['signatures'] = [];
-  let safety = 30;
+  let safety = 120;
   while (safety-- > 0) {
-    const myUnits = cur.units.filter((u) => u.side === cur.activeSide && u.ap > 0);
+    const myUnits = cur.units.filter((u) => u.side === cur.activeSide && u.ap > 0 && u.troops > 0);
     if (myUnits.length === 0) break;
+    // Front line acts before ranged/casters so the squishy units can react to
+    // how the melee shapes up.
+    const ordered = [...myUnits].sort(
+      (a, c) =>
+        roleRank(unitRole(officers[a.officerId], a.unitType)) -
+        roleRank(unitRole(officers[c.officerId], c.unitType)),
+    );
     let acted = false;
-    for (const unit of myUnits) {
-      // Ambusher lies in wait: a hidden unit holds its concealed position and
-      // only springs when an enemy steps adjacent — striking from hiding lands
-      // the +30% ambush bonus. Moving toward the foe would reveal it early and
-      // squander the trap, so otherwise it simply waits (no action this pass).
-      if (unit.hidden) {
-        const adj = cur.units.find((e) =>
-          e.side !== unit.side && !e.hidden && hexDistance(unit.coord, e.coord) === 1);
-        if (adj) {
-          cur = attackUnits(cur, unit.id, adj.id, officers, rng);
-          acted = true;
-          break;
-        }
-        continue; // stay hidden
-      }
-      // N1 — Try a stratagem first.
-      const stratResult = aiTryStratagem(cur, unit, officers, rng);
-      if (stratResult) {
-        // Detect which stratagem was actually used by diffing cooldowns.
-        for (const [key, val] of Object.entries(stratResult.stratagemCooldowns)) {
-          if ((cur.stratagemCooldowns[key] ?? -1) >= val) continue;
-          const dash = key.indexOf('-');
-          if (dash < 0) continue;
-          const unitId = key.slice(0, dash);
-          if (unitId !== unit.id) continue;
-          const stratagemId = key.slice(dash + 1) as StratagemId;
-          const after = stratResult.units.find((u) => u.id === unit.id);
-          if (!after) continue;
-          const off = officers[after.officerId];
-          const tacticId = inferSignatureTactic(off, stratagemId);
-          signatures.push({ tacticId, coord: after.coord, unitId: after.id, stratagemId });
-        }
-        cur = stratResult;
+    for (const unit of ordered) {
+      const r = aiActOnce(cur, unit, officers, rng, skill);
+      if (r.acted) {
+        cur = r.battle;
+        signatures.push(...r.signatures);
         acted = true;
-        break;
-      }
-      // Beaten unit retreats: non-commander, < 30% troops AND < 30 morale,
-      // within reach of own edge. Prevents pointless death animations.
-      if (!unit.isCommander &&
-          unit.troops < unit.maxTroops * 0.3 &&
-          unit.morale < 30) {
-        const ownEdgeCol = unit.side === 'attacker' ? 0 : cur.width - 1;
-        if (Math.abs(unit.coord.col - ownEdgeCol) <= 2) {
-          cur = retreatUnit(cur, unit.id);
-          acted = true;
-          break;
-        }
-      }
-      // Siege unit adjacent to a gate hex: break it open instead.
-      if (unit.unitType === 'siege') {
-        const gateNeighbour = hexNeighbours(unit.coord)
-          .map((c) => cur.tiles.find((t) => t.coord.col === c.col && t.coord.row === c.row))
-          .find((t) => t?.terrain === 'gate');
-        if (gateNeighbour) {
-          cur = breakGate(cur, unit.id, gateNeighbour.coord);
-          acted = true;
-          break;
-        }
-      }
-      // Find target: prefer enemies we counter, avoid those who counter us.
-      // Hidden enemies are invisible to the AI.
-      const enemies = cur.units.filter((u) => u.side !== unit.side && !u.hidden);
-      if (enemies.length === 0) break;
-      const targetScore = (e: TacticalUnit): number => {
-        const counter = counterMultiplier(unit.unitType, e.unitType);
-        const dist = hexDistance(unit.coord, e.coord);
-        // Lower score = better target. Prefer commanders (×0.5), high counter (×/1.5),
-        // wounded (×troops%), and closer.
-        let s = dist;
-        if (e.isCommander) s *= 0.5;
-        if (counter >= 1.4) s *= 0.6;       // we counter them — pursue
-        if (counter <= 0.8) s *= 1.8;       // they counter us — avoid
-        const woundedRatio = e.troops / Math.max(1, e.maxTroops);
-        s *= (0.5 + woundedRatio);          // wounded = juicier
-        return s;
-      };
-      enemies.sort((a, b1) => targetScore(a) - targetScore(b1));
-      const target = enemies[0];
-      const dist = hexDistance(unit.coord, target.coord);
-      if (dist === 1) {
-        cur = attackUnits(cur, unit.id, target.id, officers, rng);
-        acted = true;
-        break;
-      }
-      // Try to step closer along neighbours.
-      const candidates = hexNeighbours(unit.coord)
-        .filter((c) => canMove(cur, unit, c))
-        .sort((a, b1) => hexDistance(a, target.coord) - hexDistance(b1, target.coord));
-      if (candidates.length > 0) {
-        cur = moveUnit(cur, unit.id, candidates[0]);
-        acted = true;
-        break;
+        break; // recompute the board after every action
       }
     }
     if (!acted) break;
