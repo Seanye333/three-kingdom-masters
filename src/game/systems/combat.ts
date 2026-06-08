@@ -62,6 +62,26 @@ function navalProwessMul(pool: Officer[], ctx?: { city?: City }): number {
   return navy === 0 ? 1 : 1 + Math.min(0.24, 0.08 * navy);
 }
 
+/**
+ * Resolve a city's conditional defence-building effects for one siege. These
+ * fields used to be aggregated and shown in the UI but never applied:
+ *  - navalDefense (鐵索): +defence, water sieges only.
+ *  - extraGarrison (兵舍): standing defenders added to the city's troops.
+ *  - mountainBonus (城防/落石): +defender power, mountain terrain only.
+ *  - cavalryPenalty (拒馬): −attacker power vs a cavalry-led assault.
+ */
+export function siegeBuildingModifiers(
+  slotEffects: ReturnType<typeof aggregateSlotEffects>,
+  opts: { water: boolean; mountain: boolean; attackerCavalry: boolean },
+): { defenseBonus: number; garrisonBonus: number; defenderPowerMul: number; attackerPowerMul: number } {
+  return {
+    defenseBonus: opts.water ? slotEffects.navalDefense : 0,
+    garrisonBonus: slotEffects.extraGarrison,
+    defenderPowerMul: opts.mountain ? 1 + slotEffects.mountainBonus : 1,
+    attackerPowerMul: opts.attackerCavalry ? Math.max(0.5, 1 - slotEffects.cavalryPenalty) : 1,
+  };
+}
+
 interface AggregatedSkillEffects {
   warBonus: number;
   leadershipBonus: number;
@@ -784,7 +804,17 @@ export function handleMarch(
   })();
   // Defense structures built on the city's perimeter (箭樓/拒馬/鐵索/...).
   const slotEffects = aggregateSlotEffects(target.buildSlots ?? []);
-  const effectiveDefense = target.defense + defenseBonusFromPolicy + slotEffects.defenseBonus;
+  // Conditional defence-building effects: 鐵索 navalDefense only on water, 拒馬
+  // cavalryPenalty only vs a cavalry-led assault, rampart/rockfall mountainBonus
+  // only in the passes, 兵舍 extraGarrison always adds standing defenders.
+  const siegeMods = siegeBuildingModifiers(slotEffects, {
+    water: isWaterBattle({ city: target }),
+    mountain: /shu|mt\.|mountain|hanzhong|jianmen|kuiguan|baidi/.test(target.name.en.toLowerCase()),
+    attackerCavalry: commander.skills.includes('cavalry-master'),
+  });
+  const effectiveDefense =
+    target.defense + defenseBonusFromPolicy + slotEffects.defenseBonus + siegeMods.defenseBonus;
+  const defenderTroops = target.troops + siegeMods.garrisonBonus;
 
   // Watchtower / arrow-platform / rockfall pre-strike the attacker before battle math.
   const adjustedAttackerTroops = Math.max(0, sentTroops - slotEffects.rangedPrestrike);
@@ -817,7 +847,7 @@ export function handleMarch(
   const result = resolveBattle(
     { troops: adjustedAttackerTroops, commander, companions },
     {
-      troops: target.troops,
+      troops: defenderTroops,
       commander: defenderCommander,
       companions: defenderOfficers,
     },
@@ -829,8 +859,8 @@ export function handleMarch(
       allowPursuit: true,
       attackerDamageMul: slotEffects.attackerDamageMul,
       family: ctx.family,
-      attackerTitlePowerMul,
-      defenderTitlePowerMul,
+      attackerTitlePowerMul: attackerTitlePowerMul * siegeMods.attackerPowerMul,
+      defenderTitlePowerMul: defenderTitlePowerMul * siegeMods.defenderPowerMul,
       attackerCasusBelliMul,
       defenderCasusBelliMul,
     },

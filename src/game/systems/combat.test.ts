@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { resolveBattle, type BattleSide } from './combat';
+import { resolveBattle, siegeBuildingModifiers, type BattleSide } from './combat';
+import { aggregateSlotEffects, type DefenseBuildingId } from '../data/defenseBuildings';
 import type { City } from '../types';
 import { mkOfficer, fixedRng, seededRng } from '../../test/factories';
 
@@ -87,5 +88,33 @@ describe('resolveBattle — naval prowess', () => {
     const withNavy = resolveBattle(side(20000, navy), foe(), 20, seededRng(5), land);
     const noNavy = resolveBattle(side(20000, plain), foe(), 20, seededRng(5), land);
     expect(withNavy.aPower).toBeCloseTo(noNavy.aPower, 5);
+  });
+});
+
+describe('siegeBuildingModifiers — conditional defence buildings', () => {
+  const eff = (id: DefenseBuildingId, level = 3) =>
+    aggregateSlotEffects([{ slot: 0, buildingId: id, level }]);
+  const base = { water: false, mountain: false, attackerCavalry: false };
+
+  it('鐵索 naval defence applies on water only', () => {
+    const chains = eff('iron-chains');
+    expect(siegeBuildingModifiers(chains, { ...base, water: true }).defenseBonus).toBeGreaterThan(0);
+    expect(siegeBuildingModifiers(chains, base).defenseBonus).toBe(0);
+  });
+
+  it('兵舍 adds a standing garrison', () => {
+    expect(siegeBuildingModifiers(eff('barracks-out'), base).garrisonBonus).toBeGreaterThan(0);
+  });
+
+  it('拒馬 blunts a cavalry-led assault only', () => {
+    const caltrops = eff('caltrops');
+    expect(siegeBuildingModifiers(caltrops, { ...base, attackerCavalry: true }).attackerPowerMul).toBeLessThan(1);
+    expect(siegeBuildingModifiers(caltrops, base).attackerPowerMul).toBe(1);
+  });
+
+  it('落石/箭台 power up the defender in the passes only', () => {
+    const rock = eff('rockfall');
+    expect(siegeBuildingModifiers(rock, { ...base, mountain: true }).defenderPowerMul).toBeGreaterThan(1);
+    expect(siegeBuildingModifiers(rock, base).defenderPowerMul).toBe(1);
   });
 });

@@ -1,6 +1,7 @@
 import type { City, Officer, Season } from '../types';
 import { cityPolicyEffects } from './policyEffects';
 import { citySize, populationDelta } from './citySize';
+import { aggregateSlotEffects } from '../data/defenseBuildings';
 
 export const FOOD_PER_TROOP_PER_SEASON = 0.25;
 
@@ -35,7 +36,12 @@ export function tickCityEconomy(
     season === 'autumn'
       ? Math.floor(city.agriculture * (city.population / 1000))
       : 0;
-  const foodIncome = Math.floor(baseFood * eff.foodMul * size.foodMul);
+  // 糧倉 (granary-out) lays in extra stores at the autumn harvest — feeds the
+  // garrison and staves off starvation desertion under siege.
+  const granaryFood = season === 'autumn'
+    ? aggregateSlotEffects(city.buildSlots ?? []).extraFood
+    : 0;
+  const foodIncome = Math.floor(baseFood * eff.foodMul * size.foodMul) + granaryFood;
 
   const foodUpkeep = Math.ceil(city.troops * FOOD_PER_TROOP_PER_SEASON);
 
