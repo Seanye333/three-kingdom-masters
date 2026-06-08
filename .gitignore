@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Claude Code per-machine settings (command allowlist etc.) — not shared
+.claude/settings.local.json
