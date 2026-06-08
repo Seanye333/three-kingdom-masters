@@ -1611,29 +1611,35 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         postOfficers = tickedOfficers;
 
         // ── Delayed effects (截糧 troop drain) tick ──
-        const remainingDelayed: typeof state.pendingDelayedEffects = [];
-        // Add fresh effects from this season's battles.
-        const freshDelayed = (result.delayedEffects ?? []);
-        const allDelayed = [...state.pendingDelayedEffects, ...freshDelayed];
-        for (const d of allDelayed) {
-          if (d.targetCityId && postCities[d.targetCityId]) {
-            const c = postCities[d.targetCityId];
-            postCities = {
-              ...postCities,
-              [d.targetCityId]: {
-                ...c,
-                troops: Math.max(0, c.troops - d.perSeason),
-              },
-            };
-            result.report.entries.push({
-              cityId: d.targetCityId,
-              kind: 'note',
-              text: `截糧之計 — ${c.name.zh} loses ${d.perSeason.toLocaleString()} troops to starvation. ${d.seasons - 1} season(s) remaining.`,
-            });
+        // Always absorb fresh effects from this period's battles so none are
+        // lost, but the drain itself ticks once per SEASON — not once per game
+        // period (~9/season), which drained ~9× too fast and burned the whole
+        // 3-season effect out within a single season.
+        let remainingDelayed: typeof state.pendingDelayedEffects =
+          [...state.pendingDelayedEffects, ...(result.delayedEffects ?? [])];
+        if (seasonBoundary) {
+          const ticked: typeof state.pendingDelayedEffects = [];
+          for (const d of remainingDelayed) {
+            if (d.targetCityId && postCities[d.targetCityId]) {
+              const c = postCities[d.targetCityId];
+              postCities = {
+                ...postCities,
+                [d.targetCityId]: {
+                  ...c,
+                  troops: Math.max(0, c.troops - d.perSeason),
+                },
+              };
+              result.report.entries.push({
+                cityId: d.targetCityId,
+                kind: 'note',
+                text: `截糧之計 — ${c.name.zh} loses ${d.perSeason.toLocaleString()} troops to starvation. ${d.seasons - 1} season(s) remaining.`,
+              });
+            }
+            if (d.seasons - 1 > 0) {
+              ticked.push({ ...d, seasons: d.seasons - 1 });
+            }
           }
-          if (d.seasons - 1 > 0) {
-            remainingDelayed.push({ ...d, seasons: d.seasons - 1 });
-          }
+          remainingDelayed = ticked;
         }
 
         // ── Religious rebellion roll (season boundary only) ──
