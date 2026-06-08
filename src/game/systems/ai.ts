@@ -110,9 +110,11 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
     citiesByForce.set(city.ownerForceId, arr);
   }
 
+  // The map's runaway power, if any — lesser forces gang up on it (合縱抗霸).
+  const hegemonId = findHegemon(cities);
   for (const [forceId, forceCities] of citiesByForce) {
     // Force-level offensive focus for the season — bordering cities mass on it.
-    const forceTargetId = pickForceTarget(forceId, forceCities, cities, input.diplomacy);
+    const forceTargetId = pickForceTarget(forceId, forceCities, cities, input.diplomacy, hegemonId);
     // Season posture: consolidate when a bordering force overshadows us.
     const posture = forcePosture(forceId, forceCities, cities);
     for (const city of forceCities) {
@@ -147,6 +149,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         input.armies ?? {},
         forceTargetId,
         posture,
+        hegemonId,
       );
       if (!decision) continue;
 
@@ -574,6 +577,7 @@ export function pickForceTarget(
   forceCities: City[],
   allCities: Record<EntityId, City>,
   diplomacy: DiplomaticState,
+  hegemonId: EntityId | null = null,
 ): EntityId | null {
   // City count per force — used to spot a death blow (an enemy's last city).
   const cityCount: Record<EntityId, number> = {};
@@ -604,7 +608,9 @@ export function pickForceTarget(
     // worth far more than the city's size alone, so the AI finishes off crippled
     // rivals instead of leaving one-city rumps to linger.
     const elimination = cand.ownerForceId && cityCount[cand.ownerForceId] === 1 ? 2.5 : 1;
-    const score = feasibility * value * elimination;
+    // 合縱抗霸: pile onto the hegemon's frontier so the lesser powers gang up.
+    const hegemon = cand.ownerForceId && cand.ownerForceId === hegemonId ? 1.6 : 1;
+    const score = feasibility * value * elimination * hegemon;
     if (score > bestScore) { bestScore = score; best = candId; }
   }
   return best;
@@ -665,6 +671,25 @@ export function forcePosture(
   return maxNeighbor >= myTroops * 1.5 ? 'defensive' : 'aggressive';
 }
 
+/**
+ * The map's hegemon — the single force whose total troops clearly dominate
+ * (>1.3× the next strongest). Returns null when no one runs away with it, so
+ * forces only gang up once a leader actually emerges. Other forces then bias
+ * their offensives onto the hegemon's frontier (合縱抗霸) and will strike it even
+ * from a defensive posture, the only real check on a runaway power.
+ */
+export function findHegemon(allCities: Record<EntityId, City>): EntityId | null {
+  const totals: Record<EntityId, number> = {};
+  for (const c of Object.values(allCities)) {
+    if (c.ownerForceId) totals[c.ownerForceId] = (totals[c.ownerForceId] ?? 0) + c.troops;
+  }
+  const sorted = Object.values(totals).length >= 2
+    ? Object.entries(totals).sort((a, b) => b[1] - a[1])
+    : [];
+  if (sorted.length < 2) return null;
+  return sorted[0][1] > sorted[1][1] * 1.3 ? sorted[0][0] : null;
+}
+
 function decideCommand(
   city: City,
   officersHere: Officer[],
@@ -680,6 +705,7 @@ function decideCommand(
   armies: Record<EntityId, import('../types').Army> = {},
   forceTargetId: EntityId | null = null,
   posture: 'aggressive' | 'defensive' = 'aggressive',
+  hegemonId: EntityId | null = null,
 ): Decision | null {
   const ownRulerId = forces[forceId]?.rulerOfficerId;
   // 1. Food crisis — develop agriculture
@@ -843,8 +869,11 @@ function decideCommand(
       // even when their own ratio is a touch short — the columns converge.
       const focusRelax = target.id === forceTargetId ? 1.3 : 1;
       // Under a looming hegemon, consolidate: only very safe attacks / death
-      // blows clear the bar, so the force doesn't overextend while outmatched.
-      const postureMul = posture === 'defensive' ? 0.5 : 1;
+      // blows clear the bar, so the force doesn't overextend while outmatched —
+      // EXCEPT a strike on the hegemon itself, which a coalition presses even
+      // from a defensive posture (still gated by feasibility, so no suicide).
+      const vsHegemon = target.ownerForceId != null && target.ownerForceId === hegemonId;
+      const postureMul = posture === 'defensive' && !vsHegemon ? 0.5 : 1;
       const attackThreshold = baseThreshold * deterrence * focusRelax * postureMul;
 
       // Effective defender strength factors in city defense: a fortress at

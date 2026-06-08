@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pickForceTarget, pickReinforcementTarget, forcePosture } from './ai';
+import { pickForceTarget, pickReinforcementTarget, forcePosture, findHegemon } from './ai';
 import type { City } from '../types';
 import type { DiplomaticState } from '../types/diplomacy';
 
@@ -91,5 +91,34 @@ describe('forcePosture — consolidate when outmatched', () => {
   it('stays aggressive with no bordering force', () => {
     const a1 = mkCity({ id: 'a1', ownerForceId: 'A', troops: 5000, adjacentCityIds: [] });
     expect(forcePosture('A', [a1], { a1 })).toBe('aggressive');
+  });
+});
+
+describe('findHegemon — runaway-power detection', () => {
+  it('flags a force that dominates (>1.3× the next strongest)', () => {
+    const a = mkCity({ id: 'a', ownerForceId: 'A', troops: 30000 });
+    const b = mkCity({ id: 'b', ownerForceId: 'B', troops: 10000 });
+    const c = mkCity({ id: 'c', ownerForceId: 'C', troops: 8000 });
+    expect(findHegemon({ a, b, c })).toBe('A');
+  });
+
+  it('returns null when the top two are close', () => {
+    const a = mkCity({ id: 'a', ownerForceId: 'A', troops: 12000 });
+    const b = mkCity({ id: 'b', ownerForceId: 'B', troops: 10000 });
+    expect(findHegemon({ a, b })).toBeNull();
+  });
+
+  it('returns null with only one force', () => {
+    const a = mkCity({ id: 'a', ownerForceId: 'A', troops: 5000 });
+    expect(findHegemon({ a })).toBeNull();
+  });
+});
+
+describe('pickForceTarget — 合縱抗霸 hegemon bias', () => {
+  it('prefers the hegemon\'s city over an equal non-hegemon target', () => {
+    const c1 = mkCity({ id: 'c1', ownerForceId: 'A', troops: 6000, adjacentCityIds: ['hcity', 'ncity'] });
+    const hcity = mkCity({ id: 'hcity', ownerForceId: 'H', troops: 1500, defense: 0, population: 100_000 });
+    const ncity = mkCity({ id: 'ncity', ownerForceId: 'N', troops: 1500, defense: 0, population: 100_000 });
+    expect(pickForceTarget('A', [c1], { c1, hcity, ncity }, NO_DIPLO, 'H')).toBe('hcity');
   });
 });
