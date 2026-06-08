@@ -1,6 +1,7 @@
 import type { Force, Scenario, Officer } from '../types';
 import { buildInitialCities } from './cities';
 import { buildInitialOfficers, buildHistoricalOfficers } from './officers';
+import { fillRetinues } from './retinues';
 import type { Dynasty } from './dynasties';
 
 // ──────────────────────────────────────────────────────────────────────
@@ -8502,7 +8503,7 @@ export const SCENARIO_ST_ANSHI: Scenario = {
   officers: buildWarringStatesOfficers(ASSIGN_ST_ANSHI, ['tang']),
 };
 
-export const SCENARIOS: Scenario[] = [
+const RAW_SCENARIOS: Scenario[] = [
   // ── Sui-end Warlords (parallel timeline) ──
   SCENARIO_ST_SUIEND,
   SCENARIO_ST_QIANSHUI,
@@ -8595,6 +8596,14 @@ export const SCENARIOS: Scenario[] = [
   SCENARIO_WHATIF_GAOPINGLING,
   SCENARIO_WHATIF_LUXUN_LIVES,
 ];
+
+// Enlist each force's canonical retinue (historical subordinates who otherwise
+// shipped as free agents), so secondary warlords field a proper officer corps
+// instead of standing alone. Applied once to every scenario.
+export const SCENARIOS: Scenario[] = RAW_SCENARIOS.map((s) => ({
+  ...s,
+  officers: fillRetinues(s.officers, s.forces, s.startDate.year),
+}));
 
 // ── Death-year normalization ───────────────────────────────────────────
 // Assignment tables sometimes place officers who were already dead by the
