@@ -209,6 +209,23 @@ describe('endTurn', () => {
     expect(after.units.find((u) => u.id === 'A1')).toBeUndefined(); // and left the field
   });
 
+  it('counts damage to surviving units as losses (not only routed ones)', () => {
+    // Attacker fielded 10000 and ends the turn bloodied but standing at 7000.
+    // The old tally only counted *removed* units, so this damage was invisible.
+    const a = mkUnit({
+      id: 'A1', officerId: 'oA1', side: 'attacker', isCommander: true,
+      troops: 7000, maxTroops: 10000,
+    });
+    const d = mkUnit({
+      id: 'D1', officerId: 'oD1', side: 'defender', isCommander: true,
+      troops: 10000, maxTroops: 10000, coord: { col: 5, row: 5 },
+    });
+    const after = endTurn(mkBattle({
+      units: [a, d], startTroops: { attacker: 10000, defender: 10000 },
+    }));
+    expect(after.attackerLosses).toBe(3000); // 10000 − 7000, not 0
+  });
+
   it('lets a siege unit batter down an adjacent city structure (destructible)', () => {
     const siege = mkUnit({
       id: 'A1', officerId: 'oA1', side: 'attacker', isCommander: true,

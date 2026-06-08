@@ -390,6 +390,10 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     stratagemCooldowns: {},
     attackerLosses: 0,
     defenderLosses: 0,
+    startTroops: {
+      attacker: finalUnits.filter((u) => u.side === 'attacker').reduce((s, u) => s + u.maxTroops, 0),
+      defender: finalUnits.filter((u) => u.side === 'defender').reduce((s, u) => s + u.maxTroops, 0),
+    },
     attackerFormation: p.attackerFormation ?? 'none',
     defenderFormation: p.defenderFormation ?? 'none',
     attackerObjective: p.attackerObjective,
@@ -1755,13 +1759,34 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     defender: [...prevCas.defender, ...fallen.filter((u) => u.side === 'defender').map((u) => u.officerId)],
   };
 
+  // Losses = (every troop ever fielded) − (troops still standing). Carrying the
+  // cumulative startTroops (deployment + arrived reinforcements) and subtracting
+  // current strength counts damage to survivors and never books a routed-but-
+  // not-destroyed unit's fled troops as casualties. Falls back to the old
+  // incremental tally for any battle built without startTroops.
+  const startTroops = b.startTroops
+    ? {
+        attacker: b.startTroops.attacker + arrivedUnits.filter((u) => u.side === 'attacker').reduce((s, u) => s + u.maxTroops, 0),
+        defender: b.startTroops.defender + arrivedUnits.filter((u) => u.side === 'defender').reduce((s, u) => s + u.maxTroops, 0),
+      }
+    : undefined;
+  const curAtk = finalUnits.filter((u) => u.side === 'attacker').reduce((s, u) => s + u.troops, 0);
+  const curDef = finalUnits.filter((u) => u.side === 'defender').reduce((s, u) => s + u.troops, 0);
+  const attackerLosses = startTroops
+    ? Math.max(0, startTroops.attacker - curAtk)
+    : b.attackerLosses + newAttackerLoss + additionalAttackerLoss;
+  const defenderLosses = startTroops
+    ? Math.max(0, startTroops.defender - curDef)
+    : b.defenderLosses + newDefenderLoss;
+
   return {
     ...b,
     units: finalUnits,
     turn: b.turn + 1,
     activeSide: b.activeSide === 'attacker' ? 'defender' : 'attacker',
-    attackerLosses: b.attackerLosses + newAttackerLoss + additionalAttackerLoss,
-    defenderLosses: b.defenderLosses + newDefenderLoss,
+    attackerLosses,
+    defenderLosses,
+    startTroops,
     winner: winner ?? b.winner,
     attackerObjective: attackerObj,
     defenderObjective: defenderObj,

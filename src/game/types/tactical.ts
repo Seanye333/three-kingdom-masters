@@ -257,6 +257,11 @@ export interface TacticalBattle {
    *  losing side's fallen officers dead/captured — units are removed during the
    *  battle, so the final `units` array alone can't reveal who fell. */
   casualties?: { attacker: EntityId[]; defender: EntityId[] };
+  /** Cumulative troops ever fielded per side (initial deployment + arrived
+   *  reinforcements). Losses = startTroops − current surviving troops, which
+   *  counts damage to survivors and never miscounts a routed-but-not-wiped unit
+   *  as a total loss. */
+  startTroops?: { attacker: number; defender: number };
   /** Per-side primary objective. */
   attackerObjective?: BattleObjective;
   defenderObjective?: BattleObjective;
