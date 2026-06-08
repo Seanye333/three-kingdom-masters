@@ -86,6 +86,8 @@ import { DIALOGUE_EVENTS_BY_ID } from '../data/dialogues';
 import { applyAutoBuild } from '../systems/autoBuild';
 import { planAIBuildOrders } from '../systems/aiBuild';
 import { SCENARIO_OBJECTIVES } from '../data/objectives';
+import { SCENARIOS } from '../data';
+import { findChallenge, evaluateChallenge } from '../data/challenges';
 import { evaluateGoal, findObjectiveFor } from '../systems/objectives';
 import { applySuccession } from '../systems/succession';
 import {
@@ -143,6 +145,9 @@ interface GameStore extends GameState {
       affiliationForceId: EntityId | null;
     },
   ) => void;
+  /** Start a Hero Mode challenge by id — loads its scenario/force at the
+   *  recommended difficulty and arms the pass/fail season-end check. */
+  startChallenge: (challengeId: string) => void;
   selectCity: (cityId: EntityId | null) => void;
   selectArmy: (armyId: EntityId | null) => void;
   redirectArmy: (armyId: EntityId, newTargetId: EntityId) => boolean;
@@ -463,6 +468,19 @@ export const useGameStore = create<GameStore>()(
 
       loadScenario: (scenario, playerForceId, difficulty, customOfficer) =>
         set((s) => loadScenario(s, scenario, playerForceId, difficulty, customOfficer)),
+
+      startChallenge: (challengeId) => {
+        const challenge = findChallenge(challengeId);
+        if (!challenge) return;
+        const scenario = SCENARIOS.find((s) => s.id === challenge.scenarioId);
+        if (!scenario) return;
+        const hasForce = scenario.forces.some((f) => f.id === challenge.forceId);
+        if (!hasForce) return;
+        set((s) => ({
+          ...loadScenario(s, scenario, challenge.forceId, challenge.difficulty),
+          activeChallenge: challenge.id,
+        }));
+      },
 
       selectCity: (cityId) => set(() => ({ selectedCityId: cityId })),
 
@@ -2059,6 +2077,44 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
                 cityId: null,
                 kind: 'note',
                 text: `Objective achieved: ${allGoals[i].title.en}!`,
+              });
+            }
+          }
+        }
+
+        // Hero Mode (英雄模式) — score the active challenge; pass/fail ends the run.
+        if (state.activeChallenge) {
+          const challenge = findChallenge(state.activeChallenge);
+          if (challenge) {
+            const liveForceIds = new Set<string>();
+            for (const c of Object.values(postCities)) {
+              if (c.ownerForceId) liveForceIds.add(c.ownerForceId);
+            }
+            const playerForce = state.playerForceId ? postForces[state.playerForceId] : null;
+            const status = evaluateChallenge(challenge, {
+              scenarioId: state.scenarioId,
+              playerForceId: state.playerForceId,
+              cities: postCities,
+              officers: postOfficers,
+              year: result.date.year,
+              liveForceIds,
+              isEmperor: playerForce?.imperialRank === 'emperor',
+            });
+            if (status === 'won' && endVS !== 'defeat') {
+              endVS = 'victory';
+              result.report.entries.unshift({
+                cityId: null,
+                kind: 'note',
+                text: `Challenge complete — ${challenge.name.en}!`,
+                textZh: `英雄模式達成 — ${challenge.name.zh}！`,
+              });
+            } else if (status === 'lost') {
+              endVS = 'defeat';
+              result.report.entries.unshift({
+                cityId: null,
+                kind: 'note',
+                text: `Challenge failed — ${challenge.name.en}.`,
+                textZh: `英雄模式失敗 — ${challenge.name.zh}。`,
               });
             }
           }
@@ -4722,6 +4778,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         lastReport: state.lastReport,
         victoryStatus: state.victoryStatus,
         difficulty: state.difficulty,
+        activeChallenge: state.activeChallenge,
         diplomacy: state.diplomacy,
         runtimeBonds: state.runtimeBonds,
         rapport: state.rapport,
@@ -4777,6 +4834,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (!state) return;
         if (!state.enabledDynasties) state.enabledDynasties = [];
         if (!state.rapport) state.rapport = {};
+        if (state.activeChallenge === undefined) state.activeChallenge = null;
         const cityOwnerByCityId = Object.fromEntries(
           Object.values(state.cities ?? {}).map((c) => [c.id, c.ownerForceId]),
         );

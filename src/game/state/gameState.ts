@@ -76,6 +76,9 @@ export interface GameState {
   lastReport: SeasonReport | null;
   victoryStatus: VictoryStatus;
   difficulty: Difficulty;
+  /** Active Hero Mode challenge id (英雄模式), or null in free play. When set,
+   *  the season-end check scores it pass/fail and ends the game accordingly. */
+  activeChallenge: string | null;
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
   /** Pairwise officer rapport (好感, 0–100) grown via social actions. */
@@ -247,6 +250,7 @@ export const EMPTY_STATE: GameState = {
   lastReport: null,
   victoryStatus: 'playing',
   difficulty: 'normal',
+  activeChallenge: null,
   diplomacy: { relations: {} },
   runtimeBonds: [],
   rapport: {},
@@ -427,6 +431,7 @@ export function loadScenario(
     pendingTrainings: [],
     lastReport: null,
     victoryStatus: 'playing',
+    activeChallenge: null,
     diplomacy: { relations: {} },
     runtimeBonds: [],
     rapport: {},

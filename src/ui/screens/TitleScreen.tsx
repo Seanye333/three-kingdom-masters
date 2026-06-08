@@ -13,6 +13,7 @@ import { IndividualitiesModal } from '../components/IndividualitiesModal';
 import { SaveSlotsModal } from '../components/SaveSlotsModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { ScenarioOfficersBrowser } from '../components/ScenarioOfficersBrowser';
+import { HeroModeModal } from '../components/HeroModeModal';
 import { OfficerPortrait } from '../components/OfficerPortrait';
 import { DYNASTY_DEFS, type Dynasty } from '../../game/data/dynasties';
 import { useT, useLanguage, useDesc } from '../i18n';
@@ -45,6 +46,7 @@ export function TitleScreen() {
   const [showPolicies, setShowPolicies] = useState(false);
   const [showIndividualities, setShowIndividualities] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHeroMode, setShowHeroMode] = useState(false);
   const [showDynasties, setShowDynasties] = useState(false);
   const enterCareerMode = useGameStore((s) => s.enterCareerMode);
   const setRomanceMode = useGameStore((s) => s.setRomanceMode);
@@ -283,6 +285,15 @@ export function TitleScreen() {
               }}
             >
               {t('下一步：選擇勢力 →', 'Next: Choose Force →')}
+            </button>
+
+            {/* Hero Mode — timed challenge scenarios */}
+            <button
+              className={styles.officersButton}
+              style={{ marginTop: '0.6rem', borderColor: '#c0504a', color: '#e2a07a', letterSpacing: '0.12rem' }}
+              onClick={() => setShowHeroMode(true)}
+            >
+              ⚔ {t('英雄模式 — 限時挑戰', 'Hero Mode — Timed Challenges')}
             </button>
 
             {/* Secondary tools (encyclopaedia / load / random / custom) */}
@@ -574,6 +585,7 @@ export function TitleScreen() {
           }}
         />
       )}
+      {showHeroMode && <HeroModeModal onClose={() => setShowHeroMode(false)} />}
       {showLoad && <SaveSlotsModal mode="load" onClose={() => setShowLoad(false)} />}
       {showAchievements && <AchievementsModal onClose={() => setShowAchievements(false)} />}
       {showItems && <ItemsBrowser onClose={() => setShowItems(false)} />}

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { SCENARIO_OBJECTIVES } from '../../game/data';
 import { evaluateGoal, findObjectiveFor } from '../../game/systems/objectives';
+import { findChallenge } from '../../game/data/challenges';
 import { useGameStore } from '../../game/state/store';
 
 export function ObjectivePanel() {
@@ -10,11 +11,13 @@ export function ObjectivePanel() {
   const officers = useGameStore((s) => s.officers);
   const forces = useGameStore((s) => s.forces);
   const year = useGameStore((s) => s.date.year);
+  const activeChallenge = useGameStore((s) => s.activeChallenge);
 
   const objective = useMemo(
     () => findObjectiveFor(scenarioId, playerForceId, SCENARIO_OBJECTIVES),
     [scenarioId, playerForceId],
   );
+  const challenge = useMemo(() => findChallenge(activeChallenge), [activeChallenge]);
 
   const ctx = useMemo(() => {
     const liveForceIds = new Set<string>();
@@ -31,6 +34,44 @@ export function ObjectivePanel() {
       isEmperor: playerForceId ? forces[playerForceId]?.imperialRank === 'emperor' : false,
     };
   }, [scenarioId, playerForceId, cities, officers, year, forces]);
+
+  // Hero Mode challenge takes over the panel when one is active.
+  if (challenge) {
+    const res = evaluateGoal(challenge.goal, ctx);
+    const deadline = challenge.goal.kind === 'survive-until' ? challenge.goal.year : challenge.deadlineYear;
+    const yearsLeft = deadline - year;
+    const tint = res.status === 'success' ? '#7ed68a' : res.status === 'failure' ? '#b8442e' : '#e2a07a';
+    return (
+      <div
+        style={{
+          background: '#1a1410', border: '1px solid #c0504a', borderLeft: '3px solid #c0504a',
+          padding: '0.5rem 0.8rem', fontSize: '0.78rem', color: '#c0a878',
+          fontFamily: '"Songti SC", serif', display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 260,
+        }}
+      >
+        <div style={{ fontSize: '0.6rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
+          <span>⚔ Hero Mode · 英雄模式</span>
+          <span style={{ color: '#c0504a' }}>{'★'.repeat(challenge.star)}</span>
+        </div>
+        <div style={{ fontSize: '0.95rem', color: tint }}>
+          {challenge.name.zh}{' '}
+          <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>{challenge.name.en}</span>
+        </div>
+        <div style={{ fontSize: '0.7rem', fontFamily: 'ui-monospace, monospace', display: 'flex', justifyContent: 'space-between' }}>
+          <span>
+            {res.status === 'success' && '✓ 達成 Won'}
+            {res.status === 'failure' && '✗ 失敗 Lost'}
+            {res.status === 'pending' && (res.progress ?? 'in progress…')}
+          </span>
+          {res.status === 'pending' && (
+            <span style={{ color: yearsLeft <= 1 ? '#c0504a' : '#8a7050' }}>
+              期限 {deadline} · 餘 {Math.max(0, yearsLeft)} 年
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (!objective) return null;
   const primaryRes = evaluateGoal(objective.primary.goal, ctx);
