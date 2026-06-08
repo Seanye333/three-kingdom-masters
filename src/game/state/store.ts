@@ -38,6 +38,8 @@ import {
 } from '../systems/historicalEvents';
 import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
+import { addRapport, mingleRapport, getRapport } from '../systems/rapport';
+import { OATH_BONDS } from '../data';
 import { planAITurn } from '../systems/ai';
 import { planAIAppointments } from '../systems/aiAppointments';
 import { planAICourt } from '../systems/aiCourt';
@@ -371,6 +373,10 @@ interface GameStore extends GameState {
     aId: EntityId,
     bId: EntityId,
   ) => { ok: boolean; reason?: string };
+  /** 結交 — grow rapport between two of your officers; they swear a bond at 100. */
+  socializeOfficers: (aId: EntityId, bId: EntityId) => { ok: boolean; message: string; forged?: boolean };
+  /** 宴請 — host a banquet at an owned city: mingles rapport + lifts loyalty. */
+  hostBanquet: (cityId: EntityId) => { ok: boolean; message: string };
   grantWish: (wishId: EntityId) => void;
   rejectWish: (wishId: EntityId) => void;
   setTutorialStep: (step: number | null) => void;
@@ -4491,6 +4497,55 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         return { ok: true };
       },
 
+      socializeOfficers: (aId, bId) => {
+        const state = get();
+        const a = state.officers[aId];
+        const b = state.officers[bId];
+        if (!a || !b || aId === bId) return { ok: false, message: 'Invalid officers.' };
+        if (!state.playerForceId || a.forceId !== state.playerForceId || b.forceId !== state.playerForceId)
+          return { ok: false, message: 'Both must be your officers.' };
+        const player = state.forces[state.playerForceId];
+        const capital = player ? state.cities[player.capitalCityId] : null;
+        const COST = 100;
+        if (!capital || capital.gold < COST) return { ok: false, message: `Need ${COST} gold in the capital.` };
+        const bonded = [...OATH_BONDS, ...state.runtimeBonds].some((bd) =>
+          (bd.officerA === aId && bd.officerB === bId) || (bd.officerA === bId && bd.officerB === aId));
+        const { rapport, forged } = addRapport(state.rapport, aId, bId, 25, bonded,
+          `${a.name.en} & ${b.name.en} Sworn Bond`);
+        set({
+          rapport,
+          cities: { ...state.cities, [capital.id]: { ...capital, gold: capital.gold - COST } },
+          runtimeBonds: forged ? [...state.runtimeBonds, forged] : state.runtimeBonds,
+        });
+        return {
+          ok: true,
+          forged: !!forged,
+          message: forged
+            ? `${a.name.en} and ${b.name.en} swear a bond of brotherhood!`
+            : `${a.name.en} & ${b.name.en} grow closer (${getRapport(rapport, aId, bId)}/100).`,
+        };
+      },
+
+      hostBanquet: (cityId) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city || city.ownerForceId !== state.playerForceId) return { ok: false, message: 'Not your city.' };
+        const COST = 300;
+        if (city.gold < COST) return { ok: false, message: `Need ${COST} gold here.` };
+        const here = Object.values(state.officers).filter(
+          (o) => o.forceId === state.playerForceId && o.locationCityId === cityId && o.status !== 'dead');
+        if (here.length < 2) return { ok: false, message: 'Need at least two officers present.' };
+        const rapport = mingleRapport(state.rapport, here.map((o) => o.id), 10);
+        const officers = { ...state.officers };
+        for (const o of here) officers[o.id] = { ...o, loyalty: Math.min(100, (o.loyalty ?? 0) + 4) };
+        set({
+          rapport,
+          officers,
+          cities: { ...state.cities, [cityId]: { ...city, gold: city.gold - COST } },
+        });
+        return { ok: true, message: `Banquet at ${city.name.en} — ${here.length} officers mingle (+loyalty, +rapport).` };
+      },
+
       grantWish: (wishId) => {
         const state = get();
         const wish = state.officerWishes.find((w) => w.id === wishId);
@@ -4667,6 +4722,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         difficulty: state.difficulty,
         diplomacy: state.diplomacy,
         runtimeBonds: state.runtimeBonds,
+        rapport: state.rapport,
         battleHistory: state.battleHistory,
         appointments: state.appointments,
         appointmentHistory: state.appointmentHistory,
@@ -4718,6 +4774,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // port coords / connections / maxHp without breaking existing saves.
         if (!state) return;
         if (!state.enabledDynasties) state.enabledDynasties = [];
+        if (!state.rapport) state.rapport = {};
         const cityOwnerByCityId = Object.fromEntries(
           Object.values(state.cities ?? {}).map((c) => [c.id, c.ownerForceId]),
         );

@@ -78,6 +78,8 @@ export interface GameState {
   difficulty: Difficulty;
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
+  /** Pairwise officer rapport (好感, 0–100) grown via social actions. */
+  rapport: Record<string, number>;
   battleHistory: HistoricBattle[];
   /** Civic title appointments — one entry per held post. */
   appointments: Appointment[];
@@ -247,6 +249,7 @@ export const EMPTY_STATE: GameState = {
   difficulty: 'normal',
   diplomacy: { relations: {} },
   runtimeBonds: [],
+  rapport: {},
   battleHistory: [],
   appointments: [],
   appointmentHistory: [],
@@ -426,6 +429,7 @@ export function loadScenario(
     victoryStatus: 'playing',
     diplomacy: { relations: {} },
     runtimeBonds: [],
+    rapport: {},
     battleHistory: [],
     appointments: [],
   appointmentHistory: [],

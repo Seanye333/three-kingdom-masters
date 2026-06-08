@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { OATH_BONDS } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { Officer } from '../../game/types';
+import { getRapport } from '../../game/systems/rapport';
 import { OfficerDetail } from './OfficerDetail';
 import styles from './BondsModal.module.css';
 import { useT, useLanguage } from '../i18n';
@@ -25,8 +26,30 @@ export function BondsModal({ onClose }: Props) {
   const officers = useGameStore((s) => s.officers);
   const forces = useGameStore((s) => s.forces);
   const runtimeBonds = useGameStore((s) => s.runtimeBonds);
+  const cities = useGameStore((s) => s.cities);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const rapport = useGameStore((s) => s.rapport);
+  const socializeOfficers = useGameStore((s) => s.socializeOfficers);
+  const hostBanquet = useGameStore((s) => s.hostBanquet);
   const [selectedOfficer, setSelectedOfficer] = useState<Officer | null>(null);
+  const [aSel, setASel] = useState('');
+  const [bSel, setBSel] = useState('');
+  const [citySel, setCitySel] = useState('');
+  const [socialMsg, setSocialMsg] = useState('');
+  const lang = useLanguage();
   const t = useT();
+
+  const myOfficers = useMemo(
+    () => Object.values(officers)
+      .filter((o) => o.forceId === playerForceId && o.status !== 'dead' && o.status !== 'imprisoned')
+      .sort((a, b) => a.name.zh.localeCompare(b.name.zh)),
+    [officers, playerForceId],
+  );
+  const myCities = useMemo(
+    () => Object.values(cities).filter((c) => c.ownerForceId === playerForceId),
+    [cities, playerForceId],
+  );
+  const oName = (o: Officer) => (lang === 'en' ? o.name.en : o.name.zh);
 
   const rows = useMemo<BondRow[]>(() => {
     return [...OATH_BONDS, ...runtimeBonds].map((bond) => {
@@ -67,6 +90,47 @@ export function BondsModal({ onClose }: Props) {
             ×
           </button>
         </header>
+
+        {/* 社交 — grow rapport (好感) toward sworn bonds */}
+        <div style={{ border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)', padding: '0.6rem 0.75rem', margin: '0 0 0.8rem' }}>
+          <div style={{ color: '#d4a84a', letterSpacing: '0.2rem', marginBottom: '0.5rem' }}>
+            {t('結交養誼', 'Build Rapport')}
+          </div>
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <select value={aSel} onChange={(e) => setASel(e.target.value)} style={selStyle}>
+              <option value="">{t('武將甲', 'Officer A')}</option>
+              {myOfficers.map((o) => <option key={o.id} value={o.id}>{oName(o)}</option>)}
+            </select>
+            <select value={bSel} onChange={(e) => setBSel(e.target.value)} style={selStyle}>
+              <option value="">{t('武將乙', 'Officer B')}</option>
+              {myOfficers.map((o) => <option key={o.id} value={o.id}>{oName(o)}</option>)}
+            </select>
+            {aSel && bSel && aSel !== bSel && (
+              <span style={{ fontSize: '0.75rem', color: '#c0a878' }}>{t('好感', 'Rapport')} {getRapport(rapport, aSel, bSel)}/100</span>
+            )}
+            <button
+              onClick={() => { const r = socializeOfficers(aSel, bSel); setSocialMsg(r.message); }}
+              disabled={!aSel || !bSel || aSel === bSel}
+              style={btnStyle(!(!aSel || !bSel || aSel === bSel))}
+            >
+              {t('結交 (100金)', 'Socialize (100g)')}
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <select value={citySel} onChange={(e) => setCitySel(e.target.value)} style={selStyle}>
+              <option value="">{t('擇城設宴', 'Pick a city')}</option>
+              {myCities.map((c) => <option key={c.id} value={c.id}>{lang === 'en' ? c.name.en : c.name.zh}</option>)}
+            </select>
+            <button
+              onClick={() => { const r = hostBanquet(citySel); setSocialMsg(r.message); }}
+              disabled={!citySel}
+              style={btnStyle(!!citySel)}
+            >
+              {t('宴請 (300金)', 'Banquet (300g)')}
+            </button>
+            {socialMsg && <span style={{ fontSize: '0.74rem', color: '#7ed68a' }}>{socialMsg}</span>}
+          </div>
+        </div>
 
         <Section
           title={t('現役 — 兩位武將同屬一勢力', 'Active — both officers in the same force')}
@@ -203,4 +267,18 @@ function OfficerCell({
       </div>
     </div>
   );
+}
+
+const selStyle: CSSProperties = {
+  background: '#2a1f15', color: '#e8d9b0', border: '1px solid #5a4530',
+  padding: '0.25rem 0.4rem', fontFamily: 'inherit', fontSize: '0.8rem',
+};
+function btnStyle(enabled: boolean): CSSProperties {
+  return {
+    background: enabled ? '#3a2818' : '#241c12',
+    color: enabled ? '#d4a84a' : '#5a4a36',
+    border: `1px solid ${enabled ? '#5a4530' : '#3a2c1c'}`,
+    padding: '0.3rem 0.6rem', cursor: enabled ? 'pointer' : 'default',
+    fontFamily: 'inherit', fontSize: '0.8rem',
+  };
 }
