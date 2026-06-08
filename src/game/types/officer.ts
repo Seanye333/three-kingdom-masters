@@ -75,4 +75,8 @@ export interface Officer {
    *  army this officer commands (attack or defend). Capped at leadership×100;
    *  disperses if the officer dies. Default/omitted = 0. */
   privateTroops?: number;
+  /** 威名 — cached prestige title id (id from PRESTIGE_TITLES), refreshed each
+   *  season from stats + deeds. Lets earned-from-deeds titles drive combat /
+   *  duel / income without threading deeds to every call site. */
+  prestigeTitleId?: string;
 }

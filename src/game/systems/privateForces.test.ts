@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { privateGuardMultiplier, resolveBattle, type BattleSide } from './combat';
+import { privateGuardMultiplier, prestigeCombatMultiplier, resolveBattle, type BattleSide } from './combat';
 import { mkOfficer, seededRng } from '../../test/factories';
 import type { Officer } from '../types';
 
@@ -54,5 +54,36 @@ describe('private guard in battle', () => {
       if (resolveBattle(sideWith(9000), foe, 25, seededRng(s * 3 + 1)).attackerWins) guardedWins++;
     }
     expect(guardedWins).toBeGreaterThanOrEqual(plainWins);
+  });
+});
+
+describe('prestigeCombatMultiplier (威名 in battle)', () => {
+  it('is 1.0 with no prestige and uses the cached title id', () => {
+    expect(prestigeCombatMultiplier([mkOfficer()])).toBe(1);
+    // 虎將 cached → +8% combat power.
+    expect(prestigeCombatMultiplier([mkOfficer({ prestigeTitleId: 'tiger-general' })])).toBeCloseTo(1.08, 5);
+  });
+
+  it('takes the strongest single title, capped near +12%', () => {
+    const pool = [
+      mkOfficer({ id: 'x', prestigeTitleId: 'fierce-general' }), // +4%
+      mkOfficer({ id: 'y', prestigeTitleId: 'tiger-general' }),  // +8%
+    ];
+    expect(prestigeCombatMultiplier(pool)).toBeCloseTo(1.08, 5); // strongest, not stacked
+  });
+
+  it('falls back to innate stats when no title is cached', () => {
+    const o = mkOfficer({ stats: { war: 95, leadership: 80, intelligence: 70, politics: 50, charisma: 60 } });
+    expect(prestigeCombatMultiplier([o])).toBeCloseTo(1.08, 5); // innate 虎將
+  });
+
+  it('raises a famed commander’s battle power', () => {
+    const stats = { war: 80, leadership: 80, intelligence: 70, politics: 50, charisma: 60 };
+    const plain: BattleSide = { troops: 10000, commander: mkOfficer({ id: 'p', stats }) };
+    const famed: BattleSide = { troops: 10000, commander: mkOfficer({ id: 'f', stats, prestigeTitleId: 'tiger-general' }) };
+    const foe: BattleSide = { troops: 10000, commander: mkOfficer({ id: 'o', stats }) };
+    const a = resolveBattle(plain, foe, 25, seededRng(11));
+    const b = resolveBattle(famed, foe, 25, seededRng(11));
+    expect(b.aPower).toBeGreaterThan(a.aPower);
   });
 });

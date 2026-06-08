@@ -25,7 +25,7 @@ import {
 } from '../../game/data/officerAttributes';
 import { WEAPON_TYPE_DEFS, deriveWeaponType } from '../../game/data/weaponTypes';
 import { HISTORICAL_LIFESPANS } from '../../game/data/historicalLifespans';
-import { bestPrestige } from '../../game/data/prestige';
+import { effectivePrestige } from '../../game/data/prestige';
 import type { City, Force, Officer, Skill } from '../../game/types';
 import { FORMATIONS_BY_ID } from '../../game/data/formations';
 import { TACTIC_DESC } from './TacticsModal';
@@ -177,7 +177,7 @@ export function OfficerDetail({
               </div>
             )}
             {(() => {
-              const prestige = bestPrestige(officer);
+              const prestige = effectivePrestige(officer);
               if (!prestige) return null;
               return (
                 <div style={{

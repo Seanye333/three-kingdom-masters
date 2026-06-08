@@ -90,6 +90,7 @@ import { SCENARIO_OBJECTIVES } from '../data/objectives';
 import { SCENARIOS } from '../data';
 import { findChallenge, evaluateChallenge } from '../data/challenges';
 import { MAX_CUSTOM_EVENTS } from '../systems/customEvents';
+import { refreshPrestige, prestigeTitleById } from '../data/prestige';
 import { evaluateGoal, findObjectiveFor } from '../systems/objectives';
 import { applySuccession } from '../systems/succession';
 import {
@@ -321,6 +322,7 @@ interface GameStore extends GameState {
   ) => { ok: boolean; reason?: string };
   acknowledgeAchievements: () => void;
   acknowledgeDeedTitles: () => void;
+  acknowledgePrestige: () => void;
   // ─── Port (港) actions ────────────────────────────────────────────
   /** Queue a ship build at the given port. Player pays gold from capital
    *  immediately; ship is added to dockedShips when seasonsLeft hits 0. */
@@ -2406,6 +2408,23 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           result.report.entries.push(...titleGrant.entries);
         }
 
+        // 威名 — refresh each officer's cached prestige title from the freshly
+        // updated stats + deeds, and announce anyone who rose to a new rank.
+        const prestigeRefresh = refreshPrestige(postOfficers, nextDeeds);
+        postOfficers = prestigeRefresh.officers;
+        const newPrestige = prestigeRefresh.awards;
+        for (const aw of newPrestige) {
+          const o = postOfficers[aw.officerId];
+          const title = prestigeTitleById(aw.titleId);
+          if (!o || !title) continue;
+          result.report.entries.push({
+            cityId: o.locationCityId,
+            kind: 'talent',
+            text: `${o.name.en} earns the prestige of ${title.name.en}!`,
+            textZh: `${o.name.zh}威名遠播,獲「${title.name.zh}」之譽!`,
+          });
+        }
+
         // Prune appointments whose holders died / were captured / defected
         // / lost their city this season. Emit a vacancy notice + history.
         const prune = pruneStaleAppointments(appointmentsAfterAI, postOfficers, postCities);
@@ -2469,6 +2488,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           lastReport: result.report,
           deeds: nextDeeds,
           recentDeedTitles: [...state.recentDeedTitles, ...titleGrant.grants],
+          recentPrestige: [...state.recentPrestige, ...newPrestige],
           // Battle deltas only feed MVPs at season boundaries — reset
           // then so the next season starts fresh; otherwise keep them
           // accumulating across mid-season ticks.
@@ -4154,6 +4174,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
 
       acknowledgeAchievements: () => set({ recentAchievementUnlocks: [] }),
       acknowledgeDeedTitles: () => set({ recentDeedTitles: [] }),
+      acknowledgePrestige: () => set({ recentPrestige: [] }),
 
       attackPort: (portId, attackerOfficerId, troops) => {
         const state = get();
@@ -4942,6 +4963,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (!state.rapport) state.rapport = {};
         if (state.activeChallenge === undefined) state.activeChallenge = null;
         if (!state.customEvents) state.customEvents = [];
+        if (!state.recentPrestige) state.recentPrestige = [];
         const cityOwnerByCityId = Object.fromEntries(
           Object.values(state.cities ?? {}).map((c) => [c.id, c.ownerForceId]),
         );

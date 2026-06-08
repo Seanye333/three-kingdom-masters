@@ -38,6 +38,7 @@ import { buildInitialPorts } from '../data/ports';
 import { buildInitialForts } from '../data/forts';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { buildHistoricalOfficers } from '../data/officers';
+import { bestPrestige } from '../data/prestige';
 import type { Dynasty } from '../data/dynasties';
 
 export type VictoryStatus = 'playing' | 'victory' | 'defeat' | 'observing';
@@ -209,6 +210,8 @@ export interface GameState {
   recentAchievementUnlocks: string[];
   /** Deed-titles newly earned since last acknowledgement (toast queue). */
   recentDeedTitles: Array<{ officerId: EntityId; titleId: string }>;
+  /** 威名 titles newly attained since last acknowledgement (toast queue). */
+  recentPrestige: Array<{ officerId: EntityId; titleId: string }>;
   /** Per-officer battle-source deed deltas accumulated during the current
    *  season (殲敵/生擒/攻陷). Reset at season-end after MVP computation. */
   seasonBattleDeltas: Record<EntityId, { killsTroops: number; captured: number; citiesTaken: number }>;
@@ -310,6 +313,7 @@ export const EMPTY_STATE: GameState = {
   campaignStats: { seasonsPlayed: 0, totalBattles: 0 },
   recentAchievementUnlocks: [],
   recentDeedTitles: [],
+  recentPrestige: [],
   seasonBattleDeltas: {},
   weather: { kind: 'clear', wind: 'calm', windPower: 1 },
   courtFactions: {},
@@ -430,7 +434,10 @@ export function loadScenario(
     forces: indexById(
       scenario.forces.map((f) => ({ ...f, isPlayer: f.id === playerForceId })),
     ),
-    officers: indexById(officers),
+    // Seed each officer's cached 威名 title from innate stats so the first
+    // season doesn't announce prestige for the entire famous roster at once —
+    // only genuine in-play rises fire a notice thereafter.
+    officers: indexById(officers.map((o) => ({ ...o, prestigeTitleId: bestPrestige(o)?.id }))),
     pendingCommands: {},
     pendingTrainings: [],
     lastReport: null,
@@ -500,6 +507,7 @@ export function loadScenario(
     campaignStats: { seasonsPlayed: 0, totalBattles: 0 },
     recentAchievementUnlocks: [],
     recentDeedTitles: [],
+    recentPrestige: [],
     seasonBattleDeltas: {},
     weather: rollWeather(scenario.startDate.season, Math.random),
     courtFactions: {},

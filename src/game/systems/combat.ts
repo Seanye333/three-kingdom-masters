@@ -15,6 +15,7 @@ import { getEliteTroop } from '../data/eliteTroops';
 import { deriveTactics, tacticsTotalBonus, combosPowerMultiplier, findActiveCombos } from '../data/officerAttributes';
 import { combatModifiers, conquestLoyaltyMod, type CombatMods } from './traitEffects';
 import { sidePoolRelationshipBonus, rivalShowdownMultiplier } from './relationshipEffects';
+import { effectivePrestigeEffects } from '../data/prestige';
 import { selectSiegeEngine } from '../data/siegeEngines';
 import {
   STRATAGEM_DEFS,
@@ -72,6 +73,17 @@ export function privateGuardMultiplier(pool: Officer[]): number {
   const total = pool.reduce((s, o) => s + Math.max(0, o.privateTroops ?? 0), 0);
   if (total <= 0) return 1;
   return 1 + Math.min(0.18, total / 100_000);
+}
+
+/**
+ * 威名 — a side's pooled prestige (虎將/名將/王佐 …) sharpens its battle power.
+ * Uses the strongest single title's combatPowerMul rather than stacking, so a
+ * roster of famous names reads as "led by a legend", capped near +12%.
+ */
+export function prestigeCombatMultiplier(pool: Officer[]): number {
+  let best = 1;
+  for (const o of pool) best = Math.max(best, effectivePrestigeEffects(o).combatPowerMul);
+  return Math.min(1.12, best);
 }
 
 /**
@@ -431,10 +443,13 @@ export function resolveBattle(
   // 私兵 — pooled personal-guard corps lend their household troops.
   const aGuardMul = privateGuardMultiplier(attackerPool);
   const dGuardMul = privateGuardMultiplier(defenderPool);
+  // 威名 — a side led by famous names hits harder.
+  const aPrestigeMul = prestigeCombatMultiplier(attackerPool);
+  const dPrestigeMul = prestigeCombatMultiplier(defenderPool);
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
     (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul *
-    aRelBonus.powerMul * rivalMul * aTitlePowerMul * aCasusMul * aNavalMul * aGuardMul;
+    aRelBonus.powerMul * rivalMul * aTitlePowerMul * aCasusMul * aNavalMul * aGuardMul * aPrestigeMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -470,7 +485,7 @@ export function resolveBattle(
     dElitePower *
     (stratEffect.defenderPowerMul ?? 1) *
     dPolicy.attackMul * dTraitMods.attackMul * dComboMul * dRelBonus.powerMul * rivalMul *
-    dTitlePowerMul * dCasusMul * dNavalMul * dGuardMul / Math.max(0.5, dPolicy.defenseMul);
+    dTitlePowerMul * dCasusMul * dNavalMul * dGuardMul * dPrestigeMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;

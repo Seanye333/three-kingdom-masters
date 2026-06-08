@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, useEffect } from 'react';
 import { playSfx } from '../../game/systems/sound';
 import { useGameStore } from '../../game/state/store';
 import { DEED_TITLES_BY_ID } from '../../game/systems/deedTitles';
+import { prestigeTitleById } from '../../game/data/prestige';
 import { SEASON_LABEL, MONTH_PHASE_LABEL, firstMonthOfSeason } from '../../game/types';
 import { WEATHER_LABEL, WIND_LABEL } from '../../game/systems/weather';
 import { MANDATE_LABEL } from '../../game/systems/mandate';
@@ -12,6 +13,7 @@ import { SettingsModal } from '../components/SettingsModal';
 import { CareerModal } from '../components/CareerModal';
 import { BondsModal } from '../components/BondsModal';
 import { PrivateForcesModal } from '../components/PrivateForcesModal';
+import { PrestigeModal } from '../components/PrestigeModal';
 import { DialogueModal } from '../components/DialogueModal';
 import { ObjectivePanel } from '../components/ObjectivePanel';
 import { ArmiesPanel } from '../components/ArmiesPanel';
@@ -79,6 +81,7 @@ export function MapScreen() {
   const [showCareer, setShowCareer] = useState(false);
   const [showBonds, setShowBonds] = useState(false);
   const [showPrivateForces, setShowPrivateForces] = useState(false);
+  const [showPrestige, setShowPrestige] = useState(false);
   const [showForge, setShowForge] = useState(false);
   const [showAch, setShowAch] = useState(false);
   const [showGovernors, setShowGovernors] = useState(false);
@@ -89,6 +92,8 @@ export function MapScreen() {
   const acknowledgeAchievements = useGameStore((s) => s.acknowledgeAchievements);
   const recentDeedTitles = useGameStore((s) => s.recentDeedTitles);
   const acknowledgeDeedTitles = useGameStore((s) => s.acknowledgeDeedTitles);
+  const recentPrestige = useGameStore((s) => s.recentPrestige);
+  const acknowledgePrestige = useGameStore((s) => s.acknowledgePrestige);
   const officersForToast = useGameStore((s) => s.officers);
   const currentSeasonKey = useGameStore((s) => s.date.season);
   const fogOfWar = useGameStore((s) => s.fogOfWar);
@@ -215,6 +220,7 @@ export function MapScreen() {
           items={[
             { label: t('因緣', 'Relations'), onClick: () => setShowRelationships(true) },
             { label: t('結義', 'Bonds'),     onClick: () => setShowBonds(true) },
+            { label: t('威名', 'Prestige'),  onClick: () => setShowPrestige(true) },
             { label: t('武功', 'Deeds'),     onClick: () => setShowDeeds(true) },
             { label: t('列傳', 'Wiki'),      onClick: () => setShowEncyclopedia(true) },
             ...(careerMode
@@ -378,6 +384,7 @@ export function MapScreen() {
       {showRelationships && <RelationshipBrowserModal onClose={() => setShowRelationships(false)} />}
       {showBonds && <BondsModal onClose={() => setShowBonds(false)} />}
       {showPrivateForces && <PrivateForcesModal onClose={() => setShowPrivateForces(false)} />}
+      {showPrestige && <PrestigeModal onClose={() => setShowPrestige(false)} />}
       {showCourt && <CourtModal onClose={() => setShowCourt(false)} />}
       {showWishes && <WishesModal onClose={() => setShowWishes(false)} />}
       {showCareer && <CareerModal onClose={() => setShowCareer(false)} />}
@@ -465,6 +472,49 @@ export function MapScreen() {
           {recentDeedTitles.length > 3 && (
             <div style={{ fontSize: '0.7rem', color: '#8a7050', marginTop: '0.15rem' }}>
               {t(`還有 ${recentDeedTitles.length - 3} 例`, `+${recentDeedTitles.length - 3} more`)}
+            </div>
+          )}
+          <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic', marginTop: '0.2rem' }}>
+            click to dismiss
+          </div>
+        </div>
+      )}
+      {/* 威名 toast — stacks above the deed-title + achievement toasts */}
+      {recentPrestige.length > 0 && (
+        <div
+          onClick={acknowledgePrestige}
+          style={{
+            position: 'fixed',
+            bottom: 20 + (recentAchievementUnlocks.length > 0 ? 110 : 0) + (recentDeedTitles.length > 0 ? 110 : 0),
+            right: 20,
+            background: 'linear-gradient(160deg, #2a1f15, #1a1410)',
+            border: '2px solid #d96a4a',
+            padding: '0.7rem 1rem',
+            color: '#e2a07a',
+            fontFamily: '"Songti SC", serif',
+            cursor: 'pointer',
+            zIndex: 980,
+            boxShadow: '0 0 14px rgba(217, 106, 74, 0.4)',
+            animation: 'tkmFadeIn 0.4s ease-out',
+            maxWidth: 280,
+          }}
+        >
+          <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#d96a4a' }}>
+            威名 PRESTIGE
+          </div>
+          {recentPrestige.slice(-3).map((g, i) => {
+            const o = officersForToast[g.officerId];
+            const titleDef = prestigeTitleById(g.titleId);
+            if (!o || !titleDef) return null;
+            return (
+              <div key={i} style={{ fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                {o.name.zh} — <span style={{ color: '#d96a4a' }}>「{titleDef.name.zh}」</span>
+              </div>
+            );
+          })}
+          {recentPrestige.length > 3 && (
+            <div style={{ fontSize: '0.7rem', color: '#8a7050', marginTop: '0.15rem' }}>
+              {t(`還有 ${recentPrestige.length - 3} 例`, `+${recentPrestige.length - 3} more`)}
             </div>
           )}
           <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic', marginTop: '0.2rem' }}>
