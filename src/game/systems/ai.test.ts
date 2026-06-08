@@ -3,7 +3,7 @@ import { pickForceTarget, pickReinforcementTarget } from './ai';
 import type { City } from '../types';
 import type { DiplomaticState } from '../types/diplomacy';
 
-const NO_DIPLO = {} as DiplomaticState; // neutral targets never consult it
+const NO_DIPLO = { relations: {} } as DiplomaticState; // everyone defaults to neutral
 
 const mkCity = (over: Partial<City> & { id: string }): City =>
   ({
@@ -41,6 +41,15 @@ describe('pickForceTarget — force-level offensive focus', () => {
     const weak = mkCity({ id: 'weak', troops: 2000, defense: 10 });
     const farAway = mkCity({ id: 'farAway', troops: 100 }); // not adjacent to anyone
     expect(pickForceTarget('A', [c1], { c1, ally, weak, farAway }, NO_DIPLO)).toBe('weak');
+  });
+
+  it('prioritises a death blow — an enemy force\'s last city — over a bigger neutral prize', () => {
+    const c1 = mkCity({ id: 'c1', ownerForceId: 'A', troops: 12000, adjacentCityIds: ['rump', 'bigNeutral'] });
+    // 'B' holds only this one city → taking it eliminates the force.
+    const rump = mkCity({ id: 'rump', ownerForceId: 'B', troops: 1500, defense: 0, population: 50_000 });
+    // Bigger population prize, but neutral (no force to wipe out).
+    const bigNeutral = mkCity({ id: 'bigNeutral', troops: 1500, defense: 0, population: 300_000 });
+    expect(pickForceTarget('A', [c1], { c1, rump, bigNeutral }, NO_DIPLO)).toBe('rump');
   });
 });
 

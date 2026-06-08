@@ -572,6 +572,11 @@ export function pickForceTarget(
   allCities: Record<EntityId, City>,
   diplomacy: DiplomaticState,
 ): EntityId | null {
+  // City count per force — used to spot a death blow (an enemy's last city).
+  const cityCount: Record<EntityId, number> = {};
+  for (const c of Object.values(allCities)) {
+    if (c.ownerForceId) cityCount[c.ownerForceId] = (cityCount[c.ownerForceId] ?? 0) + 1;
+  }
   // Candidate → total friendly troops that could march on it from our border.
   const pressure: Record<EntityId, number> = {};
   for (const city of forceCities) {
@@ -592,7 +597,11 @@ export function pickForceTarget(
     const feasibility = force / Math.max(1, effDef);
     if (feasibility < 1.05) continue; // can't realistically take it, even massed
     const value = 1 + (cand.population ?? 0) / 200_000;
-    const score = feasibility * value;
+    // Death blow: taking the last city of an enemy force wipes it off the map —
+    // worth far more than the city's size alone, so the AI finishes off crippled
+    // rivals instead of leaving one-city rumps to linger.
+    const elimination = cand.ownerForceId && cityCount[cand.ownerForceId] === 1 ? 2.5 : 1;
+    const score = feasibility * value * elimination;
     if (score > bestScore) { bestScore = score; best = candId; }
   }
   return best;
