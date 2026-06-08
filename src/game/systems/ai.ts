@@ -111,6 +111,8 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
   }
 
   for (const [forceId, forceCities] of citiesByForce) {
+    // Force-level offensive focus for the season — bordering cities mass on it.
+    const forceTargetId = pickForceTarget(forceId, forceCities, cities, input.diplomacy);
     for (const city of forceCities) {
       if (pendingCommands[city.id]) continue; // shouldn't happen but safe
       const officersHere = Object.values(officers).filter(
@@ -141,6 +143,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         prefectId,
         input.territoryOwnership ?? {},
         input.armies ?? {},
+        forceTargetId,
       );
       if (!decision) continue;
 
@@ -552,6 +555,49 @@ function isBondedTo(a: EntityId, b: EntityId): boolean {
   );
 }
 
+/**
+ * Force-level offensive focus: pick the single enemy/neutral city this force
+ * should concentrate on this season — the one its bordering cities can most
+ * readily overwhelm *together* (combined adjacent troops vs the target's
+ * defence) weighted by the prize (population). Returns null if nothing on the
+ * border is collectively takeable.
+ *
+ * decideCommand then biases every bordering city toward this one target, so the
+ * AI masses several columns on a single city instead of each city poking its
+ * own nearest neighbour piecemeal.
+ */
+export function pickForceTarget(
+  forceId: EntityId,
+  forceCities: City[],
+  allCities: Record<EntityId, City>,
+  diplomacy: DiplomaticState,
+): EntityId | null {
+  // Candidate → total friendly troops that could march on it from our border.
+  const pressure: Record<EntityId, number> = {};
+  for (const city of forceCities) {
+    for (const adjId of city.adjacentCityIds) {
+      const adj = allCities[adjId];
+      if (!adj || adj.ownerForceId === forceId) continue;
+      if (adj.ownerForceId !== null && !isHostilePermitted(diplomacy, forceId, adj.ownerForceId)) continue;
+      // Each bordering city could commit ~60% of its garrison.
+      pressure[adjId] = (pressure[adjId] ?? 0) + city.troops * 0.6;
+    }
+  }
+  let best: EntityId | null = null;
+  let bestScore = 0;
+  for (const [candId, force] of Object.entries(pressure)) {
+    const cand = allCities[candId];
+    if (!cand) continue;
+    const effDef = cand.troops * (1 + cand.defense / 200);
+    const feasibility = force / Math.max(1, effDef);
+    if (feasibility < 1.05) continue; // can't realistically take it, even massed
+    const value = 1 + (cand.population ?? 0) / 200_000;
+    const score = feasibility * value;
+    if (score > bestScore) { bestScore = score; best = candId; }
+  }
+  return best;
+}
+
 function decideCommand(
   city: City,
   officersHere: Officer[],
@@ -565,6 +611,7 @@ function decideCommand(
   prefectId: EntityId | null = null,
   territoryOwnership: Record<EntityId, EntityId | null> = {},
   armies: Record<EntityId, import('../types').Army> = {},
+  forceTargetId: EntityId | null = null,
 ): Decision | null {
   const ownRulerId = forces[forceId]?.rulerOfficerId;
   // 1. Food crisis — develop agriculture
@@ -703,11 +750,14 @@ function decideCommand(
             isHostilePermitted(diplomacy, forceId, c.ownerForceId)),
       )
       .sort((a, b) => {
-        // Lower troops = easier; but a target whose owner is sitting on
-        // my captured cells gets an effective discount.
+        // The force-level focus target jumps the queue so bordering cities mass
+        // on one city; otherwise lower troops = easier, with a discount for an
+        // owner sitting on my captured cells.
+        const aFocus = a.id === forceTargetId ? 100_000 : 0;
+        const bFocus = b.id === forceTargetId ? 100_000 : 0;
         const aDebt = a.ownerForceId ? (reclaimDebt[a.ownerForceId] ?? 0) : 0;
         const bDebt = b.ownerForceId ? (reclaimDebt[b.ownerForceId] ?? 0) : 0;
-        return (a.troops - aDebt * 400) - (b.troops - bDebt * 400);
+        return (a.troops - aDebt * 400 - aFocus) - (b.troops - bDebt * 400 - bFocus);
       });
 
     const baseThreshold =
@@ -720,7 +770,11 @@ function decideCommand(
         ? forces[target.ownerForceId]?.rulerOfficerId
         : undefined;
       const deterrence = attackDeterrence(ownRulerId, targetRulerId, family);
-      const attackThreshold = baseThreshold * deterrence;
+      // The force-focus target gets a relaxed bar: it was chosen because the
+      // border can take it *collectively*, so individual cities should commit
+      // even when their own ratio is a touch short — the columns converge.
+      const focusRelax = target.id === forceTargetId ? 1.3 : 1;
+      const attackThreshold = baseThreshold * deterrence * focusRelax;
 
       // Effective defender strength factors in city defense: a fortress at
       // defense 88 (Tongguan) counts as if the garrison were ~60% larger.
