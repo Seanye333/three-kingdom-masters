@@ -88,7 +88,7 @@ import { applyAutoBuild } from '../systems/autoBuild';
 import { planAIBuildOrders } from '../systems/aiBuild';
 import { SCENARIO_OBJECTIVES } from '../data/objectives';
 import { SCENARIOS } from '../data';
-import { findChallenge, evaluateChallenge } from '../data/challenges';
+import { findChallenge, evaluateChallenge, challengeStars } from '../data/challenges';
 import { MAX_CUSTOM_EVENTS } from '../systems/customEvents';
 import { refreshPrestige, prestigeTitleById } from '../data/prestige';
 import { careerStanding, careerGuardCapBonus } from '../systems/career';
@@ -2107,6 +2107,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         }
 
         // Hero Mode (英雄模式) — score the active challenge; pass/fail ends the run.
+        let challengeRecordsAfter = state.challengeRecords;
         if (state.activeChallenge) {
           const challenge = findChallenge(state.activeChallenge);
           if (challenge) {
@@ -2126,11 +2127,21 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             });
             if (status === 'won' && endVS !== 'defeat') {
               endVS = 'victory';
+              // Record the win for meta-progression: earliest year + best stars.
+              const stars = challengeStars(challenge, result.date.year);
+              const prev = state.challengeRecords[challenge.id];
+              challengeRecordsAfter = {
+                ...state.challengeRecords,
+                [challenge.id]: {
+                  bestYear: prev ? Math.min(prev.bestYear, result.date.year) : result.date.year,
+                  bestStars: Math.max(prev?.bestStars ?? 0, stars),
+                },
+              };
               result.report.entries.unshift({
                 cityId: null,
                 kind: 'note',
-                text: `Challenge complete — ${challenge.name.en}!`,
-                textZh: `英雄模式達成 — ${challenge.name.zh}！`,
+                text: `Challenge complete — ${challenge.name.en}! (${'★'.repeat(stars)})`,
+                textZh: `英雄模式達成 — ${challenge.name.zh}!（${'★'.repeat(stars)}）`,
               });
             } else if (status === 'lost') {
               endVS = 'defeat';
@@ -2524,6 +2535,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           recentDeedTitles: [...state.recentDeedTitles, ...titleGrant.grants],
           recentPrestige: [...state.recentPrestige, ...newPrestige],
           careerMode: careerModeAfterSeason,
+          challengeRecords: challengeRecordsAfter,
           // Battle deltas only feed MVPs at season boundaries — reset
           // then so the next season starts fresh; otherwise keep them
           // accumulating across mid-season ticks.
@@ -4944,6 +4956,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         victoryStatus: state.victoryStatus,
         difficulty: state.difficulty,
         activeChallenge: state.activeChallenge,
+        challengeRecords: state.challengeRecords,
         diplomacy: state.diplomacy,
         runtimeBonds: state.runtimeBonds,
         rapport: state.rapport,
@@ -5001,6 +5014,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (!state.enabledDynasties) state.enabledDynasties = [];
         if (!state.rapport) state.rapport = {};
         if (state.activeChallenge === undefined) state.activeChallenge = null;
+        if (!state.challengeRecords) state.challengeRecords = {};
         if (!state.customEvents) state.customEvents = [];
         if (!state.recentPrestige) state.recentPrestige = [];
         const cityOwnerByCityId = Object.fromEntries(

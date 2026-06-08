@@ -144,11 +144,82 @@ export const CHALLENGES: Challenge[] = [
     deadlineYear: 238,
     star: 3,
   },
+  {
+    id: 'ch-200-sun',
+    name: { zh: '小霸王立業', en: 'The Little Conqueror' },
+    blurb: {
+      zh: '孫策橫掃江東，基業初成。於208年前一統揚州諸城，奠吳國之基。',
+      en: 'Sun Ce storms across Jiangdong. Control the whole of Yang province by 208 to lay the foundation of Wu.',
+    },
+    scenarioId: 'scn-200-guandu',
+    forceId: 'sun',
+    difficulty: 'normal',
+    goal: { kind: 'control-province', provinceId: 'yang', byYear: 208 },
+    deadlineYear: 208,
+    star: 2,
+  },
+  {
+    id: 'ch-220-wei-unify',
+    name: { zh: '魏武揮鞭', en: 'Wei Unifies the Realm' },
+    blurb: {
+      zh: '三國鼎立，魏據其強。於240年前以魏旗一統天下諸城，終結亂世。',
+      en: 'The realm stands divided in three, Wei the mightiest. Unify every city under the Wei banner by 240 to end the age of chaos.',
+    },
+    scenarioId: 'scn-220-declaration',
+    forceId: 'cao',
+    difficulty: 'hard',
+    goal: { kind: 'unify-realm' },
+    deadlineYear: 240,
+    star: 3,
+  },
+  {
+    id: 'ch-184-yt',
+    name: { zh: '蒼天已死', en: 'The Blue Heaven is Dead' },
+    blurb: {
+      zh: '黃天當立，歲在甲子！率黃巾教眾，於187年前攻取洛陽，改朝換代。',
+      en: 'The Yellow Heaven shall rise! Lead the Turban faithful and seize Luoyang by 187 to overturn the dynasty.',
+    },
+    scenarioId: 'scn-184-yellow-turban',
+    forceId: 'yellow-turban',
+    difficulty: 'hard',
+    goal: { kind: 'hold-cities', cityIds: ['luoyang'], byYear: 187 },
+    deadlineYear: 187,
+    star: 3,
+  },
 ];
 
 export function findChallenge(id: string | null): Challenge | null {
   if (!id) return null;
   return CHALLENGES.find((c) => c.id === id) ?? null;
+}
+
+/** A persisted best result for a challenge (meta-progression across games). */
+export interface ChallengeRecord {
+  /** Earliest year the challenge was ever completed. */
+  bestYear: number;
+  /** Best star rating ever earned (1–3). */
+  bestStars: number;
+}
+
+/** The year that actually ends the clock for a challenge. */
+export function effectiveDeadline(ch: Challenge): number {
+  return ch.goal.kind === 'survive-until' ? ch.goal.year : ch.deadlineYear;
+}
+
+/**
+ * Stars earned for a win, by how decisively it was won. Survive-to-a-year
+ * challenges can't be finished early, so holding the full term is mastery (3).
+ * Objective challenges score on years to spare before the deadline.
+ */
+export function challengeStars(ch: Challenge, wonYear: number): 1 | 2 | 3 {
+  if (ch.goal.kind === 'survive-until') return 3;
+  const margin = effectiveDeadline(ch) - wonYear;
+  return margin >= 6 ? 3 : margin >= 2 ? 2 : 1;
+}
+
+/** Total stars earned across all completed challenges. */
+export function totalStars(records: Record<string, ChallengeRecord>): number {
+  return Object.values(records).reduce((s, r) => s + (r.bestStars ?? 0), 0);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CHALLENGES, findChallenge, evaluateChallenge } from './challenges';
+import { CHALLENGES, findChallenge, evaluateChallenge, challengeStars, totalStars, effectiveDeadline } from './challenges';
 import { SCENARIOS } from './index';
 import type { ObjectiveContext } from '../systems/objectives';
 
@@ -105,6 +105,25 @@ describe('evaluateChallenge', () => {
     expect(
       evaluateChallenge(survive, ctx({ playerForceId: 'sun', year: 209, liveForceIds: new Set(['cao']) })),
     ).toBe('lost');
+  });
+
+  it('scores stars by how early an objective challenge is won', () => {
+    const guandu = findChallenge('ch-guandu-cao')!; // defeat by 204
+    expect(effectiveDeadline(guandu)).toBe(204);
+    expect(challengeStars(guandu, 197)).toBe(3); // 7 years early
+    expect(challengeStars(guandu, 201)).toBe(2); // 3 years early
+    expect(challengeStars(guandu, 204)).toBe(1); // just made it
+  });
+
+  it('awards survive-until challenges full stars (cannot finish early)', () => {
+    const chibi = findChallenge('ch-chibi-sun')!; // survive to 211
+    expect(effectiveDeadline(chibi)).toBe(211);
+    expect(challengeStars(chibi, 211)).toBe(3);
+  });
+
+  it('totalStars sums best stars across records', () => {
+    expect(totalStars({})).toBe(0);
+    expect(totalStars({ a: { bestYear: 200, bestStars: 3 }, b: { bestYear: 210, bestStars: 2 } })).toBe(5);
   });
 
   it('hold-cities challenges win only when every city is held', () => {

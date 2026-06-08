@@ -80,6 +80,9 @@ export interface GameState {
   /** Active Hero Mode challenge id (英雄模式), or null in free play. When set,
    *  the season-end check scores it pass/fail and ends the game accordingly. */
   activeChallenge: string | null;
+  /** Persisted best results per Hero Mode challenge — meta-progression that
+   *  survives across games (not reset on scenario load). */
+  challengeRecords: Record<string, import('../data/challenges').ChallengeRecord>;
   diplomacy: DiplomaticState;
   runtimeBonds: OathBond[];
   /** Pairwise officer rapport (好感, 0–100) grown via social actions. */
@@ -257,6 +260,7 @@ export const EMPTY_STATE: GameState = {
   victoryStatus: 'playing',
   difficulty: 'normal',
   activeChallenge: null,
+  challengeRecords: {},
   diplomacy: { relations: {} },
   runtimeBonds: [],
   rapport: {},
@@ -443,6 +447,8 @@ export function loadScenario(
     lastReport: null,
     victoryStatus: 'playing',
     activeChallenge: null,
+    // Challenge records are meta-progression — carry across games.
+    challengeRecords: state.challengeRecords ?? {},
     diplomacy: { relations: {} },
     runtimeBonds: [],
     rapport: {},

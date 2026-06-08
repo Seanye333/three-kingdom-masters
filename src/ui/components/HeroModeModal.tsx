@@ -1,5 +1,5 @@
 import { useGameStore } from '../../game/state/store';
-import { CHALLENGES, type Challenge } from '../../game/data/challenges';
+import { CHALLENGES, totalStars, type Challenge } from '../../game/data/challenges';
 import { SCENARIOS } from '../../game/data';
 import { useT, useLanguage } from '../i18n';
 
@@ -21,8 +21,13 @@ const DIFF_LABEL: Record<Challenge['difficulty'], { zh: string; en: string; colo
  */
 export function HeroModeModal({ onClose }: Props) {
   const startChallenge = useGameStore((s) => s.startChallenge);
+  const records = useGameStore((s) => s.challengeRecords);
   const t = useT();
   const lang = useLanguage();
+
+  const doneCount = CHALLENGES.filter((c) => records[c.id]).length;
+  const earned = totalStars(records);
+  const maxStars = CHALLENGES.length * 3;
 
   const sorted = [...CHALLENGES].sort((a, b) => {
     const ya = SCENARIOS.find((s) => s.id === a.scenarioId)?.startDate.year ?? 0;
@@ -63,7 +68,13 @@ export function HeroModeModal({ onClose }: Props) {
               {t('限時挑戰 — 達成目標方得功成', 'Timed challenges — meet the goal before the clock runs out')}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <div style={{ textAlign: 'right', fontSize: '0.78rem', color: '#c0a878' }}>
+              <div>{t('已通關', 'Cleared')} <b style={{ color: '#d4a84a' }}>{doneCount}/{CHALLENGES.length}</b></div>
+              <div style={{ color: '#d96a4a' }}>★ {earned}<span style={{ color: '#6a5238' }}>/{maxStars}</span></div>
+            </div>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          </div>
         </header>
 
         <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1, display: 'grid', gap: '0.7rem' }}>
@@ -71,11 +82,13 @@ export function HeroModeModal({ onClose }: Props) {
             const scn = SCENARIOS.find((s) => s.id === c.scenarioId);
             const year = scn?.startDate.year ?? '';
             const diff = DIFF_LABEL[c.difficulty];
+            const rec = records[c.id];
             return (
               <div
                 key={c.id}
                 style={{
-                  background: '#1a1410', border: '1px solid #4a3520', borderLeft: '3px solid #d4a84a',
+                  background: '#1a1410', border: '1px solid #4a3520',
+                  borderLeft: `3px solid ${rec ? '#7ed68a' : '#d4a84a'}`,
                   padding: '0.85rem 1rem', display: 'flex', gap: '1rem', alignItems: 'center',
                 }}
               >
@@ -84,6 +97,12 @@ export function HeroModeModal({ onClose }: Props) {
                     <span style={{ fontSize: '1.05rem', color: '#d4a84a' }}>
                       {lang === 'en' ? c.name.en : c.name.zh}
                     </span>
+                    {rec && (
+                      <span style={{ fontSize: '0.74rem', color: '#7ed68a' }}>
+                        ✓ {t('通關', 'Cleared')} <span style={{ color: '#d96a4a' }}>{'★'.repeat(rec.bestStars)}</span>
+                        <span style={{ color: '#8a7050' }}> · {rec.bestYear} AD</span>
+                      </span>
+                    )}
                     <span style={{ color: '#c0504a', letterSpacing: '0.1rem', fontSize: '0.85rem' }}>
                       {'★'.repeat(c.star)}<span style={{ color: '#4a3520' }}>{'★'.repeat(3 - c.star)}</span>
                     </span>
@@ -107,7 +126,7 @@ export function HeroModeModal({ onClose }: Props) {
                     letterSpacing: '0.1rem',
                   }}
                 >
-                  {t('挑戰', 'Take it')}
+                  {rec ? t('重挑', 'Replay') : t('挑戰', 'Take it')}
                 </button>
               </div>
             );
