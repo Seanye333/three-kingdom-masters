@@ -9,11 +9,11 @@ import {
   aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
   moveUnit, resolveBattleEnd, unitAt,
 } from '../../game/systems/tactical';
-import { canDuel, resolveDuel, type DuelResult } from '../../game/systems/duel';
+import { canDuel } from '../../game/systems/duel';
 import { personalTacticsForUnit } from '../../game/systems/personalTactics';
 import { FORMATIONS_BY_ID, STRATAGEMS } from '../../game/data';
 import { BattleResultsModal } from '../components/BattleResultsModal';
-import { DuelModal } from '../components/DuelModal';
+import { DuelGameModal } from '../components/DuelGameModal';
 import { useT, useDesc, useLanguage } from '../i18n';
 
 type ActionMode =
@@ -1436,7 +1436,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
 
   const [attackArcs, setAttackArcs] = useState<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [duelResult, setDuelResult] = useState<DuelResult | null>(null);
+  const [interactiveDuel, setInteractiveDuel] = useState<{ me: Officer; foe: Officer } | null>(null);
   const [voiceLine, setVoiceLine] = useState<{ text: string; key: number } | null>(null);
   // N7 — signature-tactic banner overlay state
   const [signatureBanner, setSignatureBanner] = useState<{ zh: string; en: string; key: number } | null>(null);
@@ -1580,36 +1580,9 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
       const foeCheck = canDuel(foe);
       if (!meCheck.ok) { alert(`Your officer cannot duel: ${meCheck.reason}`); return; }
       if (!foeCheck.ok) { alert(`Enemy cannot duel: ${foeCheck.reason}`); return; }
-      const result = resolveDuel({ attacker: me, defender: foe });
-      let next: TacticalBattle = { ...battle, units: battle.units.map((unit) => unit.id === selectedUnit.id ? { ...unit, ap: 0 } : unit) };
-      if (result.killedId) {
-        // Log the slain officer in the casualty tally so resolveBattleEnd marks
-        // them dead/captured at battle end (a removed unit is otherwise invisible).
-        const fallenUnit = next.units.find((unit) => unit.officerId === result.killedId);
-        const prevCas = next.casualties ?? { attacker: [], defender: [] };
-        next = {
-          ...next,
-          units: next.units.filter((unit) => unit.officerId !== result.killedId),
-          casualties: fallenUnit
-            ? { ...prevCas, [fallenUnit.side]: [...prevCas[fallenUnit.side], result.killedId] }
-            : prevCas,
-        };
-      }
-      next = {
-        ...next,
-        log: [
-          ...(next.log ?? []),
-          {
-            turn: next.turn,
-            text: result.winner === 'draw'
-              ? `${me.name.en} and ${foe.name.en} fight to a draw — both wounded.`
-              : `${result.winner === 'attacker' ? me.name.en : foe.name.en} slew ${result.winner === 'attacker' ? foe.name.en : me.name.en} in single combat!`,
-            kind: 'event',
-          },
-        ],
-      };
-      start(next);
-      setDuelResult(result);
+      // Spend AP and open the interactive bout; the kill is applied on finish.
+      start({ ...battle, units: battle.units.map((unit) => unit.id === selectedUnit.id ? { ...unit, ap: 0 } : unit) });
+      setInteractiveDuel({ me, foe });
       setActionMode({ kind: 'none' });
       return;
     }
@@ -1902,8 +1875,40 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
           }}
         />
       )}
-      {duelResult && (
-        <DuelModal result={duelResult} onClose={() => setDuelResult(null)} />
+      {interactiveDuel && (
+        <DuelGameModal
+          attacker={interactiveDuel.me}
+          defender={interactiveDuel.foe}
+          onComplete={(outcome) => {
+            const { me, foe } = interactiveDuel;
+            const killedId = outcome.killedId === 'defender' ? foe.id
+              : outcome.killedId === 'attacker' ? me.id : null;
+            let next = battle;
+            if (killedId) {
+              const fallen = next.units.find((u) => u.officerId === killedId);
+              const prevCas = next.casualties ?? { attacker: [], defender: [] };
+              next = {
+                ...next,
+                units: next.units.filter((u) => u.officerId !== killedId),
+                casualties: fallen
+                  ? { ...prevCas, [fallen.side]: [...prevCas[fallen.side], killedId] }
+                  : prevCas,
+              };
+            }
+            next = {
+              ...next,
+              log: [...(next.log ?? []), {
+                turn: next.turn,
+                text: outcome.winner === 'draw'
+                  ? `${me.name.en} and ${foe.name.en} fought to a draw — both wounded.`
+                  : `${outcome.winner === 'attacker' ? me.name.en : foe.name.en} bested ${outcome.winner === 'attacker' ? foe.name.en : me.name.en} in single combat!`,
+                kind: 'event',
+              }],
+            };
+            start(next);
+            setInteractiveDuel(null);
+          }}
+        />
       )}
     </div>
   );

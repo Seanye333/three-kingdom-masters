@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveDuel, canDuel } from './duel';
+import { resolveDuel, canDuel, initDuelBout, duelRound, staticProwess, aiDuelMove } from './duel';
 import { resolveWordWar } from './wordWar';
 import { mkOfficer, seededRng } from '../../test/factories';
 
@@ -103,5 +103,42 @@ describe('resolveWordWar — momentum contest', () => {
     const genius = make(99, 99, 'genius');
     const r = resolveWordWar(cmd, make(60, 60, 'dcmd'), [genius], [], seededRng(1));
     expect(r.attackerStrategistId).toBe('genius');
+  });
+});
+
+describe('interactive duel engine', () => {
+  const mk = (war: number) => mkOfficer({ stats: { war, leadership: 60, intelligence: 60, politics: 60, charisma: 60 } });
+  const fixed = () => 0.5;
+
+  it('respects the move cycle (守>攻, 計>守, 奮>攻, 守>奮)', () => {
+    const b = initDuelBout(mk(80), mk(80));
+    expect(duelRound(b, 'attack', 'defend', fixed).roundWinner).toBe('defender'); // 守 beats 攻
+    expect(duelRound(b, 'scheme', 'defend', fixed).roundWinner).toBe('attacker'); // 計 beats 守
+    expect(duelRound(b, 'power', 'attack', fixed).roundWinner).toBe('attacker');  // 奮 beats 攻
+    expect(duelRound(b, 'power', 'defend', fixed).roundWinner).toBe('defender');  // 守 beats 奮
+    expect(duelRound(b, 'attack', 'attack', fixed).roundWinner).toBe('draw');     // clash
+  });
+
+  it('a successful block banks a guard point and deals no damage to the blocker', () => {
+    const b = initDuelBout(mk(80), mk(80));
+    const r = duelRound(b, 'attack', 'defend', fixed); // defender blocks
+    expect(r.dmgToDefender).toBe(0);
+    expect(r.bout.dGuard).toBe(1);
+    expect(r.dmgToAttacker).toBeGreaterThan(0);
+  });
+
+  it('initDuelBout seeds static prowess; the bout ends and names a winner', () => {
+    const atk = mk(95), def = mk(60);
+    const b = initDuelBout(atk, def);
+    expect(b.aStatic).toBe(staticProwess(atk));
+    let cur = b;
+    for (let i = 0; i < 12 && !cur.over; i++) cur = duelRound(cur, 'attack', 'scheme', fixed).bout; // 攻>計 every round
+    expect(cur.over).toBe(true);
+    expect(cur.winner).toBe('attacker');
+  });
+
+  it('aiDuelMove spends 奮 when guard is banked', () => {
+    const b = { ...initDuelBout(mk(80), mk(80)), aGuard: 2 };
+    expect(aiDuelMove(b, 'attacker', () => 0.1)).toBe('power');
   });
 });

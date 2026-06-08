@@ -142,7 +142,8 @@ export function resolveDuel(input: DuelInput): DuelResult {
   };
 }
 
-function rollOne(o: Officer, rng: () => number): DuelRoll {
+/** Fixed prowess breakdown (war + item + skill + trait), no dice. */
+function prowessParts(o: Officer): { itemBonus: number; skillBonus: number; traitBonus: number } {
   let itemBonus = 0;
   for (const id of o.equipment) {
     const it = ITEMS_BY_ID[id];
@@ -166,6 +167,17 @@ function rollOne(o: Officer, rng: () => number): DuelRoll {
     else if (t === 'sickly') traitBonus -= 5;
     else if (t === 'cautious') traitBonus -= 4;
   }
+  return { itemBonus, skillBonus, traitBonus };
+}
+
+/** Static prowess (war + bonuses, no dice) — drives interactive-duel damage. */
+export function staticProwess(o: Officer): number {
+  const p = prowessParts(o);
+  return Math.round(o.stats.war + p.itemBonus + p.skillBonus + p.traitBonus);
+}
+
+function rollOne(o: Officer, rng: () => number): DuelRoll {
+  const { itemBonus, skillBonus, traitBonus } = prowessParts(o);
   const diceRoll = Math.floor(rng() * 30);
   const total = o.stats.war + itemBonus + skillBonus + traitBonus + diceRoll;
   return {
@@ -177,4 +189,110 @@ function rollOne(o: Officer, rng: () => number): DuelRoll {
     diceRoll,
     total: Math.round(total),
   };
+}
+
+// ─── Interactive duel (player-played 攻/守/計/奮 round game) ───────────────
+
+export type DuelMove = 'attack' | 'defend' | 'scheme' | 'power';
+
+export interface DuelBout {
+  aStamina: number;
+  dStamina: number;
+  aGuard: number;   // successful blocks banked toward 奮 (Overpower)
+  dGuard: number;
+  aStatic: number;  // fixed prowess
+  dStatic: number;
+  round: number;    // rounds played
+  over: boolean;
+  winner?: 'attacker' | 'defender' | 'draw';
+  killedId?: string;
+}
+
+export const POWER_GUARD_COST = 2;
+
+export function initDuelBout(attacker: Officer, defender: Officer): DuelBout {
+  return {
+    aStamina: 100, dStamina: 100, aGuard: 0, dGuard: 0,
+    aStatic: staticProwess(attacker), dStatic: staticProwess(defender),
+    round: 0, over: false,
+  };
+}
+
+// x defeats y? 守>攻, 攻>計, 計>守; 奮 beats 攻 and 計 but loses to 守.
+const BEATS: Record<Exclude<DuelMove, 'power'>, DuelMove> = {
+  defend: 'attack', attack: 'scheme', scheme: 'defend',
+};
+function moveBeats(x: DuelMove, y: DuelMove): boolean {
+  if (x === 'power') return y === 'attack' || y === 'scheme';
+  if (y === 'power') return x === 'defend';
+  return BEATS[x] === y;
+}
+
+export interface DuelRoundResult {
+  bout: DuelBout;
+  roundWinner: 'attacker' | 'defender' | 'draw';
+  dmgToAttacker: number;
+  dmgToDefender: number;
+}
+
+/** Resolve one exchange. attacker/defender each commit a move. */
+export function duelRound(
+  bout: DuelBout,
+  aMove: DuelMove,
+  dMove: DuelMove,
+  rng: () => number = Math.random,
+): DuelRoundResult {
+  const b: DuelBout = { ...bout };
+  if (b.over) return { bout: b, roundWinner: 'draw', dmgToAttacker: 0, dmgToDefender: 0 };
+  if (aMove === 'power') b.aGuard = Math.max(0, b.aGuard - POWER_GUARD_COST);
+  if (dMove === 'power') b.dGuard = Math.max(0, b.dGuard - POWER_GUARD_COST);
+
+  const dmgFrom = (move: DuelMove, winP: number, loseP: number): number => {
+    const base = move === 'defend' ? 10 : move === 'power' ? 30 : 18;
+    const adv = Math.max(-6, Math.min(20, (winP - loseP) * 0.4));
+    return Math.max(6, Math.round(base + adv + rng() * 8));
+  };
+
+  let roundWinner: 'attacker' | 'defender' | 'draw' = 'draw';
+  let dmgToAttacker = 0, dmgToDefender = 0;
+  if (moveBeats(aMove, dMove)) {
+    roundWinner = 'attacker';
+    dmgToDefender = dmgFrom(aMove, b.aStatic, b.dStatic);
+    if (aMove === 'defend') b.aGuard += 1; // a successful block banks guard
+  } else if (moveBeats(dMove, aMove)) {
+    roundWinner = 'defender';
+    dmgToAttacker = dmgFrom(dMove, b.dStatic, b.aStatic);
+    if (dMove === 'defend') b.dGuard += 1;
+  } else if (aMove === 'defend' && dMove === 'defend') {
+    b.aGuard += 1; b.dGuard += 1; // wary circling — both bank a little
+  }
+  b.aStamina = Math.max(0, b.aStamina - dmgToAttacker);
+  b.dStamina = Math.max(0, b.dStamina - dmgToDefender);
+  b.round += 1;
+
+  if (b.aStamina <= 0 || b.dStamina <= 0 || b.round >= MAX_ROUNDS) {
+    b.over = true;
+    if (b.aStamina <= 0 && b.dStamina <= 0) b.winner = 'draw';
+    else if (b.aStamina <= 0) { b.winner = 'defender'; }
+    else if (b.dStamina <= 0) { b.winner = 'attacker'; }
+    else {
+      const gap = Math.abs(b.aStamina - b.dStamina);
+      b.winner = gap < 15 ? 'draw' : b.aStamina > b.dStamina ? 'attacker' : 'defender';
+    }
+    // A knockout (stamina to 0) is lethal; a points win is not.
+    if (b.aStamina <= 0 && b.winner === 'defender') b.killedId = 'attacker';
+    if (b.dStamina <= 0 && b.winner === 'attacker') b.killedId = 'defender';
+  }
+  return { bout: b, roundWinner, dmgToAttacker, dmgToDefender };
+}
+
+/** AI picks a move: spend 奮 when banked, otherwise favour attack, mix in
+ *  defend/scheme; a battered fighter guards more. */
+export function aiDuelMove(bout: DuelBout, side: 'attacker' | 'defender', rng: () => number = Math.random): DuelMove {
+  const guard = side === 'attacker' ? bout.aGuard : bout.dGuard;
+  const stamina = side === 'attacker' ? bout.aStamina : bout.dStamina;
+  if (guard >= POWER_GUARD_COST && rng() < 0.55) return 'power';
+  const r = rng();
+  if (stamina < 35) return r < 0.5 ? 'defend' : r < 0.78 ? 'scheme' : 'attack';
+  return r < 0.45 ? 'attack' : r < 0.72 ? 'scheme' : 'defend';
 }
