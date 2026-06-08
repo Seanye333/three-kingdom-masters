@@ -252,6 +252,11 @@ export interface TacticalBattle {
   /** Casualty totals, computed at end. */
   attackerLosses: number;
   defenderLosses: number;
+  /** Officer ids whose unit was destroyed/routed (removed from the field),
+   *  accumulated across turns per side. resolveBattleEnd reads this to mark the
+   *  losing side's fallen officers dead/captured — units are removed during the
+   *  battle, so the final `units` array alone can't reveal who fell. */
+  casualties?: { attacker: EntityId[]; defender: EntityId[] };
   /** Per-side primary objective. */
   attackerObjective?: BattleObjective;
   defenderObjective?: BattleObjective;

@@ -99,6 +99,7 @@ export function assignShipClass(troops: number, isCommander: boolean): ShipClass
   if (troops >= 6000) return 'da-yi';
   if (troops >= 4000) return 'hai-hu';
   if (troops >= 2500) return 'warship';
+  if (troops >= 1800) return 'ge-chuan';  // 戈船 — mid hull, strong against boarders
   if (troops >= 1200) return 'dou-jian';
   return 'zou-ge';
 }
@@ -1717,9 +1718,22 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     }
   }
 
+  // Record this turn's fallen officers (routed pre-structures + finished off by
+  // structures/boiling oil). Units are removed from the field here, so without
+  // this running tally resolveBattleEnd couldn't tell who fell. `allUnits` holds
+  // everyone present this turn; whoever isn't in the final survivor set fell.
+  const finalUnits = unitsAfterStructures.filter((u) => u.troops > 0 && u.morale > 0);
+  const survivingIds = new Set(finalUnits.map((u) => u.id));
+  const fallen = allUnits.filter((u) => !survivingIds.has(u.id));
+  const prevCas = b.casualties ?? { attacker: [], defender: [] };
+  const casualties = {
+    attacker: [...prevCas.attacker, ...fallen.filter((u) => u.side === 'attacker').map((u) => u.officerId)],
+    defender: [...prevCas.defender, ...fallen.filter((u) => u.side === 'defender').map((u) => u.officerId)],
+  };
+
   return {
     ...b,
-    units: unitsAfterStructures.filter((u) => u.troops > 0 && u.morale > 0),
+    units: finalUnits,
     turn: b.turn + 1,
     activeSide: b.activeSide === 'attacker' ? 'defender' : 'attacker',
     attackerLosses: b.attackerLosses + newAttackerLoss + additionalAttackerLoss,
@@ -1728,6 +1742,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     attackerObjective: attackerObj,
     defenderObjective: defenderObj,
     reinforcements: remaining,
+    casualties,
     log: [...(b.log ?? []), ...arrivalLog, ...structureLog],
     damagePopups: structurePopups, // visible briefly on turn flip
     cityStructures: updatedStructures,
@@ -1795,10 +1810,6 @@ export function resolveBattleEnd(
   officers: Record<EntityId, Officer>,
 ): BattleResolution {
   const surviving = battle.units;
-  const startingIds = new Set([
-    ...(battle.units.map((u) => u.officerId)),
-  ]);
-  // Capture logic: officers who lost their unit but the *side* won are captured.
   const winner = battle.winner ?? null;
   const survivorsBySide = (side: 'attacker' | 'defender') =>
     surviving.filter((u) => u.side === side).map((u) => u.officerId);
@@ -1808,14 +1819,13 @@ export function resolveBattleEnd(
   const captured: EntityId[] = [];
   const dead: EntityId[] = [];
 
-  // Loser-side: each missing officer is captured (with charisma roll), else killed.
-  const lostOfficers = (side: 'attacker' | 'defender') => {
-    const survivingSet = new Set(survivorsBySide(side));
-    return battle.units
-      .filter((u) => u.side === side && !survivingSet.has(u.officerId))
-      .map((u) => u.officerId);
-  };
-  void startingIds;
+  // Loser-side: each fallen officer is captured (charisma roll) or killed. Fallen
+  // units are removed from the field mid-battle (endTurn), so we read its running
+  // casualty tally — a diff of the survivors-only `units` array against itself
+  // would always be empty. Guard against any id that still has a standing unit.
+  const survivorSet = new Set(surviving.map((u) => u.officerId));
+  const lostOfficers = (side: 'attacker' | 'defender'): EntityId[] =>
+    [...new Set(battle.casualties?.[side] ?? [])].filter((id) => !survivorSet.has(id));
 
   if (winner === 'attacker') {
     for (const id of lostOfficers('defender')) {

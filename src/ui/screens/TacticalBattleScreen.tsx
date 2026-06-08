@@ -414,10 +414,17 @@ export function TacticalBattleScreen() {
       // Spend caller's AP and apply duel result.
       let next = { ...battle, units: battle.units.map((unit) => unit.id === selected.id ? { ...unit, ap: 0 } : unit) };
       if (result.killedId) {
-        // Remove the loser unit and mark the officer dead globally (apply at battle end).
+        // Remove the loser unit AND log them in the casualty tally so
+        // resolveBattleEnd marks the slain officer dead/captured at battle end
+        // (a removed unit is otherwise invisible to the end-of-battle diff).
+        const fallenUnit = next.units.find((unit) => unit.officerId === result.killedId);
+        const prevCas = next.casualties ?? { attacker: [], defender: [] };
         next = {
           ...next,
           units: next.units.filter((unit) => unit.officerId !== result.killedId),
+          casualties: fallenUnit
+            ? { ...prevCas, [fallenUnit.side]: [...prevCas[fallenUnit.side], result.killedId] }
+            : prevCas,
         };
       }
       next = {

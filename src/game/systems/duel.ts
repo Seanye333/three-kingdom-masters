@@ -132,7 +132,9 @@ export function resolveDuel(input: DuelInput): DuelResult {
   let killedId: string | undefined;
   if (margin >= 15) {
     winner = aSt > dSt ? 'attacker' : 'defender';
-    if (margin >= 25) killedId = winner === 'attacker' ? input.defender.id : input.attacker.id;
+    // A decisive stamina gap can be lethal, but reserve most kills for actual
+    // knockouts — a points win shouldn't kill officers as freely as it did at 25.
+    if (margin >= 40) killedId = winner === 'attacker' ? input.defender.id : input.attacker.id;
   }
   return {
     attackerRoll: a, defenderRoll: d, margin, winner, killedId, rounds,

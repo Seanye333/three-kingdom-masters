@@ -200,6 +200,14 @@ describe('endTurn', () => {
     const after = endTurn(mkBattle({ units: [a, d] }));
     expect(after.winner).toBe('defender');
   });
+
+  it('logs a routed unit in the casualty tally (so deaths can be resolved)', () => {
+    const a = mkUnit({ id: 'A1', officerId: 'oA1', side: 'attacker', isCommander: true, troops: 0 });
+    const d = mkUnit({ id: 'D1', officerId: 'oD1', side: 'defender', isCommander: true, coord: { col: 5, row: 5 } });
+    const after = endTurn(mkBattle({ units: [a, d] }));
+    expect(after.casualties?.attacker ?? []).toContain('oA1'); // the routed attacker fell
+    expect(after.units.find((u) => u.id === 'A1')).toBeUndefined(); // and left the field
+  });
 });
 
 describe('resolveBattleEnd', () => {
@@ -218,6 +226,27 @@ describe('resolveBattleEnd', () => {
     );
     expect(res.winner).toBe('attacker');
     expect(res.lootGold).toBeGreaterThanOrEqual(0);
+  });
+
+  it('marks a fallen loser-side officer dead or captured from the casualty tally', () => {
+    // The defender's officer fell during the battle: their unit was removed from
+    // the field (so it's NOT in `units`) but logged in `casualties`.
+    const a = mkUnit({ id: 'A1', officerId: 'oA1', side: 'attacker', isCommander: true });
+    const dGhost = mkUnit({ id: 'D1', officerId: 'oD1', side: 'defender' });
+    const res = resolveBattleEnd(
+      mkBattle({ units: [a], winner: 'attacker', casualties: { attacker: [], defender: ['oD1'] } }),
+      officerMap([a, dGhost]),
+    );
+    expect([...res.defenderDead, ...res.capturedOfficerIds]).toContain('oD1');
+    expect(res.attackerSurvivors).toContain('oA1');
+  });
+
+  it('does not invent deaths when no casualties were logged', () => {
+    const a = mkUnit({ id: 'A1', officerId: 'oA1', side: 'attacker', isCommander: true });
+    const d = mkUnit({ id: 'D1', officerId: 'oD1', side: 'defender', coord: { col: 5, row: 5 } });
+    const res = resolveBattleEnd(mkBattle({ units: [a, d], winner: 'attacker' }), officerMap([a, d]));
+    expect(res.defenderDead).toHaveLength(0);
+    expect(res.capturedOfficerIds).toHaveLength(0);
   });
 });
 

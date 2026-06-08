@@ -1583,7 +1583,17 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
       const result = resolveDuel({ attacker: me, defender: foe });
       let next: TacticalBattle = { ...battle, units: battle.units.map((unit) => unit.id === selectedUnit.id ? { ...unit, ap: 0 } : unit) };
       if (result.killedId) {
-        next = { ...next, units: next.units.filter((unit) => unit.officerId !== result.killedId) };
+        // Log the slain officer in the casualty tally so resolveBattleEnd marks
+        // them dead/captured at battle end (a removed unit is otherwise invisible).
+        const fallenUnit = next.units.find((unit) => unit.officerId === result.killedId);
+        const prevCas = next.casualties ?? { attacker: [], defender: [] };
+        next = {
+          ...next,
+          units: next.units.filter((unit) => unit.officerId !== result.killedId),
+          casualties: fallenUnit
+            ? { ...prevCas, [fallenUnit.side]: [...prevCas[fallenUnit.side], result.killedId] }
+            : prevCas,
+        };
       }
       next = {
         ...next,

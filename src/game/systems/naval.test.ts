@@ -15,6 +15,7 @@ describe('assignShipClass', () => {
     expect(assignShipClass(7000, false)).toBe('da-yi');
     expect(assignShipClass(500, false)).toBe('zou-ge');
     expect(assignShipClass(3000, false)).toBe('warship');
+    expect(assignShipClass(2000, false)).toBe('ge-chuan');
   });
 });
 

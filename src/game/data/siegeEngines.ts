@@ -107,10 +107,12 @@ export function selectSiegeEngine(
   // Need a sufficiently large army (5000+) to bring serious gear.
   if (army.troops < 3000) return null;
 
-  // Engineer-type officer? Search by Siege weapon class equipment.
+  // Engineer-type officer? The 攻城 (siegemaster) skill is the real signal; a
+  // mace/siege weapon is a secondary tell. (The old `id.includes('siege')` check
+  // matched no item id and was dead — siegemaster was never consulted.)
   const allOfficers = [army.commander, ...(army.companions ?? [])];
   const hasEngineer = allOfficers.some(
-    (o) => o.equipment.some((id) => id.includes('siege') || id.includes('mace')),
+    (o) => o.skills?.includes('siegemaster') || o.equipment.some((id) => id.includes('mace')),
   );
 
   if (cityWallTier >= 3 && army.troops >= 8000) return SIEGE_ENGINES['tou-shi-ji'];
