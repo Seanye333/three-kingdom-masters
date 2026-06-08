@@ -23,8 +23,14 @@ export const RETINUE: Record<string, string[]> = {
   'liu-yan':    ['zhang-ren', 'yan-yan', 'huang-quan', 'liu-ba', 'wu-yi'],
   'gongsun-zan':['zhao-yun', 'tian-kai', 'zhang-yan'],
   'tao-qian':   ['cao-bao', 'chen-deng', 'chen-gui', 'mi-zhu', 'ze-rong'],
-  'kong-rong':  ['taishi-ci'],
+  'kong-rong':  ['taishi-ci', 'wu-anguo', 'wang-xiu'],
   'zhang-lu':   ['yang-song', 'yang-bo-zl', 'yan-pu', 'zhang-wei'],
+  'huangfu-song':['zhu-jun', 'lu-zhi'],
+  'shi-xie':    ['shi-shuo', 'shi-hui'],
+  'tadun':      ['lou-ban', 'nan-lou', 'su-puyan'],
+  'kebi-neng':  ['budugen', 'suli', 'mijia'],
+  'gongsun-yuan':['bei-yan', 'yang-zuo'],
+  'zhang-rang': ['jian-shuo', 'zhao-zhong', 'duan-gui', 'guo-sheng'],
   'yuan-shu':   ['ji-ling', 'yang-hong-ys', 'zhang-xun', 'chen-lan'],
   'lu-bu':      ['chen-gong', 'gao-shun', 'zhang-liao', 'zang-ba', 'hou-cheng', 'wei-xu', 'song-xian', 'hao-meng', 'cao-xing'],
   'yan-baihu':  ['yan-yu'],
@@ -36,15 +42,18 @@ export const RETINUE: Record<string, string[]> = {
   'jin-xuan':   ['gong-zhi'],
   'wang-lang':  ['yu-fan'],
 
-  // ── Cross-era warlords (only roster-present subordinates listed) ──────
+  // ── Cross-era warlords ───────────────────────────────────────────────
   // Sui-end contenders (隋末群雄)
   'hist-dou-jiande': ['hist-liu-heita', 'hist-su-dingfang'],
-  'hist-liu-wuzhou': ['hist-yuchi-gong'],
-  'hist-du-fuwei':   ['hist-fu-gongshi'],
+  'hist-liu-wuzhou': ['hist-yuchi-gong', 'hist-song-jingang', 'hist-xun-xiang'],
+  'hist-du-fuwei':   ['hist-fu-gongshi', 'hist-kan-leng', 'hist-wang-xiongdan'],
+  'hist-xue-ju':     ['hist-xue-rengao', 'hist-zong-luohou'],
   // An Lushan rebellion (安史之亂)
   'hist-an-lushan':  ['hist-shi-siming', 'hist-tian-chengsi'],
   // Chu-Han contention (楚漢)
   'hist-chen-yu':    ['hist-li-zuoche'],
+  'hist-wei-bao':    ['hist-bai-zhi'],
+  'hist-ying-bu':    ['hist-ben-he'],
 };
 
 /**

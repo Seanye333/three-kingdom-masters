@@ -96,6 +96,9 @@ const OFFICER_TEMPLATES: OfficerTemplate[] = [
   { id: 'gongsun-zan', name: { en: 'Gongsun Zan', zh: '公孫瓚' }, courtesyName: { en: 'Bogui',     zh: '伯珪' }, birthYear: 155, deathYear: 199, hometownCityId: 'beiping', stats: { leadership: 80, war: 87,  intelligence: 60, politics: 55, charisma: 70 } },
   { id: 'tao-qian',    name: { en: 'Tao Qian',    zh: '陶謙'   }, courtesyName: { en: 'Gongzu',    zh: '恭祖' }, birthYear: 132, deathYear: 194, hometownCityId: 'danyang', stats: { leadership: 55, war: 50,  intelligence: 70, politics: 65, charisma: 70 } },
   { id: 'kong-rong',   name: { en: 'Kong Rong',   zh: '孔融'   }, courtesyName: { en: 'Wenju',     zh: '文舉' }, birthYear: 153, deathYear: 208, hometownCityId: 'pengcheng', stats: { leadership: 50, war: 30,  intelligence: 75, politics: 80, charisma: 88 } },
+  // Kong Rong's Beihai officers.
+  { id: 'wu-anguo',    name: { en: 'Wu Anguo',    zh: '武安國' }, birthYear: 158, deathYear: 197, hometownCityId: 'pengcheng', stats: { leadership: 60, war: 76, intelligence: 45, politics: 40, charisma: 58 } },
+  { id: 'wang-xiu',    name: { en: 'Wang Xiu',    zh: '王修'   }, courtesyName: { en: 'Shuzhi',    zh: '叔治' }, birthYear: 160, deathYear: 220, hometownCityId: 'pengcheng', stats: { leadership: 55, war: 35, intelligence: 76, politics: 82, charisma: 75 } },
   { id: 'ma-teng',     name: { en: 'Ma Teng',     zh: '馬騰'   }, courtesyName: { en: 'Shoucheng', zh: '壽成' }, birthYear: 156, deathYear: 212, hometownCityId: 'mei', stats: { leadership: 78, war: 84,  intelligence: 60, politics: 55, charisma: 78 } },
 ];
 
@@ -665,6 +668,16 @@ const TALENT_POOL_TEMPLATES: OfficerTemplate[] = [
   { id: 'kebi-neng',   name: { en: 'Kebi Neng',  zh: '軻比能' },                                                                                             birthYear: 175, deathYear: 235, stats: { leadership: 82, war: 85, intelligence: 70, politics: 60, charisma: 75 } },
   { id: 'budugen',     name: { en: 'Budugen',    zh: '步度根' },                                                                                             birthYear: 178, deathYear: 233, stats: { leadership: 75, war: 78, intelligence: 60, politics: 55, charisma: 68 } },
   { id: 'gongsun-yuan',name: { en: 'Gongsun Yuan',zh: '公孫淵' }, courtesyName: { en: 'Wenyi',  zh: '文懿' }, birthYear: 200, deathYear: 238, hometownCityId: 'liaodong', stats: { leadership: 70, war: 65, intelligence: 70, politics: 60, charisma: 65 } },
+  // Wuhuan chieftains under 蹋頓 (fell at White Wolf Mountain, 207).
+  { id: 'lou-ban',     name: { en: 'Louban',     zh: '樓班'   }, birthYear: 186, deathYear: 207, hometownCityId: 'wuhuan', stats: { leadership: 66, war: 70, intelligence: 48, politics: 45, charisma: 62 } },
+  { id: 'nan-lou',     name: { en: 'Nanlou',     zh: '難樓'   }, birthYear: 162, deathYear: 207, hometownCityId: 'wuhuan', stats: { leadership: 70, war: 74, intelligence: 50, politics: 48, charisma: 60 } },
+  { id: 'su-puyan',    name: { en: 'Su Puyan',   zh: '蘇僕延' }, birthYear: 163, deathYear: 207, hometownCityId: 'wuhuan', stats: { leadership: 68, war: 72, intelligence: 46, politics: 44, charisma: 58 } },
+  // Xianbei chiefs alongside 軻比能.
+  { id: 'suli',        name: { en: 'Suli',       zh: '素利'   }, birthYear: 176, deathYear: 234, stats: { leadership: 72, war: 76, intelligence: 55, politics: 50, charisma: 64 } },
+  { id: 'mijia',       name: { en: 'Mijia',      zh: '彌加'   }, birthYear: 178, deathYear: 235, stats: { leadership: 68, war: 74, intelligence: 52, politics: 48, charisma: 60 } },
+  // Gongsun Yuan's Liaodong generals (fell at Xiangping, 238).
+  { id: 'bei-yan',     name: { en: 'Bei Yan',    zh: '卑衍'   }, birthYear: 196, deathYear: 238, hometownCityId: 'liaodong', stats: { leadership: 72, war: 78, intelligence: 55, politics: 45, charisma: 58 } },
+  { id: 'yang-zuo',    name: { en: 'Yang Zuo',   zh: '楊祚'   }, birthYear: 198, deathYear: 238, hometownCityId: 'liaodong', stats: { leadership: 68, war: 74, intelligence: 52, politics: 46, charisma: 56 } },
 
   // ─── Phase 37 — Additional historical officers ──────────────
   // Wei strategists & officials
@@ -848,6 +861,10 @@ const TALENT_POOL_TEMPLATES: OfficerTemplate[] = [
   // Ten Attendants & Late Han court
   { id: 'zhang-rang',   name: { en: 'Zhang Rang',    zh: '張讓'   },                                                                                            birthYear: 135, deathYear: 189, stats: { leadership: 35, war: 25, intelligence: 75, politics: 78, charisma: 60 } },
   { id: 'jian-shuo',    name: { en: 'Jian Shuo',     zh: '蹇碩'   },                                                                                            birthYear: 145, deathYear: 189, stats: { leadership: 55, war: 40, intelligence: 65, politics: 60, charisma: 55 } },
+  // Ten Attendants — the other senior eunuchs alongside 張讓 (purged 189).
+  { id: 'zhao-zhong',   name: { en: 'Zhao Zhong',    zh: '趙忠'   },                                                                                            birthYear: 136, deathYear: 189, stats: { leadership: 32, war: 22, intelligence: 72, politics: 76, charisma: 58 } },
+  { id: 'duan-gui',     name: { en: 'Duan Gui',      zh: '段珪'   },                                                                                            birthYear: 140, deathYear: 189, stats: { leadership: 30, war: 25, intelligence: 66, politics: 70, charisma: 52 } },
+  { id: 'guo-sheng',    name: { en: 'Guo Sheng',     zh: '郭勝'   },                                                                                            birthYear: 142, deathYear: 189, stats: { leadership: 30, war: 24, intelligence: 64, politics: 68, charisma: 54 } },
   { id: 'he-hou',       name: { en: 'Empress He',    zh: '何皇后' },                                                                                            birthYear: 158, deathYear: 189, stats: { leadership: 35, war: 25, intelligence: 60, politics: 70, charisma: 80 } },
   { id: 'wang-meiren',  name: { en: 'Lady Wang',     zh: '王美人' },                                                                                            birthYear: 165, deathYear: 181, stats: { leadership: 25, war: 20, intelligence: 60, politics: 50, charisma: 82 } },
   { id: 'dong-taihou',  name: { en: 'Dowager Dong',  zh: '董太后' },                                                                                            birthYear: 140, deathYear: 189, stats: { leadership: 35, war: 25, intelligence: 65, politics: 72, charisma: 65 } },
