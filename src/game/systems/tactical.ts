@@ -1617,8 +1617,32 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   let additionalAttackerLoss = 0;
   if (turnEndingForAttacker && b.cityStructures && b.cityStructures.length > 0) {
     const next = b.cityStructures.map((s) => ({ ...s }));
+    const STRUCT_NAMES: Record<string, string> = {
+      watchtower: '箭樓', 'arrow-platform': '箭台', rockfall: '落石',
+      caltrops: '拒馬', 'iron-chains': '鐵索', beacon: '烽火台',
+    };
     for (const s of next) {
       if (s.hp <= 0 || s.triggered) continue;
+      // ── Attackers hugging the emplacement batter it down — siege units
+      // wreck it fast, other troops chip away. At 0 HP it's destroyed and falls
+      // silent, giving the attacker counterplay against a fortified rampart. ──
+      const sappers = unitsAfterStructures.filter(
+        (u) => u.side === 'attacker' && u.troops > 0 && hexDistance(s.coord, u.coord) === 1,
+      );
+      if (sappers.length > 0) {
+        const batter = sappers.reduce((sum, u) => sum + (u.unitType === 'siege' ? 200 : 60), 0);
+        s.hp = Math.max(0, s.hp - batter);
+        if (s.hp <= 0) {
+          structurePopups.push({
+            id: `struct-down-${s.slotIndex}-t${b.turn}`,
+            coord: s.coord, text: '✸', color: '#b8442e', spawnedAt: Date.now(),
+          });
+          structureLog.push({
+            turn: b.turn, text: `${STRUCT_NAMES[s.buildingId] ?? '城防工事'}被攻破！`, kind: 'event',
+          });
+          continue; // wrecked — it can't fire this turn
+        }
+      }
       const attackerUnits = unitsAfterStructures.filter((u) => u.side === 'attacker' && u.troops > 0);
       if (attackerUnits.length === 0) continue;
       // Range and damage per kind.

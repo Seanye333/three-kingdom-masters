@@ -208,6 +208,18 @@ describe('endTurn', () => {
     expect(after.casualties?.attacker ?? []).toContain('oA1'); // the routed attacker fell
     expect(after.units.find((u) => u.id === 'A1')).toBeUndefined(); // and left the field
   });
+
+  it('lets a siege unit batter down an adjacent city structure (destructible)', () => {
+    const siege = mkUnit({
+      id: 'A1', officerId: 'oA1', side: 'attacker', isCommander: true,
+      unitType: 'siege', coord: { col: 6, row: 4 },
+    });
+    const d = mkUnit({ id: 'D1', officerId: 'oD1', side: 'defender', isCommander: true, coord: { col: 8, row: 8 } });
+    const tower = { slotIndex: 0, buildingId: 'watchtower' as const, level: 1, coord: { col: 6, row: 5 }, hp: 150 };
+    const after = endTurn(mkBattle({ units: [siege, d], cityStructures: [tower], activeSide: 'attacker' }));
+    const t = after.cityStructures?.find((s) => s.slotIndex === 0);
+    expect(t!.hp).toBe(0); // 200 siege batter > 150 hp → wrecked
+  });
 });
 
 describe('resolveBattleEnd', () => {
