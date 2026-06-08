@@ -1,6 +1,7 @@
 import type { Officer } from '../types';
 import { ITEMS_BY_ID } from '../data/items';
 import { SKILLS_BY_ID } from '../data/skills';
+import { prestigeEffects } from '../data/prestige';
 
 /**
  * One-on-one duel resolution between two officers — a multi-round 氣力 bout.
@@ -173,7 +174,7 @@ function prowessParts(o: Officer): { itemBonus: number; skillBonus: number; trai
 /** Static prowess (war + bonuses, no dice) — drives interactive-duel damage. */
 export function staticProwess(o: Officer): number {
   const p = prowessParts(o);
-  return Math.round(o.stats.war + p.itemBonus + p.skillBonus + p.traitBonus);
+  return Math.round(o.stats.war + p.itemBonus + p.skillBonus + p.traitBonus + prestigeEffects(o).duelBonus);
 }
 
 function rollOne(o: Officer, rng: () => number): DuelRoll {

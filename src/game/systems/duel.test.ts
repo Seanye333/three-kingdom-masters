@@ -178,3 +178,11 @@ describe('interactive debate engine', () => {
     expect(aiDebateMove(b, 'a', () => 0.1)).toBe('press');
   });
 });
+
+describe('prestige folds into duel prowess', () => {
+  it('a 虎將 (war 90) carries their 威名 duel bonus into static prowess', () => {
+    const tiger = mkOfficer({ stats: { war: 90, leadership: 60, intelligence: 60, politics: 60, charisma: 60 } });
+    // 90 war + 12 虎將 duel bonus, no items/skills/traits.
+    expect(staticProwess(tiger)).toBe(102);
+  });
+});

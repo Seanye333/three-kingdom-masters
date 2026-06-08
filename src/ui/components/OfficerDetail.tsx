@@ -25,6 +25,7 @@ import {
 } from '../../game/data/officerAttributes';
 import { WEAPON_TYPE_DEFS, deriveWeaponType } from '../../game/data/weaponTypes';
 import { HISTORICAL_LIFESPANS } from '../../game/data/historicalLifespans';
+import { bestPrestige } from '../../game/data/prestige';
 import type { City, Force, Officer, Skill } from '../../game/types';
 import { FORMATIONS_BY_ID } from '../../game/data/formations';
 import { TACTIC_DESC } from './TacticsModal';
@@ -175,6 +176,19 @@ export function OfficerDetail({
                 )}
               </div>
             )}
+            {(() => {
+              const prestige = bestPrestige(officer);
+              if (!prestige) return null;
+              return (
+                <div style={{
+                  display: 'inline-block', marginTop: '0.3rem', padding: '0.12rem 0.5rem',
+                  background: 'linear-gradient(180deg, #4a3a1a, #2a2010)', border: '1px solid #d4a84a',
+                  color: '#f0d890', fontSize: '0.82rem', letterSpacing: '0.15rem', borderRadius: 2,
+                }}>
+                  威名 · {lang === 'en' ? prestige.name.en : prestige.name.zh}
+                </div>
+              );
+            })()}
             {openWish && (
               <div style={{
                 marginTop: '0.3rem', fontSize: '0.78rem',

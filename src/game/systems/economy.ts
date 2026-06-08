@@ -2,6 +2,7 @@ import type { City, Officer, Season } from '../types';
 import { cityPolicyEffects } from './policyEffects';
 import { citySize, populationDelta } from './citySize';
 import { aggregateSlotEffects } from '../data/defenseBuildings';
+import { prestigeEffects } from '../data/prestige';
 
 export const FOOD_PER_TROOP_PER_SEASON = 0.25;
 
@@ -30,7 +31,9 @@ export function tickCityEconomy(
   const size = citySize(city);
 
   const baseGold = Math.floor(city.commerce * (city.population / 5000));
-  const goldIncome = Math.max(0, Math.floor(baseGold * eff.goldMul * size.goldMul + eff.goldFlat));
+  // 能臣/良吏/巨賈 prestige — the ablest administrator present fattens the coffers.
+  const prestigeMul = cityOfficers.reduce((m, o) => Math.max(m, prestigeEffects(o).incomeMul), 1);
+  const goldIncome = Math.max(0, Math.floor(baseGold * eff.goldMul * size.goldMul * prestigeMul + eff.goldFlat));
 
   const baseFood =
     season === 'autumn'
