@@ -1,5 +1,6 @@
 import { useGameStore } from '../../game/state/store';
 import { SEASON_LABEL } from '../../game/types';
+import { careerStanding } from '../../game/systems/career';
 import { useT, useLanguage } from '../i18n';
 
 interface Props {
@@ -113,6 +114,33 @@ export function CareerModal({ onClose }: Props) {
               )}
             </div>
           </div>
+
+          {/* Career standing — 功績 / 品階 / 身份 ladder */}
+          {(() => {
+            const s = careerStanding(d);
+            const pct = s.nextRankMerit !== null
+              ? Math.max(4, Math.min(100, Math.round((s.merit / s.nextRankMerit) * 100)))
+              : 100;
+            return (
+              <div style={{ background: '#1a1410', border: '1px solid #d4a84a', padding: '0.85rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
+                  <div style={{ color: '#d4a84a', letterSpacing: '0.2rem' }}>
+                    {t('身份', 'Standing')} · <strong>{lang === 'en' ? s.status.en : s.status.zh}</strong>
+                    <span style={{ fontSize: '0.78rem', color: '#8a7050', marginLeft: '0.5rem' }}>{t('品', 'Rank')} {s.rank}</span>
+                  </div>
+                  <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.8rem', color: '#c0a878' }}>
+                    {t('功績', 'Merit')} {s.merit}{s.nextRankMerit !== null ? ` / ${s.nextRankMerit}` : ` (${t('登峰', 'pinnacle')})`}
+                  </div>
+                </div>
+                <div style={{ height: 10, background: '#2a1f15', border: '1px solid #4a3520', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#8a6a3a,#d4a84a)' }} />
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#6a5238', marginTop: '0.35rem' }}>
+                  {t('武官 → 大臣 → 太守 → 都督 → 一方諸侯', 'Officer → Minister → Governor → Viceroy → Grand Marshal')}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Deeds summary */}
           {d && (

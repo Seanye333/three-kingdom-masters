@@ -5,6 +5,8 @@ import type {
   Officer,
   ReportEntry,
 } from '../types';
+import type { HeroicDeeds } from '../types/deeds';
+import { careerStanding, canInheritForce } from './career';
 
 /**
  * When a force's ruler dies, automatically appoint a successor:
@@ -18,6 +20,10 @@ export interface SuccessionContext {
   forces: Record<EntityId, Force>;
   officers: Record<EntityId, Officer>;
   family: FamilyRelation[];
+  /** The chronicle (一代記) officer, if any — inherits their force when its
+   *  ruler dies, provided they've risen to 都督 (Viceroy) or above. */
+  careerOfficerId?: EntityId | null;
+  deeds?: Record<EntityId, HeroicDeeds>;
 }
 
 export interface SuccessionOutput {
@@ -33,10 +39,18 @@ export function applySuccession(ctx: SuccessionContext): SuccessionOutput {
     const ruler = ctx.officers[force.rulerOfficerId];
     if (ruler && ruler.status !== 'dead') continue;
 
+    // The chronicle officer inherits their own force if they've risen high enough.
+    const careerOff = ctx.careerOfficerId ? ctx.officers[ctx.careerOfficerId] : null;
+    const careerInherits = !!careerOff &&
+      careerOff.status !== 'dead' && careerOff.status !== 'imprisoned' &&
+      careerOff.forceId === force.id &&
+      careerOff.id !== force.rulerOfficerId &&
+      canInheritForce(careerStanding(ctx.deeds?.[careerOff.id]));
+
     // Ruler is dead — find heir.
     const candidates = findCandidates(force, ruler ?? null, ctx.family, ctx.officers);
-    if (candidates.length === 0) continue;
-    const heir = candidates[0];
+    const heir = careerInherits ? careerOff! : candidates[0];
+    if (!heir) continue;
     forces[force.id] = { ...force, rulerOfficerId: heir.id };
     entries.push({
       cityId: null,

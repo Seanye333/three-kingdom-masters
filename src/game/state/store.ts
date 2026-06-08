@@ -1479,6 +1479,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           forces: postForces,
           officers: postOfficers,
           family: fam.family,
+          careerOfficerId: state.careerMode?.officerId ?? null,
+          deeds: state.deeds,
         });
         postForces = succession.forces;
         if (succession.entries.length > 0) {
