@@ -113,6 +113,8 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
   for (const [forceId, forceCities] of citiesByForce) {
     // Force-level offensive focus for the season — bordering cities mass on it.
     const forceTargetId = pickForceTarget(forceId, forceCities, cities, input.diplomacy);
+    // Season posture: consolidate when a bordering force overshadows us.
+    const posture = forcePosture(forceId, forceCities, cities);
     for (const city of forceCities) {
       if (pendingCommands[city.id]) continue; // shouldn't happen but safe
       const officersHere = Object.values(officers).filter(
@@ -144,6 +146,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         input.territoryOwnership ?? {},
         input.armies ?? {},
         forceTargetId,
+        posture,
       );
       if (!decision) continue;
 
@@ -638,6 +641,30 @@ export function pickReinforcementTarget(
   return best;
 }
 
+/**
+ * Strategic posture for the season. 'defensive' when a bordering force overshadows
+ * us (≥1.5× our total troops) — the AI then consolidates (reinforce/develop/dig
+ * in) and only takes very safe attacks or death blows, instead of overextending
+ * into risky land-grabs while a hegemon looms. 'aggressive' otherwise.
+ */
+export function forcePosture(
+  forceId: EntityId,
+  forceCities: City[],
+  allCities: Record<EntityId, City>,
+): 'aggressive' | 'defensive' {
+  const myTroops = computeTotalTroops(forceId, allCities);
+  const neighbors = new Set<EntityId>();
+  for (const c of forceCities) {
+    for (const adjId of c.adjacentCityIds) {
+      const adj = allCities[adjId];
+      if (adj?.ownerForceId && adj.ownerForceId !== forceId) neighbors.add(adj.ownerForceId);
+    }
+  }
+  let maxNeighbor = 0;
+  for (const nid of neighbors) maxNeighbor = Math.max(maxNeighbor, computeTotalTroops(nid, allCities));
+  return maxNeighbor >= myTroops * 1.5 ? 'defensive' : 'aggressive';
+}
+
 function decideCommand(
   city: City,
   officersHere: Officer[],
@@ -652,6 +679,7 @@ function decideCommand(
   territoryOwnership: Record<EntityId, EntityId | null> = {},
   armies: Record<EntityId, import('../types').Army> = {},
   forceTargetId: EntityId | null = null,
+  posture: 'aggressive' | 'defensive' = 'aggressive',
 ): Decision | null {
   const ownRulerId = forces[forceId]?.rulerOfficerId;
   // 1. Food crisis — develop agriculture
@@ -814,7 +842,10 @@ function decideCommand(
       // border can take it *collectively*, so individual cities should commit
       // even when their own ratio is a touch short — the columns converge.
       const focusRelax = target.id === forceTargetId ? 1.3 : 1;
-      const attackThreshold = baseThreshold * deterrence * focusRelax;
+      // Under a looming hegemon, consolidate: only very safe attacks / death
+      // blows clear the bar, so the force doesn't overextend while outmatched.
+      const postureMul = posture === 'defensive' ? 0.5 : 1;
+      const attackThreshold = baseThreshold * deterrence * focusRelax * postureMul;
 
       // Effective defender strength factors in city defense: a fortress at
       // defense 88 (Tongguan) counts as if the garrison were ~60% larger.

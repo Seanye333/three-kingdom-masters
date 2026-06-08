@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pickForceTarget, pickReinforcementTarget } from './ai';
+import { pickForceTarget, pickReinforcementTarget, forcePosture } from './ai';
 import type { City } from '../types';
 import type { DiplomaticState } from '../types/diplomacy';
 
@@ -72,5 +72,24 @@ describe('pickReinforcementTarget — rear-to-front reinforcement', () => {
     const rear = mkCity({ id: 'rear', ownerForceId: 'A', troops: 12000, adjacentCityIds: ['strong'] });
     const strong = mkCity({ id: 'strong', ownerForceId: 'A', troops: 10000, adjacentCityIds: ['rear'] });
     expect(pickReinforcementTarget(rear, { rear, strong }, 'A', NO_DIPLO)).toBeNull();
+  });
+});
+
+describe('forcePosture — consolidate when outmatched', () => {
+  it('turns defensive when a bordering force overshadows us (≥1.5×)', () => {
+    const a1 = mkCity({ id: 'a1', ownerForceId: 'A', troops: 5000, adjacentCityIds: ['b1'] });
+    const b1 = mkCity({ id: 'b1', ownerForceId: 'B', troops: 9000, adjacentCityIds: ['a1'] });
+    expect(forcePosture('A', [a1], { a1, b1 })).toBe('defensive');
+  });
+
+  it('stays aggressive against a comparable neighbour', () => {
+    const a1 = mkCity({ id: 'a1', ownerForceId: 'A', troops: 10000, adjacentCityIds: ['b1'] });
+    const b1 = mkCity({ id: 'b1', ownerForceId: 'B', troops: 8000, adjacentCityIds: ['a1'] });
+    expect(forcePosture('A', [a1], { a1, b1 })).toBe('aggressive');
+  });
+
+  it('stays aggressive with no bordering force', () => {
+    const a1 = mkCity({ id: 'a1', ownerForceId: 'A', troops: 5000, adjacentCityIds: [] });
+    expect(forcePosture('A', [a1], { a1 })).toBe('aggressive');
   });
 });
