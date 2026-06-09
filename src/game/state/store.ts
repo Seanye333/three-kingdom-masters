@@ -91,7 +91,7 @@ import { SCENARIO_OBJECTIVES } from '../data/objectives';
 import { SCENARIOS } from '../data';
 import { findChallenge, evaluateChallenge, challengeStars } from '../data/challenges';
 import { MAX_CUSTOM_EVENTS } from '../systems/customEvents';
-import { refreshPrestige, prestigeTitleById } from '../data/prestige';
+import { refreshPrestige, prestigeTitleById, TOP_PRESTIGE_IDS } from '../data/prestige';
 import { careerStanding, careerGuardCapBonus } from '../systems/career';
 import { evaluateGoal, findObjectiveFor } from '../systems/objectives';
 import { applySuccession } from '../systems/succession';
@@ -327,6 +327,8 @@ interface GameStore extends GameState {
   acknowledgePrestige: () => void;
   /** Dequeue the front bond awaiting its on-map 義結金蘭 ceremony. */
   acknowledgeBond: () => void;
+  /** Dequeue the front 威名 promotion awaiting its on-map 封號 ceremony. */
+  acknowledgePrestigeCeremony: () => void;
   // ─── Port (港) actions ────────────────────────────────────────────
   /** Queue a ship build at the given port. Player pays gold from capital
    *  immediately; ship is added to dockedShips when seasonsLeft hits 0. */
@@ -2462,6 +2464,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const prestigeRefresh = refreshPrestige(postOfficers, nextDeeds);
         postOfficers = prestigeRefresh.officers;
         const newPrestige = prestigeRefresh.awards;
+        const prestigeCeremonies: Array<{ officerId: EntityId; titleId: string }> = [];
         for (const aw of newPrestige) {
           const o = postOfficers[aw.officerId];
           const title = prestigeTitleById(aw.titleId);
@@ -2472,7 +2475,14 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             text: `${o.name.en} earns the prestige of ${title.name.en}!`,
             textZh: `${o.name.zh}威名遠播,獲「${title.name.zh}」之譽!`,
           });
+          // A player officer rising to a top-tier title earns a 封號 ceremony.
+          if (o.forceId === state.playerForceId && TOP_PRESTIGE_IDS.includes(aw.titleId)) {
+            prestigeCeremonies.push({ officerId: aw.officerId, titleId: aw.titleId });
+          }
         }
+        const recentPrestigeCeremonyAfter = prestigeCeremonies.length > 0
+          ? [...state.recentPrestigeCeremony, prestigeCeremonies[0]]
+          : state.recentPrestigeCeremony;
 
         // 一代記 — auto-record chronicle milestones: prestige attained and
         // career rank promotions for the player's chronicle hero.
@@ -2573,6 +2583,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           deeds: nextDeeds,
           recentDeedTitles: [...state.recentDeedTitles, ...titleGrant.grants],
           recentPrestige: [...state.recentPrestige, ...newPrestige],
+          recentPrestigeCeremony: recentPrestigeCeremonyAfter,
           careerMode: careerModeAfterSeason,
           challengeRecords: challengeRecordsAfter,
           // Battle deltas only feed MVPs at season boundaries — reset
@@ -4262,6 +4273,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       acknowledgeDeedTitles: () => set({ recentDeedTitles: [] }),
       acknowledgePrestige: () => set({ recentPrestige: [] }),
       acknowledgeBond: () => set((s) => ({ recentBonds: s.recentBonds.slice(1) })),
+      acknowledgePrestigeCeremony: () => set((s) => ({ recentPrestigeCeremony: s.recentPrestigeCeremony.slice(1) })),
 
       attackPort: (portId, attackerOfficerId, troops) => {
         const state = get();
@@ -5058,6 +5070,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (!state.customEvents) state.customEvents = [];
         if (!state.recentPrestige) state.recentPrestige = [];
         if (!state.recentBonds) state.recentBonds = [];
+        if (!state.recentPrestigeCeremony) state.recentPrestigeCeremony = [];
         const cityOwnerByCityId = Object.fromEntries(
           Object.values(state.cities ?? {}).map((c) => [c.id, c.ownerForceId]),
         );

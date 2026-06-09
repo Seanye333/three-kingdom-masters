@@ -15,6 +15,7 @@ import { BondsModal } from '../components/BondsModal';
 import { PrivateForcesModal } from '../components/PrivateForcesModal';
 import { PrestigeModal } from '../components/PrestigeModal';
 import { BondCeremony } from '../components/BondCeremony';
+import { PrestigeCeremony } from '../components/PrestigeCeremony';
 import { DialogueModal } from '../components/DialogueModal';
 import { ObjectivePanel } from '../components/ObjectivePanel';
 import { ArmiesPanel } from '../components/ArmiesPanel';
@@ -97,6 +98,8 @@ export function MapScreen() {
   const acknowledgePrestige = useGameStore((s) => s.acknowledgePrestige);
   const recentBonds = useGameStore((s) => s.recentBonds);
   const acknowledgeBond = useGameStore((s) => s.acknowledgeBond);
+  const recentPrestigeCeremony = useGameStore((s) => s.recentPrestigeCeremony);
+  const acknowledgePrestigeCeremony = useGameStore((s) => s.acknowledgePrestigeCeremony);
   const officersForToast = useGameStore((s) => s.officers);
   const currentSeasonKey = useGameStore((s) => s.date.season);
   const fogOfWar = useGameStore((s) => s.fogOfWar);
@@ -545,6 +548,21 @@ export function MapScreen() {
             color={playerForce?.color ?? '#d4a84a'}
             year={date.year}
             onDone={acknowledgeBond}
+          />
+        );
+      })()}
+      {/* 封號 ceremony for a top-tier 威名 rise — after bonds, and on a clear map. */}
+      {recentBonds.length === 0 && recentPrestigeCeremony.length > 0 && !ceremonyBlocked && (() => {
+        const c = recentPrestigeCeremony[0];
+        const o = officersForToast[c.officerId];
+        if (!o) { acknowledgePrestigeCeremony(); return null; }
+        return (
+          <PrestigeCeremony
+            officer={o}
+            titleId={c.titleId}
+            color={playerForce?.color ?? '#d4a84a'}
+            year={date.year}
+            onDone={acknowledgePrestigeCeremony}
           />
         );
       })()}

@@ -76,6 +76,9 @@ const TITLE_BY_ID: Record<string, PrestigeTitle> = Object.fromEntries(
   PRESTIGE_TITLES.map((t) => [t.id, t]),
 );
 
+/** The most prestigious tier — a rise to one of these is ceremony-worthy. */
+export const TOP_PRESTIGE_IDS = ['tiger-general', 'royal-aide', 'able-minister', 'famed-general'];
+
 /** The single most prestigious title an officer holds, or null. */
 export function bestPrestige(o: Officer, deeds?: HeroicDeeds): PrestigeTitle | null {
   for (const title of PRESTIGE_TITLES) if (title.qualifies(o, deeds)) return title;

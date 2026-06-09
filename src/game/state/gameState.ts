@@ -217,6 +217,8 @@ export interface GameState {
   recentPrestige: Array<{ officerId: EntityId; titleId: string }>;
   /** Player bonds forged in-play, awaiting a 義結金蘭 ceremony on the map. */
   recentBonds: Array<{ aId: EntityId; bId: EntityId; titleZh: string; titleEn: string }>;
+  /** Player officers who rose to a top-tier 威名 title, awaiting a 封號 ceremony. */
+  recentPrestigeCeremony: Array<{ officerId: EntityId; titleId: string }>;
   /** Per-officer battle-source deed deltas accumulated during the current
    *  season (殲敵/生擒/攻陷). Reset at season-end after MVP computation. */
   seasonBattleDeltas: Record<EntityId, { killsTroops: number; captured: number; citiesTaken: number }>;
@@ -321,6 +323,7 @@ export const EMPTY_STATE: GameState = {
   recentDeedTitles: [],
   recentPrestige: [],
   recentBonds: [],
+  recentPrestigeCeremony: [],
   seasonBattleDeltas: {},
   weather: { kind: 'clear', wind: 'calm', windPower: 1 },
   courtFactions: {},
@@ -518,6 +521,7 @@ export function loadScenario(
     recentDeedTitles: [],
     recentPrestige: [],
     recentBonds: [],
+    recentPrestigeCeremony: [],
     seasonBattleDeltas: {},
     weather: rollWeather(scenario.startDate.season, Math.random),
     courtFactions: {},

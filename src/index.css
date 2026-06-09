@@ -893,3 +893,14 @@ button:not(:disabled):active {
   60%  { opacity: 1; }
   100% { transform: translateX(0) scale(1); opacity: 1; }
 }
+
+/* 威名 封號 ceremony — title plaque unfurling + portrait rising */
+@keyframes tkmBannerUnfurl {
+  0%   { transform: scaleX(0); opacity: 0; }
+  55%  { transform: scaleX(1.06); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+@keyframes tkmPortraitRise {
+  0%   { transform: translateY(28px) scale(0.8); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
