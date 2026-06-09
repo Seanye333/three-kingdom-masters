@@ -359,6 +359,36 @@ function Moat3D({ W, H }: { W: number; H: number }) {
   );
 }
 
+/** The row a cross-city canal runs along — a street line near mid-city. */
+function canalRow(H: number): number {
+  let r = Math.round(H * 0.55);
+  while (r % 3 !== 0 && r > 2) r--;
+  return Math.max(3, Math.min(H - 4, r));
+}
+
+/** A humped stone bridge carrying a street over the canal (spans z). */
+function CanalBridge3D({ x, z }: { x: number; z: number }) {
+  const season = useContext(SeasonCtx);
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.16, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.1, 0.16, 1.9]} />
+        <meshStandardMaterial color="#9a8f78" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 0.28, 0]} castShadow>
+        <boxGeometry args={[1.1, 0.12, 0.8]} />
+        <meshStandardMaterial color="#a89a78" roughness={0.95} />
+      </mesh>
+      {[-0.52, 0.52].map((px, i) => (
+        <mesh key={i} position={[px, 0.36, 0]} castShadow>
+          <boxGeometry args={[0.1, 0.28, 1.8]} />
+          <meshStandardMaterial color={season === 'winter' ? '#cdd6dc' : '#8f8472'} roughness={0.92} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 /* ─── Building foundations (地基) — the CoC-style build plots ─────────── */
 /** A regular sub-grid of buildable plots inside the wall ring. Deterministic
  *  so a city's layout is stable across views. */
@@ -1824,6 +1854,8 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats, g
     for (let dc = -1; dc <= 2; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${farmCell.col + dc},${farmCell.row + dr}`);
     // Keep houses off the inner palace wall line in great cities.
     if (grand) for (const c of innerWallCells(W, H).cells) keys.add(`${c.col},${c.row}`);
+    // …or off the canal line in lesser cities.
+    else { const cr = canalRow(H); for (let c = 1; c <= W - 2; c++) keys.add(`${c},${cr}`); }
     const [px, pz] = hexWorld(pagodaCell.col, pagodaCell.row);
     const [dx, dz] = hexWorld(drumCell.col, drumCell.row);
     const [bx, bz] = hexWorld(bellCell.col, bellCell.row);
@@ -2207,6 +2239,38 @@ function CityScene({
             })}
             <InnerGate3D x={igx} z={igz} bannerColor={bannerColor} />
           </>
+        );
+      })()}
+
+      {/* Cross-city canal — lesser cities (no inner wall) get a waterway with
+          stone banks and bridges where the avenue/streets cross it. */}
+      {!grand && (() => {
+        const W = preview.width, H = preview.height;
+        const cr = canalRow(H);
+        const [x0] = hexWorld(1, cr);
+        const [x1, cz] = hexWorld(W - 2, cr);
+        const cxMid = (x0 + x1) / 2;
+        const lenX = Math.abs(x1 - x0) + HEX_COL_STEP;
+        const bridgeCols = [Math.floor(W / 2), Math.round(W * 0.25), Math.round(W * 0.75)];
+        return (
+          <group>
+            {/* Water channel */}
+            <mesh position={[cxMid, -0.04, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+              <planeGeometry args={[lenX, HEX_ROW_STEP * 1.1]} />
+              <meshStandardMaterial color="#2c5882" roughness={0.32} metalness={0.45} />
+            </mesh>
+            {/* Stone banks north & south */}
+            {[-1, 1].map((s, i) => (
+              <mesh key={i} position={[cxMid, 0.08, cz + s * HEX_ROW_STEP * 0.62]} castShadow receiveShadow>
+                <boxGeometry args={[lenX, 0.2, 0.22]} />
+                <meshStandardMaterial color="#9a8f78" roughness={0.94} />
+              </mesh>
+            ))}
+            {bridgeCols.map((bc, i) => {
+              const [bx] = hexWorld(bc, cr);
+              return <CanalBridge3D key={`cb${i}`} x={bx} z={cz} />;
+            })}
+          </group>
         );
       })()}
 
