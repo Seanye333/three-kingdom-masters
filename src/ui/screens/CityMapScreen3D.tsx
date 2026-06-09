@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, createContext, useContext } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Html, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
@@ -238,13 +238,15 @@ function CornerTower3D({ x, z, bannerColor }: { x: number; z: number; bannerColo
   );
 }
 
-/** Surrounding water — a moat ringing the city, seen beyond the walls. */
+/** Surrounding water — a moat ringing the city; ices over pale in winter. */
 function Moat3D({ W, H }: { W: number; H: number }) {
+  const season = useContext(SeasonCtx);
+  const frozen = season === 'winter';
   const cx = (W * HEX_COL_STEP) / 2, cz = (H * HEX_ROW_STEP) / 2;
   return (
     <mesh position={[cx, -0.1, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[W * HEX_COL_STEP + 8, H * HEX_ROW_STEP + 8]} />
-      <meshStandardMaterial color="#2c5882" roughness={0.35} metalness={0.45} />
+      <meshStandardMaterial color={frozen ? '#bcd2dc' : '#2c5882'} roughness={frozen ? 0.55 : 0.35} metalness={frozen ? 0.2 : 0.45} />
     </mesh>
   );
 }
@@ -364,6 +366,11 @@ const SEASON_LIGHT: Record<SeasonKey, { ambient: number; ambientColor: string; s
   winter: { ambient: 0.5, ambientColor: '#e8f0f8', sun: '#e8eef8', sunI: 0.82, sunPos: [12, 9, -4], fog: '#cdd8e6', sky: 'linear-gradient(180deg, #8aa6c0 0%, #cdd9e6 100%)', nightGlow: 0.7 },
 };
 
+// The current season flows to every roof/tree/ground via context so the whole
+// city dresses for the season (snow in winter, gold leaves in autumn…) without
+// threading a prop through dozens of components.
+const SeasonCtx = createContext<SeasonKey>('spring');
+
 /** Multiply an #rrggbb colour by a factor (>1 lightens, <1 darkens). Cheap
  *  helper so ridges/eaves can be tinted off a base roof colour. */
 function shade(hex: string, f: number): string {
@@ -380,9 +387,11 @@ function shade(hex: string, f: number): string {
 function ChineseRoof3D({ size, color, ornament = false, beasts = false }: {
   size: number; color: string; ornament?: boolean; beasts?: boolean;
 }) {
+  const season = useContext(SeasonCtx);
   const eave = size + 0.3;
   const roofH = 0.26 + eave * 0.16;
   const ridgeC = shade(color, 1.4);
+  const snowy = season === 'winter';
   return (
     <group>
       {/* Overhanging eave slab — the shadow line */}
@@ -415,12 +424,19 @@ function ChineseRoof3D({ size, color, ornament = false, beasts = false }: {
         </mesh>
       ))}
       {/* Ridge beasts (脊獸) marching down the ridge of grand roofs */}
-      {beasts && [-0.16, 0, 0.16].map((px, i) => (
+      {beasts && !snowy && [-0.16, 0, 0.16].map((px, i) => (
         <mesh key={`b${i}`} position={[px * eave, roofH + 0.11, 0]} castShadow>
           <coneGeometry args={[0.04, 0.13, 5]} />
           <meshStandardMaterial color={shade(color, 1.7)} roughness={0.6} />
         </mesh>
       ))}
+      {/* Winter snow blanket on the upper slopes */}
+      {snowy && (
+        <mesh position={[0, roofH * 0.58 + 0.08, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+          <coneGeometry args={[eave * 0.6, roofH * 0.72, 4]} />
+          <meshStandardMaterial color="#eef2f6" roughness={0.85} />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -618,8 +634,10 @@ function GovernmentHall3D({ x, z, bannerColor }: { x: number; z: number; bannerC
   );
 }
 
-/** A stylised low-poly garden tree — leafy, blossom or pine by hash. */
+/** A stylised low-poly garden tree — leafy, blossom or pine by hash, dressed
+ *  for the season (gold in autumn, snow-dusted/bare in winter). */
 function GardenTree3D({ x, z, seed }: { x: number; z: number; seed: number }) {
+  const season = useContext(SeasonCtx);
   const s = 0.82 + (seed % 4) * 0.08;
   const type = (seed >> 5) % 5; // 0-2 leafy, 3 blossom, 4 pine
   const trunk = (
@@ -629,33 +647,46 @@ function GardenTree3D({ x, z, seed }: { x: number; z: number; seed: number }) {
     </mesh>
   );
   if (type === 4) {
-    // Pine — three stacked cones.
+    // Pine — evergreen, with a snow cap in winter.
     return (
       <group position={[x, 0, z]} scale={[s, s, s]}>
         {trunk}
         {[[0.7, 0.55], [1.05, 0.42], [1.35, 0.3]].map(([y, r], i) => (
           <mesh key={i} position={[0, y, 0]} castShadow>
             <coneGeometry args={[r, 0.5, 7]} />
-            <meshStandardMaterial color="#2f5530" roughness={0.85} flatShading />
+            <meshStandardMaterial color={season === 'winter' ? '#3a5a44' : '#2f5530'} roughness={0.85} flatShading />
+          </mesh>
+        ))}
+        {season === 'winter' && [[0.78, 0.46], [1.13, 0.34]].map(([y, r], i) => (
+          <mesh key={`sn${i}`} position={[0, y, 0]} castShadow>
+            <coneGeometry args={[r, 0.34, 7]} />
+            <meshStandardMaterial color="#eef2f6" roughness={0.85} flatShading />
           </mesh>
         ))}
       </group>
     );
   }
-  const canopy = type === 3 ? '#e6a8c8' : ['#3f6a32', '#4a7a3a', '#356030'][(seed >> 2) % 3];
+  // Deciduous canopy colour by season.
+  let canopy: string;
+  if (season === 'winter') canopy = '#dfe6ec';                                   // snow-dusted bare
+  else if (season === 'autumn') canopy = ['#c87a2a', '#d4972f', '#b8502a'][(seed >> 2) % 3]; // gold/red
+  else if (type === 3 && season === 'spring') canopy = '#f0b6d2';                // blossom
+  else if (type === 3) canopy = '#e6a8c8';
+  else canopy = ['#3f6a32', '#4a7a3a', '#356030'][(seed >> 2) % 3];              // green
+  const bare = season === 'winter';
   return (
     <group position={[x, 0, z]} scale={[s, s, s]}>
       {trunk}
       <mesh position={[0, 0.98, 0]} castShadow>
-        <icosahedronGeometry args={[0.5, 0]} />
+        <icosahedronGeometry args={[bare ? 0.4 : 0.5, 0]} />
         <meshStandardMaterial color={canopy} roughness={0.85} flatShading />
       </mesh>
       <mesh position={[0.2, 0.76, 0.08]} castShadow>
-        <icosahedronGeometry args={[0.32, 0]} />
+        <icosahedronGeometry args={[bare ? 0.24 : 0.32, 0]} />
         <meshStandardMaterial color={canopy} roughness={0.85} flatShading />
       </mesh>
       <mesh position={[-0.18, 0.78, -0.1]} castShadow>
-        <icosahedronGeometry args={[0.28, 0]} />
+        <icosahedronGeometry args={[bare ? 0.2 : 0.28, 0]} />
         <meshStandardMaterial color={shade(canopy, 0.9)} roughness={0.85} flatShading />
       </mesh>
     </group>
@@ -909,15 +940,23 @@ function StoneBridge3D({ x, z }: { x: number; z: number }) {
 }
 
 /** Hundreds of grass tufts in one draw call (instanced) — ground texture on
- *  the open earth between buildings. */
+ *  the open earth; in winter they become low snow mounds. */
 function GrassTufts3D({ tufts }: { tufts: Array<{ x: number; z: number; s: number; r: number; c: string }> }) {
+  const season = useContext(SeasonCtx);
+  const snowy = season === 'winter';
   if (!tufts.length) return null;
   return (
     <Instances limit={tufts.length} range={tufts.length} castShadow={false} receiveShadow>
       <coneGeometry args={[0.07, 0.26, 5]} />
       <meshStandardMaterial roughness={0.9} flatShading />
       {tufts.map((t, i) => (
-        <Instance key={i} position={[t.x, 0.11, t.z]} rotation={[0, t.r, 0]} scale={[t.s, t.s, t.s]} color={t.c} />
+        <Instance
+          key={i}
+          position={[t.x, snowy ? 0.07 : 0.11, t.z]}
+          rotation={[0, t.r, 0]}
+          scale={snowy ? [t.s * 1.5, t.s * 0.5, t.s * 1.5] : [t.s, t.s, t.s]}
+          color={snowy ? '#eef3f7' : t.c}
+        />
       ))}
     </Instances>
   );
@@ -1160,12 +1199,14 @@ function Pavilion3D({ x, z }: { x: number; z: number }) {
 /** A classical garden — a pond with stone rim, lotus pads, a zig-zag plank
  *  bridge, a lakeside pavilion and a pair of willows. */
 function Garden3D({ x, z }: { x: number; z: number }) {
+  const season = useContext(SeasonCtx);
+  const frozen = season === 'winter';
   return (
     <group position={[x, 0, z]}>
-      {/* Pond water */}
+      {/* Pond water — frozen pale in winter */}
       <mesh position={[0, 0.0, 0]} receiveShadow>
         <boxGeometry args={[2.6, 0.12, 1.9]} />
-        <meshStandardMaterial color="#2f6a86" roughness={0.28} metalness={0.45} />
+        <meshStandardMaterial color={frozen ? '#cfe2ea' : '#2f6a86'} roughness={frozen ? 0.5 : 0.28} metalness={frozen ? 0.2 : 0.45} />
       </mesh>
       {/* Stone rim (four kerbs) */}
       {[[0, -1.02, 2.9, 0.18], [0, 1.02, 2.9, 0.18], [-1.42, 0, 0.18, 2.2], [1.42, 0, 0.18, 2.2]].map((r, i) => (
@@ -1385,7 +1426,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
 }
 
 function CityScene({
-  preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light,
+  preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season,
   selectedPlot, onPlotClick, hovered, onHover, onClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
@@ -1395,6 +1436,7 @@ function CityScene({
   plots: Array<{ col: number; row: number }>;
   cityWallCol: number;
   light: typeof SEASON_LIGHT[SeasonKey];
+  season: SeasonKey;
   bannerColor: string;
   selectedPlot: number | null;
   onPlotClick: (plotIndex: number) => void;
@@ -1437,7 +1479,7 @@ function CityScene({
 
   // Season-driven lighting mood.
   return (
-    <>
+    <SeasonCtx.Provider value={season}>
       <ambientLight intensity={light.ambient * 0.7} color={light.ambientColor} />
       {/* Sky/ground hemisphere fill for richer ambient colour grading */}
       <hemisphereLight args={[light.ambientColor, '#6a5a3e', 0.45]} />
@@ -1618,7 +1660,7 @@ function CityScene({
       {showOverlays && towerRanges.map((tr, i) => (
         <RangeRing3D key={`rr-${i}`} coord={tr.coord} range={tr.range} color={tr.color} />
       ))}
-    </>
+    </SeasonCtx.Provider>
   );
 }
 
@@ -1882,6 +1924,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             cityWallCol={cityWallCol}
             bannerColor={bannerColor}
             light={light}
+            season={season}
             selectedPlot={selectedPlot}
             onPlotClick={handlePlotClick}
             hovered={hovered}
