@@ -619,6 +619,45 @@ function UnitMesh({
 }
 
 /* ─── City wall — thick stone wall block standing on a hex ──────── */
+/** Multiply an #rrggbb colour by a factor (>1 lightens). */
+function shadeHex(hex: string, f: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, Math.round(((n >> 16) & 255) * f)));
+  const g = Math.max(0, Math.min(255, Math.round(((n >> 8) & 255) * f)));
+  const b = Math.max(0, Math.min(255, Math.round((n & 255) * f)));
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+/** A swept Chinese hip roof (matches the city-interior fidelity) — opaque
+ *  eave slab + 4-sided pyramid + ridge beam + upturned corner tips. */
+export function SweptRoof3D({ size, color = '#39444f' }: { size: number; color?: string }) {
+  const eave = size + 0.2;
+  const roofH = 0.22 + eave * 0.16;
+  const ridge = shadeHex(color, 1.4);
+  return (
+    <group>
+      <mesh position={[0, 0.03, 0]} castShadow>
+        <boxGeometry args={[eave, 0.08, eave]} />
+        <meshStandardMaterial color={shadeHex(color, 0.85)} roughness={0.66} metalness={0.12} />
+      </mesh>
+      <mesh position={[0, roofH / 2 + 0.06, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[eave * 0.72, roofH, 4]} />
+        <meshStandardMaterial color={color} roughness={0.62} metalness={0.16} />
+      </mesh>
+      <mesh position={[0, roofH + 0.04, 0]} castShadow>
+        <boxGeometry args={[eave * 0.5, 0.08, 0.1]} />
+        <meshStandardMaterial color={ridge} roughness={0.55} />
+      </mesh>
+      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => (
+        <mesh key={i} position={[sx * eave * 0.45, 0.12, sz * eave * 0.45]} rotation={[sz * 0.5, 0, -sx * 0.5]} castShadow>
+          <coneGeometry args={[0.07, 0.22, 4]} />
+          <meshStandardMaterial color={ridge} roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 export function CityWall({ coord, bannerColor }: { coord: HexCoord; bannerColor: string }) {
   const [x, z] = hexWorld(coord.col, coord.row);
   const pennantRef = useRef<THREE.Mesh>(null);
@@ -633,6 +672,11 @@ export function CityWall({ coord, bannerColor }: { coord: HexCoord; bannerColor:
       <mesh position={[0, 0.7, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.6, 1.4, 1.6]} />
         <meshStandardMaterial color="#6a5540" roughness={0.92} />
+      </mesh>
+      {/* Tiled coping along the wall-walk */}
+      <mesh position={[0, 1.42, 0]} castShadow>
+        <boxGeometry args={[1.68, 0.1, 1.68]} />
+        <meshStandardMaterial color="#39444f" roughness={0.7} />
       </mesh>
       {/* Crenellations on top edge */}
       {[-0.6, -0.2, 0.2, 0.6].map((px, i) => (
@@ -654,6 +698,57 @@ export function CityWall({ coord, bannerColor }: { coord: HexCoord; bannerColor:
       </mesh>
       <mesh ref={pennantRef} position={[0.85, 2.5, 0]} castShadow>
         <planeGeometry args={[0.5, 0.3]} />
+        <meshStandardMaterial color={bannerColor} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+/** A grand gatehouse for the centre of a besieged wall — a two-storey tower
+ *  with red columns, a swept double-eave roof and a fluttering banner. */
+export function WallGate3D({ coord, bannerColor }: { coord: HexCoord; bannerColor: string }) {
+  const [x, z] = hexWorld(coord.col, coord.row);
+  const pennant = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (pennant.current) pennant.current.rotation.y = Math.sin(clock.elapsedTime * 1.8) * 0.3;
+  });
+  return (
+    <group position={[x, 0, z]}>
+      {/* Gate base + tiled coping */}
+      <mesh position={[0, 0.85, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.6, 1.7, 1.6]} />
+        <meshStandardMaterial color="#6a5540" roughness={0.92} />
+      </mesh>
+      <mesh position={[0, 1.74, 0]} castShadow>
+        <boxGeometry args={[1.68, 0.1, 1.68]} />
+        <meshStandardMaterial color="#39444f" roughness={0.7} />
+      </mesh>
+      {/* Wooden gate door facing the attackers (-x) */}
+      <mesh position={[-0.82, 0.62, 0]} castShadow>
+        <boxGeometry args={[0.04, 1.1, 0.7]} />
+        <meshStandardMaterial color="#4a2f1a" roughness={0.8} />
+      </mesh>
+      {/* Upper storey + red columns */}
+      <mesh position={[0, 2.2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.45, 0.8, 1.15]} />
+        <meshStandardMaterial color="#8a6a40" roughness={0.78} />
+      </mesh>
+      {[-0.5, -0.17, 0.17, 0.5].map((pz, i) => (
+        <mesh key={i} position={[-0.6, 1.95, pz]} castShadow>
+          <cylinderGeometry args={[0.05, 0.05, 0.6, 7]} />
+          <meshStandardMaterial color="#a84838" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Swept double-eave roof */}
+      <group position={[0, 2.65, 0]}><SweptRoof3D size={1.6} color="#2f3a48" /></group>
+      <group position={[0, 3.05, 0]}><SweptRoof3D size={1.1} color="#2f3a48" /></group>
+      {/* Pennant */}
+      <mesh position={[0, 3.6, 0]} castShadow>
+        <cylinderGeometry args={[0.03, 0.03, 0.6, 6]} />
+        <meshStandardMaterial color="#1a1410" />
+      </mesh>
+      <mesh ref={pennant} position={[0.2, 3.72, 0]}>
+        <planeGeometry args={[0.4, 0.3]} />
         <meshStandardMaterial color={bannerColor} side={THREE.DoubleSide} />
       </mesh>
     </group>
@@ -691,6 +786,8 @@ export function DefenseStructure({
       flameRef.current.scale.y = 1 + Math.sin(clock.elapsedTime * 8) * 0.2;
     }
   });
+  const roofed = buildingId === 'watchtower' || buildingId === 'lookout'
+    || buildingId === 'arrow-platform' || buildingId === 'barracks-out' || buildingId === 'granary-out';
   return (
     <group position={[x, 0.1, z]}>
       {/* Tower base — tapered */}
@@ -698,11 +795,17 @@ export function DefenseStructure({
         <cylinderGeometry args={[0.4, 0.55, visual.height, 8]} />
         <meshStandardMaterial color={visual.color} roughness={0.85} />
       </mesh>
-      {/* Roof / cap */}
-      <mesh position={[0, visual.height + 0.2, 0]} castShadow>
-        <coneGeometry args={[0.55, 0.4, 8]} />
-        <meshStandardMaterial color="#3a2818" roughness={0.9} />
-      </mesh>
+      {/* Swept tiled roof for the tall fortifications; a plain cap otherwise */}
+      {roofed ? (
+        <group position={[0, visual.height, 0]}>
+          <SweptRoof3D size={1.05} color="#39444f" />
+        </group>
+      ) : (
+        <mesh position={[0, visual.height + 0.2, 0]} castShadow>
+          <coneGeometry args={[0.55, 0.4, 8]} />
+          <meshStandardMaterial color="#3a2818" roughness={0.9} />
+        </mesh>
+      )}
       {/* Beacon: flickering flame */}
       {isFlame && (
         <mesh ref={flameRef} position={[0, visual.height + 0.55, 0]}>
@@ -1295,10 +1398,12 @@ function BattleScene({
           clash has no walls. */}
       {!battle.field && (() => {
         const wallCol = battle.width - 1;
+        const gateRow = Math.floor(battle.height / 2);
         const structureCoords = new Set(
           (battle.cityStructures ?? []).map((s) => `${s.coord.col},${s.coord.row}`),
         );
         const unitCoords = new Set(units.map((u) => `${u.coord.col},${u.coord.row}`));
+        const wallBanner = playerSide === 'defender' ? bannerColor : '#3a7dd9';
         return tiles
           .filter((t) =>
             t.coord.col === wallCol &&
@@ -1306,11 +1411,9 @@ function BattleScene({
             !unitCoords.has(`${t.coord.col},${t.coord.row}`),
           )
           .map((t) => (
-            <CityWall
-              key={`wall-${t.coord.col},${t.coord.row}`}
-              coord={t.coord}
-              bannerColor={playerSide === 'defender' ? bannerColor : '#3a7dd9'}
-            />
+            t.coord.row === gateRow
+              ? <WallGate3D key={`gate-${t.coord.col},${t.coord.row}`} coord={t.coord} bannerColor={wallBanner} />
+              : <CityWall key={`wall-${t.coord.col},${t.coord.row}`} coord={t.coord} bannerColor={wallBanner} />
           ));
       })()}
 
