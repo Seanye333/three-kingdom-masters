@@ -8,6 +8,7 @@ import type { EntityId, Officer } from '../../game/types';
 import { CityMapScreen } from '../screens/CityMapScreen';
 import { CityMapScreen3D } from '../screens/CityMapScreen3D';
 import { BuildingsPanel } from './BuildingsPanel';
+import { AnimatedNumber } from './AnimatedNumber';
 import { CaptivesSection } from './CaptivesSection';
 import { CommandMenu } from './CommandMenu';
 import { FreeAgentsSection } from './FreeAgentsSection';
@@ -113,10 +114,10 @@ export function CityPanel() {
 
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>{t('資源', 'Resources')}</h3>
-        <Stat label="Population" zh="人口" value={city.population.toLocaleString()} />
-        <Stat label="Gold" zh="金" value={city.gold.toLocaleString()} />
-        <Stat label="Food" zh="兵糧" value={city.food.toLocaleString()} />
-        <Stat label="Troops" zh="兵士" value={`${city.troops.toLocaleString()} / ${citySize(city).troopCap.toLocaleString()}`} />
+        <Stat label="Population" zh="人口" num={city.population} />
+        <Stat label="Gold" zh="金" num={city.gold} flash />
+        <Stat label="Food" zh="兵糧" num={city.food} flash />
+        <Stat label="Troops" zh="兵士" num={city.troops} flash suffix={` / ${citySize(city).troopCap.toLocaleString()}`} />
       </section>
 
       <section className={styles.section}>
@@ -287,7 +288,7 @@ function OfficerListItem({
   );
 }
 
-function Stat({ label, zh, value }: { label: string; zh: string; value: string }) {
+function Stat({ label, zh, value, num, suffix, flash }: { label: string; zh: string; value?: string; num?: number; suffix?: string; flash?: boolean }) {
   const lang = useLanguage();
   return (
     <div className={styles.statRow}>
@@ -295,7 +296,9 @@ function Stat({ label, zh, value }: { label: string; zh: string; value: string }
         {lang === 'en' ? label : zh}
         {lang === 'both' && <> <span className={styles.statZh}>{label}</span></>}
       </span>
-      <span className={styles.statValue}>{value}</span>
+      <span className={styles.statValue}>
+        {num !== undefined ? <><AnimatedNumber value={num} flash={flash} />{suffix}</> : value}
+      </span>
     </div>
   );
 }
@@ -403,7 +406,7 @@ function Bar({ label, zh, value, cap = 100 }: { label: string; zh: string; value
           {lang === 'both' && <> <span className={styles.statZh}>{label}</span></>}
         </span>
         <span className={styles.barValue}>
-          {value} / {cap}
+          <AnimatedNumber value={value} flash /> / {cap}
           {atCap && <span style={{ marginLeft: 4, color: '#d4a84a' }}>★</span>}
         </span>
       </div>
