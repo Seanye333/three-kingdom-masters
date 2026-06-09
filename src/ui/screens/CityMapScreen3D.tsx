@@ -404,6 +404,9 @@ const SEASON_LIGHT: Record<SeasonKey, { ambient: number; ambientColor: string; s
 // threading a prop through dozens of components.
 const SeasonCtx = createContext<SeasonKey>('spring');
 
+// Normalised (0..1) city stats the 3D scene scales itself by.
+type CityStats = { fCommerce: number; fAgri: number; fLoyalty: number; fPop: number };
+
 /** Multiply an #rrggbb colour by a factor (>1 lightens, <1 darkens). Cheap
  *  helper so ridges/eaves can be tinted off a base roof colour. */
 function shade(hex: string, f: number): string {
@@ -1482,11 +1485,12 @@ function Garden3D({ x, z }: { x: number; z: number }) {
 
 /** A 屯田 farm plot — tilled rows of crops (green sprouts → gold harvest →
  *  bare winter soil), a scarecrow and a farmhand. */
-function Farmland3D({ x, z }: { x: number; z: number }) {
+function Farmland3D({ x, z, lush = 0.5 }: { x: number; z: number; lush?: number }) {
   const season = useContext(SeasonCtx);
   const crop = season === 'winter' ? '#cdd6dc' : season === 'autumn' ? '#cba63a' : season === 'summer' ? '#9aa83a' : '#6a9a4a';
   const soil = season === 'winter' ? '#6f6a60' : '#5a4530';
-  const rows = 5;
+  // More productive farms (higher agriculture) sprout denser, taller rows.
+  const rows = Math.max(3, Math.min(7, Math.round(3 + lush * 4)));
   return (
     <group position={[x, 0, z]}>
       <mesh position={[0, 0.05, 0]} receiveShadow>
@@ -1528,20 +1532,23 @@ function Farmland3D({ x, z }: { x: number; z: number }) {
 }
 
 /** Scatter dwellings across the inside-city land, leaving gaps for streets. */
-function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
+function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats }: {
   preview: ReturnType<typeof previewBattlefield>;
   cityWallCol: number;
   occupied: Set<string>;
   bannerColor: string;
+  stats: CityStats;
 }) {
-  // A small market cluster near the centre — reserved before houses so nothing
-  // overlaps it.
+  // The market grows with commerce — a sleepy 2-stall corner at low trade,
+  // a packed bazaar when business booms.
   const market = useMemo(() => {
     const W = preview.width, H = preview.height;
     const out: Array<{ x: number; z: number; seed: number; key: string }> = [];
     const baseCol = Math.min(W - 2, Math.round(cityWallCol * 0.62));
     const baseRow = Math.max(1, Math.round(H * 0.6));
-    for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1], [2, 0]] as const) {
+    const OFFSETS = [[0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [2, 1], [0, 2], [1, 2], [2, 2]] as const;
+    const count = Math.max(2, Math.min(OFFSETS.length, 2 + Math.round(stats.fCommerce * 7)));
+    for (const [dc, dr] of OFFSETS.slice(0, count)) {
       const col = baseCol + dc, row = baseRow + dr;
       if (col < 1 || col >= W - 1 || row < 1 || row >= H - 1) continue;
       const key = `${col},${row}`;
@@ -1550,7 +1557,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       out.push({ x, z, seed: dwellingHash(col, row), key });
     }
     return out;
-  }, [preview.width, preview.height, cityWallCol, occupied]);
+  }, [preview.width, preview.height, cityWallCol, occupied, stats.fCommerce]);
 
   // Twin landmark towers in the back corners — 鼓樓 left, 寶塔 right. Their
   // footprints (and a one-tile margin) are kept clear of houses.
@@ -1601,6 +1608,8 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       }
     };
     const marketKeys = new Set(market.map((m) => m.key));
+    // Crowds scale with population — a thronging capital vs a quiet hamlet.
+    const villagerCap = Math.round(6 + stats.fPop * 36);
     const W = preview.width, H = preview.height;
     // Main avenue straight in from the south gate — paved, kept clear of houses.
     const gateCol = Math.floor(W / 2);
@@ -1629,12 +1638,12 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       const bucket = seed % 100;
       if (bucket < 60 && houses.length < 64) houses.push({ x, z, seed, key });          // houses
       else if (bucket < 78 && trees.length < 30) { trees.push({ x, z, seed, key }); sow(x, z, seed); } // gardens
-      else if (bucket < 90 && villagers.length < 34) { villagers.push({ x, z, seed, key }); sow(x, z, seed); } // townsfolk
+      else if (bucket < 90 && villagers.length < villagerCap) { villagers.push({ x, z, seed, key }); sow(x, z, seed); } // townsfolk
       else if (flowers.length < 20) flowers.push({ x, z, seed, key });                  // flower beds
       else sow(x, z, seed);                                                              // courtyard grass
     }
     return { houses, trees, paths, villagers, flowers, avenue, grass };
-  }, [preview, occupied, market, landmarks]);
+  }, [preview, occupied, market, landmarks, stats.fPop]);
 
   const hall = useMemo(() => {
     const col = Math.max(1, Math.round(cityWallCol * 0.42));
@@ -1668,23 +1677,27 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     const m0 = market[0];
     const well = m0 ? { x: m0.x - 1.3, z: m0.z + 1.0 } : { x: hall.x + 2.6, z: hall.z + 1.7 };
     const cart = m0 ? { x: m0.x + 1.5, z: m0.z + 0.5, seed: m0.seed >> 1 } : null;
+    // Shoppers crowd the stalls in proportion to population.
+    const folkCount = Math.max(2, Math.round(2 + stats.fPop * 8));
     const folk = market.flatMap((m, i) => [
       { x: m.x + (i % 2 ? 0.72 : -0.72), z: m.z - 0.72, seed: (m.seed >> 2) + i * 7 },
       { x: m.x - 0.5, z: m.z + 0.7, seed: (m.seed >> 4) + i * 13 },
-    ]).slice(0, 8);
+    ]).slice(0, folkCount);
     // 牌坊 archway a few tiles in from the gate, straddling the avenue.
     const avSorted = [...avenue].sort((a, b) => b.z - a.z);
     const paifang = avSorted[2] ?? avSorted[avSorted.length - 1] ?? null;
-    // Lanterns lining the main avenue (every other tile, both sides).
+    // Lanterns lining the main avenue — a loyal, contented city decks every
+    // tile in lanterns (張燈結綵); a discontented one barely lights the way.
     const avenueLanterns: Array<{ x: number; z: number }> = [];
+    const lanternStride = stats.fLoyalty > 0.66 ? 1 : stats.fLoyalty > 0.33 ? 2 : 3;
     avenue.forEach((a, i) => {
-      if (i % 2 === 0) {
+      if (i % lanternStride === 0) {
         avenueLanterns.push({ x: a.x - 0.92, z: a.z });
         avenueLanterns.push({ x: a.x + 0.92, z: a.z });
       }
     });
     return { braziers, well, cart, folk, paifang, avenueLanterns };
-  }, [hall, market, avenue]);
+  }, [hall, market, avenue, stats.fPop, stats.fLoyalty]);
 
   return (
     <>
@@ -1713,14 +1726,14 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       <DrumTower3D x={landmarks.drum.x} z={landmarks.drum.z} />
       <BellTower3D x={landmarks.bell.x} z={landmarks.bell.z} />
       <Garden3D x={landmarks.garden.x} z={landmarks.garden.z} />
-      <Farmland3D x={landmarks.farm.x} z={landmarks.farm.z} />
+      <Farmland3D x={landmarks.farm.x} z={landmarks.farm.z} lush={stats.fAgri} />
       <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
     </>
   );
 }
 
 function CityScene({
-  preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season,
+  preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season, stats,
   selectedPlot, onPlotClick, hovered, onHover, onClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
@@ -1731,6 +1744,7 @@ function CityScene({
   cityWallCol: number;
   light: typeof SEASON_LIGHT[SeasonKey];
   season: SeasonKey;
+  stats: CityStats;
   bannerColor: string;
   selectedPlot: number | null;
   onPlotClick: (plotIndex: number) => void;
@@ -1926,7 +1940,7 @@ function CityScene({
       })}
 
       {/* Living-city dwellings + central 府衙 (cosmetic) */}
-      <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} bannerColor={bannerColor} />
+      <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} bannerColor={bannerColor} stats={stats} />
 
       {/* Inside-city buildings */}
       {buildings.map((b) => (
@@ -2015,6 +2029,16 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const cityWallCol = preview.width - 1;
   const ownerForce = city.ownerForceId ? forces[city.ownerForceId] : null;
   const bannerColor = ownerForce?.color ?? '#5a4530';
+  // Live data the 3D scene reflects — a bustling market means high commerce, a
+  // big farm means high agriculture, crowds mean population, lanterns mean a
+  // loyal populace. The city view becomes a readout of its own numbers.
+  const cap = size.statCap || 100;
+  const cityStats = {
+    fCommerce: Math.min(1, city.commerce / cap),
+    fAgri: Math.min(1, city.agriculture / cap),
+    fLoyalty: Math.min(1, city.loyalty / (size.loyaltyCap || 100)),
+    fPop: Math.min(1, city.population / 320000),
+  };
 
   const cityBuildingsAll = useMemo(
     () => allBuildings.filter((b) => b.cityId === cityId),
@@ -2230,6 +2254,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             bannerColor={bannerColor}
             light={light}
             season={season}
+            stats={cityStats}
             selectedPlot={selectedPlot}
             onPlotClick={handlePlotClick}
             hovered={hovered}
@@ -2456,6 +2481,22 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             點金色八角位 → 城外防禦　·　點地基(金框) → 城内營建
           </div>
         )}
+
+        {/* Live readout — the scene mirrors these numbers */}
+        <div style={{
+          position: 'absolute', bottom: 14, right: 14,
+          background: 'rgba(20, 14, 8, 0.82)',
+          border: '1px solid #5a4530', borderRadius: 3,
+          padding: '0.34rem 0.6rem',
+          color: '#b8a274', fontFamily: 'Songti SC, serif',
+          fontSize: '0.66rem', lineHeight: 1.55, textAlign: 'right',
+        }}>
+          <div style={{ color: '#8a7858', fontSize: '0.6rem', letterSpacing: '0.15rem', marginBottom: 2 }}>城景 · 實況</div>
+          <div>市集 <span style={{ color: '#d4a84a' }}>商業 {city.commerce}/{cap}</span></div>
+          <div>屯田 <span style={{ color: '#9ac06a' }}>農業 {city.agriculture}/{cap}</span></div>
+          <div>行人 <span style={{ color: '#88b7e8' }}>人口 {city.population.toLocaleString()}</span></div>
+          <div>張燈 <span style={{ color: '#e0884a' }}>民忠 {city.loyalty}/{size.loyaltyCap}</span></div>
+        </div>
       </div>
     </div>
   );
