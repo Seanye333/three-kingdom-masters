@@ -264,6 +264,19 @@ const NO_BUILD_TERRAIN = new Set(['river', 'water', 'lake', 'sea', 'mountain', '
 // the walls); standing water is kept as the odd pond.
 const WILDERNESS_TERRAIN = new Set(['mountain', 'hill', 'forest', 'wetland', 'river', 'marsh', 'rocky']);
 
+// Per-season lighting mood for the city view. The game advances by season (no
+// wall-clock), so each season also carries a characteristic sun angle —
+// spring soft-morning, summer high-noon, autumn low golden-hour, winter pale
+// low — which gives every season its own shadow length/direction and a
+// distinct time-of-day feel.
+type SeasonKey = 'spring' | 'summer' | 'autumn' | 'winter';
+const SEASON_LIGHT: Record<SeasonKey, { ambient: number; ambientColor: string; sun: string; sunI: number; sunPos: [number, number, number]; fog: string; sky: string }> = {
+  spring: { ambient: 0.62, ambientColor: '#fdf3e0', sun: '#fff0d8', sunI: 1.2, sunPos: [10, 17, 8], fog: '#bcd2e4', sky: 'linear-gradient(180deg, #6f9fd8 0%, #a8c8e0 100%)' },
+  summer: { ambient: 0.72, ambientColor: '#fffaf0', sun: '#fff8e8', sunI: 1.5, sunPos: [6, 23, 4], fog: '#c8dcec', sky: 'linear-gradient(180deg, #4f93d8 0%, #9fc8ee 100%)' },
+  autumn: { ambient: 0.55, ambientColor: '#f6e6c4', sun: '#ffd49a', sunI: 1.08, sunPos: [15, 10, 6], fog: '#d8c6a4', sky: 'linear-gradient(180deg, #b8946a 0%, #e0c89a 100%)' },
+  winter: { ambient: 0.5, ambientColor: '#e8f0f8', sun: '#e8eef8', sunI: 0.82, sunPos: [12, 9, -4], fog: '#cdd8e6', sky: 'linear-gradient(180deg, #8aa6c0 0%, #cdd9e6 100%)' },
+};
+
 /** A small earthen house: solid box + pitched roof (same primitives as the
  *  working buildings — no textures, transparency or animation). */
 function Dwelling({ x, z, seed }: { x: number; z: number; seed: number }) {
@@ -489,7 +502,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
 }
 
 function CityScene({
-  preview, slots, buildings, plots, cityWallCol, bannerColor,
+  preview, slots, buildings, plots, cityWallCol, bannerColor, light,
   hovered, onHover, onClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
@@ -497,6 +510,7 @@ function CityScene({
   buildings: Array<{ coord: { col: number; row: number }; buildingId: BuildingId; level: number }>;
   plots: Array<{ col: number; row: number }>;
   cityWallCol: number;
+  light: typeof SEASON_LIGHT[SeasonKey];
   bannerColor: string;
   hovered: { col: number; row: number } | null;
   onHover: (c: { col: number; row: number } | null) => void;
@@ -531,17 +545,17 @@ function CityScene({
     if (range > 0) towerRanges.push({ coord: pos, range, color });
   }
 
-  // Day-time lighting (matches TacticalBattleScreen3D 'day' preset)
+  // Season-driven lighting mood.
   return (
     <>
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={light.ambient} color={light.ambientColor} />
       <directionalLight
-        position={[10, 18, 6]} intensity={1.2} color="#fff5e0"
+        position={light.sunPos} intensity={light.sunI} color={light.sun}
         castShadow
         shadow-mapSize-width={1024} shadow-mapSize-height={1024}
       />
-      <directionalLight position={[-8, 6, -6]} intensity={0.25} color="#f0c890" />
-      <fog attach="fog" args={['#a8bfd0', 35, 80]} />
+      <directionalLight position={[-8, 6, -6]} intensity={0.25} color={light.sun} />
+      <fog attach="fog" args={[light.fog, 35, 80]} />
 
       {/* Terrain tiles — uses shared HexTile from tactical for full fidelity */}
       {preview.tiles.map((tile) => {
@@ -661,6 +675,8 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const buildAction = useGameStore((s) => s.buildDefenseStructure);
   const upgradeAction = useGameStore((s) => s.upgradeDefenseStructure);
   const demolishAction = useGameStore((s) => s.demolishDefenseStructure);
+  const season = useGameStore((s) => s.date.season) as SeasonKey;
+  const light = SEASON_LIGHT[season] ?? SEASON_LIGHT.spring;
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [hovered, setHovered] = useState<{ col: number; row: number } | null>(null);
   const [showOverlays, setShowOverlays] = useState(true);
@@ -820,7 +836,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
         <Canvas
           camera={{ position: [centerX, 16, centerZ + 16], fov: 50 }}
           shadows
-          style={{ background: 'linear-gradient(180deg, #5a8acf 0%, #8aafd0 100%)' }}
+          style={{ background: light.sky }}
         >
           <CityScene
             preview={preview}
@@ -829,6 +845,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             plots={plots}
             cityWallCol={cityWallCol}
             bannerColor={bannerColor}
+            light={light}
             hovered={hovered}
             onHover={setHovered}
             onClick={handleTileClick}
