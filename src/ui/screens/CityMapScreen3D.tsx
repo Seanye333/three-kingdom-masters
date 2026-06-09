@@ -113,6 +113,98 @@ function SlotMarker3D({ coord, occupied }: {
 }
 
 /* ─── The full 3D scene ─────────────────────────────────────────────── */
+/* ─── Living-city decoration — earthen dwellings + a central 府衙 ─────── */
+function dwellingHash(col: number, row: number): number {
+  let h = (col * 73856093) ^ (row * 19349663);
+  h = (h ^ (h >>> 13)) >>> 0;
+  return h;
+}
+const HOUSE_WALL = ['#c8b48a', '#bfa980', '#cdbb95', '#b8a276', '#d0bd97'];
+const HOUSE_ROOF = ['#3a2818', '#46342a', '#2f4a55', '#403020', '#34404a'];
+// Terrains a house can't sit on.
+const NO_BUILD_TERRAIN = new Set(['river', 'water', 'lake', 'sea', 'mountain', 'deep-water']);
+
+/** A small earthen house: solid box + pitched roof (same primitives as the
+ *  working buildings — no textures, transparency or animation). */
+function Dwelling({ x, z, seed }: { x: number; z: number; seed: number }) {
+  const wall = HOUSE_WALL[seed % HOUSE_WALL.length];
+  const roof = HOUSE_ROOF[(seed >> 3) % HOUSE_ROOF.length];
+  const w = 0.58 + (seed % 3) * 0.05;
+  const h = 0.38 + ((seed >> 2) % 3) * 0.08;
+  const rot = ((seed >> 4) % 4) * (Math.PI / 10);
+  return (
+    <group position={[x, 0, z]} rotation={[0, rot, 0]}>
+      <mesh position={[0, h / 2 + 0.1, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w, h, w]} />
+        <meshStandardMaterial color={wall} roughness={0.88} />
+      </mesh>
+      <mesh position={[0, h + 0.16, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[w * 0.8, 0.3, 4]} />
+        <meshStandardMaterial color={roof} roughness={0.82} />
+      </mesh>
+    </group>
+  );
+}
+
+/** The seat of government — a larger labelled hall near the city centre. */
+function GovernmentHall3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.7, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 1.2, 1.2]} />
+        <meshStandardMaterial color="#8a3030" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 1.55, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[1.25, 0.6, 4]} />
+        <meshStandardMaterial color="#2a1a12" roughness={0.85} />
+      </mesh>
+      <Html position={[0, 2.1, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{ background: 'rgba(20,14,8,0.85)', border: '1px solid #d4a84a', padding: '1px 6px', fontFamily: 'Songti SC, serif', fontSize: '11px', color: '#f0d98a', borderRadius: 2, whiteSpace: 'nowrap' }}>
+          府衙
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+/** Scatter dwellings across the inside-city land, leaving gaps for streets. */
+function CityDwellings3D({ preview, cityWallCol, occupied }: {
+  preview: ReturnType<typeof previewBattlefield>;
+  cityWallCol: number;
+  occupied: Set<string>;
+}) {
+  const houses = useMemo(() => {
+    const out: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    for (const tile of preview.tiles) {
+      const { col, row } = tile.coord;
+      if (col < 1 || col >= cityWallCol) continue;        // inside the wall, with a margin
+      if (NO_BUILD_TERRAIN.has(tile.terrain as string)) continue;
+      const key = `${col},${row}`;
+      if (occupied.has(key)) continue;                     // slots + real buildings
+      const seed = dwellingHash(col, row);
+      if (seed % 100 < 42) continue;                       // ~58% density; gaps = streets
+      const [x, z] = hexWorld(col, row);
+      out.push({ x, z, seed, key });
+      if (out.length >= 42) break;                         // safety cap
+    }
+    return out;
+  }, [preview, cityWallCol, occupied]);
+
+  const hall = useMemo(() => {
+    const col = Math.max(1, Math.round(cityWallCol * 0.42));
+    const row = Math.round(preview.height / 2);
+    const [x, z] = hexWorld(col, row);
+    return { x, z };
+  }, [preview.height, cityWallCol]);
+
+  return (
+    <>
+      {houses.map((h) => <Dwelling key={`dw-${h.key}`} x={h.x} z={h.z} seed={h.seed} />)}
+      <GovernmentHall3D x={hall.x} z={hall.z} />
+    </>
+  );
+}
+
 function CityScene({
   preview, slots, buildings, cityWallCol, bannerColor,
   hovered, onHover, onClick, showOverlays,
@@ -130,6 +222,11 @@ function CityScene({
   const slotIndexAtHex = new Map<string, number>();
   preview.slotPositions.forEach((pos, idx) => slotIndexAtHex.set(`${pos.col},${pos.row}`, idx));
   const slotMap = new Map((slots ?? []).map((s) => [s.slot, s]));
+
+  // Hexes that already hold something — dwellings avoid these.
+  const occupiedHexes = new Set<string>();
+  preview.slotPositions.forEach((pos) => occupiedHexes.add(`${pos.col},${pos.row}`));
+  for (const b of buildings) occupiedHexes.add(`${b.coord.col},${b.coord.row}`);
 
   // Tower range circles for visualization
   const towerRanges: Array<{ coord: { col: number; row: number }; range: number; color: string }> = [];
@@ -198,6 +295,9 @@ function CityScene({
           occupied={!!slotMap.get(idx)?.buildingId}
         />
       ))}
+
+      {/* Living-city dwellings + central 府衙 (cosmetic) */}
+      <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} />
 
       {/* Inside-city buildings */}
       {buildings.map((b) => (
