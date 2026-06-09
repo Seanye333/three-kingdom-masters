@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
 import type { City, EntityId, Officer } from '../../game/types';
+import { AnimatedNumber } from './AnimatedNumber';
 import styles from './ForcesOverview.module.css';
 
 interface Props {
@@ -100,11 +101,11 @@ export function ForcesOverview({ onClose }: Props) {
                   <span className={styles.nameEn}>{f.en}</span>
                 </div>
                 <div className={styles.stats}>
-                  <Stat label="Cities" value={f.cityCount} />
-                  <Stat label="Troops" value={f.troops.toLocaleString()} />
-                  <Stat label="Gold" value={f.gold.toLocaleString()} />
-                  <Stat label="Food" value={f.food.toLocaleString()} />
-                  <Stat label="Officers" value={f.officerCount} />
+                  <Stat label="Cities" num={f.cityCount} />
+                  <Stat label="Troops" num={f.troops} flash />
+                  <Stat label="Gold" num={f.gold} flash />
+                  <Stat label="Food" num={f.food} flash />
+                  <Stat label="Officers" num={f.officerCount} />
                 </div>
               </div>
               {f.topOfficers.length > 0 && (
@@ -129,11 +130,13 @@ export function ForcesOverview({ onClose }: Props) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Stat({ label, value, num, flash }: { label: string; value?: number | string; num?: number; flash?: boolean }) {
   return (
     <span className={styles.statBlock}>
       <span className={styles.statLabel}>{label}</span>
-      <span className={styles.statValue}>{value}</span>
+      <span className={styles.statValue}>
+        {num !== undefined ? <AnimatedNumber value={num} flash={flash} /> : value}
+      </span>
     </span>
   );
 }

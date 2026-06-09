@@ -16,6 +16,7 @@ import { PrivateForcesModal } from '../components/PrivateForcesModal';
 import { PrestigeModal } from '../components/PrestigeModal';
 import { BondCeremony } from '../components/BondCeremony';
 import { PrestigeCeremony } from '../components/PrestigeCeremony';
+import { AnimatedNumber } from '../components/AnimatedNumber';
 import { DialogueModal } from '../components/DialogueModal';
 import { ObjectivePanel } from '../components/ObjectivePanel';
 import { ArmiesPanel } from '../components/ArmiesPanel';
@@ -128,6 +129,13 @@ export function MapScreen() {
       Object.values(s.cities).filter((c) => c.ownerForceId === playerForceId)
         .length,
   );
+  // Force-wide totals for the always-visible HUD (animated, flash on change).
+  const playerGold = useGameStore((s) =>
+    Object.values(s.cities).reduce((a, c) => (c.ownerForceId === s.playerForceId ? a + c.gold : a), 0),
+  );
+  const playerTroops = useGameStore((s) =>
+    Object.values(s.cities).reduce((a, c) => (c.ownerForceId === s.playerForceId ? a + c.troops : a), 0),
+  );
   const pendingCount = useGameStore(
     (s) => Object.keys(s.pendingCommands).length,
   );
@@ -188,6 +196,10 @@ export function MapScreen() {
               />
               <span className={styles.playerName}>{playerForce.name.zh}</span>
               <span className={styles.playerNameEn}>{t('', playerForce.name.en)}</span>
+              <span style={{ marginLeft: 10, fontSize: '0.82rem', color: '#c8b07a', fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap' }}>
+                <span style={{ color: '#8a7050' }}>{t('金', 'Gold')}</span> <AnimatedNumber value={playerGold} flash />
+                <span style={{ color: '#8a7050', marginLeft: 8 }}>{t('兵', 'Troops')}</span> <AnimatedNumber value={playerTroops} flash />
+              </span>
             </>
           )}
         </div>
