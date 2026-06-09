@@ -19,7 +19,6 @@ import {
   HEX_COL_STEP,
   HEX_ROW_STEP,
   HexTile,
-  CityWall,
   DefenseStructure,
 } from './TacticalBattleScreen3D';
 
@@ -113,6 +112,58 @@ function SlotMarker3D({ coord, occupied }: {
 }
 
 /* ─── The full 3D scene ─────────────────────────────────────────────── */
+/* ─── Perimeter wall + gate ──────────────────────────────────────────── */
+/** A lightweight crenellated wall block (no per-segment banner/animation, so
+ *  a full perimeter stays cheap on mobile). */
+function WallSegment3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.65, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 1.3, 1.5]} />
+        <meshStandardMaterial color="#6a5540" roughness={0.92} />
+      </mesh>
+      {[-0.5, 0, 0.5].map((px, i) => (
+        <mesh key={i} position={[px, 1.4, 0]} castShadow>
+          <boxGeometry args={[0.34, 0.3, 1.5]} />
+          <meshStandardMaterial color="#7a6550" roughness={0.92} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** A city gate — twin pillars, lintel, gatehouse roof, a wooden door and the
+ *  force banner. Sits in the perimeter where a wall block would otherwise be. */
+function CityGate3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
+  return (
+    <group position={[x, 0, z]}>
+      {[-0.55, 0.55].map((px, i) => (
+        <mesh key={i} position={[px, 0.9, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.42, 1.8, 1.5]} />
+          <meshStandardMaterial color="#6a5540" roughness={0.92} />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.7, 0]} castShadow>
+        <boxGeometry args={[1.55, 0.42, 1.5]} />
+        <meshStandardMaterial color="#7a6550" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 2.12, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[1.3, 0.5, 4]} />
+        <meshStandardMaterial color="#3a2818" roughness={0.85} />
+      </mesh>
+      {/* Wooden door in the opening */}
+      <mesh position={[0, 0.65, 0]} castShadow>
+        <boxGeometry args={[0.62, 1.3, 0.16]} />
+        <meshStandardMaterial color="#4a2f1a" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 2.7, 0]} castShadow>
+        <planeGeometry args={[0.55, 0.32]} />
+        <meshStandardMaterial color={bannerColor} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
 /* ─── Living-city decoration — earthen dwellings + a central 府衙 ─────── */
 function dwellingHash(col: number, row: number): number {
   let h = (col * 73856093) ^ (row * 19349663);
@@ -175,17 +226,19 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
 }) {
   const houses = useMemo(() => {
     const out: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    const W = preview.width, H = preview.height;
     for (const tile of preview.tiles) {
       const { col, row } = tile.coord;
-      if (col < 1 || col >= cityWallCol) continue;        // inside the wall, with a margin
+      // Strictly inside the perimeter wall ring.
+      if (col < 1 || col >= W - 1 || row < 1 || row >= H - 1) continue;
       if (NO_BUILD_TERRAIN.has(tile.terrain as string)) continue;
       const key = `${col},${row}`;
       if (occupied.has(key)) continue;                     // slots + real buildings
       const seed = dwellingHash(col, row);
-      if (seed % 100 < 42) continue;                       // ~58% density; gaps = streets
+      if (seed % 100 < 45) continue;                       // ~55% density; gaps = streets
       const [x, z] = hexWorld(col, row);
       out.push({ x, z, seed, key });
-      if (out.length >= 42) break;                         // safety cap
+      if (out.length >= 36) break;                         // safety cap
     }
     return out;
   }, [preview, cityWallCol, occupied]);
@@ -278,14 +331,24 @@ function CityScene({
         );
       })}
 
-      {/* City walls along rightmost column — same as tactical battle scene */}
-      {Array.from({ length: preview.height }).map((_, r) => (
-        <CityWall
-          key={`wall-${r}`}
-          coord={{ col: cityWallCol, row: r }}
-          bannerColor={bannerColor}
-        />
-      ))}
+      {/* City walls — full perimeter ring with a gate on the south edge. */}
+      {(() => {
+        const W = preview.width, H = preview.height;
+        const gateCol = Math.floor(W / 2), gateRow = H - 1;
+        const segs: Array<{ col: number; row: number }> = [];
+        for (let c = 0; c < W; c++) { segs.push({ col: c, row: 0 }); segs.push({ col: c, row: H - 1 }); }
+        for (let r = 1; r < H - 1; r++) { segs.push({ col: 0, row: r }); segs.push({ col: W - 1, row: r }); }
+        const [gx, gz] = hexWorld(gateCol, gateRow);
+        return (
+          <>
+            {segs.filter((s) => !(s.col === gateCol && s.row === gateRow)).map((s) => {
+              const [x, z] = hexWorld(s.col, s.row);
+              return <WallSegment3D key={`wall-${s.col}-${s.row}`} x={x} z={z} />;
+            })}
+            <CityGate3D x={gx} z={gz} bannerColor={bannerColor} />
+          </>
+        );
+      })()}
 
       {/* Slot markers — golden octagon discs showing buildable hexes */}
       {preview.slotPositions.map((pos, idx) => (
