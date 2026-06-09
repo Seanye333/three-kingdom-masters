@@ -698,14 +698,32 @@ function MapTerrain() {
 }
 
 /* ─── Ocean plane sitting just below sea-level terrain ─────────── */
+/** Living water — a low-subdivision plane whose vertices roll in layered
+ *  swells, so the sea shimmers and undulates instead of sitting glassy-flat. */
 function Ocean() {
+  const ref = useRef<THREE.Mesh>(null);
+  const geom = useMemo(() => new THREE.PlaneGeometry(MAP_W * 1.5, MAP_D * 1.5, 24, 24), []);
+  const orig = useMemo(() => Float32Array.from(geom.attributes.position.array), [geom]);
+  const frame = useRef(0);
+  useFrame(({ clock }) => {
+    const pos = geom.attributes.position as THREE.BufferAttribute;
+    const t = clock.elapsedTime;
+    for (let i = 0; i < pos.count; i++) {
+      const x = orig[i * 3], y = orig[i * 3 + 1];
+      const swell = Math.sin(x * 0.05 + t * 0.7) * 0.06 + Math.cos(y * 0.045 + t * 0.55) * 0.06;
+      pos.setZ(i, swell);
+    }
+    pos.needsUpdate = true;
+    // Recompute normals every few frames so the specular highlight travels
+    // with the swells without paying the cost every single frame.
+    if ((frame.current++ & 3) === 0) geom.computeVertexNormals();
+  });
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 0]} receiveShadow>
-      <planeGeometry args={[MAP_W * 1.5, MAP_D * 1.5, 1, 1]} />
+    <mesh ref={ref} geometry={geom} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 0]} receiveShadow>
       <meshStandardMaterial
         color="#1a4a72"
-        roughness={0.4}
-        metalness={0.5}
+        roughness={0.32}
+        metalness={0.6}
         transparent
         opacity={0.85}
       />

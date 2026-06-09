@@ -81,6 +81,106 @@ function drawMinimap(
 
 type OverlayMode = 'none' | 'gold' | 'food' | 'troops' | 'loyalty' | 'province';
 
+// ─── Animated overlay (生動化) ────────────────────────────────────────────
+// A transparent canvas layered over the static map, running its own rAF loop.
+// Draws only time-based life — waving banners, capital glow, the selected-city
+// pulse, and marching-army markers — so the base renderer stays untouched.
+
+function fxHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function hexA(hex: string, a: number): string {
+  const h = hex.replace('#', '');
+  if (h.length < 6) return `rgba(212,168,74,${a})`;
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+interface FxState {
+  cities: Record<EntityId, City>;
+  forces: Record<EntityId, Force>;
+  armies: Record<EntityId, import('../../game/types').Army>;
+  selectedCityId: EntityId | null;
+}
+
+function drawMapFx(ctx: CanvasRenderingContext2D, st: FxState, scale: number, t: number, reduced: boolean): void {
+  const { cities, forces, armies, selectedCityId } = st;
+  const lw = (px: number) => px / scale;
+
+  // 1. Capital breathing glow — a soft pulsing aura on each force's seat.
+  for (const f of Object.values(forces)) {
+    const cap = cities[f.capitalCityId];
+    if (!cap || cap.ownerForceId !== f.id) continue;
+    const pulse = reduced ? 0.4 : 0.5 + 0.5 * Math.sin(t / 750 + fxHash(f.id));
+    const r = 14 + pulse * 6;
+    const g = ctx.createRadialGradient(cap.coords.x, cap.coords.y, 2, cap.coords.x, cap.coords.y, r);
+    g.addColorStop(0, hexA(f.color, 0.18 * pulse + 0.05));
+    g.addColorStop(1, hexA(f.color, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cap.coords.x, cap.coords.y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 2. Waving force banners over every owned city.
+  for (const c of Object.values(cities)) {
+    if (!c.ownerForceId) continue;
+    const f = forces[c.ownerForceId];
+    if (!f) continue;
+    const x = c.coords.x, y = c.coords.y;
+    const ph = (fxHash(c.id) % 100) / 100 * Math.PI * 2;
+    const wave = reduced ? 0 : Math.sin(t / 280 + ph);
+    const poleBot = y - 8;
+    const poleTop = poleBot - 14;
+    ctx.strokeStyle = '#2a1d10';
+    ctx.lineWidth = lw(1.4);
+    ctx.beginPath();
+    ctx.moveTo(x, poleBot);
+    ctx.lineTo(x, poleTop);
+    ctx.stroke();
+    const fw = 11, fh = 7;
+    ctx.fillStyle = f.color;
+    ctx.beginPath();
+    ctx.moveTo(x, poleTop);
+    ctx.quadraticCurveTo(x + fw * 0.6, poleTop + fh * 0.45 + wave * 2, x + fw, poleTop + wave * 2.5);
+    ctx.lineTo(x + fw * 0.55, poleTop + fh + wave * 1.4);
+    ctx.lineTo(x, poleTop + fh);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = lw(0.6);
+    ctx.stroke();
+  }
+
+  // 3. Selected-city pulse ring.
+  if (selectedCityId && cities[selectedCityId]) {
+    const c = cities[selectedCityId];
+    const phase = reduced ? 0.3 : (t % 1500) / 1500;
+    const r = 10 + phase * 16;
+    ctx.strokeStyle = `rgba(212,168,74,${(1 - phase) * 0.85})`;
+    ctx.lineWidth = lw(2);
+    ctx.beginPath();
+    ctx.arc(c.coords.x, c.coords.y, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // 4. Marching-army marker — a pulsing ring at each army's live position.
+  for (const a of Object.values(armies)) {
+    if (a.holding) continue;
+    const col = forces[a.forceId]?.color ?? '#d4a84a';
+    const pulse = reduced ? 0.4 : 0.5 + 0.5 * Math.sin(t / 220 + fxHash(a.id));
+    const r = 5 + pulse * 4;
+    ctx.strokeStyle = hexA(col, 0.75 * (1 - pulse * 0.45));
+    ctx.lineWidth = lw(1.6);
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
 // Public-domain (1903) Three Kingdoms map by Francis Lister Hawks Pott,
 // resized to 1000×720. Used as the base art layer; canvas only renders
 // dynamic elements on top of it.
@@ -118,6 +218,11 @@ export function StrategicMap() {
   const [hoverForce, setHoverForce] = useState<{ name: string; color: string } | null>(null);
   const hoverHexRef = useRef<{ x: number; y: number; color: string } | null>(null);
   const [viewport, setViewport] = useState<Viewport>(DEFAULT_VIEWPORT);
+  // Animated-overlay canvas + a ref mirroring the live viewport so the rAF
+  // loop (mounted once) always reads the current pan/zoom without re-binding.
+  const fxRef = useRef<HTMLCanvasElement>(null);
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
   const [overlayMode, setOverlayMode] = useState<OverlayMode>('none');
   // Dev edit mode — drag-to-relocate cities, then export.
   const [editMode, setEditMode] = useState(false);
@@ -237,6 +342,48 @@ export function StrategicMap() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [cities, forces, officers, territoryOwnership, selectedCityId, selectedArmyId, pendingCommands, viewport, overlayMode, fogOfWar, playerForceId, date, bgReady, coordOverrides, weather, burningCities, fieldBattleMarks]);
+
+  // ── Animated overlay loop (mounted once) — draws living map elements every
+  //    frame at the current pan/zoom, reading fresh state from the store. ──
+  useEffect(() => {
+    const fx = fxRef.current;
+    if (!fx) return;
+    const ctx = fx.getContext('2d');
+    if (!ctx) return;
+    const isPhone = window.innerWidth <= 640;
+    const dpr = isPhone ? Math.min(window.devicePixelRatio || 1, 1.5) : (window.devicePixelRatio || 1);
+    fx.width = MAP_WIDTH * dpr;
+    fx.height = MAP_HEIGHT * dpr;
+    fx.style.width = `${MAP_WIDTH}px`;
+    fx.style.height = `${MAP_HEIGHT}px`;
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const minFrame = isPhone ? 45 : 22; // ~22fps phone, ~45fps desktop
+    let raf = 0;
+    let running = true;
+    let last = -1000;
+    const loop = (t: number) => {
+      if (!running) return;
+      raf = requestAnimationFrame(loop);
+      if (t - last < minFrame) return;
+      last = t;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
+      const st = useGameStore.getState();
+      if (!st.scenarioId) return;
+      const vp = viewportRef.current;
+      ctx.translate(vp.x, vp.y);
+      ctx.scale(vp.scale, vp.scale);
+      drawMapFx(
+        ctx,
+        { cities: st.cities, forces: st.forces, armies: st.armies, selectedCityId: st.selectedCityId },
+        vp.scale,
+        t,
+        reduced,
+      );
+    };
+    raf = requestAnimationFrame(loop);
+    return () => { running = false; cancelAnimationFrame(raf); };
+  }, []);
 
   // Territory list (stable per city set) for hover owner lookup.
   const territoriesForHover = useMemo(
@@ -646,6 +793,18 @@ export function StrategicMap() {
           maxWidth: '100%',
           height: 'auto',
           cursor: hoverCityId ? 'pointer' : (dragStateRef.current?.moved ? 'grabbing' : 'grab'),
+        }}
+      />
+      {/* Animated life — banners, glows, marching markers — over the base map. */}
+      <canvas
+        ref={fxRef}
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          maxWidth: '100%',
+          pointerEvents: 'none',
+          zIndex: 4,
         }}
       />
       {/* Hover preview tooltip */}
