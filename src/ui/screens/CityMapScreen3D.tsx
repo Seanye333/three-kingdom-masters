@@ -620,6 +620,58 @@ function GovernmentHall3D({ x, z, bannerColor }: { x: number; z: number; bannerC
       <group position={[0, 1.95, 0]}>
         <ChineseRoof3D size={1.15} color="#2f3a48" ornament beasts />
       </group>
+      {/* Courtyard wall enclosing the compound (gap at the front for the gate) */}
+      {[
+        [0, -2.05, 4.7, 0.16] as const,      // back
+        [-2.25, 0, 0.16, 4.3] as const,      // left
+        [2.25, 0, 0.16, 4.3] as const,       // right
+        [-1.55, 2.05, 1.5, 0.16] as const,   // front-left of gate
+        [1.55, 2.05, 1.5, 0.16] as const,    // front-right of gate
+      ].map((w, i) => (
+        <group key={`cw${i}`}>
+          <mesh position={[w[0], 0.42, w[1]]} castShadow receiveShadow>
+            <boxGeometry args={[w[2], 0.78, w[3]]} />
+            <meshStandardMaterial color="#b8aa84" roughness={0.92} />
+          </mesh>
+          <mesh position={[w[0], 0.85, w[1]]} castShadow>
+            <boxGeometry args={[w[2] + 0.08, 0.1, w[3] + 0.08]} />
+            <meshStandardMaterial color="#39444f" roughness={0.7} />
+          </mesh>
+        </group>
+      ))}
+      {/* 衙門 gatehouse on the front gap */}
+      {[-0.7, 0.7].map((px, i) => (
+        <mesh key={`gp${i}`} position={[px, 0.55, 2.05]} castShadow>
+          <boxGeometry args={[0.26, 1.1, 0.26]} />
+          <meshStandardMaterial color="#8a3030" roughness={0.7} />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.18, 2.05]} castShadow>
+        <boxGeometry args={[1.7, 0.22, 0.3]} />
+        <meshStandardMaterial color="#7a2820" roughness={0.7} />
+      </mesh>
+      <group position={[0, 1.34, 2.05]}><ChineseRoof3D size={1.5} color="#2f3a48" ornament /></group>
+      {/* 華表 columns flanking the approach */}
+      {[-1.9, 1.9].map((px, i) => (
+        <group key={`hb${i}`} position={[px, 0, 2.7]}>
+          <mesh position={[0, 1.1, 0]} castShadow>
+            <cylinderGeometry args={[0.08, 0.1, 2.2, 8]} />
+            <meshStandardMaterial color="#d8d2c4" roughness={0.85} />
+          </mesh>
+          <mesh position={[0, 1.85, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <boxGeometry args={[0.06, 0.5, 0.06]} />
+            <meshStandardMaterial color="#cfc8b8" roughness={0.85} />
+          </mesh>
+          <mesh position={[0, 2.32, 0]} castShadow>
+            <cylinderGeometry args={[0.13, 0.14, 0.12, 8]} />
+            <meshStandardMaterial color="#cfc8b8" roughness={0.85} />
+          </mesh>
+          <mesh position={[0, 2.46, 0]} castShadow>
+            <coneGeometry args={[0.09, 0.16, 6]} />
+            <meshStandardMaterial color="#caa84a" roughness={0.5} metalness={0.3} />
+          </mesh>
+        </group>
+      ))}
       {/* Guardian lions + banner poles flanking the steps */}
       <StoneLion3D x={-0.7} z={1.15} faceZ={1} />
       <StoneLion3D x={0.7} z={1.15} faceZ={1} />
@@ -1164,6 +1216,52 @@ function DrumTower3D({ x, z }: { x: number; z: number }) {
   );
 }
 
+/** A 鐘樓 bell tower — open upper storey with a great bronze bell slung from a
+ *  beam, mirroring the drum tower (晨鐘暮鼓). */
+function BellTower3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      {/* Stone arch base */}
+      <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.6, 1.0, 1.6]} />
+        <meshStandardMaterial color="#9a8f78" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 0.44, 0.81]}>
+        <boxGeometry args={[0.5, 0.72, 0.05]} />
+        <meshStandardMaterial color="#241c14" roughness={0.6} />
+      </mesh>
+      {/* Open upper storey — four red columns */}
+      {[[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]].map(([px, pz], i) => (
+        <mesh key={i} position={[px, 1.55, pz]} castShadow>
+          <cylinderGeometry args={[0.06, 0.06, 1.0, 8]} />
+          <meshStandardMaterial color="#a84838" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Hanging beam + bronze bell */}
+      <mesh position={[0, 2.0, 0]} castShadow>
+        <boxGeometry args={[0.9, 0.09, 0.09]} />
+        <meshStandardMaterial color="#4a3520" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 1.6, 0]} castShadow>
+        <cylinderGeometry args={[0.24, 0.3, 0.5, 14]} />
+        <meshStandardMaterial color="#8a6a3a" metalness={0.6} roughness={0.45} />
+      </mesh>
+      <mesh position={[0, 1.88, 0]}>
+        <sphereGeometry args={[0.09, 10, 8]} />
+        <meshStandardMaterial color="#6a4a2a" metalness={0.6} roughness={0.4} />
+      </mesh>
+      {/* Double-eave roof */}
+      <group position={[0, 2.15, 0]}><ChineseRoof3D size={1.45} color="#2f3a48" ornament beasts /></group>
+      <group position={[0, 2.6, 0]}><ChineseRoof3D size={0.95} color="#2f3a48" ornament /></group>
+      <Html position={[0, 3.15, 0]} center distanceFactor={11} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
+          鐘樓
+        </div>
+      </Html>
+    </group>
+  );
+}
+
 /** An open garden pavilion (亭) — stone base, red columns, low railing, a
  *  swept roof and a finial. */
 function Pavilion3D({ x, z }: { x: number; z: number }) {
@@ -1275,19 +1373,24 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     const W = preview.width, H = preview.height;
     const pagodaCell = { col: Math.max(3, W - 4), row: 3 };
     const drumCell = { col: 3, row: 3 };
+    // Bell tower mirrors the drum tower, front-right (row H-4 has no plots).
+    const bellCell = { col: Math.max(3, W - 4), row: Math.max(2, H - 4) };
     // Garden near the gate, in the rows below the foundation grid (rows ≥ H-3
     // never hold a plot), so it never overlaps a player building.
     const gateCol = Math.floor(W / 2);
     const gardenCell = { col: Math.max(2, gateCol === W - 4 ? gateCol - 4 : gateCol - 3), row: Math.max(2, H - 3) };
+    // The 府衙 compound — reserve a 3×3 so stray houses don't sit in its court.
+    const hallCell = { col: Math.max(1, Math.round(cityWallCol * 0.42)), row: Math.round(H / 2) };
     const keys = new Set<string>();
-    for (const c of [pagodaCell, drumCell, gardenCell]) {
+    for (const c of [pagodaCell, drumCell, bellCell, gardenCell, hallCell]) {
       for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${c.col + dc},${c.row + dr}`);
     }
     const [px, pz] = hexWorld(pagodaCell.col, pagodaCell.row);
     const [dx, dz] = hexWorld(drumCell.col, drumCell.row);
+    const [bx, bz] = hexWorld(bellCell.col, bellCell.row);
     const [gx2, gz2] = hexWorld(gardenCell.col, gardenCell.row);
-    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, garden: { x: gx2, z: gz2 } };
-  }, [preview.width, preview.height]);
+    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, bell: { x: bx, z: bz }, garden: { x: gx2, z: gz2 } };
+  }, [preview.width, preview.height, cityWallCol]);
 
   const { houses, trees, paths, villagers, flowers, avenue, grass } = useMemo(() => {
     const houses: Array<{ x: number; z: number; seed: number; key: string }> = [];
@@ -1419,6 +1522,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       {props.paifang && <Paifang3D x={props.paifang.x} z={props.paifang.z} />}
       <Pagoda3D x={landmarks.pagoda.x} z={landmarks.pagoda.z} />
       <DrumTower3D x={landmarks.drum.x} z={landmarks.drum.z} />
+      <BellTower3D x={landmarks.bell.x} z={landmarks.bell.z} />
       <Garden3D x={landmarks.garden.x} z={landmarks.garden.z} />
       <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
     </>
