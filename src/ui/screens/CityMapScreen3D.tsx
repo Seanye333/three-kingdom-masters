@@ -137,30 +137,85 @@ function WallSegment3D({ x, z }: { x: number; z: number }) {
 function CityGate3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
   return (
     <group position={[x, 0, z]}>
+      {/* Gate pillars */}
       {[-0.55, 0.55].map((px, i) => (
         <mesh key={i} position={[px, 0.9, 0]} castShadow receiveShadow>
           <boxGeometry args={[0.42, 1.8, 1.5]} />
           <meshStandardMaterial color="#6a5540" roughness={0.92} />
         </mesh>
       ))}
-      <mesh position={[0, 1.7, 0]} castShadow>
-        <boxGeometry args={[1.55, 0.42, 1.5]} />
+      {/* Lintel */}
+      <mesh position={[0, 1.75, 0]} castShadow>
+        <boxGeometry args={[1.6, 0.4, 1.55]} />
         <meshStandardMaterial color="#7a6550" roughness={0.9} />
       </mesh>
-      <mesh position={[0, 2.12, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-        <coneGeometry args={[1.3, 0.5, 4]} />
-        <meshStandardMaterial color="#3a2818" roughness={0.85} />
+      {/* Upper gatehouse storey (城樓) */}
+      <mesh position={[0, 2.35, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 0.85, 1.2]} />
+        <meshStandardMaterial color="#8a6a40" roughness={0.78} />
+      </mesh>
+      {[-0.55, -0.18, 0.18, 0.55].map((px, i) => (
+        <mesh key={`c${i}`} position={[px, 2.0, 0.62]} castShadow>
+          <cylinderGeometry args={[0.06, 0.06, 0.7, 6]} />
+          <meshStandardMaterial color="#a84838" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Swept tower roof */}
+      <mesh position={[0, 3.05, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[1.35, 0.65, 4]} />
+        <meshStandardMaterial color="#2f3a48" roughness={0.7} metalness={0.2} />
       </mesh>
       {/* Wooden door in the opening */}
       <mesh position={[0, 0.65, 0]} castShadow>
         <boxGeometry args={[0.62, 1.3, 0.16]} />
         <meshStandardMaterial color="#4a2f1a" roughness={0.8} />
       </mesh>
-      <mesh position={[0, 2.7, 0]} castShadow>
+      <mesh position={[0, 3.7, 0]} castShadow>
         <planeGeometry args={[0.55, 0.32]} />
         <meshStandardMaterial color={bannerColor} side={THREE.DoubleSide} />
       </mesh>
     </group>
+  );
+}
+
+/** A taller corner tower (角樓) anchoring each corner of the wall ring. */
+function CornerTower3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 1.15, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.75, 2.3, 1.75]} />
+        <meshStandardMaterial color="#6a5540" roughness={0.92} />
+      </mesh>
+      {[[-0.62, -0.62], [0.62, -0.62], [-0.62, 0.62], [0.62, 0.62]].map(([px, pz], i) => (
+        <mesh key={i} position={[px, 2.45, pz]} castShadow>
+          <boxGeometry args={[0.4, 0.36, 0.4]} />
+          <meshStandardMaterial color="#7a6550" roughness={0.92} />
+        </mesh>
+      ))}
+      <mesh position={[0, 2.95, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[1.35, 0.75, 4]} />
+        <meshStandardMaterial color="#3a2818" roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 3.7, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, 1.0, 6]} />
+        <meshStandardMaterial color="#1a1410" />
+      </mesh>
+      <mesh position={[0.26, 4.0, 0]}>
+        <planeGeometry args={[0.5, 0.3]} />
+        <meshStandardMaterial color={bannerColor} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Surrounding water — a moat ringing the city, seen beyond the walls. */
+function Moat3D({ W, H }: { W: number; H: number }) {
+  const cx = (W * HEX_COL_STEP) / 2, cz = (H * HEX_ROW_STEP) / 2;
+  return (
+    <mesh position={[cx, -0.1, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[W * HEX_COL_STEP + 8, H * HEX_ROW_STEP + 8]} />
+      <meshStandardMaterial color="#2c5882" roughness={0.35} metalness={0.45} />
+    </mesh>
   );
 }
 
@@ -448,19 +503,28 @@ function CityScene({
         );
       })}
 
-      {/* City walls — full perimeter ring with a gate on the south edge. */}
+      {/* Surrounding moat, seen beyond the walls. */}
+      <Moat3D W={preview.width} H={preview.height} />
+
+      {/* City walls — full perimeter ring, towers at the corners, gate south. */}
       {(() => {
         const W = preview.width, H = preview.height;
         const gateCol = Math.floor(W / 2), gateRow = H - 1;
+        const corners = new Set([`0,0`, `${W - 1},0`, `0,${H - 1}`, `${W - 1},${H - 1}`]);
         const segs: Array<{ col: number; row: number }> = [];
         for (let c = 0; c < W; c++) { segs.push({ col: c, row: 0 }); segs.push({ col: c, row: H - 1 }); }
         for (let r = 1; r < H - 1; r++) { segs.push({ col: 0, row: r }); segs.push({ col: W - 1, row: r }); }
         const [gx, gz] = hexWorld(gateCol, gateRow);
         return (
           <>
-            {segs.filter((s) => !(s.col === gateCol && s.row === gateRow)).map((s) => {
+            {segs.filter((s) => !(s.col === gateCol && s.row === gateRow) && !corners.has(`${s.col},${s.row}`)).map((s) => {
               const [x, z] = hexWorld(s.col, s.row);
               return <WallSegment3D key={`wall-${s.col}-${s.row}`} x={x} z={z} />;
+            })}
+            {[...corners].map((c) => {
+              const [col, row] = c.split(',').map(Number);
+              const [x, z] = hexWorld(col, row);
+              return <CornerTower3D key={`tower-${c}`} x={x} z={z} bannerColor={bannerColor} />;
             })}
             <CityGate3D x={gx} z={gz} bannerColor={bannerColor} />
           </>
