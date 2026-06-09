@@ -236,45 +236,129 @@ export function stopAmbience(): void {
 
 let musicTimer: ReturnType<typeof setInterval> | null = null;
 let musicGainNode: GainNode | null = null;
+let musicExtra: AudioNode[] = [];
 
 export type MusicTrack = 'peace' | 'tension' | 'battle' | 'victory' | 'defeat' | null;
 
+interface TrackDef {
+  /** Milliseconds per step. */
+  tempo: number;
+  /** Master music gain. */
+  gain: number;
+  /** Reverb (feedback-delay) wet amount, 0–1. */
+  reverb: number;
+  /** Melody line — one frequency per step (0 = rest). */
+  melody: number[];
+  melodyType: OscillatorType;
+  /** Bass line — sparser, lower. */
+  bass: number[];
+  bassType: OscillatorType;
+  /** Sustained chord re-struck at the top of each loop. */
+  pad?: number[];
+  /** Step indices (mod melody length) that strike a war drum. */
+  drumSteps?: number[];
+}
+
 /**
- * Simple pentatonic melodies — looping note sequences that play through a
- * shared oscillator. Each track maps to a stylized mood.
+ * Layered procedural score — each track stacks a guzheng-pluck melody, a bass
+ * line, an optional soft pad and war-drum percussion through a feedback-delay
+ * reverb. Pentatonic throughout so the voices stay consonant. No audio files.
  */
-const TRACK_MELODIES: Record<Exclude<MusicTrack, null>, { notes: number[]; tempo: number; gain: number; type: OscillatorType }> = {
+const MUSIC_TRACKS: Record<Exclude<MusicTrack, null>, TrackDef> = {
   peace: {
-    notes: [220, 247, 294, 330, 392, 330, 294, 247],
-    tempo: 700,
-    gain: 0.05,
-    type: 'sine',
+    tempo: 500, gain: 0.06, reverb: 0.38,
+    melody: [392, 0, 440, 392, 0, 330, 294, 0, 330, 392, 0, 262, 294, 330, 0, 0],
+    melodyType: 'triangle',
+    bass: [131, 0, 0, 0, 98, 0, 0, 0, 131, 0, 0, 0, 110, 0, 0, 0],
+    bassType: 'sine',
+    pad: [262, 330, 392],
   },
   tension: {
-    notes: [196, 233, 277, 233, 196, 165, 196, 165],
-    tempo: 480,
-    gain: 0.06,
-    type: 'triangle',
+    tempo: 360, gain: 0.055, reverb: 0.3,
+    melody: [330, 0, 294, 0, 262, 0, 294, 330, 0, 247, 262, 0, 294, 0, 247, 0],
+    melodyType: 'triangle',
+    bass: [110, 0, 110, 0, 98, 0, 98, 0, 110, 0, 110, 0, 82, 0, 82, 0],
+    bassType: 'triangle',
+    drumSteps: [0, 8],
   },
   battle: {
-    notes: [110, 165, 196, 247, 196, 165, 220, 165],
-    tempo: 280,
-    gain: 0.07,
-    type: 'sawtooth',
+    tempo: 230, gain: 0.065, reverb: 0.18,
+    melody: [330, 392, 440, 392, 330, 294, 330, 440, 392, 330, 294, 330, 392, 440, 494, 440],
+    melodyType: 'sawtooth',
+    bass: [110, 0, 110, 0, 110, 0, 110, 0, 98, 0, 98, 0, 110, 0, 110, 0],
+    bassType: 'sawtooth',
+    drumSteps: [0, 2, 4, 6, 8, 10, 12, 14],
   },
   victory: {
-    notes: [330, 392, 440, 494, 587, 494, 440, 587],
-    tempo: 380,
-    gain: 0.08,
-    type: 'triangle',
+    tempo: 300, gain: 0.07, reverb: 0.3,
+    melody: [392, 392, 440, 494, 587, 0, 494, 440, 392, 440, 494, 587, 659, 0, 587, 0],
+    melodyType: 'triangle',
+    bass: [131, 0, 196, 0, 131, 0, 196, 0, 131, 0, 196, 0, 131, 0, 131, 0],
+    bassType: 'sine',
+    pad: [262, 330, 392],
+    drumSteps: [0, 4, 8, 12],
   },
   defeat: {
-    notes: [220, 196, 174, 155, 138, 130, 138, 155],
-    tempo: 900,
-    gain: 0.06,
-    type: 'sine',
+    tempo: 640, gain: 0.05, reverb: 0.42,
+    melody: [330, 0, 294, 0, 262, 0, 247, 0, 220, 0, 196, 0, 220, 0, 0, 0],
+    melodyType: 'sine',
+    bass: [110, 0, 0, 0, 98, 0, 0, 0, 87, 0, 0, 0, 82, 0, 0, 0],
+    bassType: 'sine',
+    pad: [220, 262, 330],
   },
 };
+
+/** A plucked/struck note with a fast attack + exponential decay (guzheng-ish). */
+function pluck(c: AudioContext, freq: number, type: OscillatorType, dur: number, peak: number, dry: AudioNode, wet: AudioNode | null): void {
+  const t = c.currentTime;
+  const osc = c.createOscillator();
+  osc.type = type;
+  osc.frequency.value = freq;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(g);
+  g.connect(dry);
+  if (wet) g.connect(wet);
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+}
+
+/** A soft sustained chord under the melody. */
+function padChord(c: AudioContext, freqs: number[], dur: number, dry: AudioNode): void {
+  const t = c.currentTime;
+  for (const f of freqs) {
+    const osc = c.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.16, t + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g);
+    g.connect(dry);
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+  }
+}
+
+/** A war drum — a pitch-dropping sine thump. */
+function warDrum(c: AudioContext, dry: AudioNode, wet: AudioNode | null): void {
+  const t = c.currentTime;
+  const osc = c.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(155, t);
+  osc.frequency.exponentialRampToValueAtTime(52, t + 0.16);
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.9, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+  osc.connect(g);
+  g.connect(dry);
+  if (wet) g.connect(wet);
+  osc.start(t);
+  osc.stop(t + 0.25);
+}
 
 export function playMusic(track: MusicTrack): void {
   stopMusic();
@@ -282,32 +366,45 @@ export function playMusic(track: MusicTrack): void {
   const c = getCtx();
   if (!c) return;
   unlockAudio();
-  const def = TRACK_MELODIES[track];
+  const def = MUSIC_TRACKS[track];
   if (!def) return;
-  // Master gain for music — separate from SFX.
+
+  // Master music bus.
   musicGainNode = c.createGain();
   musicGainNode.gain.setValueAtTime(0, c.currentTime);
   musicGainNode.gain.linearRampToValueAtTime(def.gain, c.currentTime + 2);
   musicGainNode.connect(c.destination);
 
+  // Feedback-delay reverb send — gives the voices space.
+  const delay = c.createDelay(1.0);
+  delay.delayTime.value = 0.27;
+  const feedback = c.createGain();
+  feedback.gain.value = 0.3;
+  const wetGain = c.createGain();
+  wetGain.gain.value = def.reverb;
+  delay.connect(feedback);
+  feedback.connect(delay);
+  delay.connect(wetGain);
+  wetGain.connect(musicGainNode);
+  musicExtra = [delay, feedback, wetGain];
+
+  const dry: AudioNode = musicGainNode;
+  const wet: AudioNode = delay;
+  const len = def.melody.length;
+  const stepDur = def.tempo / 1000;
   let i = 0;
   musicTimer = setInterval(() => {
     if (!enabled || !c || !musicGainNode) {
       stopMusic();
       return;
     }
-    const freq = def.notes[i % def.notes.length];
-    const osc = c.createOscillator();
-    osc.type = def.type;
-    osc.frequency.value = freq;
-    const noteGain = c.createGain();
-    noteGain.gain.setValueAtTime(0, c.currentTime);
-    noteGain.gain.linearRampToValueAtTime(1, c.currentTime + 0.05);
-    noteGain.gain.linearRampToValueAtTime(0, c.currentTime + def.tempo / 1000);
-    osc.connect(noteGain);
-    noteGain.connect(musicGainNode);
-    osc.start();
-    osc.stop(c.currentTime + def.tempo / 1000 + 0.05);
+    const step = i % len;
+    const mf = def.melody[step];
+    if (mf) pluck(c, mf, def.melodyType, stepDur * 0.92, 0.5, dry, wet);
+    const bf = def.bass[step % def.bass.length];
+    if (bf) pluck(c, bf, def.bassType, stepDur * 1.7, 0.4, dry, null);
+    if (def.drumSteps && def.drumSteps.includes(step)) warDrum(c, dry, wet);
+    if (def.pad && step === 0) padChord(c, def.pad, stepDur * len, dry);
     i++;
   }, def.tempo);
 }
@@ -322,9 +419,12 @@ export function stopMusic(): void {
     musicGainNode.gain.cancelScheduledValues(c.currentTime);
     musicGainNode.gain.linearRampToValueAtTime(0, c.currentTime + 0.5);
     const old = musicGainNode;
+    const extra = musicExtra;
     setTimeout(() => {
       try { old.disconnect(); } catch { /* ignore */ }
+      for (const n of extra) { try { n.disconnect(); } catch { /* ignore */ } }
     }, 600);
     musicGainNode = null;
+    musicExtra = [];
   }
 }
