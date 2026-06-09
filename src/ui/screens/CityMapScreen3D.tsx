@@ -199,6 +199,71 @@ function WallSegment3D({ x, z }: { x: number; z: number }) {
   );
 }
 
+/** The inner palace-city (内城/皇城) wall ring around the civic centre — a
+ *  rectangle of perimeter cells, only raised in great cities. Computed the
+ *  same way in the scene (to draw it) and the scatter (to keep it clear). */
+function innerWallCells(W: number, H: number) {
+  // Snap borders off the plot lines (col/row % 3 === 2) so a foundation never
+  // ends up sitting on the inner wall.
+  const snap = (v: number) => (v % 3 === 2 ? v + 1 : v);
+  const ic0 = snap(Math.round(W * 0.30)), ic1 = snap(Math.round(W * 0.70));
+  const ir0 = snap(Math.round(H * 0.30)), ir1 = snap(Math.round(H * 0.70));
+  const cells: Array<{ col: number; row: number }> = [];
+  for (let c = ic0; c <= ic1; c++) { cells.push({ col: c, row: ir0 }); cells.push({ col: c, row: ir1 }); }
+  for (let r = ir0 + 1; r < ir1; r++) { cells.push({ col: ic0, row: r }); cells.push({ col: ic1, row: r }); }
+  return { ic0, ic1, ir0, ir1, cells };
+}
+
+/** A lower, crenellated inner-wall segment. */
+function InnerWallSeg3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 1.0, 1.5]} />
+        <meshStandardMaterial color="#7a6748" roughness={0.92} />
+      </mesh>
+      {[-0.5, 0, 0.5].map((px, i) => (
+        <mesh key={i} position={[px, 1.08, 0]} castShadow>
+          <boxGeometry args={[0.34, 0.26, 1.5]} />
+          <meshStandardMaterial color="#8a7656" roughness={0.92} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** The inner-wall gate facing the avenue — a red-pillared gatehouse. */
+function InnerGate3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
+  return (
+    <group position={[x, 0, z]}>
+      {[-0.5, 0.5].map((px, i) => (
+        <mesh key={i} position={[px, 0.75, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.4, 1.5, 1.5]} />
+          <meshStandardMaterial color="#7a6748" roughness={0.9} />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.55, 0]} castShadow>
+        <boxGeometry args={[1.5, 0.34, 1.5]} />
+        <meshStandardMaterial color="#8a7656" roughness={0.9} />
+      </mesh>
+      {[-0.5, -0.17, 0.17, 0.5].map((px, i) => (
+        <mesh key={`c${i}`} position={[px, 1.95, 0.5]} castShadow>
+          <cylinderGeometry args={[0.05, 0.05, 0.6, 7]} />
+          <meshStandardMaterial color="#a84838" roughness={0.6} />
+        </mesh>
+      ))}
+      <group position={[0, 2.2, 0]}><ChineseRoof3D size={1.5} color="#2f3a48" ornament beasts /></group>
+      <mesh position={[0, 2.9, 0]} castShadow>
+        <cylinderGeometry args={[0.03, 0.03, 0.6, 6]} />
+        <meshStandardMaterial color="#1a1410" />
+      </mesh>
+      <group position={[0, 3.05, 0]}>
+        <Banner3D color={bannerColor} w={0.3} h={0.32} phase={x + z} faceX={0.15} />
+      </group>
+    </group>
+  );
+}
+
 /** A city gate — twin pillars, lintel, gatehouse roof, a wooden door and the
  *  force banner. Sits in the perimeter where a wall block would otherwise be. */
 function CityGate3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
@@ -1708,12 +1773,13 @@ function Farmland3D({ x, z, lush = 0.5 }: { x: number; z: number; lush?: number 
 }
 
 /** Scatter dwellings across the inside-city land, leaving gaps for streets. */
-function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats }: {
+function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats, grand }: {
   preview: ReturnType<typeof previewBattlefield>;
   cityWallCol: number;
   occupied: Set<string>;
   bannerColor: string;
   stats: CityStats;
+  grand: boolean;
 }) {
   // The market grows with commerce — a sleepy 2-stall corner at low trade,
   // a packed bazaar when business booms.
@@ -1756,13 +1822,15 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats }:
       for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${c.col + dc},${c.row + dr}`);
     }
     for (let dc = -1; dc <= 2; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${farmCell.col + dc},${farmCell.row + dr}`);
+    // Keep houses off the inner palace wall line in great cities.
+    if (grand) for (const c of innerWallCells(W, H).cells) keys.add(`${c.col},${c.row}`);
     const [px, pz] = hexWorld(pagodaCell.col, pagodaCell.row);
     const [dx, dz] = hexWorld(drumCell.col, drumCell.row);
     const [bx, bz] = hexWorld(bellCell.col, bellCell.row);
     const [gx2, gz2] = hexWorld(gardenCell.col, gardenCell.row);
     const [fx, fz] = hexWorld(farmCell.col, farmCell.row);
     return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, bell: { x: bx, z: bz }, garden: { x: gx2, z: gz2 }, farm: { x: fx, z: fz } };
-  }, [preview.width, preview.height, cityWallCol]);
+  }, [preview.width, preview.height, cityWallCol, grand]);
 
   const { houses, trees, paths, villagers, flowers, avenue, grass, dirt, puddles } = useMemo(() => {
     const houses: Array<{ x: number; z: number; seed: number; key: string }> = [];
@@ -1947,7 +2015,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats }:
 }
 
 function CityScene({
-  preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season, stats,
+  preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season, stats, grand,
   selectedPlot, onPlotClick, hovered, onHover, onClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
@@ -1959,6 +2027,7 @@ function CityScene({
   light: typeof SEASON_LIGHT[SeasonKey];
   season: SeasonKey;
   stats: CityStats;
+  grand: boolean;
   bannerColor: string;
   selectedPlot: number | null;
   onPlotClick: (plotIndex: number) => void;
@@ -2122,6 +2191,25 @@ function CityScene({
         );
       })()}
 
+      {/* 内城/皇城 — a second, lower wall ring around the civic centre, raised
+          only in great cities; gated south where the avenue enters. */}
+      {grand && (() => {
+        const W = preview.width, H = preview.height;
+        const gateCol = Math.floor(W / 2);
+        const { cells, ir0, ir1 } = innerWallCells(W, H);
+        const [igx, igz] = hexWorld(gateCol, ir1);
+        const avenueCross = (c: { col: number; row: number }) => c.col === gateCol && (c.row === ir0 || c.row === ir1);
+        return (
+          <>
+            {cells.filter((c) => !avenueCross(c)).map((c) => {
+              const [x, z] = hexWorld(c.col, c.row);
+              return <InnerWallSeg3D key={`iw-${c.col}-${c.row}`} x={x} z={z} />;
+            })}
+            <InnerGate3D x={igx} z={igz} bannerColor={bannerColor} />
+          </>
+        );
+      })()}
+
       {/* Slot markers — golden octagon discs showing buildable hexes */}
       {preview.slotPositions.map((pos, idx) => (
         <SlotMarker3D
@@ -2154,7 +2242,7 @@ function CityScene({
       })}
 
       {/* Living-city dwellings + central 府衙 (cosmetic) */}
-      <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} bannerColor={bannerColor} stats={stats} />
+      <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} bannerColor={bannerColor} stats={stats} grand={grand} />
 
       {/* A few birds wheeling over the rooftops */}
       <Birds3D
@@ -2261,6 +2349,8 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
     fLoyalty: Math.min(1, city.loyalty / (size.loyaltyCap || 100)),
     fPop: Math.min(1, city.population / 320000),
   };
+  // Great cities raise a second, inner palace wall around the civic centre.
+  const grandCity = size.id === 'capital' || size.id === 'large';
 
   const cityBuildingsAll = useMemo(
     () => allBuildings.filter((b) => b.cityId === cityId),
@@ -2477,6 +2567,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             light={light}
             season={season}
             stats={cityStats}
+            grand={grandCity}
             selectedPlot={selectedPlot}
             onPlotClick={handlePlotClick}
             hovered={hovered}
