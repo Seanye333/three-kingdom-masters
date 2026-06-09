@@ -1480,6 +1480,53 @@ function Garden3D({ x, z }: { x: number; z: number }) {
   );
 }
 
+/** A 屯田 farm plot — tilled rows of crops (green sprouts → gold harvest →
+ *  bare winter soil), a scarecrow and a farmhand. */
+function Farmland3D({ x, z }: { x: number; z: number }) {
+  const season = useContext(SeasonCtx);
+  const crop = season === 'winter' ? '#cdd6dc' : season === 'autumn' ? '#cba63a' : season === 'summer' ? '#9aa83a' : '#6a9a4a';
+  const soil = season === 'winter' ? '#6f6a60' : '#5a4530';
+  const rows = 5;
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.05, 0]} receiveShadow>
+        <boxGeometry args={[3.0, 0.1, 2.2]} />
+        <meshStandardMaterial color={soil} roughness={0.97} />
+      </mesh>
+      {Array.from({ length: rows }).map((_, i) => {
+        const rz = -0.85 + (i * 1.7) / (rows - 1);
+        return (
+          <group key={i}>
+            <mesh position={[0, 0.13, rz]} receiveShadow>
+              <boxGeometry args={[2.8, 0.09, 0.2]} />
+              <meshStandardMaterial color={shade(soil, 1.25)} roughness={0.95} />
+            </mesh>
+            {season !== 'winter' && Array.from({ length: 7 }).map((_, j) => (
+              <mesh key={j} position={[-1.2 + j * 0.4, 0.26, rz]} castShadow>
+                <coneGeometry args={[0.07, 0.3, 5]} />
+                <meshStandardMaterial color={crop} roughness={0.85} flatShading />
+              </mesh>
+            ))}
+          </group>
+        );
+      })}
+      {/* Scarecrow */}
+      <group position={[1.25, 0, 0]}>
+        <mesh position={[0, 0.5, 0]} castShadow><cylinderGeometry args={[0.03, 0.03, 1.0, 5]} /><meshStandardMaterial color="#6a5030" /></mesh>
+        <mesh position={[0, 0.72, 0]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.025, 0.025, 0.7, 5]} /><meshStandardMaterial color="#6a5030" /></mesh>
+        <mesh position={[0, 0.93, 0]} castShadow><sphereGeometry args={[0.1, 8, 7]} /><meshStandardMaterial color="#c8a060" roughness={0.9} /></mesh>
+        <mesh position={[0, 1.02, 0]}><coneGeometry args={[0.17, 0.13, 8]} /><meshStandardMaterial color="#9a8050" /></mesh>
+      </group>
+      <Villager3D x={-1.15} z={0.95} seed={88} />
+      <Html position={[0, 1.2, 0]} center distanceFactor={11} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{ background: 'rgba(20,14,8,0.78)', border: '1px solid #7a8a3a', padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: '10px', color: '#bcd07a', borderRadius: 2, whiteSpace: 'nowrap' }}>
+          屯田
+        </div>
+      </Html>
+    </group>
+  );
+}
+
 /** Scatter dwellings across the inside-city land, leaving gaps for streets. */
 function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
   preview: ReturnType<typeof previewBattlefield>;
@@ -1519,15 +1566,19 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     const gardenCell = { col: Math.max(2, gateCol === W - 4 ? gateCol - 4 : gateCol - 3), row: Math.max(2, H - 3) };
     // The 府衙 compound — reserve a 3×3 so stray houses don't sit in its court.
     const hallCell = { col: Math.max(1, Math.round(cityWallCol * 0.42)), row: Math.round(H / 2) };
+    // 屯田 farm plot front-right, below the foundation grid.
+    const farmCell = { col: Math.max(3, W - 5), row: Math.max(2, H - 3) };
     const keys = new Set<string>();
     for (const c of [pagodaCell, drumCell, bellCell, gardenCell, hallCell]) {
       for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${c.col + dc},${c.row + dr}`);
     }
+    for (let dc = -1; dc <= 2; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${farmCell.col + dc},${farmCell.row + dr}`);
     const [px, pz] = hexWorld(pagodaCell.col, pagodaCell.row);
     const [dx, dz] = hexWorld(drumCell.col, drumCell.row);
     const [bx, bz] = hexWorld(bellCell.col, bellCell.row);
     const [gx2, gz2] = hexWorld(gardenCell.col, gardenCell.row);
-    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, bell: { x: bx, z: bz }, garden: { x: gx2, z: gz2 } };
+    const [fx, fz] = hexWorld(farmCell.col, farmCell.row);
+    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, bell: { x: bx, z: bz }, garden: { x: gx2, z: gz2 }, farm: { x: fx, z: fz } };
   }, [preview.width, preview.height, cityWallCol]);
 
   const { houses, trees, paths, villagers, flowers, avenue, grass } = useMemo(() => {
@@ -1541,7 +1592,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     const GRASSC = ['#4a7a3a', '#3f6e34', '#56833f', '#5f8a44'];
     const sow = (cx: number, cz: number, seed: number) => {
       const n = 3 + (seed % 3);
-      for (let i = 0; i < n && grass.length < 280; i++) {
+      for (let i = 0; i < n && grass.length < 460; i++) {
         const a = seed * 0.7 + i * 2.4;
         grass.push({
           x: cx + Math.cos(a) * 0.42, z: cz + Math.sin(a * 1.3) * 0.42,
@@ -1571,15 +1622,15 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       const seed = dwellingHash(col, row);
       // Grid streets (paved); foundations live at col%3===2 so never clash.
       if (col % 3 === 0 || row % 3 === 0) {
-        if (paths.length < 130) paths.push({ x, z, seed, key });
+        if (paths.length < 240) paths.push({ x, z, seed, key });
         continue;
       }
       // Block interior — mostly housing, with garden / townsfolk / flower beds.
       const bucket = seed % 100;
-      if (bucket < 60 && houses.length < 36) houses.push({ x, z, seed, key });          // houses
-      else if (bucket < 78 && trees.length < 18) { trees.push({ x, z, seed, key }); sow(x, z, seed); } // gardens
-      else if (bucket < 90 && villagers.length < 20) { villagers.push({ x, z, seed, key }); sow(x, z, seed); } // townsfolk
-      else if (flowers.length < 12) flowers.push({ x, z, seed, key });                  // flower beds
+      if (bucket < 60 && houses.length < 64) houses.push({ x, z, seed, key });          // houses
+      else if (bucket < 78 && trees.length < 30) { trees.push({ x, z, seed, key }); sow(x, z, seed); } // gardens
+      else if (bucket < 90 && villagers.length < 34) { villagers.push({ x, z, seed, key }); sow(x, z, seed); } // townsfolk
+      else if (flowers.length < 20) flowers.push({ x, z, seed, key });                  // flower beds
       else sow(x, z, seed);                                                              // courtyard grass
     }
     return { houses, trees, paths, villagers, flowers, avenue, grass };
@@ -1662,6 +1713,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       <DrumTower3D x={landmarks.drum.x} z={landmarks.drum.z} />
       <BellTower3D x={landmarks.bell.x} z={landmarks.bell.z} />
       <Garden3D x={landmarks.garden.x} z={landmarks.garden.z} />
+      <Farmland3D x={landmarks.farm.x} z={landmarks.farm.z} />
       <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
     </>
   );
@@ -1941,7 +1993,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
     () => previewBattlefield(cityId, {
       terrain: city?.terrain, port: city?.port,
       x: city?.coords.x, y: city?.coords.y,
-    }, 18, 13), // city view uses a roomier grid than a battle slice
+    }, 24, 16, true), // city view uses a big, consistent grid (forceSize)
     [cityId, city?.terrain, city?.port, city?.coords.x, city?.coords.y],
   );
   // Inside the walls the ground is a city, not a battlefield — flatten the
@@ -2088,6 +2140,10 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
 
   const centerX = (preview.width * HEX_COL_STEP) / 2;
   const centerZ = (preview.height * HEX_ROW_STEP) / 2;
+  // Frame the whole city — pull the camera back in proportion to its size.
+  const citySpan = Math.max(preview.width * HEX_COL_STEP, preview.height * HEX_ROW_STEP);
+  const camHeight = citySpan * 0.62;
+  const camOffset = citySpan * 0.64;
 
   const ALL_BUILDINGS: DefenseBuildingId[] = [
     'watchtower', 'beacon', 'caltrops', 'lookout',
@@ -2160,7 +2216,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
       {/* 3D canvas */}
       <div style={{ flex: 1, position: 'relative' }}>
         <Canvas
-          camera={{ position: [centerX, 16, centerZ + 16], fov: 50 }}
+          camera={{ position: [centerX, camHeight, centerZ + camOffset], fov: 50 }}
           shadows
           style={{ background: light.sky }}
         >
@@ -2186,7 +2242,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             enablePan
             maxPolarAngle={Math.PI / 2.2}
             minDistance={6}
-            maxDistance={40}
+            maxDistance={citySpan * 1.6}
           />
         </Canvas>
 

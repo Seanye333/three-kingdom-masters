@@ -204,8 +204,11 @@ export function previewBattlefield(
   hint: TerrainHint = {},
   fallbackWidth = 14,
   fallbackHeight = 10,
+  // When true, ignore any named tactical map and use the fallback size — the
+  // city-interior view wants a consistently large grid for every city.
+  forceSize = false,
 ): BattlefieldPreview {
-  const namedMapId = NAMED_MAPS_BY_CITY[cityId];
+  const namedMapId = forceSize ? undefined : NAMED_MAPS_BY_CITY[cityId];
   const namedMap: NamedBattleMap | undefined = namedMapId
     ? NAMED_MAPS_BY_ID[namedMapId]
     : undefined;
