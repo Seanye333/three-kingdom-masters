@@ -49,18 +49,39 @@ function InsideBuilding3D({ coord, buildingId, level }: {
   const [x, z] = hexWorld(coord.col, coord.row);
   const def = INSIDE_BUILDING_DEF[buildingId];
   const h = def.height + level * 0.15;
+  // Temple & academy get a gilded, ornamented roof; the rest tile-blue.
+  const grand = buildingId === 'temple' || buildingId === 'academy';
+  const roofColor = grand ? '#b9952f' : '#39444f';
   return (
     <group position={[x, 0, z]}>
+      {/* Stone plinth */}
+      <mesh position={[0, 0.09, 0]} receiveShadow castShadow>
+        <boxGeometry args={[1.28, 0.18, 1.28]} />
+        <meshStandardMaterial color="#9a8f78" roughness={0.95} />
+      </mesh>
       {/* Main block */}
-      <mesh position={[0, h / 2 + 0.1, 0]} castShadow receiveShadow>
+      <mesh position={[0, h / 2 + 0.18, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.05, h, 1.05]} />
         <meshStandardMaterial color={def.color} roughness={0.7} />
       </mesh>
-      {/* Pyramidal Chinese-style roof */}
-      <mesh position={[0, h + 0.3, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-        <coneGeometry args={[0.8, 0.5, 4]} />
-        <meshStandardMaterial color="#3a2818" roughness={0.85} />
-      </mesh>
+      {/* Front colonnade */}
+      {[-0.36, -0.12, 0.12, 0.36].map((px, i) => (
+        <mesh key={`col${i}`} position={[px, h / 2 + 0.18, 0.54]} castShadow>
+          <cylinderGeometry args={[0.05, 0.05, h, 7]} />
+          <meshStandardMaterial color="#a84838" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Recessed windows along the front */}
+      {[-0.3, 0.3].map((px, i) => (
+        <mesh key={`win${i}`} position={[px, h * 0.6 + 0.18, 0.53]}>
+          <boxGeometry args={[0.18, 0.2, 0.04]} />
+          <meshStandardMaterial color="#241c14" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Swept tiled roof */}
+      <group position={[0, h + 0.18, 0]}>
+        <ChineseRoof3D size={1.05} color={roofColor} ornament={grand} />
+      </group>
       {/* Floating label */}
       <Html position={[0, h + 0.9, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{
@@ -161,18 +182,25 @@ function CityGate3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: 
           <meshStandardMaterial color="#a84838" roughness={0.6} />
         </mesh>
       ))}
-      {/* Swept tower roof */}
-      <mesh position={[0, 3.05, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-        <coneGeometry args={[1.35, 0.65, 4]} />
-        <meshStandardMaterial color="#2f3a48" roughness={0.7} metalness={0.2} />
-      </mesh>
+      {/* Swept double-eave gatehouse roof */}
+      <group position={[0, 2.82, 0]}>
+        <ChineseRoof3D size={1.7} color="#2f3a48" ornament />
+      </group>
+      <group position={[0, 3.28, 0]}>
+        <ChineseRoof3D size={1.15} color="#2f3a48" ornament />
+      </group>
       {/* Wooden door in the opening */}
       <mesh position={[0, 0.65, 0]} castShadow>
         <boxGeometry args={[0.62, 1.3, 0.16]} />
         <meshStandardMaterial color="#4a2f1a" roughness={0.8} />
       </mesh>
-      <mesh position={[0, 3.7, 0]} castShadow>
-        <planeGeometry args={[0.55, 0.32]} />
+      {/* Pennant on the ridge */}
+      <mesh position={[0, 4.05, 0]} castShadow>
+        <cylinderGeometry args={[0.03, 0.03, 0.7, 6]} />
+        <meshStandardMaterial color="#1a1410" />
+      </mesh>
+      <mesh position={[0.18, 4.18, 0]}>
+        <boxGeometry args={[0.32, 0.34, 0.02]} />
         <meshStandardMaterial color={bannerColor} side={THREE.DoubleSide} />
       </mesh>
     </group>
@@ -193,16 +221,17 @@ function CornerTower3D({ x, z, bannerColor }: { x: number; z: number; bannerColo
           <meshStandardMaterial color="#7a6550" roughness={0.92} />
         </mesh>
       ))}
-      <mesh position={[0, 2.95, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-        <coneGeometry args={[1.35, 0.75, 4]} />
-        <meshStandardMaterial color="#3a2818" roughness={0.85} />
-      </mesh>
-      <mesh position={[0, 3.7, 0]} castShadow>
-        <cylinderGeometry args={[0.04, 0.04, 1.0, 6]} />
+      {/* Swept tile roof */}
+      <group position={[0, 2.62, 0]}>
+        <ChineseRoof3D size={1.95} color="#33404e" ornament />
+      </group>
+      {/* Flag mast + banner */}
+      <mesh position={[0, 3.85, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, 1.1, 6]} />
         <meshStandardMaterial color="#1a1410" />
       </mesh>
-      <mesh position={[0.26, 4.0, 0]}>
-        <planeGeometry args={[0.5, 0.3]} />
+      <mesh position={[0.22, 4.05, 0]}>
+        <boxGeometry args={[0.4, 0.34, 0.02]} />
         <meshStandardMaterial color={bannerColor} side={THREE.DoubleSide} />
       </mesh>
     </group>
@@ -333,59 +362,245 @@ const SEASON_LIGHT: Record<SeasonKey, { ambient: number; ambientColor: string; s
   winter: { ambient: 0.5, ambientColor: '#e8f0f8', sun: '#e8eef8', sunI: 0.82, sunPos: [12, 9, -4], fog: '#cdd8e6', sky: 'linear-gradient(180deg, #8aa6c0 0%, #cdd9e6 100%)' },
 };
 
-/** A small earthen house: solid box + pitched roof (same primitives as the
- *  working buildings — no textures, transparency or animation). */
+/** Multiply an #rrggbb colour by a factor (>1 lightens, <1 darkens). Cheap
+ *  helper so ridges/eaves can be tinted off a base roof colour. */
+function shade(hex: string, f: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, Math.round(((n >> 16) & 255) * f)));
+  const g = Math.max(0, Math.min(255, Math.round(((n >> 8) & 255) * f)));
+  const b = Math.max(0, Math.min(255, Math.round((n & 255) * f)));
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+/** A swept Chinese hip roof (廡殿頂) from opaque primitives — overhanging eave
+ *  slab + 4-sided pyramid + ridge beam + upturned corner tips, optional 鴟吻
+ *  ridge-end ornaments. Caller positions the group at eave height. */
+function ChineseRoof3D({ size, color, ornament = false }: {
+  size: number; color: string; ornament?: boolean;
+}) {
+  const eave = size + 0.3;
+  const roofH = 0.26 + eave * 0.16;
+  const ridgeC = shade(color, 1.4);
+  return (
+    <group>
+      {/* Overhanging eave slab — the shadow line */}
+      <mesh position={[0, 0.03, 0]} castShadow receiveShadow>
+        <boxGeometry args={[eave, 0.1, eave]} />
+        <meshStandardMaterial color={shade(color, 0.85)} roughness={0.66} metalness={0.12} />
+      </mesh>
+      {/* Hip roof body */}
+      <mesh position={[0, roofH / 2 + 0.08, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[eave * 0.72, roofH, 4]} />
+        <meshStandardMaterial color={color} roughness={0.62} metalness={0.16} />
+      </mesh>
+      {/* Main ridge beam */}
+      <mesh position={[0, roofH + 0.05, 0]} castShadow>
+        <boxGeometry args={[eave * 0.5, 0.09, 0.12]} />
+        <meshStandardMaterial color={ridgeC} roughness={0.55} />
+      </mesh>
+      {/* Upturned corner tips */}
+      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => (
+        <mesh key={i} position={[sx * eave * 0.45, 0.13, sz * eave * 0.45]} rotation={[sz * 0.5, 0, -sx * 0.5]} castShadow>
+          <coneGeometry args={[0.08, 0.24, 4]} />
+          <meshStandardMaterial color={ridgeC} roughness={0.6} />
+        </mesh>
+      ))}
+      {/* 鴟吻 ridge-end ornaments for important halls */}
+      {ornament && [-1, 1].map((s, i) => (
+        <mesh key={`o${i}`} position={[s * eave * 0.24, roofH + 0.16, 0]} rotation={[0, 0, s * 0.5]}>
+          <coneGeometry args={[0.07, 0.22, 4]} />
+          <meshStandardMaterial color="#d8b450" roughness={0.5} metalness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** A townhouse with real detail — stone plinth, plastered walls with timber
+ *  corner posts, a door, recessed windows and a swept tiled roof. Three
+ *  archetypes (cottage / merchant house / two-storey) chosen by hash. */
 function Dwelling({ x, z, seed }: { x: number; z: number; seed: number }) {
   const wall = HOUSE_WALL[seed % HOUSE_WALL.length];
   const roof = HOUSE_ROOF[(seed >> 3) % HOUSE_ROOF.length];
-  const w = 0.58 + (seed % 3) * 0.05;
-  const h = 0.38 + ((seed >> 2) % 3) * 0.08;
-  const rot = ((seed >> 4) % 4) * (Math.PI / 10);
+  const type = (seed >> 6) % 3;
+  const w = 0.6 + (seed % 3) * 0.06;
+  const bodyH = 0.4 + ((seed >> 2) % 3) * 0.08;
+  const rot = ((seed >> 4) % 4) * (Math.PI / 12);
+  const post = '#5a4530';
+  const front = w / 2 + 0.01;
   return (
     <group position={[x, 0, z]} rotation={[0, rot, 0]}>
-      <mesh position={[0, h / 2 + 0.1, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w, h, w]} />
-        <meshStandardMaterial color={wall} roughness={0.88} />
+      {/* Stone plinth */}
+      <mesh position={[0, 0.06, 0]} receiveShadow castShadow>
+        <boxGeometry args={[w + 0.18, 0.12, w + 0.18]} />
+        <meshStandardMaterial color="#8d8270" roughness={0.96} />
       </mesh>
-      <mesh position={[0, h + 0.16, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-        <coneGeometry args={[w * 0.8, 0.3, 4]} />
-        <meshStandardMaterial color={roof} roughness={0.82} />
+      {/* Plastered walls */}
+      <mesh position={[0, bodyH / 2 + 0.12, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w, bodyH, w]} />
+        <meshStandardMaterial color={wall} roughness={0.9} />
+      </mesh>
+      {/* Timber corner posts */}
+      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => (
+        <mesh key={i} position={[sx * w / 2, bodyH / 2 + 0.12, sz * w / 2]} castShadow>
+          <boxGeometry args={[0.06, bodyH, 0.06]} />
+          <meshStandardMaterial color={post} roughness={0.85} />
+        </mesh>
+      ))}
+      {/* Door + windows on the front face */}
+      <mesh position={[0, 0.29, front]}>
+        <boxGeometry args={[0.18, 0.34, 0.04]} />
+        <meshStandardMaterial color="#3d2817" roughness={0.8} />
+      </mesh>
+      <mesh position={[w * 0.28, bodyH * 0.66 + 0.12, front]}>
+        <boxGeometry args={[0.14, 0.14, 0.04]} />
+        <meshStandardMaterial color="#2a2018" roughness={0.6} />
+      </mesh>
+      {type >= 1 && (
+        <mesh position={[-w * 0.28, bodyH * 0.66 + 0.12, front]}>
+          <boxGeometry args={[0.14, 0.14, 0.04]} />
+          <meshStandardMaterial color="#2a2018" roughness={0.6} />
+        </mesh>
+      )}
+      {/* Lower roof */}
+      <group position={[0, bodyH + 0.12, 0]}>
+        <ChineseRoof3D size={w} color={roof} />
+      </group>
+      {/* Two-storey variant: a smaller upper box + its own roof */}
+      {type === 2 && (
+        <>
+          <mesh position={[0, bodyH + 0.42, 0]} castShadow receiveShadow>
+            <boxGeometry args={[w * 0.78, 0.42, w * 0.78]} />
+            <meshStandardMaterial color={wall} roughness={0.9} />
+          </mesh>
+          <mesh position={[0, bodyH + 0.42, w * 0.39 + 0.01]}>
+            <boxGeometry args={[0.13, 0.13, 0.04]} />
+            <meshStandardMaterial color="#2a2018" roughness={0.6} />
+          </mesh>
+          <group position={[0, bodyH + 0.64, 0]}>
+            <ChineseRoof3D size={w * 0.78} color={roof} />
+          </group>
+        </>
+      )}
+    </group>
+  );
+}
+
+/** A guardian stone lion (石獅) — base, crouching body, maned head, paw ball. */
+function StoneLion3D({ x, z, faceZ }: { x: number; z: number; faceZ: number }) {
+  const stone = '#b9b1a0';
+  return (
+    <group position={[x, 0, z]} rotation={[0, faceZ > 0 ? 0 : Math.PI, 0]}>
+      <mesh position={[0, 0.09, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.34, 0.18, 0.42]} />
+        <meshStandardMaterial color="#8f8775" roughness={0.95} />
+      </mesh>
+      {/* Haunches + chest */}
+      <mesh position={[0, 0.34, -0.06]} castShadow>
+        <boxGeometry args={[0.22, 0.34, 0.24]} />
+        <meshStandardMaterial color={stone} roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.46, 0.12]} castShadow>
+        <boxGeometry args={[0.2, 0.26, 0.18]} />
+        <meshStandardMaterial color={stone} roughness={0.9} />
+      </mesh>
+      {/* Maned head */}
+      <mesh position={[0, 0.62, 0.16]} castShadow>
+        <sphereGeometry args={[0.13, 10, 8]} />
+        <meshStandardMaterial color={stone} roughness={0.85} />
+      </mesh>
+      {/* Paw ball */}
+      <mesh position={[0, 0.12, 0.22]} castShadow>
+        <sphereGeometry args={[0.07, 8, 6]} />
+        <meshStandardMaterial color="#a89e88" roughness={0.85} />
       </mesh>
     </group>
   );
 }
 
-/** The seat of government — a larger labelled hall near the city centre. */
-function GovernmentHall3D({ x, z }: { x: number; z: number }) {
+/** A tall flagpole flying the force banner (opaque cloth). */
+function FlagPole3D({ x, z, color, h = 2.4 }: { x: number; z: number; color: string; h?: number }) {
   return (
     <group position={[x, 0, z]}>
-      {/* Paved plaza */}
-      <mesh position={[0, 0.06, 0]} receiveShadow>
-        <boxGeometry args={[3.4, 0.12, 3.4]} />
-        <meshStandardMaterial color="#9a8f78" roughness={0.95} />
+      <mesh position={[0, h / 2, 0]} castShadow>
+        <cylinderGeometry args={[0.035, 0.045, h, 6]} />
+        <meshStandardMaterial color="#2a2018" roughness={0.8} />
       </mesh>
-      {/* Hall on a stone podium */}
-      <mesh position={[0, 0.26, 0]} receiveShadow castShadow>
-        <boxGeometry args={[1.9, 0.3, 1.6]} />
+      <mesh position={[0, h - 0.02, 0]}>
+        <sphereGeometry args={[0.06, 8, 6]} />
+        <meshStandardMaterial color="#d4a84a" metalness={0.4} roughness={0.4} />
+      </mesh>
+      {/* Vertical hanging banner */}
+      <mesh position={[0.16, h - 0.5, 0]} castShadow>
+        <boxGeometry args={[0.26, 0.8, 0.03]} />
+        <meshStandardMaterial color={color} roughness={0.75} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+/** The seat of government — a grand double-eave hall on a stepped platform,
+ *  flanked by stone lions and banner poles. */
+function GovernmentHall3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
+  return (
+    <group position={[x, 0, z]}>
+      {/* Paved plaza with a border step */}
+      <mesh position={[0, 0.05, 0]} receiveShadow>
+        <boxGeometry args={[3.8, 0.1, 3.8]} />
+        <meshStandardMaterial color="#9a8f78" roughness={0.96} />
+      </mesh>
+      <mesh position={[0, 0.12, 0]} receiveShadow>
+        <boxGeometry args={[2.7, 0.08, 2.4]} />
+        <meshStandardMaterial color="#a89a72" roughness={0.95} />
+      </mesh>
+      {/* Stepped stone platform */}
+      <mesh position={[0, 0.2, 0]} receiveShadow castShadow>
+        <boxGeometry args={[2.2, 0.2, 1.9]} />
         <meshStandardMaterial color="#b0a078" roughness={0.9} />
       </mesh>
-      <mesh position={[0, 0.95, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.5, 1.0, 1.2]} />
-        <meshStandardMaterial color="#8a3030" roughness={0.7} />
+      <mesh position={[0, 0.36, 0]} receiveShadow castShadow>
+        <boxGeometry args={[1.95, 0.18, 1.65]} />
+        <meshStandardMaterial color="#bdac82" roughness={0.9} />
       </mesh>
-      {/* Red columns across the front */}
-      {[-0.6, -0.2, 0.2, 0.6].map((px, i) => (
-        <mesh key={i} position={[px, 0.95, 0.62]} castShadow>
+      {/* Front steps */}
+      <mesh position={[0, 0.16, 1.0]} receiveShadow>
+        <boxGeometry args={[0.9, 0.12, 0.3]} />
+        <meshStandardMaterial color="#a89a72" roughness={0.92} />
+      </mesh>
+      {/* Hall body */}
+      <mesh position={[0, 0.95, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.6, 1.0, 1.3]} />
+        <meshStandardMaterial color="#8a3030" roughness={0.68} />
+      </mesh>
+      {/* Red columns wrapping the front */}
+      {[-0.66, -0.22, 0.22, 0.66].map((px, i) => (
+        <mesh key={i} position={[px, 0.95, 0.68]} castShadow>
           <cylinderGeometry args={[0.07, 0.07, 1.0, 8]} />
           <meshStandardMaterial color="#a84838" roughness={0.6} />
         </mesh>
       ))}
-      {/* Sweeping roof + ridge */}
-      <mesh position={[0, 1.7, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-        <coneGeometry args={[1.35, 0.65, 4]} />
-        <meshStandardMaterial color="#2f3a48" roughness={0.7} metalness={0.2} />
+      {/* Name plaque (匾額) over the doorway */}
+      <mesh position={[0, 1.28, 0.69]} castShadow>
+        <boxGeometry args={[0.7, 0.24, 0.05]} />
+        <meshStandardMaterial color="#3a2414" roughness={0.7} />
       </mesh>
-      <Html position={[0, 2.3, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+      <mesh position={[0, 1.28, 0.72]}>
+        <boxGeometry args={[0.6, 0.16, 0.02]} />
+        <meshStandardMaterial color="#caa24a" emissive="#6a4f18" emissiveIntensity={0.3} roughness={0.5} />
+      </mesh>
+      {/* Double-eave roof (重檐) */}
+      <group position={[0, 1.45, 0]}>
+        <ChineseRoof3D size={1.7} color="#2f3a48" ornament />
+      </group>
+      <group position={[0, 1.95, 0]}>
+        <ChineseRoof3D size={1.15} color="#2f3a48" ornament />
+      </group>
+      {/* Guardian lions + banner poles flanking the steps */}
+      <StoneLion3D x={-0.7} z={1.15} faceZ={1} />
+      <StoneLion3D x={0.7} z={1.15} faceZ={1} />
+      <FlagPole3D x={-1.5} z={1.4} color={bannerColor} />
+      <FlagPole3D x={1.5} z={1.4} color={bannerColor} />
+      <Html position={[0, 2.7, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{ background: 'rgba(20,14,8,0.85)', border: '1px solid #d4a84a', padding: '1px 6px', fontFamily: 'Songti SC, serif', fontSize: '11px', color: '#f0d98a', borderRadius: 2, whiteSpace: 'nowrap' }}>
           府衙
         </div>
@@ -394,23 +609,45 @@ function GovernmentHall3D({ x, z }: { x: number; z: number }) {
   );
 }
 
-/** A stylised low-poly garden tree — trunk + two leafy blobs. */
+/** A stylised low-poly garden tree — leafy, blossom or pine by hash. */
 function GardenTree3D({ x, z, seed }: { x: number; z: number; seed: number }) {
   const s = 0.82 + (seed % 4) * 0.08;
-  const green = ['#3f6a32', '#4a7a3a', '#356030', '#52803f'][(seed >> 2) % 4];
+  const type = (seed >> 5) % 5; // 0-2 leafy, 3 blossom, 4 pine
+  const trunk = (
+    <mesh position={[0, 0.35, 0]} castShadow>
+      <cylinderGeometry args={[0.09, 0.13, 0.7, 6]} />
+      <meshStandardMaterial color="#5a3f28" roughness={0.9} />
+    </mesh>
+  );
+  if (type === 4) {
+    // Pine — three stacked cones.
+    return (
+      <group position={[x, 0, z]} scale={[s, s, s]}>
+        {trunk}
+        {[[0.7, 0.55], [1.05, 0.42], [1.35, 0.3]].map(([y, r], i) => (
+          <mesh key={i} position={[0, y, 0]} castShadow>
+            <coneGeometry args={[r, 0.5, 7]} />
+            <meshStandardMaterial color="#2f5530" roughness={0.85} flatShading />
+          </mesh>
+        ))}
+      </group>
+    );
+  }
+  const canopy = type === 3 ? '#e6a8c8' : ['#3f6a32', '#4a7a3a', '#356030'][(seed >> 2) % 3];
   return (
     <group position={[x, 0, z]} scale={[s, s, s]}>
-      <mesh position={[0, 0.35, 0]} castShadow>
-        <cylinderGeometry args={[0.09, 0.13, 0.7, 6]} />
-        <meshStandardMaterial color="#5a3f28" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0.95, 0]} castShadow>
+      {trunk}
+      <mesh position={[0, 0.98, 0]} castShadow>
         <icosahedronGeometry args={[0.5, 0]} />
-        <meshStandardMaterial color={green} roughness={0.85} flatShading />
+        <meshStandardMaterial color={canopy} roughness={0.85} flatShading />
       </mesh>
-      <mesh position={[0.18, 0.74, 0.08]} castShadow>
+      <mesh position={[0.2, 0.76, 0.08]} castShadow>
         <icosahedronGeometry args={[0.32, 0]} />
-        <meshStandardMaterial color={green} roughness={0.85} flatShading />
+        <meshStandardMaterial color={canopy} roughness={0.85} flatShading />
+      </mesh>
+      <mesh position={[-0.18, 0.78, -0.1]} castShadow>
+        <icosahedronGeometry args={[0.28, 0]} />
+        <meshStandardMaterial color={shade(canopy, 0.9)} roughness={0.85} flatShading />
       </mesh>
     </group>
   );
@@ -474,11 +711,183 @@ function MarketStall3D({ x, z, seed }: { x: number; z: number; seed: number }) {
   );
 }
 
+/* ─── Street life — villagers, props, water features ─────────────────── */
+const ROBE = ['#b8442e', '#3a6a98', '#5a8a3a', '#8a6a40', '#7a4a8a', '#c2a23a', '#4a6a6a', '#a85838'];
+const FLOWER = ['#d24a6a', '#e0a83a', '#c85ad0', '#e85a3a', '#f0d040', '#e86aa0'];
+
+/** A tiny townsfolk figure — robe, head, conical hat or topknot. Static. */
+function Villager3D({ x, z, seed }: { x: number; z: number; seed: number }) {
+  const robe = ROBE[seed % ROBE.length];
+  const rot = (seed % 8) * (Math.PI / 4);
+  const hat = (seed >> 3) % 2 === 0;
+  return (
+    <group position={[x, 0, z]} rotation={[0, rot, 0]}>
+      <mesh position={[0, 0.17, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.13, 0.34, 7]} />
+        <meshStandardMaterial color={robe} roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <sphereGeometry args={[0.07, 8, 7]} />
+        <meshStandardMaterial color="#e6c39a" roughness={0.8} />
+      </mesh>
+      {hat ? (
+        <mesh position={[0, 0.47, 0]} castShadow>
+          <coneGeometry args={[0.12, 0.1, 10]} />
+          <meshStandardMaterial color="#9a8050" roughness={0.8} />
+        </mesh>
+      ) : (
+        <mesh position={[0, 0.46, 0]}>
+          <sphereGeometry args={[0.035, 6, 5]} />
+          <meshStandardMaterial color="#2a2018" />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+/** A stone well with a little tiled roof and a bucket. */
+function Well3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.19, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.34, 0.37, 0.38, 8]} />
+        <meshStandardMaterial color="#8f8775" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 0.32, 0]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.05, 8]} />
+        <meshStandardMaterial color="#1f3a4a" roughness={0.3} metalness={0.4} />
+      </mesh>
+      {[-0.3, 0.3].map((px, i) => (
+        <mesh key={i} position={[px, 0.62, 0]} castShadow>
+          <boxGeometry args={[0.05, 0.78, 0.05]} />
+          <meshStandardMaterial color="#5a4530" roughness={0.85} />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.0, 0]} castShadow>
+        <boxGeometry args={[0.78, 0.06, 0.34]} />
+        <meshStandardMaterial color="#4a3520" />
+      </mesh>
+      <group position={[0, 1.04, 0]}><ChineseRoof3D size={0.5} color="#39444f" /></group>
+      <mesh position={[0, 0.72, 0]} castShadow>
+        <cylinderGeometry args={[0.06, 0.05, 0.11, 7]} />
+        <meshStandardMaterial color="#6e5230" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+/** A two-wheeled handcart loaded with goods. */
+function Cart3D({ x, z, seed }: { x: number; z: number; seed: number }) {
+  const rot = (seed % 4) * (Math.PI / 5);
+  return (
+    <group position={[x, 0, z]} rotation={[0, rot, 0]}>
+      <mesh position={[0, 0.3, 0]} castShadow>
+        <boxGeometry args={[0.72, 0.16, 0.46]} />
+        <meshStandardMaterial color="#7a5a38" roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 0.47, 0]} castShadow>
+        <boxGeometry args={[0.5, 0.2, 0.34]} />
+        <meshStandardMaterial color="#c2a060" roughness={0.8} />
+      </mesh>
+      {[-0.24, 0.24].map((pz, i) => (
+        <mesh key={i} position={[-0.28, 0.18, pz]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.18, 0.18, 0.05, 12]} />
+          <meshStandardMaterial color="#3a2818" roughness={0.85} />
+        </mesh>
+      ))}
+      {[-0.16, 0.16].map((pz, i) => (
+        <mesh key={`h${i}`} position={[0.42, 0.34, pz]} rotation={[0, 0, 0.22]}>
+          <boxGeometry args={[0.42, 0.03, 0.03]} />
+          <meshStandardMaterial color="#5a4530" />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** A glowing brazier (opaque emissive coals — no transparency). */
+function Brazier3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      {[[-0.1, -0.1], [0.1, -0.1], [-0.1, 0.1], [0.1, 0.1]].map(([px, pz], i) => (
+        <mesh key={i} position={[px, 0.18, pz]}>
+          <cylinderGeometry args={[0.022, 0.022, 0.36, 5]} />
+          <meshStandardMaterial color="#2a1d12" />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <cylinderGeometry args={[0.18, 0.13, 0.16, 10]} />
+        <meshStandardMaterial color="#3a2a1a" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.47, 0]}>
+        <cylinderGeometry args={[0.14, 0.14, 0.05, 10]} />
+        <meshStandardMaterial color="#e0641e" emissive="#ff7a1e" emissiveIntensity={1.1} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 0.58, 0]}>
+        <coneGeometry args={[0.08, 0.2, 7]} />
+        <meshStandardMaterial color="#ffb43a" emissive="#ff8a1e" emissiveIntensity={1.2} />
+      </mesh>
+    </group>
+  );
+}
+
+/** A raised flower bed — soil box, greenery and bright blossoms. */
+function FlowerBed3D({ x, z, seed }: { x: number; z: number; seed: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.07, 0]} receiveShadow castShadow>
+        <boxGeometry args={[0.72, 0.14, 0.5]} />
+        <meshStandardMaterial color="#5a4028" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 0.15, 0]}>
+        <boxGeometry args={[0.62, 0.04, 0.4]} />
+        <meshStandardMaterial color="#3f6a32" roughness={0.9} />
+      </mesh>
+      {[[-0.2, -0.1], [0, 0.08], [0.2, -0.06], [-0.08, -0.13], [0.13, 0.11]].map(([px, pz], i) => (
+        <mesh key={i} position={[px, 0.22, pz]} castShadow>
+          <sphereGeometry args={[0.05, 6, 5]} />
+          <meshStandardMaterial color={FLOWER[(seed + i) % FLOWER.length]} roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** An arched stone bridge spanning the moat outside the gate. */
+function StoneBridge3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.16, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.1, 0.18, 2.6]} />
+        <meshStandardMaterial color="#9a8f78" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.1, 0.14, 1.1]} />
+        <meshStandardMaterial color="#a89a78" roughness={0.95} />
+      </mesh>
+      {[-0.52, 0.52].map((px, i) => (
+        <mesh key={i} position={[px, 0.4, 0]} castShadow>
+          <boxGeometry args={[0.1, 0.3, 2.5]} />
+          <meshStandardMaterial color="#8f8472" roughness={0.92} />
+        </mesh>
+      ))}
+      {/* Support pillars dipping into the moat */}
+      {[-0.8, 0.8].map((pz, i) => (
+        <mesh key={`p${i}`} position={[0, -0.1, pz]} castShadow>
+          <boxGeometry args={[0.9, 0.5, 0.16]} />
+          <meshStandardMaterial color="#7e7460" roughness={0.95} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 /** Scatter dwellings across the inside-city land, leaving gaps for streets. */
-function CityDwellings3D({ preview, cityWallCol, occupied }: {
+function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
   preview: ReturnType<typeof previewBattlefield>;
   cityWallCol: number;
   occupied: Set<string>;
+  bannerColor: string;
 }) {
   // A small market cluster near the centre — reserved before houses so nothing
   // overlaps it.
@@ -498,28 +907,39 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
     return out;
   }, [preview.width, preview.height, cityWallCol, occupied]);
 
-  const { houses, trees, paths } = useMemo(() => {
+  const { houses, trees, paths, villagers, flowers, avenue } = useMemo(() => {
     const houses: Array<{ x: number; z: number; seed: number; key: string }> = [];
     const trees: Array<{ x: number; z: number; seed: number; key: string }> = [];
     const paths: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    const villagers: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    const flowers: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    const avenue: Array<{ x: number; z: number; key: string }> = [];
     const marketKeys = new Set(market.map((m) => m.key));
     const W = preview.width, H = preview.height;
+    // Main avenue straight in from the south gate — paved, kept clear of houses.
+    const gateCol = Math.floor(W / 2);
+    const avenueKeys = new Set<string>();
+    for (let r = 1; r <= H - 2; r++) avenueKeys.add(`${gateCol},${r}`);
     for (const tile of preview.tiles) {
       const { col, row } = tile.coord;
       // Strictly inside the perimeter wall ring.
       if (col < 1 || col >= W - 1 || row < 1 || row >= H - 1) continue;
       if (NO_BUILD_TERRAIN.has(tile.terrain as string)) continue;
       const key = `${col},${row}`;
-      if (occupied.has(key) || marketKeys.has(key)) continue; // slots / buildings / market
+      if (occupied.has(key)) continue; // slots / buildings / foundations
+      const [x, z] = hexWorld(col, row);
+      if (avenueKeys.has(key)) { avenue.push({ x, z, key }); continue; } // main road
+      if (marketKeys.has(key)) continue;
       const seed = dwellingHash(col, row);
       const bucket = seed % 100;
-      const [x, z] = hexWorld(col, row);
-      if (bucket < 24 && paths.length < 34) paths.push({ x, z, seed, key });        // ~24% paved street
-      else if (bucket < 62 && houses.length < 32) houses.push({ x, z, seed, key }); // ~38% houses
-      else if (bucket < 82 && trees.length < 15) trees.push({ x, z, seed, key });   // ~20% gardens
-      // remaining ~18% stays open ground
+      if (bucket < 23 && paths.length < 34) paths.push({ x, z, seed, key });            // paved street
+      else if (bucket < 56 && houses.length < 30) houses.push({ x, z, seed, key });     // houses
+      else if (bucket < 73 && trees.length < 16) trees.push({ x, z, seed, key });       // gardens
+      else if (bucket < 88 && villagers.length < 16) villagers.push({ x, z, seed, key }); // townsfolk
+      else if (bucket < 95 && flowers.length < 9) flowers.push({ x, z, seed, key });    // flower beds
+      // remainder stays open ground
     }
-    return { houses, trees, paths };
+    return { houses, trees, paths, villagers, flowers, avenue };
   }, [preview, occupied, market]);
 
   const hall = useMemo(() => {
@@ -545,14 +965,42 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
     });
   }, [preview.width, preview.height, cityWallCol]);
 
+  // Hero props clustered around the civic centre + market.
+  const props = useMemo(() => {
+    const braziers = [
+      { x: hall.x - 1.8, z: hall.z + 1.8 },
+      { x: hall.x + 1.8, z: hall.z + 1.8 },
+    ];
+    const m0 = market[0];
+    const well = m0 ? { x: m0.x - 1.3, z: m0.z + 1.0 } : { x: hall.x + 2.6, z: hall.z + 1.7 };
+    const cart = m0 ? { x: m0.x + 1.5, z: m0.z + 0.5, seed: m0.seed >> 1 } : null;
+    const folk = market.slice(0, 4).map((m, i) => ({
+      x: m.x + (i % 2 ? 0.72 : -0.72), z: m.z - 0.72, seed: (m.seed >> 2) + i * 7,
+    }));
+    return { braziers, well, cart, folk };
+  }, [hall, market]);
+
   return (
     <>
+      {/* Main avenue first so other paving/props sit on top of it */}
+      {avenue.map((a) => (
+        <mesh key={`av-${a.key}`} position={[a.x, 0.045, a.z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <boxGeometry args={[1.46, 1.46, 0.07]} />
+          <meshStandardMaterial color="#a89c84" roughness={0.97} />
+        </mesh>
+      ))}
       {paths.map((p) => <StonePath3D key={`pa-${p.key}`} x={p.x} z={p.z} seed={p.seed} />)}
+      {flowers.map((f) => <FlowerBed3D key={`fb-${f.key}`} x={f.x} z={f.z} seed={f.seed} />)}
       {houses.map((h) => <Dwelling key={`dw-${h.key}`} x={h.x} z={h.z} seed={h.seed} />)}
       {trees.map((tr) => <GardenTree3D key={`tr-${tr.key}`} x={tr.x} z={tr.z} seed={tr.seed} />)}
       {market.map((m) => <MarketStall3D key={`mk-${m.key}`} x={m.x} z={m.z} seed={m.seed} />)}
+      {villagers.map((v) => <Villager3D key={`vl-${v.key}`} x={v.x} z={v.z} seed={v.seed} />)}
+      {props.folk.map((v, i) => <Villager3D key={`mf-${i}`} x={v.x} z={v.z} seed={v.seed} />)}
+      {props.cart && <Cart3D x={props.cart.x} z={props.cart.z} seed={props.cart.seed} />}
+      <Well3D x={props.well.x} z={props.well.z} />
+      {props.braziers.map((b, i) => <Brazier3D key={`bz-${i}`} x={b.x} z={b.z} />)}
       {lanterns.map((l) => <Lantern3D key={`ln-${l.key}`} x={l.x} z={l.z} />)}
-      <GovernmentHall3D x={hall.x} z={hall.z} />
+      <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
     </>
   );
 }
@@ -665,6 +1113,8 @@ function CityScene({
               return <CornerTower3D key={`tower-${c}`} x={x} z={z} bannerColor={bannerColor} />;
             })}
             <CityGate3D x={gx} z={gz} bannerColor={bannerColor} />
+            {/* Stone bridge crossing the moat out from the gate */}
+            <StoneBridge3D x={gx} z={gz + 2.1} />
           </>
         );
       })()}
@@ -701,7 +1151,7 @@ function CityScene({
       })}
 
       {/* Living-city dwellings + central 府衙 (cosmetic) */}
-      <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} />
+      <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} bannerColor={bannerColor} />
 
       {/* Inside-city buildings */}
       {buildings.map((b) => (
