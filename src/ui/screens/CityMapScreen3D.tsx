@@ -1022,6 +1022,90 @@ function WallBanner3D({ x, z, color }: { x: number; z: number; color: string }) 
   );
 }
 
+/** A 牌坊 memorial archway straddling the main avenue. */
+function Paifang3D({ x, z }: { x: number; z: number }) {
+  const pillars = [-1.1, -0.4, 0.4, 1.1];
+  return (
+    <group position={[x, 0, z]}>
+      {pillars.map((px, i) => (
+        <group key={i}>
+          <mesh position={[px, 0.13, 0]} castShadow receiveShadow>
+            <boxGeometry args={[0.3, 0.26, 0.34]} />
+            <meshStandardMaterial color="#8f8472" roughness={0.92} />
+          </mesh>
+          <mesh position={[px, 1.05, 0]} castShadow>
+            <boxGeometry args={[0.16, 1.9, 0.16]} />
+            <meshStandardMaterial color="#9c3a30" roughness={0.7} />
+          </mesh>
+        </group>
+      ))}
+      {/* Lintels */}
+      <mesh position={[0, 1.68, 0]} castShadow>
+        <boxGeometry args={[2.5, 0.13, 0.2]} />
+        <meshStandardMaterial color="#a84838" roughness={0.65} />
+      </mesh>
+      <mesh position={[0, 2.02, 0]} castShadow>
+        <boxGeometry args={[2.5, 0.22, 0.24]} />
+        <meshStandardMaterial color="#7a2820" roughness={0.7} />
+      </mesh>
+      {/* Gilded plaque */}
+      <mesh position={[0, 1.86, 0.04]}>
+        <boxGeometry args={[0.72, 0.26, 0.05]} />
+        <meshStandardMaterial color="#caa24a" emissive="#5a4010" emissiveIntensity={0.3} roughness={0.5} />
+      </mesh>
+      {/* Tiered roofs — tall centre, lower sides */}
+      <group position={[0, 2.28, 0]}><ChineseRoof3D size={1.05} color="#2f3a48" ornament beasts /></group>
+      <group position={[-1.1, 1.95, 0]}><ChineseRoof3D size={0.5} color="#2f3a48" /></group>
+      <group position={[1.1, 1.95, 0]}><ChineseRoof3D size={0.5} color="#2f3a48" /></group>
+    </group>
+  );
+}
+
+/** A 鼓樓 drum tower — stone arch base, a great red drum, double-eave roof. */
+function DrumTower3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      {/* Stone base with an arched passage */}
+      <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.6, 1.0, 1.6]} />
+        <meshStandardMaterial color="#9a8f78" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 0.44, 0.81]}>
+        <boxGeometry args={[0.5, 0.72, 0.05]} />
+        <meshStandardMaterial color="#241c14" roughness={0.6} />
+      </mesh>
+      {/* Upper pavilion */}
+      <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.3, 0.9, 1.3]} />
+        <meshStandardMaterial color="#9c3a30" roughness={0.7} />
+      </mesh>
+      {[-0.5, -0.17, 0.17, 0.5].map((px, i) => (
+        <mesh key={i} position={[px, 1.5, 0.66]} castShadow>
+          <cylinderGeometry args={[0.05, 0.05, 0.9, 7]} />
+          <meshStandardMaterial color="#a84838" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* The great drum */}
+      <mesh position={[0, 1.5, 0.42]} rotation={[0, 0, Math.PI / 2]} castShadow>
+        <cylinderGeometry args={[0.3, 0.3, 0.34, 16]} />
+        <meshStandardMaterial color="#b83020" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 1.5, 0.42]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.31, 0.31, 0.1, 16]} />
+        <meshStandardMaterial color="#e0c060" metalness={0.4} roughness={0.4} />
+      </mesh>
+      {/* Double-eave roof */}
+      <group position={[0, 2.0, 0]}><ChineseRoof3D size={1.45} color="#2f3a48" ornament beasts /></group>
+      <group position={[0, 2.45, 0]}><ChineseRoof3D size={0.95} color="#2f3a48" ornament /></group>
+      <Html position={[0, 3.0, 0]} center distanceFactor={11} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
+          鼓樓
+        </div>
+      </Html>
+    </group>
+  );
+}
+
 /** Scatter dwellings across the inside-city land, leaving gaps for streets. */
 function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
   preview: ReturnType<typeof previewBattlefield>;
@@ -1046,6 +1130,21 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     }
     return out;
   }, [preview.width, preview.height, cityWallCol, occupied]);
+
+  // Twin landmark towers in the back corners — 鼓樓 left, 寶塔 right. Their
+  // footprints (and a one-tile margin) are kept clear of houses.
+  const landmarks = useMemo(() => {
+    const W = preview.width;
+    const pagodaCell = { col: Math.max(3, W - 4), row: 3 };
+    const drumCell = { col: 3, row: 3 };
+    const keys = new Set<string>();
+    for (const c of [pagodaCell, drumCell]) {
+      for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${c.col + dc},${c.row + dr}`);
+    }
+    const [px, pz] = hexWorld(pagodaCell.col, pagodaCell.row);
+    const [dx, dz] = hexWorld(drumCell.col, drumCell.row);
+    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz } };
+  }, [preview.width, preview.height]);
 
   const { houses, trees, paths, villagers, flowers, avenue, grass } = useMemo(() => {
     const houses: Array<{ x: number; z: number; seed: number; key: string }> = [];
@@ -1072,6 +1171,8 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     const gateCol = Math.floor(W / 2);
     const avenueKeys = new Set<string>();
     for (let r = 1; r <= H - 2; r++) avenueKeys.add(`${gateCol},${r}`);
+    // A planned street grid: streets run along every 3rd col/row, leaving 2×2
+    // block interiors for houses, gardens and the player's foundations.
     for (const tile of preview.tiles) {
       const { col, row } = tile.coord;
       // Strictly inside the perimeter wall ring.
@@ -1079,20 +1180,26 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       if (NO_BUILD_TERRAIN.has(tile.terrain as string)) continue;
       const key = `${col},${row}`;
       if (occupied.has(key)) continue; // slots / buildings / foundations
+      if (landmarks.keys.has(key)) continue; // pagoda / drum-tower footprints
       const [x, z] = hexWorld(col, row);
       if (avenueKeys.has(key)) { avenue.push({ x, z, key }); continue; } // main road
       if (marketKeys.has(key)) continue;
       const seed = dwellingHash(col, row);
+      // Grid streets (paved); foundations live at col%3===2 so never clash.
+      if (col % 3 === 0 || row % 3 === 0) {
+        if (paths.length < 130) paths.push({ x, z, seed, key });
+        continue;
+      }
+      // Block interior — mostly housing, with garden / townsfolk / flower beds.
       const bucket = seed % 100;
-      if (bucket < 23 && paths.length < 34) paths.push({ x, z, seed, key });            // paved street
-      else if (bucket < 56 && houses.length < 30) houses.push({ x, z, seed, key });     // houses
-      else if (bucket < 73 && trees.length < 16) { trees.push({ x, z, seed, key }); sow(x, z, seed); } // gardens
-      else if (bucket < 88 && villagers.length < 16) { villagers.push({ x, z, seed, key }); sow(x, z, seed); } // townsfolk
-      else if (bucket < 95 && flowers.length < 9) flowers.push({ x, z, seed, key });    // flower beds
-      else sow(x, z, seed);                                                              // open ground → grass
+      if (bucket < 60 && houses.length < 36) houses.push({ x, z, seed, key });          // houses
+      else if (bucket < 78 && trees.length < 18) { trees.push({ x, z, seed, key }); sow(x, z, seed); } // gardens
+      else if (bucket < 90 && villagers.length < 20) { villagers.push({ x, z, seed, key }); sow(x, z, seed); } // townsfolk
+      else if (flowers.length < 12) flowers.push({ x, z, seed, key });                  // flower beds
+      else sow(x, z, seed);                                                              // courtyard grass
     }
     return { houses, trees, paths, villagers, flowers, avenue, grass };
-  }, [preview, occupied, market]);
+  }, [preview, occupied, market, landmarks]);
 
   const hall = useMemo(() => {
     const col = Math.max(1, Math.round(cityWallCol * 0.42));
@@ -1129,10 +1236,9 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     const folk = market.slice(0, 4).map((m, i) => ({
       x: m.x + (i % 2 ? 0.72 : -0.72), z: m.z - 0.72, seed: (m.seed >> 2) + i * 7,
     }));
-    // Pagoda landmark in a back corner, clear of the plot grid.
-    const W = preview.width;
-    const [pgx, pgz] = hexWorld(Math.max(3, W - 4), 3);
-    const pagoda = { x: pgx, z: pgz };
+    // 牌坊 archway a few tiles in from the gate, straddling the avenue.
+    const avSorted = [...avenue].sort((a, b) => b.z - a.z);
+    const paifang = avSorted[2] ?? avSorted[avSorted.length - 1] ?? null;
     // Lanterns lining the main avenue (every other tile, both sides).
     const avenueLanterns: Array<{ x: number; z: number }> = [];
     avenue.forEach((a, i) => {
@@ -1141,8 +1247,8 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
         avenueLanterns.push({ x: a.x + 0.92, z: a.z });
       }
     });
-    return { braziers, well, cart, folk, pagoda, avenueLanterns };
-  }, [hall, market, preview.width, preview.height, avenue]);
+    return { braziers, well, cart, folk, paifang, avenueLanterns };
+  }, [hall, market, avenue]);
 
   return (
     <>
@@ -1166,7 +1272,9 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       {props.braziers.map((b, i) => <Brazier3D key={`bz-${i}`} x={b.x} z={b.z} />)}
       {lanterns.map((l) => <Lantern3D key={`ln-${l.key}`} x={l.x} z={l.z} />)}
       {props.avenueLanterns.map((l, i) => <Lantern3D key={`al-${i}`} x={l.x} z={l.z} />)}
-      <Pagoda3D x={props.pagoda.x} z={props.pagoda.z} />
+      {props.paifang && <Paifang3D x={props.paifang.x} z={props.paifang.z} />}
+      <Pagoda3D x={landmarks.pagoda.x} z={landmarks.pagoda.z} />
+      <DrumTower3D x={landmarks.drum.x} z={landmarks.drum.z} />
       <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
     </>
   );
