@@ -731,69 +731,6 @@ function Ocean() {
   );
 }
 
-/* ─── Drifting clouds + cloud shadows ─────────────────────────── */
-/** A soft blobby cloud sprite drawn once on a canvas (white, alpha-faded). */
-function makePuffTexture(): THREE.Texture {
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = 128;
-  const x = cv.getContext('2d')!;
-  for (const [cx, cy, r] of [[64, 72, 42], [44, 64, 30], [84, 64, 30], [64, 52, 34]] as const) {
-    const g = x.createRadialGradient(cx, cy, 2, cx, cy, r);
-    g.addColorStop(0, 'rgba(255,255,255,0.85)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = g;
-    x.fillRect(0, 0, 128, 128);
-  }
-  const tex = new THREE.CanvasTexture(cv);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-// Fixed cloud layout (deterministic): [x, z, y, size, speed].
-const CLOUD_LAYOUT: Array<[number, number, number, number, number]> = [
-  [-26, -9, 10, 10, 0.55], [-8, -13, 11, 8, 0.42], [10, -6, 9.5, 9, 0.62],
-  [26, 3, 10.5, 8.5, 0.5], [-18, 7, 9.8, 9.5, 0.58], [2, 11, 11.2, 7.5, 0.46],
-  [20, 12, 10, 8, 0.66], [-2, 0, 10.8, 8, 0.4],
-];
-
-/** A drifting cloud layer high over the map, each puff trailing a soft shadow
- *  on the land below. Clouds slide west-to-east and wrap; shadows track them
- *  (and are simply occluded where mountains rise above them). */
-function SkyClouds() {
-  const tex = useMemo(makePuffTexture, []);
-  const cloudRefs = useRef<(THREE.Mesh | null)[]>([]);
-  const shadowRefs = useRef<(THREE.Mesh | null)[]>([]);
-  const bound = MAP_W * 0.85;
-  useFrame((_, dt) => {
-    const step = Math.min(dt, 0.05);
-    for (let i = 0; i < CLOUD_LAYOUT.length; i++) {
-      const cm = cloudRefs.current[i];
-      const sm = shadowRefs.current[i];
-      if (cm) {
-        cm.position.x += CLOUD_LAYOUT[i][4] * step;
-        if (cm.position.x > bound) cm.position.x = -bound;
-        if (sm) sm.position.x = cm.position.x;
-      }
-    }
-  });
-  return (
-    <group>
-      {CLOUD_LAYOUT.map(([x, z, y, size], i) => (
-        <mesh key={`cl${i}`} ref={(m) => { cloudRefs.current[i] = m; }} position={[x, y, z]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[size, size]} />
-          <meshBasicMaterial map={tex} transparent opacity={0.3} depthWrite={false} color="#eef2f8" />
-        </mesh>
-      ))}
-      {CLOUD_LAYOUT.map(([x, z, , size], i) => (
-        <mesh key={`sh${i}`} ref={(m) => { shadowRefs.current[i] = m; }} position={[x, 0.12, z]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[size * 0.85, size * 0.85]} />
-          <meshBasicMaterial map={tex} transparent opacity={0.13} depthWrite={false} color="#000000" />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
 /* ─── Render rivers as visible blue ribbons on top of terrain ─── */
 function RiverRibbons() {
   const ribbons = useMemo(() => {
@@ -2267,7 +2204,6 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       <Ocean />
       <RiverRibbons />
       <Forest3D />
-      <SkyClouds />
 
       <Roads cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} />
