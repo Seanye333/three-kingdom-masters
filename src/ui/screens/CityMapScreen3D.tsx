@@ -1037,6 +1037,90 @@ function StoneBridge3D({ x, z }: { x: number; z: number }) {
   );
 }
 
+/** A 水門 water gate set into a wall — twin piers, an arch lintel, a raised
+ *  portcullis and a little gatehouse, opening the wall to the moat. The wall
+ *  runs along z here, so boats pass through along x. */
+function WaterGate3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
+  return (
+    <group position={[x, 0, z]}>
+      {[-0.78, 0.78].map((pz, i) => (
+        <mesh key={i} position={[0, 0.8, pz]} castShadow receiveShadow>
+          <boxGeometry args={[1.5, 1.6, 0.45]} />
+          <meshStandardMaterial color="#6a5540" roughness={0.92} />
+        </mesh>
+      ))}
+      {/* Arch lintel spanning the opening */}
+      <mesh position={[0, 1.55, 0]} castShadow>
+        <boxGeometry args={[1.6, 0.5, 1.5]} />
+        <meshStandardMaterial color="#7a6550" roughness={0.9} />
+      </mesh>
+      {/* Raised portcullis bars */}
+      {[-0.45, -0.15, 0.15, 0.45].map((pz, i) => (
+        <mesh key={`b${i}`} position={[0, 0.95, pz]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.9, 6]} />
+          <meshStandardMaterial color="#3a2a1a" roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Gatehouse + swept roof */}
+      <mesh position={[0, 2.0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.4, 0.55, 1.0]} />
+        <meshStandardMaterial color="#8a6a40" roughness={0.8} />
+      </mesh>
+      <group position={[0, 2.35, 0]}><ChineseRoof3D size={1.4} color="#2f3a48" ornament /></group>
+      <mesh position={[0, 3.0, 0]} castShadow>
+        <cylinderGeometry args={[0.03, 0.03, 0.6, 6]} />
+        <meshStandardMaterial color="#1a1410" />
+      </mesh>
+      <group position={[0, 3.12, 0]}>
+        <Banner3D color={bannerColor} w={0.3} h={0.3} phase={x + z} faceX={0.15} />
+      </group>
+    </group>
+  );
+}
+
+/** A timber wharf reaching out over the moat — plank deck on pilings, moored
+ *  cargo boats, crates and barrels, and a couple of dockhands. Extends +x. */
+function Dock3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      {/* Plank deck */}
+      <mesh position={[1.7, 0.18, 0]} castShadow receiveShadow>
+        <boxGeometry args={[3.2, 0.12, 1.1]} />
+        <meshStandardMaterial color="#7a5e38" roughness={0.85} />
+      </mesh>
+      {/* Pilings into the water */}
+      {[0.4, 1.5, 2.6].flatMap((px) => [-0.42, 0.42].map((pz) => (
+        <mesh key={`pl-${px}-${pz}`} position={[px, -0.12, pz]} castShadow>
+          <cylinderGeometry args={[0.06, 0.06, 0.7, 6]} />
+          <meshStandardMaterial color="#4a3520" roughness={0.9} />
+        </mesh>
+      )))}
+      {/* Cargo */}
+      <mesh position={[0.55, 0.4, 0.24]} castShadow>
+        <boxGeometry args={[0.34, 0.3, 0.34]} />
+        <meshStandardMaterial color="#9a7040" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.92, 0.36, -0.26]} castShadow>
+        <boxGeometry args={[0.3, 0.26, 0.3]} />
+        <meshStandardMaterial color="#8a6038" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.62, 0.72, 0.2]} castShadow>
+        <boxGeometry args={[0.28, 0.24, 0.28]} />
+        <meshStandardMaterial color="#a87a48" roughness={0.85} />
+      </mesh>
+      <mesh position={[1.4, 0.4, 0.3]} castShadow>
+        <cylinderGeometry args={[0.14, 0.14, 0.36, 10]} />
+        <meshStandardMaterial color="#6a4a28" roughness={0.85} />
+      </mesh>
+      {/* Moored boats alongside (they bob) + dockhands */}
+      <SmallBoat3D x={2.7} z={1.0} seed={2.1} />
+      <SmallBoat3D x={1.9} z={-1.05} seed={4.3} />
+      <Villager3D x={0.7} z={0.05} seed={42} />
+      <Villager3D x={1.7} z={0.12} seed={71} />
+    </group>
+  );
+}
+
 /** Hundreds of grass tufts in one draw call (instanced) — ground texture on
  *  the open earth; in winter they become low snow mounds. */
 function GrassTufts3D({ tufts }: { tufts: Array<{ x: number; z: number; s: number; r: number; c: string }> }) {
@@ -1723,19 +1807,23 @@ function CityScene({
       {(() => {
         const W = preview.width, H = preview.height;
         const gateCol = Math.floor(W / 2), gateRow = H - 1;
+        // 水門 on the east wall, opening to the moat where the wharf sits.
+        const waterCol = W - 1, waterRow = Math.max(1, Math.min(H - 2, Math.round(H * 0.38)));
+        const isWater = (s: { col: number; row: number }) => s.col === waterCol && s.row === waterRow;
         const corners = new Set([`0,0`, `${W - 1},0`, `0,${H - 1}`, `${W - 1},${H - 1}`]);
         const segs: Array<{ col: number; row: number }> = [];
         for (let c = 0; c < W; c++) { segs.push({ col: c, row: 0 }); segs.push({ col: c, row: H - 1 }); }
         for (let r = 1; r < H - 1; r++) { segs.push({ col: 0, row: r }); segs.push({ col: W - 1, row: r }); }
         const [gx, gz] = hexWorld(gateCol, gateRow);
+        const [wx, wz] = hexWorld(waterCol, waterRow);
         return (
           <>
-            {segs.filter((s) => !(s.col === gateCol && s.row === gateRow) && !corners.has(`${s.col},${s.row}`)).map((s) => {
+            {segs.filter((s) => !(s.col === gateCol && s.row === gateRow) && !corners.has(`${s.col},${s.row}`) && !isWater(s)).map((s) => {
               const [x, z] = hexWorld(s.col, s.row);
               return <WallSegment3D key={`wall-${s.col}-${s.row}`} x={x} z={z} />;
             })}
             {/* Banners flying from the wall-walk at intervals */}
-            {segs.filter((s) => !corners.has(`${s.col},${s.row}`) && !(s.col === gateCol && s.row === gateRow) && (s.col + s.row) % 5 === 0).map((s) => {
+            {segs.filter((s) => !corners.has(`${s.col},${s.row}`) && !(s.col === gateCol && s.row === gateRow) && !isWater(s) && (s.col + s.row) % 5 === 0).map((s) => {
               const [x, z] = hexWorld(s.col, s.row);
               return <WallBanner3D key={`wb-${s.col}-${s.row}`} x={x} z={z} color={bannerColor} />;
             })}
@@ -1747,6 +1835,9 @@ function CityScene({
             <CityGate3D x={gx} z={gz} bannerColor={bannerColor} />
             {/* Stone bridge crossing the moat out from the gate */}
             <StoneBridge3D x={gx} z={gz + 2.1} />
+            {/* Water gate + wharf on the east wall */}
+            <WaterGate3D x={wx} z={wz} bannerColor={bannerColor} />
+            <Dock3D x={wx} z={wz} />
           </>
         );
       })()}
