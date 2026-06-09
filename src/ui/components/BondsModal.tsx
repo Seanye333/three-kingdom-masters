@@ -74,6 +74,24 @@ export function BondsModal({ onClose }: Props) {
     broken: rows.filter((r) => r.status === 'broken'),
   };
 
+  // 近誼養成中 — player pairs whose rapport is climbing toward a bond.
+  const warming = useMemo(() => {
+    const bonded = new Set(
+      [...OATH_BONDS, ...runtimeBonds].map((b) => (b.officerA < b.officerB ? `${b.officerA}|${b.officerB}` : `${b.officerB}|${b.officerA}`)),
+    );
+    const out: Array<{ a: Officer; b: Officer; r: number }> = [];
+    for (let i = 0; i < myOfficers.length; i++) {
+      for (let j = i + 1; j < myOfficers.length; j++) {
+        const a = myOfficers[i], b = myOfficers[j];
+        const key = a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`;
+        if (bonded.has(key)) continue;
+        const r = getRapport(rapport, a.id, b.id);
+        if (r > 0) out.push({ a, b, r });
+      }
+    }
+    return out.sort((x, y) => y.r - x.r).slice(0, 6);
+  }, [myOfficers, rapport, runtimeBonds]);
+
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -139,6 +157,20 @@ export function BondsModal({ onClose }: Props) {
             </button>
             {socialMsg && <span style={{ fontSize: '0.74rem', color: '#7ed68a' }}>{socialMsg}</span>}
           </div>
+          {warming.length > 0 && (
+            <div style={{ marginTop: '0.6rem', borderTop: '1px solid #3a2818', paddingTop: '0.5rem' }}>
+              <div style={{ fontSize: '0.7rem', color: '#8a7050', marginBottom: '0.3rem' }}>
+                {t('近誼養成中（同袍共事,好感漸增,滿百義結）', 'Warming ties — serving together raises rapport; a bond forms at 100')}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {warming.map(({ a, b, r }) => (
+                  <span key={`${a.id}|${b.id}`} style={{ fontSize: '0.74rem', color: '#c0a878', border: '1px solid #4a3520', padding: '0.1rem 0.4rem', borderRadius: 2 }}>
+                    {oName(a)}–{oName(b)} <span style={{ color: r >= 80 ? '#7ed68a' : '#d4a84a', fontFamily: 'ui-monospace, monospace' }}>{r}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <Section

@@ -39,7 +39,8 @@ import {
 } from '../systems/historicalEvents';
 import { resolveEspionage } from '../systems/espionage';
 import { resolveTribeRaids } from '../systems/tribes';
-import { addRapport, mingleRapport, getRapport } from '../systems/rapport';
+import { addRapport, mingleRapport, getRapport, growRapportFromProximity } from '../systems/rapport';
+import { pairKey } from '../types/diplomacy';
 import { OATH_BONDS } from '../data';
 import { planAITurn } from '../systems/ai';
 import { planAIAppointments } from '../systems/aiAppointments';
@@ -1980,6 +1981,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // (chivalrous, scholar, mystical, etc.) occasionally form an oath
         // bond. Adds to runtimeBonds with a moderate loyalty floor.
         let bondsAfterTraits = planned.runtimeBonds;
+        let rapportAfter = state.rapport;
         if (seasonBoundary) {
           const byCity = new Map<EntityId, Officer[]>();
           for (const o of Object.values(postOfficers)) {
@@ -2025,6 +2027,30 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
           if (newBonds.length > 0) {
             bondsAfterTraits = [...bondsAfterTraits, ...newBonds];
+          }
+
+          // 同袍之誼 — officers serving together in a city warm to one another;
+          // a pair that crosses the threshold swears a bond of its own accord.
+          const bondedPairs = new Set<string>([
+            ...OATH_BONDS.map((b) => pairKey(b.officerA, b.officerB)),
+            ...bondsAfterTraits.map((b) => pairKey(b.officerA, b.officerB)),
+          ]);
+          const grown = growRapportFromProximity({
+            rapport: rapportAfter, officers: postOfficers, bondedPairs, amount: 2,
+          });
+          rapportAfter = grown.rapport;
+          if (grown.forged.length > 0) {
+            bondsAfterTraits = [...bondsAfterTraits, ...grown.forged];
+            for (const fb of grown.forged) {
+              const a = postOfficers[fb.officerA], b = postOfficers[fb.officerB];
+              if (a && a.forceId === state.playerForceId) {
+                result.report.entries.push({
+                  cityId: a.locationCityId, kind: 'note',
+                  text: `${a.name.en} and ${b?.name.en} forge a bond serving side by side.`,
+                  textZh: `${a.name.zh}與${b?.name.zh}同袍共事,日久情深,義結金蘭。`,
+                });
+              }
+            }
           }
         }
 
@@ -2528,6 +2554,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           officers: officersWithMarchTask,
           forces: postForces,
           runtimeBonds: bondsAfterTraits,
+          rapport: rapportAfter,
           pendingCommands: carriedCommands,
           pendingTrainings: nextTrainings,
           lastReport: result.report,

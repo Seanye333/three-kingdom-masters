@@ -1,4 +1,4 @@
-import type { EntityId } from '../types';
+import type { EntityId, Officer } from '../types';
 import { pairKey } from '../types/diplomacy';
 import type { OathBond } from '../data/bonds';
 
@@ -52,4 +52,55 @@ export function mingleRapport(
     }
   }
   return out;
+}
+
+export interface ProximityRapportInput {
+  rapport: Record<string, number>;
+  officers: Record<EntityId, Officer>;
+  /** pairKeys that already hold a bond — won't re-forge. */
+  bondedPairs: Set<string>;
+  /** Rapport gained per season by officers serving together (default 2). */
+  amount?: number;
+}
+
+/**
+ * Organic rapport (同袍之誼) — officers of the same force serving together in
+ * the same city slowly warm to one another each season. When a pair crosses
+ * the threshold they swear a bond of their own accord. Runs for every force,
+ * so ties (and eventually sworn brotherhoods) form naturally on both sides
+ * without anyone spending gold. Pure.
+ */
+export function growRapportFromProximity(
+  input: ProximityRapportInput,
+): { rapport: Record<string, number>; forged: OathBond[] } {
+  const amount = input.amount ?? 2;
+  // Group living, placed officers by force + city.
+  const groups = new Map<string, EntityId[]>();
+  for (const o of Object.values(input.officers)) {
+    if (!o.forceId || !o.locationCityId) continue;
+    if (o.status === 'dead' || o.status === 'imprisoned' || o.status === 'unsearched') continue;
+    const gk = `${o.forceId}@${o.locationCityId}`;
+    const arr = groups.get(gk) ?? [];
+    arr.push(o.id);
+    groups.set(gk, arr);
+  }
+
+  let rapport = input.rapport;
+  const forged: OathBond[] = [];
+  const justForged = new Set<string>();
+  for (const ids of groups.values()) {
+    if (ids.length < 2) continue;
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const key = pairKey(ids[i], ids[j]);
+        const next = Math.min(RAPPORT_BOND_THRESHOLD, (rapport[key] ?? 0) + amount);
+        rapport = { ...rapport, [key]: next };
+        if (next >= RAPPORT_BOND_THRESHOLD && !input.bondedPairs.has(key) && !justForged.has(key)) {
+          justForged.add(key);
+          forged.push({ officerA: ids[i], officerB: ids[j], floor: 75, kind: 'oath', label: '同袍之誼 Comrades-in-arms' });
+        }
+      }
+    }
+  }
+  return { rapport, forged };
 }
