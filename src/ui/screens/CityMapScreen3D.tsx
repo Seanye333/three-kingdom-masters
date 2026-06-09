@@ -164,6 +164,37 @@ function CityGate3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: 
   );
 }
 
+/* ─── Building foundations (地基) — the CoC-style build plots ─────────── */
+/** A regular sub-grid of buildable plots inside the wall ring. Deterministic
+ *  so a city's layout is stable across views. */
+function cityBuildPlots(W: number, H: number): Array<{ col: number; row: number }> {
+  const plots: Array<{ col: number; row: number }> = [];
+  for (let col = 2; col <= W - 3; col += 3) {
+    for (let row = 2; row <= H - 3; row += 3) {
+      plots.push({ col, row });
+    }
+  }
+  return plots;
+}
+
+/** A raised stone foundation plinth. Empty plots show a gold "buildable" ring. */
+function FoundationPlot3D({ x, z, occupied }: { x: number; z: number; occupied: boolean }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.09, 0]} receiveShadow castShadow>
+        <boxGeometry args={[1.35, 0.18, 1.35]} />
+        <meshStandardMaterial color={occupied ? '#7a6a52' : '#9a8a68'} roughness={0.96} />
+      </mesh>
+      {!occupied && (
+        <mesh position={[0, 0.19, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 4]}>
+          <ringGeometry args={[0.42, 0.56, 4]} />
+          <meshBasicMaterial color="#d4a84a" transparent opacity={0.5} side={THREE.DoubleSide} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
 /* ─── Living-city decoration — earthen dwellings + a central 府衙 ─────── */
 function dwellingHash(col: number, row: number): number {
   let h = (col * 73856093) ^ (row * 19349663);
@@ -259,12 +290,13 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
 }
 
 function CityScene({
-  preview, slots, buildings, cityWallCol, bannerColor,
+  preview, slots, buildings, plots, cityWallCol, bannerColor,
   hovered, onHover, onClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
   buildings: Array<{ coord: { col: number; row: number }; buildingId: BuildingId; level: number }>;
+  plots: Array<{ col: number; row: number }>;
   cityWallCol: number;
   bannerColor: string;
   hovered: { col: number; row: number } | null;
@@ -277,9 +309,11 @@ function CityScene({
   const slotMap = new Map((slots ?? []).map((s) => [s.slot, s]));
 
   // Hexes that already hold something — dwellings avoid these.
+  const buildingHexes = new Set(buildings.map((b) => `${b.coord.col},${b.coord.row}`));
   const occupiedHexes = new Set<string>();
   preview.slotPositions.forEach((pos) => occupiedHexes.add(`${pos.col},${pos.row}`));
   for (const b of buildings) occupiedHexes.add(`${b.coord.col},${b.coord.row}`);
+  for (const p of plots) occupiedHexes.add(`${p.col},${p.row}`); // foundations
 
   // Tower range circles for visualization
   const towerRanges: Array<{ coord: { col: number; row: number }; range: number; color: string }> = [];
@@ -359,6 +393,13 @@ function CityScene({
         />
       ))}
 
+      {/* Building foundations (地基) — real buildings sit on the first plots,
+          empty ones show a gold buildable ring. */}
+      {plots.map((p) => {
+        const [x, z] = hexWorld(p.col, p.row);
+        return <FoundationPlot3D key={`plot-${p.col}-${p.row}`} x={x} z={z} occupied={buildingHexes.has(`${p.col},${p.row}`)} />;
+      })}
+
       {/* Living-city dwellings + central 府衙 (cosmetic) */}
       <CityDwellings3D preview={preview} cityWallCol={cityWallCol} occupied={occupiedHexes} />
 
@@ -422,7 +463,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
     () => previewBattlefield(cityId, {
       terrain: city?.terrain, port: city?.port,
       x: city?.coords.x, y: city?.coords.y,
-    }),
+    }, 18, 13), // city view uses a roomier grid than a battle slice
     [cityId, city?.terrain, city?.port, city?.coords.x, city?.coords.y],
   );
 
@@ -440,19 +481,18 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
     () => allBuildings.filter((b) => b.cityId === cityId && b.level > 0),
     [allBuildings, cityId],
   );
-  const insideBuildings = useMemo(() => {
-    const occupiedRows = new Set(
-      preview.slotPositions.filter((p) => p.col === cityWallCol).map((p) => p.row),
-    );
-    const freeRows: number[] = [];
-    for (let r = 0; r < preview.height; r++) if (!occupiedRows.has(r)) freeRows.push(r);
-    return cityBuildings
-      .map((b, i) => ({
-        coord: { col: cityWallCol, row: freeRows[i] ?? -1 },
-        buildingId: b.id, level: b.level,
-      }))
-      .filter((b) => b.coord.row >= 0);
-  }, [cityBuildings, preview, cityWallCol]);
+  // Buildable foundations (地基) inside the walls; the city's real buildings
+  // sit on the first plots, the rest stay open for future construction.
+  const plots = useMemo(
+    () => cityBuildPlots(preview.width, preview.height),
+    [preview.width, preview.height],
+  );
+  const insideBuildings = useMemo(
+    () => cityBuildings
+      .map((b, i) => ({ coord: plots[i], buildingId: b.id, level: b.level }))
+      .filter((b): b is { coord: { col: number; row: number }; buildingId: BuildingId; level: number } => !!b.coord),
+    [cityBuildings, plots],
+  );
 
   const slotIndexAtHex = useMemo(() => {
     const m = new Map<string, number>();
@@ -569,6 +609,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             preview={preview}
             slots={slots}
             buildings={insideBuildings}
+            plots={plots}
             cityWallCol={cityWallCol}
             bannerColor={bannerColor}
             hovered={hovered}
