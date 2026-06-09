@@ -10,6 +10,7 @@ import {
 } from '../../game/data/defenseBuildings';
 import { previewBattlefield } from '../../game/systems/tactical';
 import { citySize } from '../../game/systems/citySize';
+import { BUILDING_DEFS, BUILDING_DEFS_BY_ID } from '../../game/data/buildings';
 import type { EntityId, BuildingId } from '../../game/types';
 import { useLanguage } from '../i18n';
 // Reuse the polished 3D primitives from the tactical battle scene so the
@@ -232,20 +233,75 @@ function cityBuildPlots(W: number, H: number): Array<{ col: number; row: number 
   return plots;
 }
 
-/** A raised stone foundation plinth. Empty plots show a gold "buildable" ring. */
-function FoundationPlot3D({ x, z, occupied }: { x: number; z: number; occupied: boolean }) {
+/** A raised stone foundation plinth. Empty plots show a gold "buildable" ring;
+ *  tapping an empty one opens the build menu. */
+function FoundationPlot3D({ x, z, occupied, selected, onClick }: {
+  x: number; z: number; occupied: boolean; selected: boolean;
+  onClick?: () => void;
+}) {
   return (
-    <group position={[x, 0, z]}>
+    <group
+      position={[x, 0, z]}
+      onClick={onClick ? (e) => { e.stopPropagation(); onClick(); } : undefined}
+      onPointerOver={!occupied && onClick ? (e) => { e.stopPropagation(); document.body.style.cursor = 'pointer'; } : undefined}
+      onPointerOut={!occupied && onClick ? () => { document.body.style.cursor = 'default'; } : undefined}
+    >
       <mesh position={[0, 0.09, 0]} receiveShadow castShadow>
         <boxGeometry args={[1.35, 0.18, 1.35]} />
-        <meshStandardMaterial color={occupied ? '#7a6a52' : '#9a8a68'} roughness={0.96} />
+        <meshStandardMaterial color={occupied ? '#7a6a52' : selected ? '#cdb888' : '#9a8a68'} roughness={0.96} />
       </mesh>
       {!occupied && (
         <mesh position={[0, 0.19, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 4]}>
           <ringGeometry args={[0.42, 0.56, 4]} />
-          <meshBasicMaterial color="#d4a84a" transparent opacity={0.5} side={THREE.DoubleSide} />
+          <meshBasicMaterial color={selected ? '#ffe9a8' : '#d4a84a'} transparent opacity={selected ? 0.85 : 0.5} side={THREE.DoubleSide} />
         </mesh>
       )}
+      {selected && (
+        <mesh position={[0, 0.75, 0]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.22, 0.4, 4]} />
+          <meshStandardMaterial color="#ffe9a8" emissive="#d4a84a" emissiveIntensity={0.5} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+/** Scaffolding shown on a plot whose building is still under construction
+ *  (level 0, progress > 0) — wooden frame + a 建造中 banner. */
+function ConstructionSite3D({ x, z, nameZh }: { x: number; z: number; nameZh: string }) {
+  const posts: Array<[number, number]> = [[-0.45, -0.45], [0.45, -0.45], [-0.45, 0.45], [0.45, 0.45]];
+  return (
+    <group position={[x, 0, z]}>
+      {/* Stacked-stone base under construction */}
+      <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.95, 0.5, 0.95]} />
+        <meshStandardMaterial color="#8a7558" roughness={0.95} />
+      </mesh>
+      {/* Scaffold posts */}
+      {posts.map(([px, pz], i) => (
+        <mesh key={i} position={[px, 0.55, pz]} castShadow>
+          <boxGeometry args={[0.08, 1.1, 0.08]} />
+          <meshStandardMaterial color="#6e5230" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* Cross beams */}
+      <mesh position={[0, 1.0, -0.45]} castShadow>
+        <boxGeometry args={[1.0, 0.07, 0.07]} />
+        <meshStandardMaterial color="#7a5e38" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 1.0, 0.45]} castShadow>
+        <boxGeometry args={[1.0, 0.07, 0.07]} />
+        <meshStandardMaterial color="#7a5e38" roughness={0.9} />
+      </mesh>
+      <Html position={[0, 1.5, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{
+          background: 'rgba(20, 14, 8, 0.85)', border: '1px solid #c19a3b',
+          padding: '1px 5px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+          color: '#e0c060', whiteSpace: 'nowrap', borderRadius: 2,
+        }}>
+          🔨 {nameZh}·建造中
+        </div>
+      </Html>
     </group>
   );
 }
@@ -502,16 +558,19 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
 }
 
 function CityScene({
-  preview, slots, buildings, plots, cityWallCol, bannerColor, light,
-  hovered, onHover, onClick, showOverlays,
+  preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light,
+  selectedPlot, onPlotClick, hovered, onHover, onClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
   buildings: Array<{ coord: { col: number; row: number }; buildingId: BuildingId; level: number }>;
+  construction: Array<{ coord: { col: number; row: number }; nameZh: string }>;
   plots: Array<{ col: number; row: number }>;
   cityWallCol: number;
   light: typeof SEASON_LIGHT[SeasonKey];
   bannerColor: string;
+  selectedPlot: number | null;
+  onPlotClick: (plotIndex: number) => void;
   hovered: { col: number; row: number } | null;
   onHover: (c: { col: number; row: number } | null) => void;
   onClick: (c: { col: number; row: number }) => void;
@@ -521,8 +580,12 @@ function CityScene({
   preview.slotPositions.forEach((pos, idx) => slotIndexAtHex.set(`${pos.col},${pos.row}`, idx));
   const slotMap = new Map((slots ?? []).map((s) => [s.slot, s]));
 
-  // Hexes that already hold something — dwellings avoid these.
-  const buildingHexes = new Set(buildings.map((b) => `${b.coord.col},${b.coord.row}`));
+  // Hexes that already hold something — a finished building OR a site under
+  // construction. Empty foundations (not in this set) stay tappable to build.
+  const buildingHexes = new Set([
+    ...buildings.map((b) => `${b.coord.col},${b.coord.row}`),
+    ...construction.map((c) => `${c.coord.col},${c.coord.row}`),
+  ]);
   const occupiedHexes = new Set<string>();
   preview.slotPositions.forEach((pos) => occupiedHexes.add(`${pos.col},${pos.row}`));
   for (const b of buildings) occupiedHexes.add(`${b.coord.col},${b.coord.row}`);
@@ -615,11 +678,26 @@ function CityScene({
         />
       ))}
 
-      {/* Building foundations (地基) — real buildings sit on the first plots,
-          empty ones show a gold buildable ring. */}
-      {plots.map((p) => {
+      {/* Building foundations (地基) — real buildings sit on their plots, empty
+          ones show a gold buildable ring; tap one to open the build menu. */}
+      {plots.map((p, i) => {
         const [x, z] = hexWorld(p.col, p.row);
-        return <FoundationPlot3D key={`plot-${p.col}-${p.row}`} x={x} z={z} occupied={buildingHexes.has(`${p.col},${p.row}`)} />;
+        const occupied = buildingHexes.has(`${p.col},${p.row}`);
+        return (
+          <FoundationPlot3D
+            key={`plot-${p.col}-${p.row}`}
+            x={x} z={z}
+            occupied={occupied}
+            selected={selectedPlot === i}
+            onClick={occupied ? undefined : () => onPlotClick(i)}
+          />
+        );
+      })}
+
+      {/* Buildings still under construction — scaffolding + 建造中 banner. */}
+      {construction.map((c) => {
+        const [x, z] = hexWorld(c.coord.col, c.coord.row);
+        return <ConstructionSite3D key={`cons-${c.coord.col}-${c.coord.row}`} x={x} z={z} nameZh={c.nameZh} />;
       })}
 
       {/* Living-city dwellings + central 府衙 (cosmetic) */}
@@ -675,9 +753,12 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const buildAction = useGameStore((s) => s.buildDefenseStructure);
   const upgradeAction = useGameStore((s) => s.upgradeDefenseStructure);
   const demolishAction = useGameStore((s) => s.demolishDefenseStructure);
+  const startBuilding = useGameStore((s) => s.startBuilding);
   const season = useGameStore((s) => s.date.season) as SeasonKey;
   const light = SEASON_LIGHT[season] ?? SEASON_LIGHT.spring;
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+  const [selectedPlot, setSelectedPlot] = useState<number | null>(null);
+  const [buildMsg, setBuildMsg] = useState<string | null>(null);
   const [hovered, setHovered] = useState<{ col: number; row: number } | null>(null);
   const [showOverlays, setShowOverlays] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -710,22 +791,50 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const ownerForce = city.ownerForceId ? forces[city.ownerForceId] : null;
   const bannerColor = ownerForce?.color ?? '#5a4530';
 
-  const cityBuildings = useMemo(
-    () => allBuildings.filter((b) => b.cityId === cityId && b.level > 0),
+  const cityBuildingsAll = useMemo(
+    () => allBuildings.filter((b) => b.cityId === cityId),
     [allBuildings, cityId],
   );
-  // Buildable foundations (地基) inside the walls; the city's real buildings
-  // sit on the first plots, the rest stay open for future construction.
+  // Buildable foundations (地基) inside the walls. Each building remembers the
+  // plot it was placed on (b.plot); legacy/AI buildings without one fall back
+  // to the first free plot in a deterministic order.
   const plots = useMemo(
     () => cityBuildPlots(preview.width, preview.height),
     [preview.width, preview.height],
   );
+  const placed = useMemo(() => {
+    const taken = new Set<number>();
+    for (const b of cityBuildingsAll) if (typeof b.plot === 'number') taken.add(b.plot);
+    let next = 0;
+    const claim = () => { while (taken.has(next)) next++; taken.add(next); return next; };
+    return cityBuildingsAll.map((b) => {
+      const idx = typeof b.plot === 'number' ? b.plot : claim();
+      return { building: b, plotIndex: idx, coord: plots[idx] };
+    }).filter((p) => !!p.coord);
+  }, [cityBuildingsAll, plots]);
+  // Completed buildings get a real 3D block; in-progress ones (level 0,
+  // progress > 0) show scaffolding so you can watch them go up.
   const insideBuildings = useMemo(
-    () => cityBuildings
-      .map((b, i) => ({ coord: plots[i], buildingId: b.id, level: b.level }))
-      .filter((b): b is { coord: { col: number; row: number }; buildingId: BuildingId; level: number } => !!b.coord),
-    [cityBuildings, plots],
+    () => placed.filter((p) => p.building.level > 0)
+      .map((p) => ({ coord: p.coord, buildingId: p.building.id, level: p.building.level })),
+    [placed],
   );
+  const construction = useMemo(
+    () => placed.filter((p) => p.building.level === 0 && p.building.progress > 0)
+      .map((p) => ({ coord: p.coord, nameZh: INSIDE_BUILDING_DEF[p.building.id]?.nameZh ?? p.building.id })),
+    [placed],
+  );
+  const presentTypes = useMemo(() => new Set(cityBuildingsAll.map((b) => b.id)), [cityBuildingsAll]);
+  const plotByHex = useMemo(() => {
+    const m = new Map<string, number>();
+    plots.forEach((p, i) => m.set(`${p.col},${p.row}`, i));
+    return m;
+  }, [plots]);
+  const buildingAtPlot = useMemo(() => {
+    const m = new Map<number, typeof placed[number]['building']>();
+    placed.forEach((p) => m.set(p.plotIndex, p.building));
+    return m;
+  }, [placed]);
 
   const slotIndexAtHex = useMemo(() => {
     const m = new Map<string, number>();
@@ -736,12 +845,56 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const handleTileClick = (coord: { col: number; row: number }) => {
     if (!isPlayer) return;
     const slotIdx = slotIndexAtHex.get(`${coord.col},${coord.row}`);
-    if (slotIdx === undefined) {
-      setSelectedSlot(null);
+    if (slotIdx !== undefined) {
+      setSelectedSlot(slotIdx);
+      setSelectedPlot(null);
+      setError(null);
       return;
     }
-    setSelectedSlot(slotIdx);
-    setError(null);
+    // Tapping a foundation hex opens the build menu for that plot.
+    const plotIdx = plotByHex.get(`${coord.col},${coord.row}`);
+    if (plotIdx !== undefined) {
+      handlePlotClick(plotIdx);
+      return;
+    }
+    setSelectedSlot(null);
+    setSelectedPlot(null);
+  };
+
+  const handlePlotClick = (plotIndex: number) => {
+    if (!isPlayer) return;
+    setSelectedSlot(null);
+    setBuildMsg(null);
+    setSelectedPlot(plotIndex);
+  };
+
+  const tryStartBuilding = (plotIndex: number, id: BuildingId) => {
+    setBuildMsg(null);
+    const r = startBuilding(cityId, id, plotIndex);
+    if (!r.ok) {
+      const reasons: Record<string, string> = {
+        'not enough gold': '城内存金不足',
+        'max level': '已達最高等級',
+        'already in progress': '已在建造中',
+        'not your city': '非我方城池',
+      };
+      setBuildMsg(reasons[r.reason ?? ''] ?? r.reason ?? '無法建造');
+    } else {
+      setSelectedPlot(null);
+    }
+  };
+
+  const tryUpgradeBuilding = (id: BuildingId) => {
+    setBuildMsg(null);
+    const r = startBuilding(cityId, id);
+    if (!r.ok) {
+      const reasons: Record<string, string> = {
+        'not enough gold': '城内存金不足',
+        'max level': '已達最高等級',
+        'already in progress': '已在建造中',
+      };
+      setBuildMsg(reasons[r.reason ?? ''] ?? r.reason ?? '無法升級');
+    }
   };
 
   const tryBuild = (slot: number, id: DefenseBuildingId) => {
@@ -842,10 +995,13 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             preview={preview}
             slots={slots}
             buildings={insideBuildings}
+            construction={construction}
             plots={plots}
             cityWallCol={cityWallCol}
             bannerColor={bannerColor}
             light={light}
+            selectedPlot={selectedPlot}
+            onPlotClick={handlePlotClick}
             hovered={hovered}
             onHover={setHovered}
             onClick={handleTileClick}
@@ -949,8 +1105,116 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
           </div>
         )}
 
+        {/* Build-menu overlay — opens when a foundation (地基) is tapped. */}
+        {selectedPlot !== null && isPlayer && (() => {
+          const existing = buildingAtPlot.get(selectedPlot);
+          const buildable = BUILDING_DEFS.filter((d) => d.id !== 'wall' && !presentTypes.has(d.id));
+          return (
+            <div
+              style={{
+                position: 'absolute', right: 12, top: 12, width: 320,
+                background: 'rgba(20, 14, 8, 0.95)',
+                border: '1px solid #d4a84a',
+                padding: '0.8rem',
+                color: '#c0a878',
+                fontFamily: 'Songti SC, serif',
+                fontSize: '0.78rem',
+                maxHeight: 'calc(100vh - 80px)',
+                overflow: 'auto',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <div style={{ color: '#d4a84a', letterSpacing: '0.2rem' }}>
+                  {existing ? '城内設施' : '營建新設施'}
+                </div>
+                <button onClick={() => setSelectedPlot(null)} style={{
+                  background: 'transparent', border: 'none', color: '#8a7050', cursor: 'pointer',
+                }}>×</button>
+              </div>
+              <div style={{ color: '#8a7050', fontSize: '0.7rem', marginBottom: '0.5rem' }}>
+                💰 城内存金 <span style={{ color: '#e0c060' }}>{city.gold}</span>
+              </div>
+
+              {existing ? (() => {
+                const def = BUILDING_DEFS_BY_ID[existing.id];
+                const vis = INSIDE_BUILDING_DEF[existing.id];
+                const building = existing.progress > 0 && existing.level === 0;
+                const upgrading = existing.progress > 0 && existing.level > 0;
+                return (
+                  <div>
+                    <div style={{ color: vis?.color ?? '#d4a84a', marginBottom: '0.3rem' }}>
+                      {vis?.nameZh ?? existing.id} lv{existing.level}
+                      {building && <span style={{ color: '#e0c060', marginLeft: 6 }}>· 建造中</span>}
+                      {upgrading && <span style={{ color: '#e0c060', marginLeft: 6 }}>· 升級中</span>}
+                    </div>
+                    <div style={{ color: '#8a7050', fontSize: '0.72rem', marginBottom: '0.5rem' }}>
+                      {def?.descriptionZh}
+                    </div>
+                    {def && existing.level < def.maxLevel && existing.progress === 0 && (
+                      <button
+                        onClick={() => tryUpgradeBuilding(existing.id)}
+                        style={{
+                          width: '100%', padding: '0.45rem',
+                          background: '#1a3a5a', color: '#88b7e8',
+                          border: '1px solid #88b7e8',
+                          fontFamily: 'inherit', cursor: 'pointer',
+                        }}
+                      >
+                        升級 → lv{existing.level + 1}
+                        <span style={{ float: 'right', opacity: 0.8 }}>{def.goldPerLevel}g · {def.seasonsPerLevel}季</span>
+                      </button>
+                    )}
+                    {def && existing.level >= def.maxLevel && (
+                      <div style={{ color: '#8a7050', textAlign: 'center', fontSize: '0.72rem' }}>已達最高等級</div>
+                    )}
+                  </div>
+                );
+              })() : (
+                <div>
+                  <div style={{ color: '#8a7050', marginBottom: '0.4rem' }}>選擇建築 → 蓋在此地基:</div>
+                  {buildable.length === 0 && (
+                    <div style={{ color: '#8a7050', textAlign: 'center', fontSize: '0.72rem' }}>所有設施已建齊</div>
+                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.28rem' }}>
+                    {buildable.map((def) => {
+                      const vis = INSIDE_BUILDING_DEF[def.id];
+                      const afford = city.gold >= def.goldPerLevel;
+                      return (
+                        <button
+                          key={def.id}
+                          onClick={() => tryStartBuilding(selectedPlot, def.id)}
+                          disabled={!afford}
+                          title={def.descriptionZh}
+                          style={{
+                            padding: '0.4rem 0.5rem',
+                            background: 'rgba(212, 168, 74, 0.08)',
+                            border: `1px solid ${vis?.color ?? '#5a4530'}`,
+                            color: afford ? (vis?.color ?? '#c0a878') : '#6a5a44',
+                            opacity: afford ? 1 : 0.55,
+                            fontFamily: 'inherit', fontSize: '0.75rem',
+                            cursor: afford ? 'pointer' : 'not-allowed', textAlign: 'left',
+                          }}
+                        >
+                          <div>
+                            {vis?.glyph} {vis?.nameZh ?? def.id}
+                            <span style={{ float: 'right', opacity: 0.8 }}>{def.goldPerLevel}g · {def.seasonsPerLevel}季</span>
+                          </div>
+                          <div style={{ fontSize: '0.66rem', color: '#8a7050', marginTop: 2 }}>{def.descriptionZh}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {buildMsg && (
+                <div style={{ color: '#b8442e', marginTop: '0.4rem', fontSize: '0.72rem' }}>{buildMsg}</div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Hint when nothing selected */}
-        {selectedSlot === null && isPlayer && (
+        {selectedSlot === null && selectedPlot === null && isPlayer && (
           <div style={{
             position: 'absolute', bottom: 14, left: 14,
             background: 'rgba(20, 14, 8, 0.8)',
@@ -959,7 +1223,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             color: '#8a7050', fontFamily: 'Songti SC, serif',
             fontSize: '0.7rem', letterSpacing: '0.15rem',
           }}>
-            點擊金色八角位 → 建造城外防禦
+            點金色八角位 → 城外防禦　·　點地基(金框) → 城内營建
           </div>
         )}
       </div>

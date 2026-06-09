@@ -39,4 +39,8 @@ export interface Building {
   level: number;
   /** Progress in seasons toward the next level. */
   progress: number;
+  /** Which city-view foundation plot this building sits on (index into the
+   *  city's build-plot grid). Optional — legacy/AI buildings without one fall
+   *  back to deterministic order placement in the 3D city view. */
+  plot?: number;
 }

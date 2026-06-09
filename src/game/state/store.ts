@@ -382,6 +382,7 @@ interface GameStore extends GameState {
   startBuilding: (
     cityId: EntityId,
     buildingId: BuildingId,
+    plot?: number,
   ) => { ok: boolean; reason?: string };
   appointGovernor: (
     provinceId: ProvinceId,
@@ -4647,7 +4648,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         };
       },
 
-      startBuilding: (cityId, buildingId) => {
+      startBuilding: (cityId, buildingId, plot) => {
         const state = get();
         const city = state.cities[cityId];
         const def = BUILDING_DEFS_BY_ID[buildingId];
@@ -4665,7 +4666,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           ? state.buildings.map((b) =>
               b.id === buildingId && b.cityId === cityId ? { ...b, progress: 1 } : b,
             )
-          : [...state.buildings, { id: buildingId, cityId, level: 0, progress: 1 }];
+          : [...state.buildings, { id: buildingId, cityId, level: 0, progress: 1, plot }];
         set({
           cities: {
             ...state.cities,
