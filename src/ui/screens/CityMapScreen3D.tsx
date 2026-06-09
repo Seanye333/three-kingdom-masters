@@ -355,11 +355,13 @@ const WILDERNESS_TERRAIN = new Set(['mountain', 'hill', 'forest', 'wetland', 'ri
 // low — which gives every season its own shadow length/direction and a
 // distinct time-of-day feel.
 type SeasonKey = 'spring' | 'summer' | 'autumn' | 'winter';
-const SEASON_LIGHT: Record<SeasonKey, { ambient: number; ambientColor: string; sun: string; sunI: number; sunPos: [number, number, number]; fog: string; sky: string }> = {
-  spring: { ambient: 0.62, ambientColor: '#fdf3e0', sun: '#fff0d8', sunI: 1.2, sunPos: [10, 17, 8], fog: '#bcd2e4', sky: 'linear-gradient(180deg, #6f9fd8 0%, #a8c8e0 100%)' },
-  summer: { ambient: 0.72, ambientColor: '#fffaf0', sun: '#fff8e8', sunI: 1.5, sunPos: [6, 23, 4], fog: '#c8dcec', sky: 'linear-gradient(180deg, #4f93d8 0%, #9fc8ee 100%)' },
-  autumn: { ambient: 0.55, ambientColor: '#f6e6c4', sun: '#ffd49a', sunI: 1.08, sunPos: [15, 10, 6], fog: '#d8c6a4', sky: 'linear-gradient(180deg, #b8946a 0%, #e0c89a 100%)' },
-  winter: { ambient: 0.5, ambientColor: '#e8f0f8', sun: '#e8eef8', sunI: 0.82, sunPos: [12, 9, -4], fog: '#cdd8e6', sky: 'linear-gradient(180deg, #8aa6c0 0%, #cdd9e6 100%)' },
+// nightGlow: how strongly the braziers/lanterns cast warm light — low in the
+// bright seasons, high in the dim ones, so winter reads as a lantern-lit dusk.
+const SEASON_LIGHT: Record<SeasonKey, { ambient: number; ambientColor: string; sun: string; sunI: number; sunPos: [number, number, number]; fog: string; sky: string; nightGlow: number }> = {
+  spring: { ambient: 0.62, ambientColor: '#fdf3e0', sun: '#fff0d8', sunI: 1.2, sunPos: [10, 17, 8], fog: '#bcd2e4', sky: 'linear-gradient(180deg, #6f9fd8 0%, #a8c8e0 100%)', nightGlow: 0.25 },
+  summer: { ambient: 0.72, ambientColor: '#fffaf0', sun: '#fff8e8', sunI: 1.5, sunPos: [6, 23, 4], fog: '#c8dcec', sky: 'linear-gradient(180deg, #4f93d8 0%, #9fc8ee 100%)', nightGlow: 0.1 },
+  autumn: { ambient: 0.55, ambientColor: '#f6e6c4', sun: '#ffd49a', sunI: 1.08, sunPos: [15, 10, 6], fog: '#d8c6a4', sky: 'linear-gradient(180deg, #b8946a 0%, #e0c89a 100%)', nightGlow: 0.55 },
+  winter: { ambient: 0.5, ambientColor: '#e8f0f8', sun: '#e8eef8', sunI: 0.82, sunPos: [12, 9, -4], fog: '#cdd8e6', sky: 'linear-gradient(180deg, #8aa6c0 0%, #cdd9e6 100%)', nightGlow: 0.7 },
 };
 
 /** Multiply an #rrggbb colour by a factor (>1 lightens, <1 darkens). Cheap
@@ -691,9 +693,12 @@ function StonePath3D({ x, z, seed }: { x: number; z: number; seed: number }) {
   );
 }
 
-/** A market stall — counter, posts, a coloured awning and a crate of goods. */
+/** A market stall — counter, posts, a coloured awning, goods and a hanging
+ *  shop sign (幌子). */
 function MarketStall3D({ x, z, seed }: { x: number; z: number; seed: number }) {
   const awning = ['#b8442e', '#3a6a98', '#c19a3b', '#5a8a3a', '#8a3a7a'][seed % 5];
+  const sign = ['#c8362a', '#2f6a3a', '#d4a838', '#8a3a7a'][(seed >> 2) % 4];
+  const goods = ['#c8a060', '#9a5a2a', '#d8c050', '#6a8a3a', '#b85040'];
   return (
     <group position={[x, 0, z]} rotation={[0, (seed % 4) * (Math.PI / 8), 0]}>
       <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
@@ -710,9 +715,23 @@ function MarketStall3D({ x, z, seed }: { x: number; z: number; seed: number }) {
         <boxGeometry args={[1.05, 0.06, 0.72]} />
         <meshStandardMaterial color={awning} roughness={0.8} />
       </mesh>
-      <mesh position={[0, 0.5, 0]} castShadow>
-        <boxGeometry args={[0.5, 0.16, 0.32]} />
-        <meshStandardMaterial color="#c8a060" roughness={0.8} />
+      {/* Goods piled on the counter */}
+      <mesh position={[-0.15, 0.5, 0]} castShadow>
+        <boxGeometry args={[0.42, 0.16, 0.32]} />
+        <meshStandardMaterial color={goods[seed % goods.length]} roughness={0.8} />
+      </mesh>
+      <mesh position={[0.25, 0.52, 0.05]} castShadow>
+        <cylinderGeometry args={[0.1, 0.12, 0.2, 8]} />
+        <meshStandardMaterial color={goods[(seed >> 3) % goods.length]} roughness={0.8} />
+      </mesh>
+      {/* Hanging shop sign (幌子) off a front post */}
+      <mesh position={[0.36, 0.78, 0.32]}>
+        <boxGeometry args={[0.16, 0.34, 0.03]} />
+        <meshStandardMaterial color={sign} roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0.36, 0.97, 0.32]}>
+        <boxGeometry args={[0.02, 0.04, 0.16]} />
+        <meshStandardMaterial color="#3a2a1a" />
       </mesh>
     </group>
   );
@@ -1106,6 +1125,84 @@ function DrumTower3D({ x, z }: { x: number; z: number }) {
   );
 }
 
+/** An open garden pavilion (亭) — stone base, red columns, low railing, a
+ *  swept roof and a finial. */
+function Pavilion3D({ x, z }: { x: number; z: number }) {
+  const corners: Array<[number, number]> = [[-0.42, -0.42], [0.42, -0.42], [-0.42, 0.42], [0.42, 0.42]];
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.12, 0]} receiveShadow castShadow>
+        <boxGeometry args={[1.15, 0.24, 1.15]} />
+        <meshStandardMaterial color="#a89a78" roughness={0.92} />
+      </mesh>
+      {corners.map(([px, pz], i) => (
+        <mesh key={i} position={[px, 0.7, pz]} castShadow>
+          <cylinderGeometry args={[0.055, 0.055, 1.0, 8]} />
+          <meshStandardMaterial color="#a84838" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Low railing rails on three sides */}
+      {[[0, -0.46, 1.0, 0.05], [-0.46, 0, 0.05, 1.0], [0.46, 0, 0.05, 1.0]].map((r, i) => (
+        <mesh key={`rl${i}`} position={[r[0], 0.4, r[1]]}>
+          <boxGeometry args={[r[2], 0.12, r[3]]} />
+          <meshStandardMaterial color="#8a3a30" roughness={0.7} />
+        </mesh>
+      ))}
+      <group position={[0, 1.22, 0]}><ChineseRoof3D size={1.15} color="#2f3a48" ornament beasts /></group>
+      <mesh position={[0, 1.95, 0]}>
+        <sphereGeometry args={[0.08, 10, 8]} />
+        <meshStandardMaterial color="#e8c860" metalness={0.5} roughness={0.4} />
+      </mesh>
+    </group>
+  );
+}
+
+/** A classical garden — a pond with stone rim, lotus pads, a zig-zag plank
+ *  bridge, a lakeside pavilion and a pair of willows. */
+function Garden3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      {/* Pond water */}
+      <mesh position={[0, 0.0, 0]} receiveShadow>
+        <boxGeometry args={[2.6, 0.12, 1.9]} />
+        <meshStandardMaterial color="#2f6a86" roughness={0.28} metalness={0.45} />
+      </mesh>
+      {/* Stone rim (four kerbs) */}
+      {[[0, -1.02, 2.9, 0.18], [0, 1.02, 2.9, 0.18], [-1.42, 0, 0.18, 2.2], [1.42, 0, 0.18, 2.2]].map((r, i) => (
+        <mesh key={i} position={[r[0], 0.1, r[1]]} castShadow receiveShadow>
+          <boxGeometry args={[r[2], 0.2, r[3]]} />
+          <meshStandardMaterial color="#9a8f78" roughness={0.94} />
+        </mesh>
+      ))}
+      {/* Rim rocks */}
+      {[[-1.1, -0.7], [1.2, 0.6], [-0.9, 0.8]].map(([rx, rz], i) => (
+        <mesh key={`rk${i}`} position={[rx, 0.16, rz]} castShadow>
+          <icosahedronGeometry args={[0.16 + (i % 2) * 0.05, 0]} />
+          <meshStandardMaterial color="#7a7468" roughness={0.95} flatShading />
+        </mesh>
+      ))}
+      {/* Lotus pads */}
+      {[[-0.5, -0.3], [0.3, 0.2], [0.7, -0.4], [-0.2, 0.5]].map(([px, pz], i) => (
+        <mesh key={`lp${i}`} position={[px, 0.07, pz]}>
+          <cylinderGeometry args={[0.16, 0.16, 0.03, 7]} />
+          <meshStandardMaterial color="#3f7a4a" roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Zig-zag plank bridge across the pond */}
+      {[[-0.7, 0.35, 0.2], [0, 0.35, -0.1], [0.7, 0.35, 0.2]].map((b, i) => (
+        <mesh key={`bz${i}`} position={[b[0], 0.16, b[2]]} rotation={[0, i === 1 ? 0.4 : -0.4, 0]} castShadow>
+          <boxGeometry args={[0.8, 0.06, 0.3]} />
+          <meshStandardMaterial color="#8a3a30" roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Lakeside pavilion + two willows */}
+      <Pavilion3D x={1.35} z={-0.9} />
+      <GardenTree3D x={-1.3} z={0.95} seed={3} />
+      <GardenTree3D x={1.4} z={1.0} seed={11} />
+    </group>
+  );
+}
+
 /** Scatter dwellings across the inside-city land, leaving gaps for streets. */
 function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
   preview: ReturnType<typeof previewBattlefield>;
@@ -1134,16 +1231,21 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
   // Twin landmark towers in the back corners — 鼓樓 left, 寶塔 right. Their
   // footprints (and a one-tile margin) are kept clear of houses.
   const landmarks = useMemo(() => {
-    const W = preview.width;
+    const W = preview.width, H = preview.height;
     const pagodaCell = { col: Math.max(3, W - 4), row: 3 };
     const drumCell = { col: 3, row: 3 };
+    // Garden near the gate, in the rows below the foundation grid (rows ≥ H-3
+    // never hold a plot), so it never overlaps a player building.
+    const gateCol = Math.floor(W / 2);
+    const gardenCell = { col: Math.max(2, gateCol === W - 4 ? gateCol - 4 : gateCol - 3), row: Math.max(2, H - 3) };
     const keys = new Set<string>();
-    for (const c of [pagodaCell, drumCell]) {
+    for (const c of [pagodaCell, drumCell, gardenCell]) {
       for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${c.col + dc},${c.row + dr}`);
     }
     const [px, pz] = hexWorld(pagodaCell.col, pagodaCell.row);
     const [dx, dz] = hexWorld(drumCell.col, drumCell.row);
-    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz } };
+    const [gx2, gz2] = hexWorld(gardenCell.col, gardenCell.row);
+    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, garden: { x: gx2, z: gz2 } };
   }, [preview.width, preview.height]);
 
   const { houses, trees, paths, villagers, flowers, avenue, grass } = useMemo(() => {
@@ -1233,9 +1335,10 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
     const m0 = market[0];
     const well = m0 ? { x: m0.x - 1.3, z: m0.z + 1.0 } : { x: hall.x + 2.6, z: hall.z + 1.7 };
     const cart = m0 ? { x: m0.x + 1.5, z: m0.z + 0.5, seed: m0.seed >> 1 } : null;
-    const folk = market.slice(0, 4).map((m, i) => ({
-      x: m.x + (i % 2 ? 0.72 : -0.72), z: m.z - 0.72, seed: (m.seed >> 2) + i * 7,
-    }));
+    const folk = market.flatMap((m, i) => [
+      { x: m.x + (i % 2 ? 0.72 : -0.72), z: m.z - 0.72, seed: (m.seed >> 2) + i * 7 },
+      { x: m.x - 0.5, z: m.z + 0.7, seed: (m.seed >> 4) + i * 13 },
+    ]).slice(0, 8);
     // 牌坊 archway a few tiles in from the gate, straddling the avenue.
     const avSorted = [...avenue].sort((a, b) => b.z - a.z);
     const paifang = avSorted[2] ?? avSorted[avSorted.length - 1] ?? null;
@@ -1275,6 +1378,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor }: {
       {props.paifang && <Paifang3D x={props.paifang.x} z={props.paifang.z} />}
       <Pagoda3D x={landmarks.pagoda.x} z={landmarks.pagoda.z} />
       <DrumTower3D x={landmarks.drum.x} z={landmarks.drum.z} />
+      <Garden3D x={landmarks.garden.x} z={landmarks.garden.z} />
       <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
     </>
   );
@@ -1344,6 +1448,22 @@ function CityScene({
       />
       <directionalLight position={[-8, 6, -6]} intensity={0.25} color={light.sun} />
       <fog attach="fog" args={[light.fog, 35, 80]} />
+
+      {/* Warm lantern glow — stronger in the dim seasons, so winter reads as a
+          lantern-lit dusk and summer is barely tinted. */}
+      {(() => {
+        const W = preview.width, H = preview.height;
+        const cx = (W * HEX_COL_STEP) / 2, cz = (H * HEX_ROW_STEP) / 2;
+        const [gx, gz] = hexWorld(Math.floor(W / 2), H - 1);
+        const I = 0.3 + light.nightGlow * 1.7;
+        return (
+          <>
+            <pointLight position={[cx, 3.2, cz]} intensity={I} color="#ffb060" distance={22} decay={2} />
+            <pointLight position={[gx, 2.6, gz - 1.5]} intensity={I * 0.8} color="#ffa850" distance={13} decay={2} />
+            <pointLight position={[cx - 6, 2.4, cz - 4]} intensity={I * 0.7} color="#ffb878" distance={13} decay={2} />
+          </>
+        );
+      })()}
 
       {/* Terrain tiles — uses shared HexTile from tactical for full fidelity */}
       {preview.tiles.map((tile) => {
