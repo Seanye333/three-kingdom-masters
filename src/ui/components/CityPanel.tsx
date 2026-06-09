@@ -109,6 +109,21 @@ export function CityPanel() {
         })()}
       </header>
 
+      {/* Prominent "enter the city" button — the reliable tap target on mobile
+          (the re-click-to-enter gesture only works with a mouse). */}
+      <button
+        onClick={() => setShowCityMap(true)}
+        style={{
+          width: '100%', margin: '0.4rem 0', padding: '0.6rem',
+          background: 'linear-gradient(180deg, #3a2a18, #2a1d10)',
+          border: '1px solid #d4a84a', color: '#f0d98a',
+          fontFamily: 'var(--tkm-font-zh)', fontSize: '1rem', letterSpacing: '0.2rem',
+          cursor: 'pointer', borderRadius: 3,
+        }}
+      >
+        ⛩ {t('進城 · 城邑地圖', 'Enter City · City Map')}
+      </button>
+
       {/* City size badge — derived from population */}
       <CitySizeBadge city={city} />
 
