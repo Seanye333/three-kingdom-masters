@@ -367,15 +367,73 @@ function Lantern3D({ x, z }: { x: number; z: number }) {
   );
 }
 
+/** A flat flagstone tile — paving the streets between buildings. */
+function StonePath3D({ x, z, seed }: { x: number; z: number; seed: number }) {
+  const shade = ['#8f8470', '#857a66', '#968b76', '#7e7460'][seed % 4];
+  return (
+    <mesh position={[x, 0.04, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <boxGeometry args={[1.28, 1.28, 0.08]} />
+      <meshStandardMaterial color={shade} roughness={0.98} />
+    </mesh>
+  );
+}
+
+/** A market stall — counter, posts, a coloured awning and a crate of goods. */
+function MarketStall3D({ x, z, seed }: { x: number; z: number; seed: number }) {
+  const awning = ['#b8442e', '#3a6a98', '#c19a3b', '#5a8a3a', '#8a3a7a'][seed % 5];
+  return (
+    <group position={[x, 0, z]} rotation={[0, (seed % 4) * (Math.PI / 8), 0]}>
+      <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.85, 0.4, 0.5]} />
+        <meshStandardMaterial color="#8a6a40" roughness={0.85} />
+      </mesh>
+      {[[-0.36, -0.2], [0.36, -0.2], [-0.36, 0.2], [0.36, 0.2]].map(([px, pz], i) => (
+        <mesh key={i} position={[px, 0.55, pz]}>
+          <cylinderGeometry args={[0.03, 0.03, 1.0, 5]} />
+          <meshStandardMaterial color="#4a3520" />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.08, 0]} rotation={[0.16, 0, 0]} castShadow>
+        <boxGeometry args={[1.05, 0.06, 0.72]} />
+        <meshStandardMaterial color={awning} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.5, 0]} castShadow>
+        <boxGeometry args={[0.5, 0.16, 0.32]} />
+        <meshStandardMaterial color="#c8a060" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
 /** Scatter dwellings across the inside-city land, leaving gaps for streets. */
 function CityDwellings3D({ preview, cityWallCol, occupied }: {
   preview: ReturnType<typeof previewBattlefield>;
   cityWallCol: number;
   occupied: Set<string>;
 }) {
-  const { houses, trees } = useMemo(() => {
+  // A small market cluster near the centre — reserved before houses so nothing
+  // overlaps it.
+  const market = useMemo(() => {
+    const W = preview.width, H = preview.height;
+    const out: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    const baseCol = Math.min(W - 2, Math.round(cityWallCol * 0.62));
+    const baseRow = Math.max(1, Math.round(H * 0.6));
+    for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1], [2, 0]] as const) {
+      const col = baseCol + dc, row = baseRow + dr;
+      if (col < 1 || col >= W - 1 || row < 1 || row >= H - 1) continue;
+      const key = `${col},${row}`;
+      if (occupied.has(key)) continue;
+      const [x, z] = hexWorld(col, row);
+      out.push({ x, z, seed: dwellingHash(col, row), key });
+    }
+    return out;
+  }, [preview.width, preview.height, cityWallCol, occupied]);
+
+  const { houses, trees, paths } = useMemo(() => {
     const houses: Array<{ x: number; z: number; seed: number; key: string }> = [];
     const trees: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    const paths: Array<{ x: number; z: number; seed: number; key: string }> = [];
+    const marketKeys = new Set(market.map((m) => m.key));
     const W = preview.width, H = preview.height;
     for (const tile of preview.tiles) {
       const { col, row } = tile.coord;
@@ -383,16 +441,17 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
       if (col < 1 || col >= W - 1 || row < 1 || row >= H - 1) continue;
       if (NO_BUILD_TERRAIN.has(tile.terrain as string)) continue;
       const key = `${col},${row}`;
-      if (occupied.has(key)) continue;                     // slots + real buildings
+      if (occupied.has(key) || marketKeys.has(key)) continue; // slots / buildings / market
       const seed = dwellingHash(col, row);
       const bucket = seed % 100;
-      if (bucket < 42) continue;                           // gaps = streets / open ground
       const [x, z] = hexWorld(col, row);
-      if (bucket < 80 && houses.length < 34) houses.push({ x, z, seed, key }); // ~38% houses
-      else if (trees.length < 16) trees.push({ x, z, seed, key });             // ~20% gardens
+      if (bucket < 24 && paths.length < 34) paths.push({ x, z, seed, key });        // ~24% paved street
+      else if (bucket < 62 && houses.length < 32) houses.push({ x, z, seed, key }); // ~38% houses
+      else if (bucket < 82 && trees.length < 15) trees.push({ x, z, seed, key });   // ~20% gardens
+      // remaining ~18% stays open ground
     }
-    return { houses, trees };
-  }, [preview, occupied]);
+    return { houses, trees, paths };
+  }, [preview, occupied, market]);
 
   const hall = useMemo(() => {
     const col = Math.max(1, Math.round(cityWallCol * 0.42));
@@ -419,8 +478,10 @@ function CityDwellings3D({ preview, cityWallCol, occupied }: {
 
   return (
     <>
+      {paths.map((p) => <StonePath3D key={`pa-${p.key}`} x={p.x} z={p.z} seed={p.seed} />)}
       {houses.map((h) => <Dwelling key={`dw-${h.key}`} x={h.x} z={h.z} seed={h.seed} />)}
       {trees.map((tr) => <GardenTree3D key={`tr-${tr.key}`} x={tr.x} z={tr.z} seed={tr.seed} />)}
+      {market.map((m) => <MarketStall3D key={`mk-${m.key}`} x={m.x} z={m.z} seed={m.seed} />)}
       {lanterns.map((l) => <Lantern3D key={`ln-${l.key}`} x={l.x} z={l.z} />)}
       <GovernmentHall3D x={hall.x} z={hall.z} />
     </>
