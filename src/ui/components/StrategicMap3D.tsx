@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
-import { positionAlongRoute, terrainRoute, marchDestCoords } from '../../game/data/territories';
+import { positionAlongRoute, marchDestCoords } from '../../game/data/territories';
 import { snapToHexCenter } from '../../game/data/geography';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
 import * as THREE from 'three';
@@ -1330,9 +1330,15 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports, sele
         const commander = officers[cmd.officerId];
         const totalSeasons = Math.max(1, cmd.totalSeasons ?? 1);
         const seasonsRemaining = cmd.seasonsRemaining ?? 1;
-        // Terrain-weighted route (bends around mountains) — same path the
-        // 2D pennant follows.
-        const landRoute = terrainRoute(from.coords.x, from.coords.y, dest.x, dest.y);
+        // Route endpoints in geo-pixel space so the marching token lines up
+        // with the geo-positioned cities (and the roads, which already use
+        // cityPixel) — not the old painted-map coords. A straight segment
+        // between the two geo points; matches how the roads are drawn.
+        const [fgx, fgy] = cityPixel(cmd.cityId, from.coords.x, from.coords.y);
+        const [dgx, dgy] = (cmd.targetX == null && to)
+          ? cityPixel(cmd.targetCityId, dest.x, dest.y)
+          : [dest.x, dest.y];
+        const landRoute = [{ x: fgx, y: fgy }, { x: dgx, y: dgy }];
         const weaponType: WeaponType = commander ? deriveWeaponType(commander) : 'none';
         return {
           from,
