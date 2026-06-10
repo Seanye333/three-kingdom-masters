@@ -1029,12 +1029,34 @@ const CITY_TEMPLATES: CityTemplate[] = [
 export function buildInitialCities(
   ownership: Record<string, string | null>,
 ): City[] {
+  // Cities a scenario doesn't list inherit the owner of the NEAREST listed
+  // city within ~60px (real-geography positions) — so the passes, forts and
+  // satellite towns added to the map after the scenario tables were written
+  // (劍閣/街亭/潼關/白馬…) belong to the power whose heartland surrounds
+  // them, instead of standing as ahistorical neutral gaps. Anything farther
+  // than the cap stays neutral, preserving deliberately unclaimed regions.
+  const FILL_RANGE = 60;
+  const listed = CITY_TEMPLATES
+    .filter((t) => ownership[t.id] != null)
+    .map((t) => ({ id: t.id, owner: ownership[t.id]!, pos: cityPos({ id: t.id, coords: t.coords }) }));
+  const effectiveOwner = (t: CityTemplate): string | null => {
+    const explicit = ownership[t.id];
+    if (explicit !== undefined) return explicit;
+    if (listed.length === 0) return null;
+    const p = cityPos({ id: t.id, coords: t.coords });
+    let best: { owner: string; d: number } | null = null;
+    for (const l of listed) {
+      const d = Math.hypot(l.pos.x - p.x, l.pos.y - p.y);
+      if (d <= FILL_RANGE && (!best || d < best.d)) best = { owner: l.owner, d };
+    }
+    return best?.owner ?? null;
+  };
   return CITY_TEMPLATES.map((t) => ({
     id: t.id,
     name: t.name,
     coords: t.coords,
     adjacentCityIds: t.adjacentCityIds,
-    ownerForceId: ownership[t.id] ?? null,
+    ownerForceId: effectiveOwner(t),
     terrain: t.terrain ?? 'plain',
     port: t.port ?? false,
     ...t.base,

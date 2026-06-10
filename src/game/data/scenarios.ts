@@ -980,7 +980,8 @@ const CITY_OWNERSHIP_234: Record<string, string> = {
   wuwei:     'cao',
   anding:    'cao',
   mei:       'cao',
-  wudu:      'cao',
+  wudu:      'liu-bei',   // 229年諸葛亮取武都
+  yinping:   'liu-bei',   // 同役取陰平
   // Shu Han — Yi province + Hanzhong
   chengdu:   'liu-bei',
   yongan:    'liu-bei',
