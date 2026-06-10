@@ -12,7 +12,7 @@ import type {
 import { OATH_BONDS, type OathBond } from '../data/bonds';
 import { isHostilePermitted } from '../types';
 import { generateTerritories, terrainRoute, positionAlongRoute, marchDestCoords, type Territory } from '../data/territories';
-import { terrainMarchCost } from '../data/geography';
+import { terrainMarchCost, describeBattleSite } from '../data/geography';
 import { cityPos } from '../data/cityGeo';
 import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
@@ -310,19 +310,23 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       };
       const detEn = detected ? `${wName.en}'s scouts saw the trap; ` : '';
       const detZh = detected ? `${wName.zh}早察其謀,` : '';
+      // Name the ground the clash was fought on — 「漢水之濱」「秦嶺山中」.
+      const site = describeBattleSite((pa.x + pb.x) / 2, (pa.y + pb.y) / 2);
+      const siteZh = site ? `於${site.zh}` : '於行軍途中';
+      const siteEn = site ? ` ${site.en}` : ' on the march';
       entries.push({
         cityId: winner.targetCityId,
         kind: 'battle',
         text: ambush
-          ? `Ambush: ${wName.en} lay in wait and fell upon ${lName.en}'s column, shattering it (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`
+          ? `Ambush: ${wName.en} lay in wait${siteEn} and fell upon ${lName.en}'s column, shattering it (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`
           : campStormed
-            ? `Camp stormed: ${detEn}${wName.en} overran ${lName.en}'s dug-in camp and seized the ground (−${winnerCasualty} vs −${loserCasualty}).`
-            : `Field clash: ${wName.en} intercepted ${lName.en} on the march and routed them (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`,
+            ? `Camp stormed: ${detEn}${wName.en} overran ${lName.en}'s dug-in camp${siteEn} and seized the ground (−${winnerCasualty} vs −${loserCasualty}).`
+            : `Field clash: ${wName.en} intercepted ${lName.en}${siteEn} and routed them (−${winnerCasualty} vs −${loserCasualty}). ${lName.en}'s advance is broken.`,
         textZh: ambush
-          ? `伏擊：${wName.zh}設伏以待,驟擊${lName.zh}之軍而潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`
+          ? `伏擊：${wName.zh}${siteZh}設伏以待,驟擊${lName.zh}之軍而潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`
           : campStormed
-            ? `拔寨：${detZh}${wName.zh}強攻${lName.zh}之營寨,破之而據其地（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。`
-            : `野戰：${wName.zh}於行軍途中截擊${lName.zh}並擊潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`,
+            ? `拔寨：${detZh}${wName.zh}${siteZh}強攻${lName.zh}之營寨,破之而據其地（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。`
+            : `野戰：${wName.zh}${siteZh}截擊${lName.zh}並擊潰之（我軍 −${winnerCasualty}，敵軍 −${loserCasualty}）。${lName.zh}之進軍受挫。`,
         battle: fieldBattle,
       });
     }

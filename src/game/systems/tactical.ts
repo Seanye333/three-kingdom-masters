@@ -320,12 +320,17 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     const SLOT_TO_HEX = computeSlotPositions(width, height);
     // Track which hex coords are already occupied by units so we don't overlap.
     const taken = new Set(units.map((u) => `${u.coord.col},${u.coord.row}`));
+    // Real-geo battlefields can put water inside the city's band — no
+    // towers in the river (the water itself is the defence there).
+    const tileTerrain = new Map(tiles.map((t) => [`${t.coord.col},${t.coord.row}`, t.terrain]));
     for (const slot of p.buildSlots) {
       if (!slot.buildingId) continue;
       const target = SLOT_TO_HEX[slot.slot];
       if (!target) continue;
       const key = `${target.col},${target.row}`;
       if (taken.has(key)) continue;  // skip if conflicting with a unit
+      const ground = tileTerrain.get(key);
+      if (ground === 'river' || ground === 'bridge') continue; // no building in the water
       taken.add(key);
       cityStructures.push({
         slotIndex: slot.slot,
@@ -376,9 +381,14 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
       const key = `${t.coord.col},${t.coord.row}`;
       if (occupied.has(key)) return t; // never wall over a unit
       if (t.coord.row === gateRow) {
+        // Where the road crossed water (real-geo bridge), the entrance is a
+        // water-gate (水門) — still a gate, still breachable.
         hp[key] = 700;
         return { ...t, terrain: 'gate' as TerrainKind };
       }
+      // 贴水而建 — where the real map puts the river along the wall line,
+      // keep the water: the river IS that flank's defence (襄陽 on the 漢水).
+      if (t.terrain === 'river') return t;
       hp[key] = 1000;
       return { ...t, terrain: 'wall' as TerrainKind };
     });

@@ -123,21 +123,21 @@ const ridgePx = (ridge: ReadonlyArray<readonly [number, number]>): Array<[number
   ridge.map(([lon, lat]) => geoToPixel(lon, lat));
 
 const MOUNTAINS = ([
-  { ridge: [[96, 31], [98, 29.5], [100, 28]], width: 3.0, cost: 1.6 },           // 青藏
-  { ridge: [[96, 35.5], [100, 36], [104, 36]], width: 2.0, cost: 1.1 },          // 昆仑
-  { ridge: [[105, 33.8], [108, 33.7], [111, 33.5], [113, 33.4]], width: 0.8, cost: 1.2 }, // 秦岭
-  { ridge: [[105, 32.5], [108, 32], [111, 31.5]], width: 0.7, cost: 1.3 },       // 大巴/巫山
-  { ridge: [[113.5, 41], [113.8, 38], [113.5, 35]], width: 0.7, cost: 0.9 },     // 太行
-  { ridge: [[115, 41.5], [117, 41], [119, 41]], width: 0.6, cost: 0.7 },         // 燕山
-  { ridge: [[117.5, 28], [117, 25]], width: 0.6, cost: 0.8 },                    // 武夷
-  { ridge: [[110, 25.5], [113, 25], [115, 24.8]], width: 0.6, cost: 0.7 },       // 南岭
-  { ridge: [[100, 30], [101.5, 27], [102, 24]], width: 1.0, cost: 1.4 },         // 横断
-] as const).map((m) => ({ ridge: ridgePx(m.ridge), width: m.width * DEG_TO_PX, cost: m.cost }));
+  { zh: '岷山', en: 'Min Mountains', ridge: [[96, 31], [98, 29.5], [100, 28]], width: 3.0, cost: 1.6 },           // 青藏东缘
+  { zh: '隴山', en: 'Long Mountains', ridge: [[96, 35.5], [100, 36], [104, 36]], width: 2.0, cost: 1.1 },         // 昆仑/陇右
+  { zh: '秦嶺', en: 'Qinling', ridge: [[105, 33.8], [108, 33.7], [111, 33.5], [113, 33.4]], width: 0.8, cost: 1.2 },
+  { zh: '巴山', en: 'Ba Mountains', ridge: [[105, 32.5], [108, 32], [111, 31.5]], width: 0.7, cost: 1.3 },        // 大巴/巫山
+  { zh: '太行山', en: 'Taihang', ridge: [[113.5, 41], [113.8, 38], [113.5, 35]], width: 0.7, cost: 0.9 },
+  { zh: '燕山', en: 'Yan Mountains', ridge: [[115, 41.5], [117, 41], [119, 41]], width: 0.6, cost: 0.7 },
+  { zh: '武夷山', en: 'Wuyi', ridge: [[117.5, 28], [117, 25]], width: 0.6, cost: 0.8 },
+  { zh: '南嶺', en: 'Nanling', ridge: [[110, 25.5], [113, 25], [115, 24.8]], width: 0.6, cost: 0.7 },
+  { zh: '橫斷山', en: 'Hengduan', ridge: [[100, 30], [101.5, 27], [102, 24]], width: 1.0, cost: 1.4 },
+] as const).map((m) => ({ zh: m.zh, en: m.en, ridge: ridgePx(m.ridge), width: m.width * DEG_TO_PX, cost: m.cost }));
 
 const RIVERS = ([
-  { pts: [[96, 35], [103, 37], [106, 39], [109, 40.5], [110, 38], [112, 35], [114, 35], [117, 36], [119, 37.5]], width: 0.20 }, // 黄河
-  { pts: [[96, 33], [104, 30], [107, 30.5], [110, 30.5], [113, 30.5], [117, 30.8], [120, 31], [122, 31.5]], width: 0.25 },      // 长江
-] as const).map((r) => ({ pts: ridgePx(r.pts), width: Math.max(8, r.width * DEG_TO_PX) }));
+  { zh: '黃河', en: 'Yellow River', pts: [[96, 35], [103, 37], [106, 39], [109, 40.5], [110, 38], [112, 35], [114, 35], [117, 36], [119, 37.5]], width: 0.20 },
+  { zh: '長江', en: 'Yangtze', pts: [[96, 33], [104, 30], [107, 30.5], [110, 30.5], [113, 30.5], [117, 30.8], [120, 31], [122, 31.5]], width: 0.25 },
+] as const).map((r) => ({ zh: r.zh, en: r.en, pts: ridgePx(r.pts), width: Math.max(8, r.width * DEG_TO_PX) }));
 
 function distToPolyline(px: number, py: number, pts: Array<[number, number]>): number {
   let best = Infinity;
@@ -182,22 +182,22 @@ export function terrainMarchCost(x: number, y: number): number {
 // the 淮河) — a siege from across the river crosses it; from the same
 // bank it does not.
 const RIVERS_DETAIL = ([
-  { pts: [[106.6, 33.15], [108, 32.8], [110, 32.4], [111.3, 32.0], [112.2, 31.95], [113.5, 31.15], [114.3, 30.62]], width: 0.14 }, // 漢水 漢中→襄陽北→夏口
-  { pts: [[112.9, 32.4], [115, 32.6], [117, 32.9], [119, 33.3]], width: 0.12 },                          // 淮河 桐柏→蚌埠
-  { pts: [[104, 24], [108, 23.5], [111, 23], [113, 23], [114.5, 22.5]], width: 0.14 },                   // 珠江/西江
-  { pts: [[110.5, 25.8], [112, 27], [112.8, 28.2], [113.0, 29.3]], width: 0.10 },                        // 湘江 零陵→長沙→洞庭
-  { pts: [[104.5, 35.9], [106, 34.9], [107.2, 34.52], [108.9, 34.45], [110.3, 34.68]], width: 0.10 },    // 渭水 隴右→長安北→潼關
-] as const).map((r) => ({ pts: ridgePx(r.pts), width: Math.max(4, r.width * DEG_TO_PX) }));
+  { zh: '漢水', en: 'Han River', pts: [[106.6, 33.15], [108, 32.8], [110, 32.4], [111.3, 32.0], [112.2, 31.95], [113.5, 31.15], [114.3, 30.62]], width: 0.14 }, // 漢中→襄陽北→夏口
+  { zh: '淮河', en: 'Huai River', pts: [[112.9, 32.4], [115, 32.6], [117, 32.9], [119, 33.3]], width: 0.12 },     // 桐柏→蚌埠
+  { zh: '珠江', en: 'Pearl River', pts: [[104, 24], [108, 23.5], [111, 23], [113, 23], [114.5, 22.5]], width: 0.14 },
+  { zh: '湘江', en: 'Xiang River', pts: [[110.5, 25.8], [112, 27], [112.8, 28.2], [113.0, 29.3]], width: 0.10 },  // 零陵→長沙→洞庭
+  { zh: '渭水', en: 'Wei River', pts: [[104.5, 35.9], [106, 34.9], [107.2, 34.52], [108.9, 34.45], [110.3, 34.68]], width: 0.10 }, // 隴右→長安北→潼關
+] as const).map((r) => ({ zh: r.zh, en: r.en, pts: ridgePx(r.pts), width: Math.max(4, r.width * DEG_TO_PX) }));
 
 // The three great lakes — battlefield water (march routing ignores them;
 // they are small next to the 24px nav grid).
-const LAKES_GAME: ReadonlyArray<{ x: number; y: number; r: number }> = ([
-  { lon: 112.9, lat: 29.3, r_deg: 0.92 },  // 洞庭湖
-  { lon: 116.3, lat: 29.0, r_deg: 0.70 },  // 鄱阳湖
-  { lon: 120.2, lat: 31.2, r_deg: 0.48 },  // 太湖
+const LAKES_GAME: ReadonlyArray<{ zh: string; en: string; x: number; y: number; r: number }> = ([
+  { zh: '洞庭湖', en: 'Lake Dongting', lon: 112.9, lat: 29.3, r_deg: 0.92 },
+  { zh: '鄱陽湖', en: 'Lake Poyang', lon: 116.3, lat: 29.0, r_deg: 0.70 },
+  { zh: '太湖', en: 'Lake Tai', lon: 120.2, lat: 31.2, r_deg: 0.48 },
 ] as const).map((l) => {
   const [px, py] = geoToPixel(l.lon, l.lat);
-  return { x: px, y: py, r: l.r_deg * DEG_TO_PX };
+  return { zh: l.zh, en: l.en, x: px, y: py, r: l.r_deg * DEG_TO_PX };
 });
 
 export type BattleGround = 'sea' | 'lake' | 'river' | 'riverbank' | 'mountain' | 'hill' | 'plain';
@@ -235,6 +235,46 @@ export function battleGroundAt(x: number, y: number): BattleGround {
   if (mountainScore > 0.55) return 'mountain';
   if (mountainScore > 0.28) return 'hill';
   return 'plain';
+}
+
+/**
+ * Name the ground a battle is fought on — 「漢水之濱」「秦嶺山中」
+ * 「洞庭湖畔」 — for season-report flavour. Returns null on open plain.
+ */
+export function describeBattleSite(x: number, y: number): { zh: string; en: string } | null {
+  for (const lk of LAKES_GAME) {
+    if (Math.hypot(x - lk.x, y - lk.y) < lk.r * 1.25) {
+      return { zh: `${lk.zh}畔`, en: `on the shores of ${lk.en}` };
+    }
+  }
+  let bestRiver: { zh: string; en: string } | null = null;
+  let bestScore = Infinity;
+  for (const r of [...RIVERS, ...RIVERS_DETAIL]) {
+    const d = distToPolyline(x, y, r.pts);
+    if (d < r.width * 1.9 && d / r.width < bestScore) {
+      bestScore = d / r.width;
+      bestRiver = d < r.width
+        ? { zh: `${r.zh}渡口`, en: `at the ${r.en} crossing` }
+        : { zh: `${r.zh}之濱`, en: `on the banks of the ${r.en}` };
+    }
+  }
+  if (bestRiver) return bestRiver;
+  let bestMountain: { zh: string; en: string } | null = null;
+  let mScore = 0;
+  for (const m of MOUNTAINS) {
+    const d = distToPolyline(x, y, m.ridge);
+    if (d < m.width) {
+      const score = m.cost * (1 - d / m.width);
+      if (score > mScore) {
+        mScore = score;
+        bestMountain = score > 0.5
+          ? { zh: `${m.zh}山中`, en: `deep in the ${m.en}` }
+          : { zh: `${m.zh}山麓`, en: `in the foothills of the ${m.en}` };
+      }
+    }
+  }
+  if (bestMountain && mScore > 0.28) return bestMountain;
+  return null;
 }
 
 /**

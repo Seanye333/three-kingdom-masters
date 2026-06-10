@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { generateTerrain, type BattleGeo } from './battlefieldTerrain';
+import { setupTacticalBattle } from './tactical';
 import { buildInitialCities } from '../data/cities';
 import { cityPos } from '../data/cityGeo';
+import { describeBattleSite } from '../data/geography';
 
 const cities = buildInitialCities({});
 const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
@@ -61,6 +63,37 @@ describe('real-geography battlefields (战斗地图写实)', () => {
     expect(top).toBe(W);
     expect(bottom).toBe(W);
     expect(tiles.some((t) => t.terrain === 'chokepoint')).toBe(true);
+  });
+
+  it('the rampart hugs the water — river flanks stay river (贴水而建)', () => {
+    const target = byId['xiangyang'];
+    const off = (id: string) => ({ officer: { id, name: { zh: id, en: id }, skills: [], stats: { war: 70, leadership: 70, intelligence: 60, politics: 50, charisma: 50 }, forceId: 'x', locationCityId: null, status: 'idle' } as never, troops: 4000 });
+    const battle = setupTacticalBattle({
+      cityId: 'xiangyang', width: W, height: H,
+      attackerForceId: 'a', defenderForceId: 'b',
+      attackers: [off('atk')], defenders: [off('def')],
+      terrainHint: { terrain: target.terrain, port: target.port },
+      battleGeo: siegeGeo('xinye', 'xiangyang'),
+    });
+    const wallCol = W - 3;
+    const colTiles = battle.tiles.filter((t) => t.coord.col === wallCol && t.coord.row >= 3 && t.coord.row <= 8);
+    const rivers = colTiles.filter((t) => t.terrain === 'river').length;
+    const walls = colTiles.filter((t) => t.terrain === 'wall' || t.terrain === 'gate').length;
+    // 漢水 runs along 襄陽's wall line when stormed from the north — part of
+    // the rampart band must remain open water, and a gate still stands.
+    expect(rivers, '城墙线上应保留汉水水面').toBeGreaterThanOrEqual(2);
+    expect(battle.tiles.some((t) => t.terrain === 'gate')).toBe(true);
+    expect(walls + rivers).toBe(colTiles.length);
+  });
+
+  it('describeBattleSite names the real ground', () => {
+    const xy = cityPos(byId['xiangyang']);
+    const north = describeBattleSite(xy.x, xy.y - 4);            // just north of 襄陽 → 漢水
+    expect(north?.zh, '襄陽城北应是汉水').toMatch(/漢水/);
+    const qinling = describeBattleSite(...(() => { const a = cityPos(byId['hanzhong']); const b = cityPos(byId['chencang']); return [(a.x + b.x) / 2, (a.y + b.y) / 2] as [number, number]; })());
+    expect(qinling?.zh, '漢中→陳倉之间应是秦岭').toMatch(/秦嶺/);
+    const plain = describeBattleSite(...(() => { const a = cityPos(byId['xuchang']); const b = cityPos(byId['chenliu']); return [(a.x + b.x) / 2, (a.y + b.y) / 2] as [number, number]; })());
+    expect(plain, '許昌—陳留平原应无地名').toBeNull();
   });
 
   it('is deterministic for the same battle and varies across battles', () => {
