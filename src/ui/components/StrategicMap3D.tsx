@@ -1120,8 +1120,11 @@ function City3D({
   const height = 0.18 + sizeScore * 0.12;
   const radius = 0.10 + sizeScore * 0.03;
   // World-size compensation: pillars stay visually reasonable as the world
-  // gets bigger. 0.7 multiplier = smaller pillars (less crowded look).
-  const worldScale = PIXEL_TO_WORLD * 50 * 0.7;   // 0.7 at original scale, ~1.46 at 1/24
+  // gets bigger. The final multiplier shrinks the footprint so neighbouring
+  // cities (min ~18px ≈ 2.6 hexes apart) stop overlapping — de-crowds the
+  // dense clusters (Luoyang basin, Shu passes, Xiangyang/Fancheng) without
+  // moving any city off its real-geography position.
+  const worldScale = PIXEL_TO_WORLD * 50 * 0.5;   // 0.5 → ~1.04 at 1/24
   // Selection pulse
   const ringRef = useRef<THREE.MeshBasicMaterial>(null);
   useFrame(({ clock }) => {
