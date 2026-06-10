@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { OrbitControls, Html, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
@@ -2124,6 +2125,7 @@ function CityScene({
   // Season-driven lighting mood.
   return (
     <SeasonCtx.Provider value={season}>
+      <SeasonalDrift season={season} />
      <InspectCtx.Provider value={onInspect}>
       <ambientLight intensity={light.ambient * 0.7} color={light.ambientColor} />
       {/* Sky/ground hemisphere fill for richer ambient colour grading */}
@@ -2677,6 +2679,10 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             minDistance={6}
             maxDistance={citySpan * 1.6}
           />
+          {/* Lanterns, braziers and water all catch a soft glow. */}
+          <EffectComposer>
+            <Bloom luminanceThreshold={0.85} intensity={0.35} mipmapBlur />
+          </EffectComposer>
         </Canvas>
 
         {/* Slot editor overlay */}
@@ -2928,5 +2934,58 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
         </div>
       </div>
     </div>
+  );
+}
+
+
+/* ─── 四季飄物 — falling snow in winter, drifting gold leaves in autumn,
+ *  blossom petals on the spring breeze. One instanced field, dressed by
+ *  the season; summer stays clear. */
+function SeasonalDrift({ season }: { season: 'spring' | 'summer' | 'autumn' | 'winter' }) {
+  const cfg = season === 'winter'
+    ? { count: 900, color: '#ffffff', size: 0.05, fall: 1.1, sway: 0.4, opacity: 0.9 }
+    : season === 'autumn'
+      ? { count: 260, color: '#d4972f', size: 0.055, fall: 0.55, sway: 1.1, opacity: 0.85 }
+      : season === 'spring'
+        ? { count: 180, color: '#f2c1d8', size: 0.045, fall: 0.4, sway: 1.3, opacity: 0.8 }
+        : null;
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const seeds = useMemo(() => {
+    const n = cfg?.count ?? 0;
+    return Array.from({ length: n }, (_, i) => ({
+      x: (((i * 73) % 200) / 200 - 0.5) * 46,
+      z: (((i * 137 + 41) % 200) / 200 - 0.5) * 36,
+      y: ((i * 29) % 100) / 100 * 16,
+      speed: 0.7 + ((i * 31) % 10) / 10 * 0.7,
+      drift: ((i * 17) % 63) / 10,
+    }));
+  }, [cfg?.count]);
+  useFrame((state, delta) => {
+    if (!meshRef.current || !cfg) return;
+    const t = state.clock.elapsedTime;
+    for (let i = 0; i < seeds.length; i++) {
+      const sd = seeds[i];
+      sd.y -= sd.speed * cfg.fall * delta;
+      if (sd.y < 0) sd.y = 16;
+      dummy.position.set(
+        sd.x + Math.sin(t * 0.8 + sd.drift) * cfg.sway,
+        sd.y,
+        sd.z + Math.cos(t * 0.6 + sd.drift) * cfg.sway * 0.7,
+      );
+      dummy.rotation.set(t + sd.drift, t * 0.7, 0);
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+  if (!cfg) return null;
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, cfg.count]} key={season}>
+      {season === 'winter'
+        ? <sphereGeometry args={[cfg.size, 4, 4]} />
+        : <planeGeometry args={[cfg.size * 2, cfg.size * 1.4]} />}
+      <meshBasicMaterial color={cfg.color} transparent opacity={cfg.opacity} side={THREE.DoubleSide} depthWrite={false} />
+    </instancedMesh>
   );
 }

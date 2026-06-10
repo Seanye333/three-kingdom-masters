@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls, Stars } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
@@ -1370,6 +1371,106 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
 }
 
 /* ─── The whole 3D scene ────────────────────────────────────────────── */
+/* ─── 战场天地 — ground skirt + horizon hills so the field sits in a
+ *  world instead of floating in the void. Fog fades both away. ───── */
+function BattleSurround({ width, height, timeOfDay }: { width: number; height: number; timeOfDay: TimeOfDay }) {
+  const [cx] = hexWorld(Math.floor(width / 2), Math.floor(height / 2));
+  const [, cz] = hexWorld(Math.floor(width / 2), Math.floor(height / 2));
+  const earth = timeOfDay === 'night' ? '#11161f' : timeOfDay === 'dusk' ? '#4a3828' : '#3d4a2c';
+  const hillCol = timeOfDay === 'night' ? '#0c1118' : timeOfDay === 'dusk' ? '#3a2c22' : '#2c3824';
+  // Deterministic ring of silhouette hills.
+  const hills = useMemo(() => Array.from({ length: 26 }, (_, i) => {
+    const a = (i / 26) * Math.PI * 2;
+    const r = 30 + ((i * 37) % 10);
+    return {
+      x: cx + Math.cos(a) * r * 1.25,
+      z: cz + Math.sin(a) * r * 0.85,
+      h: 3 + ((i * 53) % 17) / 17 * 5,
+      w: 5 + ((i * 29) % 11),
+    };
+  }), [cx, cz]);
+  return (
+    <group>
+      {/* Ground skirt — a vast earthen disc under and beyond the board */}
+      <mesh position={[cx, -0.12, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[90, 48]} />
+        <meshStandardMaterial color={earth} roughness={1} />
+      </mesh>
+      {/* Horizon hills — dark silhouettes swallowed by the fog */}
+      {hills.map((h, i) => (
+        <mesh key={i} position={[h.x, h.h / 2 - 0.1, h.z]}>
+          <coneGeometry args={[h.w, h.h, 7]} />
+          <meshStandardMaterial color={hillCol} roughness={1} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/* ─── 草石点缀 — grass tufts on the plains, scattered stones on hills.
+ *  Instanced; deterministic per coord so the field doesn't shimmer. */
+function FieldDressing({ tiles }: { tiles: TacticalTile[] }) {
+  const items = useMemo(() => {
+    const grass: Array<[number, number, number]> = [];
+    const rocks: Array<[number, number, number]> = [];
+    for (const t of tiles) {
+      const hsh = (t.coord.col * 73 + t.coord.row * 31) % 100;
+      const [x, z] = hexWorld(t.coord.col, t.coord.row);
+      const y = TERRAIN_HEIGHT[t.terrain];
+      if (t.terrain === 'plain' && hsh < 55) {
+        const n = 2 + (hsh % 2);
+        for (let k = 0; k < n; k++) {
+          const a = ((hsh + k * 47) % 100) / 100 * Math.PI * 2;
+          const r = 0.25 + ((hsh * (k + 3)) % 50) / 100;
+          grass.push([x + Math.cos(a) * r, y, z + Math.sin(a) * r]);
+        }
+      }
+      if (t.terrain === 'hill' && hsh < 70) {
+        const a = (hsh / 100) * Math.PI * 2;
+        rocks.push([x + Math.cos(a) * 0.45, y, z + Math.sin(a) * 0.45]);
+      }
+    }
+    return { grass, rocks };
+  }, [tiles]);
+  const grassRef = useRef<THREE.InstancedMesh>(null);
+  const rockRef = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const d = new THREE.Object3D();
+    if (grassRef.current) {
+      items.grass.forEach((g, i) => {
+        d.position.set(g[0], g[1] + 0.07, g[2]);
+        d.rotation.set(0, (i * 1.7) % Math.PI, ((i % 5) - 2) * 0.06);
+        d.scale.setScalar(0.8 + (i % 4) * 0.12);
+        d.updateMatrix();
+        grassRef.current!.setMatrixAt(i, d.matrix);
+      });
+      grassRef.current.instanceMatrix.needsUpdate = true;
+    }
+    if (rockRef.current) {
+      items.rocks.forEach((r, i) => {
+        d.position.set(r[0], r[1] + 0.05, r[2]);
+        d.rotation.set((i % 3) * 0.4, i * 0.9, 0);
+        d.scale.setScalar(0.7 + (i % 3) * 0.25);
+        d.updateMatrix();
+        rockRef.current!.setMatrixAt(i, d.matrix);
+      });
+      rockRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [items]);
+  return (
+    <group>
+      <instancedMesh ref={grassRef} args={[undefined, undefined, Math.max(1, items.grass.length)]}>
+        <coneGeometry args={[0.05, 0.16, 4]} />
+        <meshStandardMaterial color="#5d7a36" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={rockRef} args={[undefined, undefined, Math.max(1, items.rocks.length)]} castShadow>
+        <dodecahedronGeometry args={[0.09, 0]} />
+        <meshStandardMaterial color="#71685c" roughness={0.97} />
+      </instancedMesh>
+    </group>
+  );
+}
+
 function BattleScene({
   battle, playerSide, actionMode,
   selectedId, hovered, setHovered, onTileClick,
@@ -1437,6 +1538,8 @@ function BattleScene({
   return (
     <>
       <fog attach="fog" args={[lighting.fog[0], fogNear, fogFar]} />
+      <BattleSurround width={battle.width} height={battle.height} timeOfDay={battle.timeOfDay} />
+      <FieldDressing tiles={tiles} />
       {lighting.showStars && <Stars radius={80} depth={50} count={2500} factor={3} fade speed={0.5} />}
 
       {/* Lighting per time-of-day */}
@@ -1941,6 +2044,10 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
               enableDamping
               dampingFactor={0.1}
             />
+            {/* Fires, beacons and night lanterns glow. */}
+            <EffectComposer>
+              <Bloom luminanceThreshold={0.8} intensity={0.45} mipmapBlur />
+            </EffectComposer>
           </Suspense>
         </Canvas>
 

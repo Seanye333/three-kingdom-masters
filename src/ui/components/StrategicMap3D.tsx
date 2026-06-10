@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
 import { positionAlongRoute, marchDestCoords, terrainRoute } from '../../game/data/territories';
 import { snapToHexCenter, geoToPixel } from '../../game/data/geography';
@@ -706,31 +707,77 @@ function Ocean() {
 
 /* ─── Render rivers as visible blue ribbons on top of terrain ─── */
 function RiverRibbons({ frozen = false }: { frozen?: boolean }) {
+  // Real WIDTH — a draped triangle strip following each river's course
+  // (lineBasicMaterial linewidth is ignored by most GPUs, so the old
+  // ribbons rendered as hairlines). Width tapers from the headwaters to
+  // the full lower course.
   const ribbons = useMemo(() => {
-    const out: Array<{ geom: THREE.BufferGeometry; width: number; freezes: boolean }> = [];
+    const out: Array<{ geom: THREE.BufferGeometry; freezes: boolean }> = [];
     for (const r of RIVERS) {
-      const pts: THREE.Vector3[] = [];
-      for (const [px, py] of r.points) {
-        const [wx, wz] = pxToWorld(px, py);
-        const h = sampleTerrain(px, py).h + 0.005;
-        if (!Number.isFinite(wx) || !Number.isFinite(wz) || !Number.isFinite(h)) continue;
-        pts.push(new THREE.Vector3(wx, h, wz));
+      // Densify the polyline so the strip bends smoothly.
+      const dense: Array<[number, number]> = [];
+      for (let i = 0; i < r.points.length - 1; i++) {
+        const [ax, ay] = r.points[i];
+        const [bx, by] = r.points[i + 1];
+        const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 6));
+        for (let k = 0; k < n; k++) dense.push([ax + (bx - ax) * (k / n), ay + (by - ay) * (k / n)]);
       }
-      if (pts.length < 2) continue;
-      out.push({ geom: new THREE.BufferGeometry().setFromPoints(pts), width: r.width, freezes: r.name === 'yellow' });
+      dense.push(r.points[r.points.length - 1]);
+      if (dense.length < 2) continue;
+      const positions: number[] = [];
+      const indices: number[] = [];
+      for (let i = 0; i < dense.length; i++) {
+        const [px, py] = dense[i];
+        const [nx, ny] = dense[Math.min(dense.length - 1, i + 1)];
+        const [qx, qy] = dense[Math.max(0, i - 1)];
+        // direction from neighbours; perpendicular for the banks
+        let dx = nx - qx, dy = ny - qy;
+        const len = Math.hypot(dx, dy) || 1;
+        dx /= len; dy /= len;
+        const taper = 0.35 + 0.65 * (i / (dense.length - 1));   // grows downstream
+        const halfW = (r.width * 0.7 * taper) * PIXEL_TO_WORLD;
+        const [wx, wz] = pxToWorld(px, py);
+        const h = sampleTerrain(px, py).h + 0.02;
+        positions.push(
+          wx + (-dy) * halfW, h, wz + dx * halfW,
+          wx + dy * halfW, h, wz + (-dx) * halfW,
+        );
+        if (i > 0) {
+          const a = (i - 1) * 2;
+          indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+        }
+      }
+      const geom = new THREE.BufferGeometry();
+      geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geom.setIndex(indices);
+      geom.computeVertexNormals();
+      out.push({ geom, freezes: r.name === 'yellow' });
     }
     return out;
   }, []);
+  const matRefs = useRef<Array<THREE.MeshStandardMaterial | null>>([]);
+  useFrame(({ clock }) => {
+    // Living water — a slow specular shimmer travelling along the rivers.
+    for (const m of matRefs.current) {
+      if (m) m.emissiveIntensity = 0.18 + Math.sin(clock.elapsedTime * 1.2) * 0.08;
+    }
+  });
   return (
     <group>
       {ribbons.map((r, i) => (
-        <line key={i}>
-          <primitive object={r.geom} attach="geometry" />
+        <mesh key={i} geometry={r.geom} renderOrder={1}>
           {/* 冰封 — the frozen Yellow River goes pale ice-blue in winter */}
-          <lineBasicMaterial
-            color={frozen && r.freezes ? '#cfe8f4' : '#5a9bc8'}
-            transparent opacity={0.85} linewidth={r.width / 2} />
-        </line>
+          <meshStandardMaterial
+            ref={(m) => { matRefs.current[i] = m; }}
+            color={frozen && r.freezes ? '#cfe8f4' : '#3f7fae'}
+            emissive={frozen && r.freezes ? '#e8f4fa' : '#5a9bc8'}
+            emissiveIntensity={0.18}
+            roughness={frozen && r.freezes ? 0.55 : 0.25}
+            metalness={frozen && r.freezes ? 0.1 : 0.5}
+            transparent opacity={0.92}
+            depthWrite={false}
+          />
+        </mesh>
       ))}
     </group>
   );
@@ -2550,6 +2597,53 @@ function MarchPreviewLine({ fromId, toId, cities }: {
   );
 }
 
+/* ─── 雲影 — soft clouds drifting over the land, shadows in tow ───── */
+function DriftingClouds() {
+  const ref = useRef<THREE.Group>(null);
+  // Deterministic cloud field: position, scale, speed per cloud.
+  const clouds = useMemo(() => Array.from({ length: 6 }, (_, i) => ({
+    x0: ((i * 137) % 100) / 100 * MAP_W - MAP_W / 2,
+    z0: ((i * 71 + 23) % 100) / 100 * MAP_D - MAP_D / 2,
+    s: 2.6 + ((i * 53) % 10) / 10 * 2.8,
+    v: 0.12 + ((i * 31) % 10) / 10 * 0.1,
+    puffs: [[0, 0, 1], [0.8, 0.25, 0.72], [-0.7, 0.18, 0.6]] as Array<[number, number, number]>,
+  })), []);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.elapsedTime;
+    ref.current.children.forEach((g, i) => {
+      const c = clouds[i];
+      // Drift east, wrap around the map edge.
+      const span = MAP_W + 16;
+      let x = c.x0 + t * c.v;
+      x = ((x + span / 2) % span) - span / 2;
+      g.position.x = x;
+    });
+  });
+  return (
+    <group ref={ref}>
+      {clouds.map((c, i) => (
+        <group key={i} position={[c.x0, 0, c.z0]}>
+          {/* The cloud — soft white puffs high above */}
+          {c.puffs.map(([dx, dz, ps], j) => (
+            <mesh key={j} position={[dx * c.s, 8.5 + j * 0.1, dz * c.s]} scale={[1, 0.32, 1]}>
+              <sphereGeometry args={[c.s * 0.5 * ps, 10, 8]} />
+              <meshStandardMaterial color="#ffffff" transparent opacity={0.2} depthWrite={false} roughness={1} />
+            </mesh>
+          ))}
+          {/* Its shadow — a dark blot gliding over the ground */}
+          {c.puffs.map(([dx, dz, ps], j) => (
+            <mesh key={`s${j}`} position={[dx * c.s, 0.42, dz * c.s]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[c.s * 0.55 * ps, 18]} />
+              <meshBasicMaterial color="#0a0c10" transparent opacity={0.09} depthWrite={false} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </group>
+  );
+}
+
 function MapScene({ overlayMode, onPortClick, onFortClick }: {
   overlayMode: OverlayMode;
   onPortClick: (portId: string) => void;
@@ -2634,6 +2728,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       {season === 'winter' && <SnowBlanket />}
       <Forest3D />
       <GreatWall3D />
+      <DriftingClouds />
       <ProvinceBorders3D cities={cities} />
       <ProvinceLabels3D />
       {marchPreview && (
@@ -2808,6 +2903,10 @@ export function StrategicMap3D({ onSwitch2D }: { onSwitch2D: () => void }) {
             enableDamping
             dampingFactor={0.1}
           />
+          {/* Gentle bloom — beacons, fires and water shimmer get a halo. */}
+          <EffectComposer>
+            <Bloom luminanceThreshold={0.85} intensity={0.35} mipmapBlur />
+          </EffectComposer>
         </Suspense>
       </Canvas>
 
