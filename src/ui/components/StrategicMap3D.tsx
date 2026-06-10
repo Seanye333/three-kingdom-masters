@@ -2353,6 +2353,102 @@ function Lakes3D() {
   );
 }
 
+/* ─── 州界虚线 — dashed ink borders between the thirteen provinces ───
+ *  A draped texture: sample the map on a coarse grid, assign each land
+ *  sample to its nearest city's province (same Voronoi the territory
+ *  layer uses), and stipple a dash wherever neighbouring samples belong
+ *  to different provinces. Water (sea/lake/river) is skipped so borders
+ *  stop at the coast and break at rivers. Static — built once. */
+let provinceBorderTexCache: THREE.Texture | null = null;
+function buildProvinceBorderTexture(cities: Record<string, City>): THREE.Texture {
+  if (provinceBorderTexCache) return provinceBorderTexCache;
+  const W = 2000, H = 1440;                    // 2× pixel space, crisper dots
+  const STEP = 2;                              // logical-px sampling grid
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  // City geo-pixel positions + province ids
+  const pts: Array<{ x: number; y: number; pid: string }> = [];
+  for (const c of Object.values(cities)) {
+    const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
+    pts.push({ x: px, y: py, pid: PROVINCE_BY_CITY[c.id] ?? '?' });
+  }
+  const isWater = (x: number, y: number): boolean => {
+    if (landSDF(x, y) < 0) return true;
+    for (const lk of LAKES) if (Math.hypot(x - lk.x, y - lk.y) < lk.r) return true;
+    for (const r of RIVERS) if (distToPolyline(x, y, r.points) < r.width) return true;
+    return false;
+  };
+  const provAt = (x: number, y: number): string | null => {
+    if (isWater(x, y)) return null;
+    let best = ''; let bd = Infinity;
+    for (const p of pts) {
+      const d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y);
+      if (d < bd) { bd = d; best = p.pid; }
+    }
+    return best;
+  };
+  // Cache one row at a time so each sample's province is computed once.
+  const cols = Math.floor(1000 / STEP), rows = Math.floor(720 / STEP);
+  let prevRow: Array<string | null> = new Array(cols).fill(null);
+  for (let gy = 0; gy < rows; gy++) {
+    const row: Array<string | null> = new Array(cols);
+    for (let gx = 0; gx < cols; gx++) row[gx] = provAt(gx * STEP, gy * STEP);
+    for (let gx = 0; gx < cols; gx++) {
+      const here = row[gx];
+      if (!here) continue;
+      const right = gx + 1 < cols ? row[gx + 1] : null;
+      const up = prevRow[gx];
+      const isBorder = (right && right !== here) || (up && up !== here);
+      if (!isBorder) continue;
+      const x = gx * STEP, y = gy * STEP;
+      // Dash rhythm: ~12px ink, ~6px gap along the border's run.
+      if ((x + y) % 18 >= 12) continue;
+      // Parchment halo under an ink dot — reads on both dark and gold ground.
+      ctx.fillStyle = 'rgba(238, 226, 196, 0.40)';
+      ctx.beginPath(); ctx.arc(x * 2, y * 2, 3.4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(48, 34, 18, 0.72)';
+      ctx.beginPath(); ctx.arc(x * 2, y * 2, 2.0, 0, Math.PI * 2); ctx.fill();
+    }
+    prevRow = row;
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = true;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  tex.anisotropy = 8;
+  provinceBorderTexCache = tex;
+  return tex;
+}
+
+function ProvinceBorders3D({ cities }: { cities: Record<string, City> }) {
+  // Same displaced plane as the territory layer, a hair higher so the
+  // dashes sit on top of the tint but under lakes/labels.
+  const geom = useMemo(() => {
+    const subW = 240, subD = 180;
+    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, subW, subD);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i);
+      const wy = pos.getY(i);
+      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
+      pos.setZ(i, sampleTerrain(px, py).h + 0.06);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  const texture = useMemo(() => buildProvinceBorderTexture(cities), [cities]);
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
+      <meshBasicMaterial map={texture} transparent depthWrite={false} />
+    </mesh>
+  );
+}
+
 /* ─── 州名 — the thirteen Han provinces as faint floating watermarks so
  *  the player can read regions at a glance. Big + translucent, behind the
  *  city labels; they scale with distance so they recede when you zoom in. */
@@ -2476,6 +2572,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       <RiverRibbons />
       <Forest3D />
       <GreatWall3D />
+      <ProvinceBorders3D cities={cities} />
       <ProvinceLabels3D />
 
       <Roads cities={cities} />
