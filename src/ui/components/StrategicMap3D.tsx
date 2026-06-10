@@ -1381,6 +1381,11 @@ const UNIT_TAG: Record<WeaponType, string> = {
   sabre: '刀', sword: '劍', fan: '師', siege: '械', none: '步',
 };
 
+// Marching-token scale — kept in step with the city footprint shrink (0.7→0.5)
+// so the squad reads as a unit on the map, not larger than the cities it moves
+// between.
+const ARMY_TOKEN_SCALE = 0.7;
+
 function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, landRoute, weaponType, selected, holding, cellTarget, ports }: {
   from: City; to: City; color: string;
   commanderName: string; troops: number;
@@ -1477,7 +1482,7 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   const troopLabel = troops >= 1000 ? `${(troops / 1000).toFixed(1)}k` : `${troops}`;
   const etaLabel = holding ? '  駐' : totalSeasons > 1 ? `  ${seasonsRemaining}/${totalSeasons}季` : '';
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} scale={ARMY_TOKEN_SCALE}>
       {/* Selection ring on the ground under the squad. */}
       {selected && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
