@@ -2178,6 +2178,74 @@ function Port3D({ port, color, onClick }: {
   );
 }
 
+/* ─── 北疆长城 — Qin/Han Great Wall draped along the northern frontier ─
+ *  A stone rampart following the Yinshan/Yan ranges from the Hexi west end
+ *  to Liaodong, with watchtowers at intervals. Instanced for cheapness. */
+const WALL_GEO: ReadonlyArray<readonly [number, number]> = [
+  [102.5, 38.2], [105.5, 39.2], [108.0, 40.3], [110.5, 41.2],
+  [113.0, 41.6], [115.5, 41.6], [118.0, 41.2], [120.5, 41.2], [122.5, 41.3],
+];
+function GreatWall3D() {
+  const { segments, towers } = useMemo(() => {
+    const pxPts = WALL_GEO.map(([lo, la]) => geoToPixel(lo, la));
+    const dense: Array<[number, number]> = [];
+    const STEP = 7;                                   // px between rampart blocks
+    for (let i = 0; i < pxPts.length - 1; i++) {
+      const [ax, ay] = pxPts[i], [bx, by] = pxPts[i + 1];
+      const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / STEP));
+      for (let k = 0; k < n; k++) dense.push([ax + (bx - ax) * (k / n), ay + (by - ay) * (k / n)]);
+    }
+    dense.push(pxPts[pxPts.length - 1]);
+    const segments: Array<{ x: number; y: number; z: number; rot: number; len: number }> = [];
+    const towers: Array<[number, number, number]> = [];
+    for (let i = 0; i < dense.length - 1; i++) {
+      const [wax, waz] = pxToWorld(dense[i][0], dense[i][1]);
+      const [wbx, wbz] = pxToWorld(dense[i + 1][0], dense[i + 1][1]);
+      const mx = (wax + wbx) / 2, mz = (waz + wbz) / 2;
+      const len = Math.hypot(wbx - wax, wbz - waz);
+      segments.push({ x: mx, y: sampleTerrainHeight(mx, mz), z: mz, rot: Math.atan2(wbz - waz, wbx - wax), len });
+      if (i % 9 === 0) towers.push([wax, sampleTerrainHeight(wax, waz), waz]);
+    }
+    return { segments, towers };
+  }, []);
+  const wallRef = useRef<THREE.InstancedMesh>(null);
+  const towerRef = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const d = new THREE.Object3D();
+    if (wallRef.current) {
+      segments.forEach((s, i) => {
+        d.position.set(s.x, s.y + 0.15, s.z);
+        d.rotation.set(0, -s.rot, 0);
+        d.scale.set(s.len * 1.2, 1, 1);
+        d.updateMatrix();
+        wallRef.current!.setMatrixAt(i, d.matrix);
+      });
+      wallRef.current.instanceMatrix.needsUpdate = true;
+    }
+    if (towerRef.current) {
+      const e = new THREE.Object3D();
+      towers.forEach((p, i) => {
+        e.position.set(p[0], p[1] + 0.25, p[2]);
+        e.updateMatrix();
+        towerRef.current!.setMatrixAt(i, e.matrix);
+      });
+      towerRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [segments, towers]);
+  return (
+    <group>
+      <instancedMesh ref={wallRef} args={[undefined, undefined, segments.length]} castShadow receiveShadow>
+        <boxGeometry args={[1, 0.30, 0.14]} />
+        <meshStandardMaterial color="#7c766c" roughness={0.96} metalness={0.02} />
+      </instancedMesh>
+      <instancedMesh ref={towerRef} args={[undefined, undefined, towers.length]} castShadow receiveShadow>
+        <boxGeometry args={[0.19, 0.50, 0.19]} />
+        <meshStandardMaterial color="#b0a896" roughness={0.93} metalness={0.02} />
+      </instancedMesh>
+    </group>
+  );
+}
+
 function MapScene({ overlayMode, onPortClick, onFortClick }: {
   overlayMode: OverlayMode;
   onPortClick: (portId: string) => void;
@@ -2258,6 +2326,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       <Ocean />
       <RiverRibbons />
       <Forest3D />
+      <GreatWall3D />
 
       <Roads cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} />
