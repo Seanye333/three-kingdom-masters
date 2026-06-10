@@ -405,8 +405,12 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
         const { col, row } = t.coord;
         const key = `${col},${row}`;
         const onWest = col === westCol && row >= r0 && row <= r1;
-        const onNorth = row === r0 && col > westCol;
-        const onSouth = row === r1 && col > westCol;
+        // North/south faces stop one column short of the map edge — the
+        // rear corners stay open as back alleys into the far quarter, so
+        // an army without siege gear can still flank in (and the garrison
+        // can sally out) instead of hard-stalling at sealed walls.
+        const onNorth = row === r0 && col > westCol && col < width - 1;
+        const onSouth = row === r1 && col > westCol && col < width - 1;
         if (!onWest && !onNorth && !onSouth) {
           // Interior streets — the town is built on level ground.
           if (col > westCol && row > r0 && row < r1
@@ -2379,12 +2383,28 @@ function aiActOnce(
     return { battle: stratResult, acted: true, signatures: detectSignature(b, stratResult, unit, officers) };
   }
 
-  // Siege engines batter an adjacent wall or gate.
+  // Siege engines batter an adjacent wall or gate — gates first (700 HP
+  // vs 1000, and the road runs through them).
   if (unit.unitType === 'siege') {
-    const fort = hexNeighbours(unit.coord)
+    const adjForts = hexNeighbours(unit.coord)
       .map((c) => tileAt(b, c))
-      .find((t) => t?.terrain === 'gate' || t?.terrain === 'wall');
+      .filter((t): t is NonNullable<typeof t> => t?.terrain === 'gate' || t?.terrain === 'wall');
+    const fort = adjForts.find((t) => t.terrain === 'gate') ?? adjForts[0];
     if (fort) return { battle: breakGate(b, unit.id, fort.coord), acted: true, signatures: [] };
+    // Not at the walls yet — an attacking engine's job is the breach:
+    // roll toward the nearest gate (or wall segment) instead of chasing
+    // units around the enclosure.
+    if (unit.side === 'attacker') {
+      const forts = b.tiles.filter((t) => t.terrain === 'gate' || t.terrain === 'wall');
+      if (forts.length > 0) {
+        const gates = forts.filter((t) => t.terrain === 'gate');
+        const pool = gates.length > 0 ? gates : forts;
+        const nearest = pool.reduce((best, t) =>
+          hexDistance(unit.coord, t.coord) < hexDistance(unit.coord, best.coord) ? t : best);
+        const step = bestStepToward(b, unit, nearest.coord);
+        if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+      }
+    }
   }
 
   // Broken units flee off their own edge instead of dying in place.

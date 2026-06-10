@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateTerrain, type BattleGeo } from './battlefieldTerrain';
-import { setupTacticalBattle } from './tactical';
+import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance } from './tactical';
 import { buildInitialCities } from '../data/cities';
 import { cityPos } from '../data/cityGeo';
 import { describeBattleSite } from '../data/geography';
@@ -94,6 +94,69 @@ describe('real-geography battlefields (战斗地图写实)', () => {
     expect(qinling?.zh, '漢中→陳倉之间应是秦岭').toMatch(/秦嶺/);
     const plain = describeBattleSite(...(() => { const a = cityPos(byId['xuchang']); const b = cityPos(byId['chenliu']); return [(a.x + b.x) / 2, (a.y + b.y) / 2] as [number, number]; })());
     expect(plain, '許昌—陳留平原应无地名').toBeNull();
+  });
+
+  it('the enclosure always has a rear route — no hard-stall without siege gear', () => {
+    // BFS over passable terrain from the attacker spawn to the defender:
+    // the back-alley corners must make the interior reachable with every
+    // wall and gate still intact.
+    const off = (id: string) => ({ officer: { id, name: { zh: id, en: id }, skills: [], stats: { war: 70, leadership: 70, intelligence: 60, politics: 50, charisma: 50 } } as never, troops: 4000 });
+    const battle = setupTacticalBattle({
+      cityId: 'xuchang', width: W, height: H,
+      attackerForceId: 'a', defenderForceId: 'b',
+      attackers: [off('atk')], defenders: [off('def')],
+      terrainHint: { terrain: 'plain' },
+      battleGeo: siegeGeo('chenliu', 'xuchang'),
+    });
+    const def = battle.units.find((u) => u.side === 'defender')!;
+    const start = battle.units.find((u) => u.side === 'attacker')!.coord;
+    const seen = new Set<string>([`${start.col},${start.row}`]);
+    const queue = [start];
+    let reached = false;
+    while (queue.length && !reached) {
+      const c = queue.shift()!;
+      for (const dc of [-1, 0, 1]) for (const dr of [-1, 0, 1]) {
+        if (!dc && !dr) continue;
+        const n = { col: c.col + dc, row: c.row + dr };
+        if (n.col < 0 || n.row < 0 || n.col >= W || n.row >= H) continue;
+        const k = `${n.col},${n.row}`;
+        if (seen.has(k)) continue;
+        if (n.col === def.coord.col && n.row === def.coord.row) { reached = true; break; }
+        if (moveCost(battle, n) >= 99) continue;
+        seen.add(k);
+        queue.push(n);
+      }
+    }
+    expect(reached, '攻方无器械也必须能绕进城(后巷)').toBe(true);
+  });
+
+  it('an attacking siege engine rolls toward the gate and batters it', () => {
+    const mk = (id: string, war = 70) => ({ officer: { id, name: { zh: id, en: id }, skills: id === 'eng' ? ['siegemaster'] : [], stats: { war, leadership: 70, intelligence: 60, politics: 50, charisma: 50 } } as never, troops: 4000 });
+    let battle = setupTacticalBattle({
+      cityId: 'xuchang', width: W, height: H,
+      attackerForceId: 'a', defenderForceId: 'b',
+      attackers: [mk('atk'), mk('eng')], defenders: [mk('def')],
+      terrainHint: { terrain: 'plain' },
+      battleGeo: siegeGeo('chenliu', 'xuchang'),
+    });
+    const officers = Object.fromEntries(battle.units.map((u) => [u.officerId, { id: u.officerId, name: { zh: u.officerId, en: u.officerId }, skills: [], stats: { war: 70, leadership: 70, intelligence: 60, politics: 50, charisma: 50 }, traits: [] } as never]));
+    const engId = battle.units.find((u) => u.unitType === 'siege')!.id;
+    const gates = battle.tiles.filter((t) => t.terrain === 'gate');
+    const distToGate = (b: typeof battle) => {
+      const e = b.units.find((u) => u.id === engId)!;
+      return Math.min(...gates.map((g) => hexDistance(e.coord, g.coord)));
+    };
+    const before = distToGate(battle);
+    const hpBefore = JSON.stringify(battle.wallHp);
+    for (let i = 0; i < 4; i++) {
+      battle = { ...aiTakeTurn(battle, officers, () => 0.5, { skill: 1 }).battle, activeSide: 'attacker' };
+      battle.units = battle.units.map((u) => ({ ...u, ap: u.maxAp }));
+    }
+    const after = distToGate(battle);
+    const battered = JSON.stringify(battle.wallHp) !== hpBefore;
+    // After a few turns the engine must have closed on the gate (or already
+    // be chipping fortifications down).
+    expect(after < before || battered, `器械应逼近城门(${before}→${after})或已开砸`).toBe(true);
   });
 
   it('is deterministic for the same battle and varies across battles', () => {
