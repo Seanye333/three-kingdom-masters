@@ -1102,24 +1102,33 @@ function HamletVillage({ radius, height, forceColor, onClick }: {
   );
 }
 
-/** Pass (關): two stone-cliff wedges flanking a tall gate tower with arch. */
+/** Pass (關): rocky cliffs pinching a crenellated wall, with a double-eave
+ *  gatehouse plugging the valley — reads as a fortified mountain gate. */
 function PassGate({ radius, height, forceColor, onClick }: {
   radius: number; height: number; forceColor: string;
   onClick: (e: { stopPropagation: () => void }) => void;
 }) {
   return (
     <>
-      {/* Left cliff wedge */}
-      <mesh position={[-radius * 0.95, height * 0.55, 0]} castShadow>
-        <boxGeometry args={[radius * 0.55, height * 1.10, radius * 1.8]} />
-        <meshStandardMaterial color="#6a5440" roughness={0.95} />
+      {/* Cliff flanks — rock-grey, slightly skewed so they read as crags */}
+      <mesh position={[-radius * 1.05, height * 0.55, 0]} rotation={[0, 0.28, 0.06]} castShadow>
+        <boxGeometry args={[radius * 0.60, height * 1.20, radius * 1.9]} />
+        <meshStandardMaterial color="#6e6354" roughness={0.97} />
       </mesh>
-      {/* Right cliff wedge */}
-      <mesh position={[radius * 0.95, height * 0.55, 0]} castShadow>
-        <boxGeometry args={[radius * 0.55, height * 1.10, radius * 1.8]} />
-        <meshStandardMaterial color="#6a5440" roughness={0.95} />
+      <mesh position={[radius * 1.05, height * 0.50, 0]} rotation={[0, -0.22, -0.05]} castShadow>
+        <boxGeometry args={[radius * 0.60, height * 1.05, radius * 1.9]} />
+        <meshStandardMaterial color="#75695a" roughness={0.97} />
       </mesh>
-      {/* Central gate base — stone */}
+      {/* Wall stubs tying the gate into both cliffs */}
+      <mesh position={[-radius * 0.62, height * 0.30, 0]} castShadow receiveShadow>
+        <boxGeometry args={[radius * 0.55, height * 0.60, radius * 0.45]} />
+        <meshStandardMaterial color="#8a7560" roughness={0.92} />
+      </mesh>
+      <mesh position={[radius * 0.62, height * 0.30, 0]} castShadow receiveShadow>
+        <boxGeometry args={[radius * 0.55, height * 0.60, radius * 0.45]} />
+        <meshStandardMaterial color="#8a7560" roughness={0.92} />
+      </mesh>
+      {/* Central gate base — stone — click target */}
       <mesh
         position={[0, height * 0.35, 0]}
         castShadow receiveShadow
@@ -1128,26 +1137,40 @@ function PassGate({ radius, height, forceColor, onClick }: {
         onPointerOut={() => { document.body.style.cursor = ''; }}
       >
         <boxGeometry args={[radius * 1.0, height * 0.70, radius * 0.7]} />
-        <meshStandardMaterial color="#8a7560" roughness={0.9} />
+        <meshStandardMaterial color="#907c64" roughness={0.9} />
       </mesh>
       {/* Gate arch — darker opening */}
       <mesh position={[0, height * 0.25, radius * 0.36]}>
         <boxGeometry args={[radius * 0.5, height * 0.45, radius * 0.05]} />
         <meshStandardMaterial color="#1a1410" />
       </mesh>
-      {/* Tower above gate — colored by force */}
-      <mesh position={[0, height * 0.90, 0]} castShadow>
-        <boxGeometry args={[radius * 1.1, height * 0.40, radius * 0.85]} />
+      {/* Battlements along the gate top */}
+      {[-0.36, -0.12, 0.12, 0.36].map((sx, i) => (
+        <mesh key={i} position={[radius * sx, height * 0.745, radius * 0.30]} castShadow>
+          <boxGeometry args={[radius * 0.13, height * 0.09, radius * 0.08]} />
+          <meshStandardMaterial color="#9c8870" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* Gatehouse — force-coloured hall with double swept eaves */}
+      <mesh position={[0, height * 0.92, 0]} castShadow>
+        <boxGeometry args={[radius * 1.0, height * 0.36, radius * 0.78]} />
         <meshStandardMaterial color={forceColor} roughness={0.75} />
       </mesh>
-      {/* Eave above tower */}
-      <mesh position={[0, height * 1.13, 0]} castShadow>
-        <boxGeometry args={[radius * 1.45, height * 0.05, radius * 1.10]} />
+      <mesh position={[0, height * 1.12, 0]} castShadow>
+        <boxGeometry args={[radius * 1.42, height * 0.06, radius * 1.08]} />
         <meshStandardMaterial color="#2a2a3a" roughness={0.7} />
       </mesh>
-      {/* Pyramidal roof of gate tower */}
-      <mesh position={[0, height * 1.25, 0]} castShadow>
-        <coneGeometry args={[radius * 0.75, height * 0.32, 4]} />
+      {/* Upper storey + second eave + crown roof */}
+      <mesh position={[0, height * 1.26, 0]} castShadow>
+        <boxGeometry args={[radius * 0.72, height * 0.22, radius * 0.58]} />
+        <meshStandardMaterial color="#7a4a3a" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, height * 1.40, 0]} castShadow>
+        <boxGeometry args={[radius * 1.05, height * 0.05, radius * 0.82]} />
+        <meshStandardMaterial color="#2a2a3a" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, height * 1.52, 0]} castShadow>
+        <coneGeometry args={[radius * 0.55, height * 0.26, 4]} />
         <meshStandardMaterial color="#3a3a4a" roughness={0.8} />
       </mesh>
     </>
@@ -2197,7 +2220,7 @@ function Port3D({ port, color, onClick }: {
   const hpPct = Math.max(0, Math.min(1, port.hp / port.maxHp));
   return (
     <group position={[wx, 0, wz]} scale={s}>
-      {/* Stone pier — flat slab — click target */}
+      {/* Stone quay — main slab — click target */}
       <mesh
         position={[0, 0.05, 0]}
         castShadow receiveShadow
@@ -2208,6 +2231,42 @@ function Port3D({ port, color, onClick }: {
         <boxGeometry args={[0.6, 0.08, 0.25]} />
         <meshStandardMaterial color="#7a6750" roughness={0.92} />
       </mesh>
+      {/* Wooden jetty running out over the water (L-shape) on stilts */}
+      <mesh position={[-0.10, 0.045, 0.32]} castShadow receiveShadow>
+        <boxGeometry args={[0.14, 0.035, 0.45]} />
+        <meshStandardMaterial color="#6b5238" roughness={0.9} />
+      </mesh>
+      {[0.16, 0.34, 0.50].map((dz, i) => (
+        <mesh key={i} position={[-0.10, -0.02, dz]} castShadow>
+          <cylinderGeometry args={[0.012, 0.012, 0.12, 4]} />
+          <meshStandardMaterial color="#4a3826" roughness={0.95} />
+        </mesh>
+      ))}
+      {/* Warehouse hut on the shore end */}
+      <mesh position={[0.18, 0.135, -0.04]} castShadow receiveShadow>
+        <boxGeometry args={[0.16, 0.11, 0.13]} />
+        <meshStandardMaterial color="#8a6a4a" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.18, 0.215, -0.04]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[0.125, 0.09, 4]} />
+        <meshStandardMaterial color="#3a3a4a" roughness={0.8} />
+      </mesh>
+      {/* Beacon — pole with a glowing brazier at the jetty head */}
+      <mesh position={[-0.10, 0.16, 0.52]} castShadow>
+        <cylinderGeometry args={[0.010, 0.013, 0.24, 4]} />
+        <meshStandardMaterial color="#1a1410" />
+      </mesh>
+      <mesh position={[-0.10, 0.30, 0.52]}>
+        <sphereGeometry args={[0.030, 8, 6]} />
+        <meshStandardMaterial color="#ffb238" emissive="#ff8c1a" emissiveIntensity={1.6} />
+      </mesh>
+      {/* Breakwater — three stone blocks arcing off the quay */}
+      {[[-0.42, 0.30], [-0.52, 0.16], [-0.56, 0.00]].map(([bx, bz], i) => (
+        <mesh key={i} position={[bx, 0.015, bz]} rotation={[0, i * 0.5, 0]} castShadow>
+          <boxGeometry args={[0.14, 0.07, 0.09]} />
+          <meshStandardMaterial color="#6e6354" roughness={0.96} />
+        </mesh>
+      ))}
       {/* Owner banner pole + flag */}
       <mesh position={[0.28, 0.35, 0]} castShadow>
         <cylinderGeometry args={[0.015, 0.015, 0.55, 4]} />
@@ -2217,14 +2276,36 @@ function Port3D({ port, color, onClick }: {
         <planeGeometry args={[0.22, 0.15]} />
         <meshStandardMaterial color={color} side={THREE.DoubleSide} />
       </mesh>
-      {/* Small moored boat to signal "this is a port" */}
-      <mesh position={[-0.28, 0.10, 0.20]} castShadow>
-        <boxGeometry args={[0.30, 0.08, 0.10]} />
-        <meshStandardMaterial color="#5a4530" roughness={0.85} />
-      </mesh>
-      <mesh position={[-0.28, 0.25, 0.20]} castShadow>
-        <cylinderGeometry args={[0.008, 0.008, 0.32, 4]} />
-        <meshStandardMaterial color="#3a2818" />
+      {/* War junk moored at the jetty — hull, raised stern, batten sail */}
+      <group position={[-0.30, 0.06, 0.42]} rotation={[0, 0.35, 0]}>
+        <mesh position={[0, 0.04, 0]} castShadow>
+          <boxGeometry args={[0.34, 0.07, 0.11]} />
+          <meshStandardMaterial color="#5a4530" roughness={0.85} />
+        </mesh>
+        <mesh position={[-0.145, 0.095, 0]} castShadow>
+          <boxGeometry args={[0.06, 0.05, 0.10]} />
+          <meshStandardMaterial color="#6b5238" roughness={0.85} />
+        </mesh>
+        <mesh position={[0.02, 0.22, 0]} castShadow>
+          <cylinderGeometry args={[0.008, 0.008, 0.30, 4]} />
+          <meshStandardMaterial color="#3a2818" />
+        </mesh>
+        <mesh position={[0.02, 0.24, 0.015]} rotation={[0, 0, -0.08]}>
+          <planeGeometry args={[0.16, 0.20]} />
+          <meshStandardMaterial color="#c8b078" roughness={0.9} side={THREE.DoubleSide} />
+        </mesh>
+        {/* sail battens */}
+        {[-0.06, 0, 0.06].map((dy, i) => (
+          <mesh key={i} position={[0.02, 0.24 + dy, 0.018]} rotation={[0, 0, -0.08]}>
+            <boxGeometry args={[0.165, 0.006, 0.004]} />
+            <meshStandardMaterial color="#7a5c38" />
+          </mesh>
+        ))}
+      </group>
+      {/* Second, smaller sampan */}
+      <mesh position={[0.10, 0.075, 0.50]} rotation={[0, -0.4, 0]} castShadow>
+        <boxGeometry args={[0.18, 0.05, 0.07]} />
+        <meshStandardMaterial color="#6b5238" roughness={0.88} />
       </mesh>
       {/* Label + HP bar — drei Html */}
       <Html position={[0, 0.85, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
