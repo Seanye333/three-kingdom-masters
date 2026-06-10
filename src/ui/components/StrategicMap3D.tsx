@@ -2703,8 +2703,10 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
         intensity={seasonPreset.sun.intensity}
         color={seasonPreset.sun.color}
         castShadow
-        shadow-mapSize-width={4096}
-        shadow-mapSize-height={4096}
+        // 2048 halves shadow VRAM/fill on weak GPUs; at map scale the
+        // difference is invisible.
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-left={-MAP_W}
         shadow-camera-right={MAP_W}
         shadow-camera-top={MAP_D}
@@ -2781,7 +2783,7 @@ const SEASON_ZH: Record<Season, string> = {
   spring: '春', summer: '夏', autumn: '秋', winter: '冬',
 };
 
-export function StrategicMap3D({ onSwitch2D }: { onSwitch2D: () => void }) {
+export function StrategicMap3D() {
   const [overlayMode, setOverlayMode] = useState<OverlayMode>('none');
   const [selectedPortId, setSelectedPortId] = useState<string | null>(null);
   const [selectedFortId, setSelectedFortId] = useState<string | null>(null);
@@ -2795,22 +2797,8 @@ export function StrategicMap3D({ onSwitch2D }: { onSwitch2D: () => void }) {
       position: 'absolute', inset: 0,
       background: 'linear-gradient(180deg, #88a0c0 0%, #c8b890 100%)',
     }}>
-      {/* Toggle button */}
-      <button
-        onClick={onSwitch2D}
-        style={{
-          position: 'absolute', top: 12, left: 12, zIndex: 10,
-          background: '#3a2818', color: '#f0e0b0',
-          border: '1px solid #d4a84a',
-          padding: '0.35rem 0.7rem', cursor: 'pointer',
-          fontFamily: 'Songti SC, serif',
-          boxShadow: '0 0 8px rgba(0,0,0,0.6)',
-        }}
-        title={t('切換為 2D 視圖', 'Switch to 2D view')}
-      >{t('切換 2D', '2D View')} ⇄</button>
-
-      {/* Objective tracker — top-left under the switch button */}
-      <div style={{ position: 'absolute', top: 56, left: 12, zIndex: 10, pointerEvents: 'none' }}>
+      {/* Objective tracker — top-left */}
+      <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, pointerEvents: 'none' }}>
         <ObjectivePanel />
       </div>
 

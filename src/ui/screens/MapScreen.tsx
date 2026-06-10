@@ -18,7 +18,6 @@ import { BondCeremony } from '../components/BondCeremony';
 import { PrestigeCeremony } from '../components/PrestigeCeremony';
 import { AnimatedNumber } from '../components/AnimatedNumber';
 import { DialogueModal } from '../components/DialogueModal';
-import { ObjectivePanel } from '../components/ObjectivePanel';
 import { ArmiesPanel } from '../components/ArmiesPanel';
 import { CourtModal } from '../components/CourtModal';
 import { DiplomacyModal } from '../components/DiplomacyModal';
@@ -29,7 +28,6 @@ import { OfficersTab } from '../components/OfficersTab';
 import { SaveSlotsModal } from '../components/SaveSlotsModal';
 import { SeasonReportModal } from '../components/SeasonReportModal';
 import { BattleTheaterModal } from '../components/BattleTheaterModal';
-import { StrategicMap } from '../components/StrategicMap';
 import { StrategicMap3D } from '../components/StrategicMap3D';
 import { TutorialOverlay } from '../components/TutorialOverlay';
 import { VictoryModal } from '../components/VictoryModal';
@@ -57,7 +55,6 @@ const GovernorsModal = lazy(() => import('../components/GovernorsModal').then(m 
 const FormationsModal = lazy(() => import('../components/FormationsModal').then(m => ({ default: m.FormationsModal })));
 
 export function MapScreen() {
-  const [use3DMap, setUse3DMap] = useState(true);
   const t = useT();
   const [showForces, setShowForces] = useState(false);
   const [showDiplomacy, setShowDiplomacy] = useState(false);
@@ -102,7 +99,6 @@ export function MapScreen() {
   const recentPrestigeCeremony = useGameStore((s) => s.recentPrestigeCeremony);
   const acknowledgePrestigeCeremony = useGameStore((s) => s.acknowledgePrestigeCeremony);
   const officersForToast = useGameStore((s) => s.officers);
-  const currentSeasonKey = useGameStore((s) => s.date.season);
   const fogOfWar = useGameStore((s) => s.fogOfWar);
   const setFogOfWar = useGameStore((s) => s.setFogOfWar);
   const tacticalBattle = useGameStore((s) => s.tacticalBattle);
@@ -349,39 +345,7 @@ export function MapScreen() {
 
       <main className={styles.main}>
         <div className={styles.mapWrap} style={{ position: 'relative' }}>
-          {use3DMap ? (
-            <StrategicMap3D onSwitch2D={() => setUse3DMap(false)} />
-          ) : (
-            <>
-              <StrategicMap />
-              {/* Seasonal palette overlay */}
-              <div
-                className={`seasonal-${currentSeasonKey}`}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  pointerEvents: 'none',
-                  mixBlendMode: 'overlay',
-                }}
-              />
-              {/* Objective tracker in the top-left corner of the map */}
-              <div style={{ position: 'absolute', top: 8, left: 8, pointerEvents: 'none' }}>
-                <ObjectivePanel />
-              </div>
-              {/* Switch to 3D button */}
-              <button
-                onClick={() => setUse3DMap(true)}
-                style={{
-                  position: 'absolute', top: 12, right: 12,
-                  background: '#1a3a5a', color: '#88b7e8',
-                  border: '1px solid #88b7e8', padding: '0.35rem 0.7rem',
-                  cursor: 'pointer', fontFamily: 'Songti SC, serif',
-                  boxShadow: '0 0 8px rgba(0,0,0,0.6)',
-                }}
-                title={t('切換 3D 地圖', 'Switch to 3D map')}
-              >{t('切換 3D', 'Switch 3D')} ⇄</button>
-            </>
-          )}
+          <StrategicMap3D />
           {/* In-transit armies overview — shown over both map modes. */}
           <div style={{ position: 'absolute', left: 8, top: 92, zIndex: 15 }}>
             <ArmiesPanel />
