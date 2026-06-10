@@ -71,122 +71,127 @@ function geoToPixel(lon: number, lat: number): [number, number] {
 /** Real historical positions for well-known cities. Values are modern
  *  (lon, lat) — modern equivalent city or the well-known ruin site. */
 const CITY_GEO_OVERRIDES: Record<string, [number, number]> = {
-  // Three Kingdoms capitals
-  'luoyang':   [112.45, 34.65],   // 洛陽 — Eastern Han capital
-  'changan':   [108.93, 34.27],   // 長安 — former Western Han capital
-  'xuchang':   [113.81, 34.04],   // 許昌 — Cao Cao's capital after 196
-  'ye':        [114.62, 36.32],   // 鄴 — Wei capital (modern Linzhang)
-  'chengdu':   [104.07, 30.66],   // 成都 — Shu Han capital
-  'jianye':    [118.78, 32.05],   // 建業 — Wu capital (modern Nanjing)
-  // Major regional centers
-  'wuchang':   [114.30, 30.55],   // 武昌 (Sun Quan's earlier capital, mod. Wuhan-Wuchang)
-  'jiangling': [112.18, 30.36],   // 江陵 — Jingzhou hub
-  'xiangyang': [112.13, 32.01],   // 襄陽
-  'hanzhong':  [107.02, 33.07],   // 漢中
-  // 'wan' — see 'wancheng' below (same city, different ID)
-  'shouchun':  [116.79, 31.92],   // 壽春 (modern Shouxian)
-  'hefei':     [117.23, 31.82],   // 合肥
-  'chaisang':  [116.00, 29.71],   // 柴桑 (near Jiujiang)
-  'yongan':    [109.46, 31.03],   // 永安 (modern Fengjie)
-  'jiangxia':  [114.65, 30.95],   // 江夏 (西陵 — slightly NE of Wuchang)
-  'pengcheng': [117.20, 34.27],   // 彭城 (modern Xuzhou)
-  'xiaopei':   [116.79, 33.96],   // 小沛
-  'xiapi':     [117.95, 34.30],   // 下邳
-  // North / Yellow River
-  'bohai':     [117.50, 37.50],   // 渤海郡
-  'pingyuan':  [116.43, 37.16],   // 平原
-  'beiping':   [116.41, 39.92],   // 北平 (modern Beijing area)
-  'taiyuan':   [112.55, 37.87],   // 太原
-  'yanmen':    [112.95, 39.50],   // 雁門 (modern Daixian)
-  'shangdang': [113.10, 36.10],   // 上黨 (modern Changzhi)
-  // 'liaodong' override removed — real (123.18, 41.27) falls east of our
-  // hand-drawn coastline; keep its painted position until Phase B.2 redraws
-  // the coast in real geo coords.
-  'guandu':    [114.10, 34.78],   // 官渡 (near Zhongmu)
-  'hulao':     [112.99, 34.79],   // 虎牢關 (between Luoyang and Xingyang)
-  // North-west
-  'wuwei':     [102.64, 37.93],   // 武威
-  'jincheng':  [103.83, 36.06],   // 金城 (modern Lanzhou)
-  'longxi':    [104.62, 35.00],   // 隴西
-  'tianshui':  [105.72, 34.58],   // 上邽/天水
-  'anding':    [105.65, 36.55],   // 安定 (modern Pingliang)
-  'shuofang':  [107.42, 40.79],   // 朔方
-  'yangping':  [106.62, 33.13],   // 陽平關
-  // South — Jing/Jiao/Yang
-  'changsha':  [112.94, 28.23],   // 長沙
-  'lingling':  [111.62, 26.43],   // 零陵
-  'guiyang':   [112.39, 25.78],   // 桂陽
-  'wuling':    [111.69, 29.13],   // 武陵
-  'jiaozhi':   [105.85, 21.03],   // 交趾 (modern Hanoi)
-  'hepu':      [109.20, 21.69],   // 合浦
-  'cangwu':    [111.32, 23.48],   // 蒼梧 (modern Wuzhou)
-  'nanhai':    [113.27, 23.13],   // 南海 (modern Guangzhou)
-  'jianning':  [102.71, 25.04],   // 建寧 (modern Kunming area)
-  // 'yuesui' — see 'yuexi' below (same city)
-  // Yi province (Sichuan basin)
-  'baxi':      [105.97, 31.85],   // 巴西 (modern Mianyang)
-  'jiangzhou': [106.55, 29.56],   // 江州 (modern Chongqing)
-  // 'fuling' — no matching city ID in data; removed
-  // Misc
-  // 'yiyang' — no matching city ID in data; removed
-  'lujiang':   [117.30, 31.25],   // 廬江
-  'danyang':   [118.81, 31.94],   // 丹陽
-  'kuaiji':    [120.58, 30.00],   // 會稽 (modern Shaoxing)
-  // ── Additional cities (B.2 continuation) ──
-  // Northeast
-  'liaodong':  [121.50, 41.00],   // 遼東 — placed inland west of Liaoning
-  'xiangping': [122.50, 41.10],   // 襄平 — Han Liaodong seat (modern Liaoyang)
-  'wuhuan':    [120.00, 42.00],   // 烏桓 — nomadic territory, NE of map
-  'yuyang':    [116.84, 40.37],   // 漁陽 (modern Miyun, north Beijing)
-  'yi-county': [115.50, 39.35],   // 易縣
-  // Far NW (off-edge but pull into map)
-  'dunhuang':  [96.20, 40.14],    // 敦煌 (pulled E to fit)
-  'jiuquan':   [98.51, 39.74],    // 酒泉
-  'wudu':      [105.16, 33.39],   // 武都
-  'shanggui':  [105.72, 34.58],   // 上邽 (same area as Tianshui)
-  // Central / Wei core
-  'chencang':  [107.37, 34.36],   // 陳倉 (modern Baoji)
-  'tongguan':  [110.27, 34.55],   // 潼關
-  'wuguan':    [110.42, 33.86],   // 武關
-  'mei':       [107.74, 34.28],   // 郿
-  'puyang':    [115.04, 35.71],   // 濮陽
-  'chenliu':   [114.42, 34.79],   // 陳留 (Cao Cao's early base)
-  'nanpi':     [116.70, 38.04],   // 南皮 (Yuan Shao base)
-  'boling':    [115.51, 38.23],   // 博陵
-  'linzi':     [118.34, 36.83],   // 臨淄
-  'langya':    [118.36, 35.10],   // 琅琊 (modern Linyi)
-  'guangling': [119.42, 32.39],   // 廣陵 (modern Yangzhou)
-  'runan':     [114.65, 32.95],   // 汝南
-  // Hubei / Jingzhou
-  'wancheng':  [112.53, 33.00],   // 宛城 — alias of 宛
-  'bowang':    [112.45, 33.20],   // 博望 (near 宛)
-  'xinye':     [112.36, 32.52],   // 新野
-  'fancheng':  [112.13, 32.05],   // 樊城 — adjacent to Xiangyang
-  'shangyong': [110.23, 32.22],   // 上庸 (modern Zhushan)
-  'xincheng':  [110.78, 32.13],   // 新城 (Wei commandery from Shangyong)
-  // Yangtze gorges / Jingzhou southwest
-  'xiling':    [111.40, 30.75],   // 西陵 (modern Yichang area, Xiling gorge)
-  'yiling':    [111.29, 30.69],   // 夷陵 (Yiling battle site)
-  'xiaoting':  [111.41, 30.51],   // 猇亭
-  'maicheng':  [111.79, 30.85],   // 麥城
-  'wuxi':      [109.88, 31.07],   // 巫縣 (Yangtze gorges)
-  'yinping':   [104.68, 32.95],   // 陰平 (modern Wenxian, Sichuan-Gansu border)
-  // Yangtze valley downstream
-  'baqiu':     [113.13, 29.36],   // 巴丘 (modern Yueyang)
-  'poyang':    [116.69, 29.00],   // 鄱陽
-  'yuzhang':   [115.89, 28.68],   // 豫章 (modern Nanchang)
-  'luling':    [114.99, 27.11],   // 廬陵 (modern Ji'an)
-  'wu':        [120.62, 31.30],   // 吳 (modern Suzhou)
-  'linhai':    [121.13, 28.85],   // 臨海
-  // South / Jiao zhou
-  'guilin':    [110.30, 25.27],   // 桂林
-  'beihai':    [118.79, 36.71],   // 北海國 (孔融太守, Shandong NE — NOT modern Beihai/Guangxi)
-  'nanzhong':  [102.50, 25.50],   // 南中 (general SW area, Yunnan)
-  'yongchang': [99.16, 25.12],    // 永昌 (modern Baoshan)
-  'yunnan':    [101.25, 25.50],   // 雲南郡
-  'yuexi':     [102.27, 27.90],   // 越巂 (alias of yuesui)
-  // Shanxi/Henan misc
-  'hukou':     [113.20, 36.10],   // 壺關 (north Taihang pass)
+  'luoyang': [112.45, 34.65],
+  'changan': [108.93, 34.27],
+  'xuchang': [113.81, 34.04],
+  'ye': [114.66, 36.5],
+  'chengdu': [103.98, 30.53],
+  'jianye': [118.71, 32.3],
+  'wuchang': [114.28, 30.53],
+  'jiangling': [112.24, 30.47],
+  'xiangyang': [112.2, 31.74],
+  'hanzhong': [107.08, 33.06],
+  'shouchun': [116.72, 31.93],
+  'hefei': [117.24, 31.87],
+  'chaisang': [116, 29.71],
+  'yongan': [109.41, 31.03],
+  'jiangxia': [114.67, 30.97],
+  'pengcheng': [117.22, 34.28],
+  'xiaopei': [116.77, 33.95],
+  'xiapi': [117.95, 34.3],
+  'bohai': [117.5, 37.5],
+  'pingyuan': [116.43, 37.16],
+  'beiping': [116.46, 40.17],
+  'taiyuan': [112.55, 37.87],
+  'yanmen': [112.95, 39.5],
+  'shangdang': [112.89, 36.1],
+  'guandu': [113.99, 34.65],
+  'hulao': [112.99, 34.79],
+  'wuwei': [102.64, 37.93],
+  'jincheng': [103.83, 36.06],
+  'longxi': [104.62, 35],
+  'tianshui': [105.42, 34.24],
+  'anding': [105.65, 36.55],
+  'shuofang': [107.42, 40.79],
+  'yangping': [106.56, 33.14],
+  'changsha': [112.94, 28.23],
+  'lingling': [111.62, 26.43],
+  'guiyang': [112.39, 25.78],
+  'wuling': [111.69, 29.13],
+  'jiaozhi': [105.85, 21.03],
+  'hepu': [109.2, 21.69],
+  'cangwu': [111.32, 23.48],
+  'nanhai': [113.27, 23.13],
+  'jianning': [102.73, 24.99],
+  'baxi': [105.97, 31.77],
+  'jiangzhou': [106.55, 29.56],
+  'lujiang': [117.3, 31.21],
+  'danyang': [118.88, 31.69],
+  'kuaiji': [120.58, 30],
+  'liaodong': [121.5, 41],
+  'xiangping': [122.5, 41.1],
+  'wuhuan': [120, 42],
+  'yuyang': [116.94, 40.44],
+  'yi-county': [115.5, 39.35],
+  'dunhuang': [96.2, 40.14],
+  'jiuquan': [98.51, 39.74],
+  'wudu': [105.16, 33.39],
+  'shanggui': [105.8, 34.67],
+  'chencang': [107.33, 34.39],
+  'tongguan': [110.27, 34.55],
+  'wuguan': [110.42, 33.86],
+  'mei': [107.84, 34.26],
+  'puyang': [115.06, 35.72],
+  'chenliu': [114.51, 34.67],
+  'nanpi': [116.7, 38.04],
+  'boling': [115.51, 38.23],
+  'linzi': [118.31, 36.84],
+  'langya': [118.36, 35.1],
+  'guangling': [119.42, 32.39],
+  'runan': [114.65, 32.95],
+  'wancheng': [112.75, 32.99],
+  'bowang': [112.34, 33.38],
+  'xinye': [112.41, 32.51],
+  'fancheng': [111.92, 32.28],
+  'shangyong': [110.23, 32.22],
+  'xincheng': [110.78, 32.13],
+  'xiling': [111.35, 31.1],
+  'yiling': [111.01, 30.61],
+  'xiaoting': [111.38, 30.16],
+  'maicheng': [112.1, 31.1],
+  'wuxi': [109.93, 31.07],
+  'yinping': [104.68, 32.95],
+  'baqiu': [113.13, 29.36],
+  'poyang': [116.69, 29],
+  'yuzhang': [115.89, 28.68],
+  'luling': [114.99, 27.11],
+  'wu': [120.62, 31.3],
+  'linhai': [121.13, 28.85],
+  'guilin': [110.3, 25.27],
+  'beihai': [118.82, 36.7],
+  'nanzhong': [102.48, 25.55],
+  'yongchang': [99.16, 25.12],
+  'yunnan': [101.25, 25.5],
+  'yuexi': [102.27, 27.9],
+  'hukou': [113.41, 36.1],
+  // ── newly added: cities that previously fell back to painted-map pixels ──
+  'jieting': [106.19, 35.11],   // 街亭(=壘)
+  'mianzhu': [104.14, 31.51],   // 綿竹(=壘)
+  'ruxu': [117.72, 31.63],   // 濡須(≈濡須塢)
+  'jiameng': [106.02, 32.42],   // 葭萌
+  'zitong': [105.19, 31.65],   // 梓潼
+  'fucheng': [104.68, 31.47],   // 涪城
+  'luocheng': [104.39, 30.94],   // 雒城
+  'jianmen': [105.54, 32.14],   // 劍閣
+  'ji': [116.25, 39.58],   // 薊(北京)
+  'liucheng': [120.45, 41.57],   // 柳城
+  'yunzhong': [111.2, 40.27],   // 雲中
+  'wuyuan': [109.99, 40.6],   // 五原
+  'wan': [116.58, 30.63],   // 皖城
+  'gongan': [112.26, 29.82],   // 公安
+  'lelang': [124.3, 39.02],   // 樂浪(贴东缘)
+  'daifang': [124.1, 38.3],   // 帶方(贴东缘)
+  'zhuyai': [110.35, 20.05],   // 朱崖(海南)
+  'jiuzhen': [105.78, 19.8],   // 九真
+  'rinan': [107.6, 17.3],   // 日南(贴南缘)
+  'sanguan': [106.81, 34.29],   // 散關
+  'baishuiguan': [105.22, 32.65],   // 白水關
+  'xiaoguan': [106.28, 36],   // 蕭關
+  'chibi': [113.93, 29.72],   // 赤壁
+  'changban': [111.73, 30.65],   // 長阪坡
+  'baima': [114.66, 35.29],   // 白馬
+  'yanjin': [114.12, 35.27],   // 延津
+  'liyang': [114.46, 35.9],   // 黎陽
 };
 
 /** Get pixel coords for a city, preferring the geographic override if
