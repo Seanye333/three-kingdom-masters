@@ -2681,6 +2681,32 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             ...(state.pendingSiegeDefenseQueue ?? []),
             ...(result.pendingSiegeDefenses ?? []),
           ],
+          // 本局戰史 — append this season's chronicle-worthy moments.
+          chronicle: (() => {
+            const log = [...(state.chronicle ?? [])];
+            const push = (zh: string, en: string, kind: 'conquest' | 'works' | 'event' | 'rebellion' | 'defense') => {
+              if (log.length >= 240) return;
+              log.push({ year: result.date.year, season: result.date.season, zh, en, kind });
+            };
+            for (const e of result.report.entries) {
+              const zhText = e.textZh ?? '';
+              if (e.battle?.cityFalls && e.battle.attacker.forceId) {
+                const f = result.forces[e.battle.attacker.forceId];
+                const c = result.cities[e.battle.cityId];
+                if (f && c) push(`${f.name.zh}攻陷${c.name.zh}`, `${f.name.en} took ${c.name.en}`, 'conquest');
+              } else if (zhText.includes('【水攻】') || zhText.includes('【圍困】')) {
+                push(zhText.replace(/（[^）]*）/g, ''), e.text, 'works');
+              } else if (e.kind === 'rebellion') {
+                push(zhText, e.text, 'rebellion');
+              } else if (zhText.includes('守城戰開')) {
+                push(zhText, e.text, 'defense');
+              }
+            }
+            if (firingEvent) {
+              push(`【${firingEvent.name.zh}】`, firingEvent.name.en, 'event');
+            }
+            return log;
+          })(),
           mandate: nextMandate,
           pendingDelayedEffects: remainingDelayed,
           appointments: prunedAppointments,
@@ -3624,6 +3650,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         let officers = { ...state.officers };
         const cities = { ...state.cities };
         const careerMilestones: Array<{ title: { zh: string; en: string }; year: number; season: typeof state.date.season }> = [];
+        const chronicleAppend: Array<{ year: number; season: string; zh: string; en: string; kind: 'conquest' | 'works' | 'event' | 'rebellion' | 'defense' }> = [];
 
         // Award XP to all participants.
         const participantIds = tb.units.map((u) => u.officerId);
@@ -3819,6 +3846,17 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               loyalty: Math.max(20, Math.floor(target.loyalty * 0.5)),
             };
             bumpDeeds(attackerCmd.officerId, { citiesTaken: 1 });
+            // Chronicle the conquest (interactive sieges bypass endSeason's scan).
+            {
+              const f = tb.attackerForceId ? state.forces[tb.attackerForceId] : null;
+              const cn = state.cities[tb.cityId]?.name;
+              if (f && cn) {
+                chronicleAppend.push({
+                  year: state.date.year, season: state.date.season,
+                  zh: `${f.name.zh}攻陷${cn.zh}`, en: `${f.name.en} took ${cn.en}`, kind: 'conquest',
+                });
+              }
+            }
             // Career milestone: career officer took a city.
             if (state.careerMode?.officerId === attackerCmd.officerId) {
               const cityName = state.cities[tb.cityId]?.name ?? { zh: '?', en: '?' };
@@ -3946,6 +3984,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           recentAchievementUnlocks: [...state.recentAchievementUnlocks, ...newlyAch],
           recentDeedTitles: [...state.recentDeedTitles, ...titleGrant.grants],
           seasonBattleDeltas: nextSeasonBattle,
+          chronicle: chronicleAppend.length > 0
+            ? [...(state.chronicle ?? []), ...chronicleAppend].slice(0, 240)
+            : state.chronicle,
         });
       },
 
@@ -5185,6 +5226,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       name: 'tkm-save-v26',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
+        chronicle: state.chronicle,
         date: state.date,
         scenarioId: state.scenarioId,
         playerForceId: state.playerForceId,

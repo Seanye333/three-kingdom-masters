@@ -244,6 +244,9 @@ export interface GameState {
   }>;
   /** 行軍預覽 — transient route highlight while the march picker is open. */
   marchPreview: { fromId: EntityId; toId: EntityId } | null;
+  /** 本局戰史 — the campaign chronicle: conquests, siege works, famous
+   *  events, rebellions. Shown as the epic recap on victory/defeat. */
+  chronicle: Array<{ year: number; season: string; zh: string; en: string; kind: 'conquest' | 'works' | 'event' | 'rebellion' | 'defense' }>;
   /** Heaven's Mandate per force (0-100). */
   mandate: MandateState;
   /** Active 截糧 / delayed stratagem effects ticking down per season. */
@@ -343,6 +346,7 @@ export const EMPTY_STATE: GameState = {
   pendingFieldBattleQueue: [],
   pendingSiegeDefenseQueue: [],
   marchPreview: null,
+  chronicle: [],
   mandate: { byForce: {} },
   pendingDelayedEffects: [],
   pendingBattleTheaters: [],
@@ -543,6 +547,7 @@ export function loadScenario(
     pendingFieldBattleQueue: [],
   pendingSiegeDefenseQueue: [],
   marchPreview: null,
+  chronicle: [],
     mandate: createInitialMandate(scenario.forces.map((f) => f.id)),
     pendingDelayedEffects: [],
     pendingBattleTheaters: [],

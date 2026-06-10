@@ -10,6 +10,7 @@ export function VictoryModal() {
   );
   const acknowledge = useGameStore((s) => s.acknowledgeVictory);
   const reset = useGameStore((s) => s.reset);
+  const chronicle = useGameStore((s) => s.chronicle ?? []);
 
   if (victoryStatus !== 'victory' && victoryStatus !== 'defeat') return null;
   const isVictory = victoryStatus === 'victory';
@@ -53,6 +54,37 @@ export function VictoryModal() {
             </>
           )}
         </p>
+
+        {/* 本局戰史 — the campaign chronicle, year by year. */}
+        {chronicle.length > 0 && (
+          <div style={{
+            maxHeight: 260, overflowY: 'auto', margin: '0.8rem 0',
+            padding: '0.7rem 1rem',
+            background: 'rgba(12, 8, 4, 0.55)',
+            border: '1px solid #6a4a20', borderRadius: 4,
+            textAlign: 'left',
+          }}>
+            <div style={{
+              fontFamily: '"Ma Shan Zheng", "Songti SC", serif',
+              color: '#d4a84a', letterSpacing: '0.3em', marginBottom: 6,
+            }}>本局戰史 · The Chronicle</div>
+            {(() => {
+              const ICON: Record<string, string> = {
+                conquest: '⚔', works: '🌊', event: '📜', rebellion: '🔥', defense: '🛡',
+              };
+              let lastYear = 0;
+              return chronicle.map((c, i) => (
+                <div key={i} style={{ fontSize: '0.82rem', lineHeight: 1.7, color: '#e8d8b0' }}>
+                  {c.year !== lastYear && (lastYear = c.year) && (
+                    <div style={{ color: '#a08050', marginTop: 6, fontFamily: 'ui-monospace, monospace' }}>— {c.year} —</div>
+                  )}
+                  <span style={{ marginRight: 6 }}>{ICON[c.kind] ?? '·'}</span>
+                  <span style={{ fontFamily: '"Songti SC", serif' }}>{c.zh}</span>
+                </div>
+              ));
+            })()}
+          </div>
+        )}
 
         <div className={styles.actions}>
           {isVictory && (
