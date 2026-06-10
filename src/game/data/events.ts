@@ -1037,6 +1037,115 @@ export const HISTORICAL_EVENTS: HistoricalEvent[] = [
       { kind: 'flag', key: 'jiang-wei-joined' },
     ],
   },
+  // ── 列傳名場面 — six missing icons of the era ──
+  {
+    id: 'evt-warm-wine-hua-xiong',
+    name: { en: 'Slaying Hua Xiong While the Wine Is Warm', zh: '溫酒斬華雄' },
+    yearMin: 190,
+    yearMax: 191,
+    requires: [
+      { kind: 'officer-active', officerId: 'guan-yu' },
+      { kind: 'officer-alive', officerId: 'hua-xiong' },
+    ],
+    description:
+      'Hua Xiong taunts the coalition before Sishui Pass, felling champion after champion. A green-robed horseman volunteers; Cao Cao pours him a parting cup. "Pour it — I shall return before it cools." The drums shake, a head falls, and the wine is still warm when Guan Yu sets it down.',
+    descriptionZh: "華雄連斬聯軍數將,陣前耀武。帳中一綠袍長髯者請戰,曹操酌熱酒一杯壯行。關羽曰:「酒且斟下,某去便來。」鼓聲大震,提華雄之頭擲於帳前——其酒尚溫。",
+    effects: [
+      { kind: 'officer-status', officerId: 'hua-xiong', status: 'dead' },
+      { kind: 'officer-loyalty', officerId: 'guan-yu', delta: 5 },
+      { kind: 'flag', key: 'hua-xiong-slain' },
+    ],
+  },
+  {
+    id: 'evt-three-heroes-lu-bu',
+    name: { en: 'Three Heroes Battle Lü Bu', zh: '三英戰呂布' },
+    yearMin: 190,
+    yearMax: 191,
+    requires: [
+      { kind: 'officer-active', officerId: 'liu-bei' },
+      { kind: 'officer-active', officerId: 'guan-yu' },
+      { kind: 'officer-active', officerId: 'zhang-fei' },
+      { kind: 'officer-alive', officerId: 'lu-bu' },
+    ],
+    description:
+      'Before Hulao Gate, Lü Bu on Red Hare scatters all challengers — until Zhang Fei roars out with his serpent spear, Guan Yu joins with Green Dragon, and Liu Bei closes the triangle with his twin blades. The three brothers whirl around the lone rider in the most storied duel of the age.',
+    descriptionZh: "虎牢關前,呂布乘赤兔,戟挑諸侯眾將,無人可敵。張飛挺丈八蛇矛大喝出馬,戰五十合;關羽舞青龍偃月刀夾攻;劉備掣雙股劍而上——三英圍呂布,轉燈般廝殺,天下第一武勇之戰。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'liu-bei', delta: 3 },
+      { kind: 'officer-loyalty', officerId: 'guan-yu', delta: 3 },
+      { kind: 'officer-loyalty', officerId: 'zhang-fei', delta: 3 },
+      { kind: 'flag', key: 'three-heroes-vs-lu-bu' },
+    ],
+  },
+  {
+    id: 'evt-dingjunshan',
+    name: { en: 'Mount Dingjun', zh: '定軍山斬夏侯淵' },
+    yearMin: 218,
+    yearMax: 219,
+    requires: [
+      { kind: 'officer-active', officerId: 'huang-zhong' },
+      { kind: 'officer-alive', officerId: 'xiahou-yuan' },
+    ],
+    description:
+      'Huang Zhong takes the heights above Mount Dingjun and waits past noon, husbanding his men\'s strength while Xiahou Yuan\'s troops tire below. Then one downhill charge — drums like thunder — and the old general\'s blade takes the Wei commander at the foot of the slope. Hanzhong\'s gate swings open.',
+    descriptionZh: "黃忠據定軍山之巔,以逸待勞。法正揮旗為號,老將軍一鼓而下,刀光到處,夏侯淵措手不及,連頭帶肩砍於山坡之下。漢中門戶,自此洞開。",
+    effects: [
+      { kind: 'officer-status', officerId: 'xiahou-yuan', status: 'dead' },
+      { kind: 'officer-loyalty', officerId: 'huang-zhong', delta: 8 },
+      { kind: 'flag', key: 'dingjunshan' },
+    ],
+  },
+  {
+    id: 'evt-jieting-ma-su',
+    name: { en: 'Tears for Ma Su', zh: '揮淚斬馬謖' },
+    yearMin: 228,
+    yearMax: 229,
+    requires: [
+      { kind: 'officer-active', officerId: 'zhuge-liang' },
+      { kind: 'officer-alive', officerId: 'ma-su' },
+    ],
+    description:
+      'Against every instruction, Ma Su camps on the waterless hilltop at Jieting; Zhang He cuts the road and the army breaks. The law of the camp is the law: Zhuge Liang signs the order with tears on his face, then demotes himself three ranks for the defeat.',
+    descriptionZh: "馬謖違節度,捨水上山紮營於街亭,張郃斷其汲道,蜀軍大潰。軍法如山——孔明揮淚斬馬謖,自貶三級,以明法度。",
+    effects: [
+      { kind: 'officer-status', officerId: 'ma-su', status: 'dead' },
+      { kind: 'officer-loyalty', officerId: 'zhuge-liang', delta: -2 },
+      { kind: 'flag', key: 'jieting-lost' },
+    ],
+  },
+  {
+    id: 'evt-scraping-bone',
+    name: { en: 'Scraping the Bone', zh: '刮骨療毒' },
+    yearMin: 215,
+    yearMax: 219,
+    requires: [
+      { kind: 'officer-active', officerId: 'guan-yu' },
+    ],
+    description:
+      'A poisoned bolt festers in Guan Yu\'s right arm. The physician opens the flesh and scrapes the bone clean while the general — arm stretched across the board — keeps drinking and playing weiqi, laughing with his officers. The scraping is heard around the tent.',
+    descriptionZh: "毒鏃入骨,右臂青腫。醫者割開皮肉,以刀刮骨,悉悉有聲,帳上帳下皆掩面失色——關公飲酒食炙,談笑弈棋,全無痛苦之色。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'guan-yu', delta: 5 },
+      { kind: 'flag', key: 'bone-scraped' },
+    ],
+  },
+  {
+    id: 'evt-single-blade-meeting',
+    name: { en: 'To the Feast with a Single Blade', zh: '單刀赴會' },
+    yearMin: 215,
+    yearMax: 215,
+    requires: [
+      { kind: 'officer-active', officerId: 'guan-yu' },
+      { kind: 'officer-alive', officerId: 'lu-su' },
+    ],
+    description:
+      'Lu Su invites Guan Yu across the river to demand Jingzhou back, ambush laid behind the screens. Guan Yu comes with a single blade and a handful of riders, drinks unhurried, then takes Lu Su\'s arm at the parting — walking himself to the boat as the hidden axemen dare not move.',
+    descriptionZh: "魯肅設宴索荊州,壁後伏刀斧手。關公單刀赴會,談笑自若;臨別佯醉,執魯肅手至江邊——伏兵投鼠忌器,眼睜睜看其登舟而去。",
+    effects: [
+      { kind: 'officer-loyalty', officerId: 'guan-yu', delta: 4 },
+      { kind: 'flag', key: 'single-blade-meeting' },
+    ],
+  },
 ];
 
 export const EVENTS_BY_ID: Record<string, HistoricalEvent> = Object.fromEntries(
