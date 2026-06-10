@@ -4,6 +4,7 @@ import { Html, OrbitControls, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
+import { playSfx, startBattleAmbience, stopBattleAmbience } from '../../game/systems/sound';
 import type { EntityId, HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
 import type { DefenseBuildingId } from '../../game/data/defenseBuildings';
 import {
@@ -1720,6 +1721,37 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
 
   // Keyboard shortcuts: mirror the 2D screen.
   // 1=move, 2=attack, 3=duel, Esc=cancel, Space=end turn, Tab=cycle.
+  // ── 战场音效 — ambience for the duration, log-driven stings for events.
+  useEffect(() => {
+    startBattleAmbience();
+    return () => stopBattleAmbience();
+  }, []);
+  const sfxCursor = useRef(0);
+  useEffect(() => {
+    const log = battle?.log ?? [];
+    if (sfxCursor.current > log.length) sfxCursor.current = 0; // new battle
+    for (let i = sfxCursor.current; i < log.length; i++) {
+      const t = log[i]?.text ?? '';
+      if (t.includes('告破') || t.includes('崩塌') || t.includes('焚斷')) playSfx('crash');
+      else if (t.includes('決堤') || t.includes('山崩')) playSfx('quake');
+      else if (t.includes('火') || t.includes('烈焰')) playSfx('fire');
+      else if (t.includes('馳援') || t.includes('糧盡')) playSfx('horn');
+      else if (t.includes('夜襲') || t.includes('殺到')) playSfx('shout');
+      else if (t.includes('搶修') || t.includes('猛撞') || t.includes('轟擊')) playSfx('thud');
+      else if (t.includes('傾下') || t.includes('射出')) playSfx('arrow');
+    }
+    sfxCursor.current = log.length;
+  }, [battle?.log]);
+  // Victory / defeat sting once, when the banner drops.
+  const winSfxDone = useRef(false);
+  useEffect(() => {
+    if (!battle?.winner || winSfxDone.current) return;
+    winSfxDone.current = true;
+    const playerSideNow = battle.attackerForceId === useGameStore.getState().playerForceId
+      ? 'attacker' : battle.defenderForceId === useGameStore.getState().playerForceId ? 'defender' : null;
+    playSfx(playerSideNow && battle.winner === playerSideNow ? 'victory' : 'defeat');
+  }, [battle?.winner]);
+
   useEffect(() => {
     if (!battle) return;
     const onKey = (e: KeyboardEvent) => {
@@ -1734,6 +1766,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
       if (e.key === 'Escape') { setActionMode({ kind: 'none' }); return; }
       if (e.key === ' ') {
         e.preventDefault();
+        playSfx('horn');
         start(endTurn(battle));
         setSelectedId(null);
         setActionMode({ kind: 'none' });
@@ -1884,6 +1917,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
     if (actionMode.kind === 'attack' && u && u.side !== playerSide && canAttack(battle, selectedUnit, u)) {
       const kind: 'melee' | 'ranged' = selectedUnit.unitType === 'archers' || selectedUnit.unitType === 'siege' ? 'ranged' : 'melee';
       const aid = Date.now();
+      playSfx(kind === 'ranged' ? 'arrow' : 'sword');
       setAttackArcs((a) => [...a, { id: aid, from: selectedUnit.coord, to: u.coord, kind, spawnedAt: aid }]);
       setTimeout(() => setAttackArcs((a) => a.filter((x) => x.id !== aid)), 600);
       start(attackUnits(battle, selectedUnit.id, u.id, officers, Math.random));

@@ -61,7 +61,9 @@ export type SfxName =
   | 'crash'         // stratagem succeeds / city falls
   | 'whoosh'        // modal close
   | 'pluck'         // hover / subtle tick
-  | 'quake';        // critical event
+  | 'quake'         // critical event
+  | 'thud'          // ram hits a gate / repair hammering
+  | 'shout';        // war cry — charge, sally, rout
 
 interface Tone {
   freq: number;
@@ -138,6 +140,15 @@ const SFX_PATTERNS: Record<SfxName, Tone[]> = {
   quake: [
     { freq: 50, duration: 0.6, type: 'sawtooth', gain: 0.22 },
     { freq: 70, duration: 0.4, type: 'sawtooth', gain: 0.18 },
+  ],
+  thud: [
+    { freq: 95, duration: 0.12, type: 'sine', gain: 0.22, sweep: -300 },
+    { freq: 60, duration: 0.18, type: 'triangle', gain: 0.18 },
+  ],
+  shout: [
+    { freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.07, sweep: 280 },
+    { freq: 165, duration: 0.22, type: 'sawtooth', gain: 0.06, sweep: 220, detune: 18 },
+    { freq: 330, duration: 0.14, type: 'square', gain: 0.03, sweep: 240 },
   ],
 };
 
@@ -317,6 +328,95 @@ export function stopCityAmbience(): void {
   setTimeout(() => {
     for (const s of old.sources) { try { s.stop(); } catch { /* ignore */ } }
   }, 600);
+}
+
+// ─── Battlefield ambience — war drums + low rumble + distant cries ──
+let battleAmb: { sources: Array<OscillatorNode | AudioBufferSourceNode>; gain: GainNode; timer: ReturnType<typeof setInterval> } | null = null;
+
+export function startBattleAmbience(): void {
+  if (!enabled || battleAmb) return;
+  const c = getCtx();
+  if (!c) return;
+  unlockAudio();
+
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0, c.currentTime);
+  gain.gain.linearRampToValueAtTime(0.055, c.currentTime + 2.5);
+  gain.connect(c.destination);
+
+  const sources: Array<OscillatorNode | AudioBufferSourceNode> = [];
+
+  // Ominous low drone — a war field hum.
+  for (const f of [55, 82.5]) {
+    const o = c.createOscillator();
+    o.type = 'triangle';
+    o.frequency.value = f;
+    o.detune.value = (Math.random() - 0.5) * 8;
+    const g = c.createGain();
+    g.gain.value = 0.4;
+    o.connect(g); g.connect(gain); o.start();
+    sources.push(o);
+  }
+
+  // Wind / distant host — looping low-passed noise.
+  const buf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+  const noise = c.createBufferSource();
+  noise.buffer = buf; noise.loop = true;
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 380; lp.Q.value = 0.7;
+  const ng = c.createGain(); ng.gain.value = 0.55;
+  noise.connect(lp); lp.connect(ng); ng.connect(gain); noise.start();
+  sources.push(noise);
+
+  // War drums — a slow double-beat heartbeat, slightly humanized.
+  const drum = (t: number, loud = 1) => {
+    const o = c.createOscillator(); o.type = 'sine';
+    const g = c.createGain();
+    o.frequency.setValueAtTime(72, t);
+    o.frequency.exponentialRampToValueAtTime(48, t + 0.16);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.5 * loud, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    o.connect(g); g.connect(gain); o.start(t); o.stop(t + 0.34);
+  };
+  const timer = setInterval(() => {
+    if (!enabled || !battleAmb) return;
+    const t = c.currentTime + 0.05 + Math.random() * 0.06;
+    drum(t);
+    drum(t + 0.34, 0.6);
+    // Now and then, a distant massed cry rolls over the field.
+    if (Math.random() < 0.18) {
+      const cry = c.createBufferSource();
+      cry.buffer = buf; cry.loop = false;
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = 700 + Math.random() * 300; bp.Q.value = 1.6;
+      const cg = c.createGain();
+      const ct = c.currentTime + 0.2;
+      cg.gain.setValueAtTime(0, ct);
+      cg.gain.linearRampToValueAtTime(0.10, ct + 0.25);
+      cg.gain.exponentialRampToValueAtTime(0.001, ct + 1.4);
+      cry.connect(bp); bp.connect(cg); cg.connect(gain);
+      cry.start(ct); cry.stop(ct + 1.5);
+    }
+  }, 2400);
+
+  battleAmb = { sources, gain, timer };
+}
+
+export function stopBattleAmbience(): void {
+  if (!battleAmb) return;
+  const old = battleAmb;
+  battleAmb = null;
+  clearInterval(old.timer);
+  const c = getCtx();
+  if (!c) return;
+  old.gain.gain.cancelScheduledValues(c.currentTime);
+  old.gain.gain.linearRampToValueAtTime(0, c.currentTime + 0.6);
+  setTimeout(() => {
+    for (const s of old.sources) { try { s.stop(); } catch { /* ignore */ } }
+  }, 700);
 }
 
 // ─── Music tracks ────────────────────────────────────────────────────
