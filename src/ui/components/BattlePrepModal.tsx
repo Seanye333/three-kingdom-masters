@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { FORMATIONS, NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../../game/data';
 import { inferUnitType, setupTacticalBattle } from '../../game/systems/tactical';
 import { cityPos } from '../../game/data/cityGeo';
+import { isRiverside } from '../../game/data/geography';
 import { useGameStore } from '../../game/state/store';
 import type {
   EntityId,
@@ -148,6 +149,17 @@ export function BattlePrepModal({
   });
 
   const [formation, setFormation] = useState<FormationId>('none');
+  // 攻城方略 — storm / invest / flood. Flood needs a riverside target and
+  // flowing water (not a drought); invest burns the besiegers' grain.
+  const [siegeWorks, setSiegeWorks] = useState<'storm' | 'invest' | 'flood'>('storm');
+  const spendSiegeWorks = useGameStore((s) => s.spendSiegeWorks);
+  const targetPos = target ? cityPos(target) : null;
+  const riverside = targetPos ? isRiverside(targetPos.x, targetPos.y) : false;
+  const drought = currentWeather?.kind === 'drought';
+  const investFoodCost = Math.max(800, totalTroops);
+  const floodGoldCost = 400;
+  const canInvest = (source?.food ?? 0) >= investFoodCost;
+  const canFlood = riverside && !drought && (source?.gold ?? 0) >= floodGoldCost;
   // 舌戰 state moved into TacticalBattleScreen — fires after the opening cinematic.
 
   const namedMapId = NAMED_MAPS_BY_CITY[targetCityId];
@@ -162,6 +174,11 @@ export function BattlePrepModal({
 
   const engage = () => {
     if (!canEngage || !source || !target) return;
+    // Pay for the chosen siege works up front (deducted from the
+    // attacking city's stores); fall back to a plain storm if it can't
+    // be paid (button should already be disabled in that case).
+    if (siegeWorks === 'invest' && !spendSiegeWorks(source.id, 0, investFoodCost)) return;
+    if (siegeWorks === 'flood' && !spendSiegeWorks(source.id, floodGoldCost, 0)) return;
     const attackers = ourOfficers.map((o) => ({
       officer: o,
       troops: troopShares[o.id],
@@ -218,6 +235,7 @@ export function BattlePrepModal({
           anchorCol: (namedMap?.width ?? 18) - 2,
         };
       })(),
+      siegeWorks,
     });
 
     // 舌戰 is now triggered AFTER the 3D battle opens — see TacticalBattleScreen.
@@ -254,6 +272,40 @@ export function BattlePrepModal({
               <div className={styles.ctxLabel}>Time 時刻</div>
               <div className={styles.ctxValue}>{namedMap?.timeOfDay ?? 'day'}</div>
             </div>
+          </div>
+
+          {/* 攻城方略 — how the siege is prosecuted. */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+            padding: '0.5rem 0.75rem', marginTop: '0.5rem', fontSize: '0.78rem',
+            background: 'rgba(26,20,16,0.55)', border: '1px solid #4a3520',
+          }}>
+            <span style={{ color: '#8a7050', letterSpacing: '0.15rem' }}>攻城方略</span>
+            {([
+              { id: 'storm' as const, zh: '強攻', en: 'Storm', hint: lang === 'zh' ? '直接攻城' : 'Assault as-is', disabled: false },
+              { id: 'invest' as const, zh: '圍困', en: 'Invest', hint: (lang === 'zh' ? `斷其糧道（軍糧 −${investFoodCost.toLocaleString()}）守軍飢疲` : `Starve them out (food −${investFoodCost.toLocaleString()})`), disabled: !canInvest },
+              { id: 'flood' as const, zh: '水攻', en: 'Flood', hint: !riverside ? (lang === 'zh' ? '此城不臨水' : 'Not riverside') : drought ? (lang === 'zh' ? '旱季水涸' : 'Drought — no water') : (lang === 'zh' ? `決堤灌城（金 −${floodGoldCost}）潰牆溺敵` : `Break the dikes (gold −${floodGoldCost})`), disabled: !canFlood },
+            ]).map((o) => (
+              <button
+                key={o.id}
+                onClick={() => !o.disabled && setSiegeWorks(o.id)}
+                disabled={o.disabled}
+                title={o.hint}
+                style={{
+                  padding: '0.3rem 0.7rem',
+                  background: siegeWorks === o.id ? '#6a4a20' : 'rgba(20,14,8,0.7)',
+                  border: `1px solid ${siegeWorks === o.id ? '#d4a84a' : '#4a3520'}`,
+                  color: o.disabled ? '#5a4a38' : siegeWorks === o.id ? '#ffe9a8' : '#c0a878',
+                  cursor: o.disabled ? 'not-allowed' : 'pointer',
+                  fontFamily: 'Songti SC, serif',
+                }}
+              >{o.zh} {o.en}</button>
+            ))}
+            <span style={{ color: '#7a6650', fontSize: '0.7rem' }}>
+              {({ storm: lang === 'zh' ? '雲梯衝車,直取城垣。' : 'Ladders and rams, straight at the walls.',
+                 invest: lang === 'zh' ? '圍而不攻,坐待城中糧盡。' : 'Surround and starve the garrison.',
+                 flood: lang === 'zh' ? '引水決堤,水淹七軍。' : 'Break the dikes and drown the city.' } as Record<string, string>)[siegeWorks]}
+            </span>
           </div>
 
           {/* Terrain composition preview for named maps. */}

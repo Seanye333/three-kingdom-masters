@@ -273,6 +273,10 @@ interface GameStore extends GameState {
   /** 亲征野战 — lead a player field army into an interactive tactical battle
    *  against an adjacent enemy army. Returns false if not allowed. */
   startFieldBattle: (playerArmyId: EntityId, enemyArmyId: EntityId) => boolean;
+  /** Pay for siege works (圍困糧耗 / 水攻決堤) from the attacking city's
+   *  stores before an assault. Returns false (and deducts nothing) if the
+   *  city can't afford it. */
+  spendSiegeWorks: (cityId: EntityId, gold: number, food: number) => boolean;
   /** Start the next AI-initiated field battle queued from season resolution
    *  (the player fights clashes the AI forced). No-op if the queue is empty. */
   startNextFieldBattle: () => void;
@@ -3438,6 +3442,19 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       },
 
       startTacticalBattle: (battle) => set({ tacticalBattle: battle }),
+
+      spendSiegeWorks: (cityId, gold, food) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city || city.gold < gold || city.food < food) return false;
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, gold: city.gold - gold, food: city.food - food },
+          },
+        });
+        return true;
+      },
 
       startFieldBattle: (playerArmyId, enemyArmyId) => {
         const battle = buildFieldBattle(get(), playerArmyId, enemyArmyId, true);

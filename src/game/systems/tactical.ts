@@ -178,6 +178,12 @@ export interface SetupParams {
   /** Real-map placement (anchor + approach bearing) — when set, the
    *  battlefield samples the actual strategic-map geography. */
   battleGeo?: import('./battlefieldTerrain').BattleGeo;
+  /** Siege approach (攻城方略): storm the walls as-is (default), invest
+   *  the city until the granaries run dry (圍困 — defenders start the
+   *  assault starving and shaken), or break the dikes and flood it
+   *  (水攻 — riverside cities only: washed-out wall breaches, floodwater
+   *  at the foot of the walls, drowned and demoralised garrison). */
+  siegeWorks?: 'storm' | 'invest' | 'flood';
   /** Field battle (army vs army in the open) — no city, so no rampart wall. */
   field?: boolean;
 }
@@ -371,6 +377,7 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   // field battles and naval engagements stay unwalled.
   let battleTiles = tiles;
   let wallHp: Record<string, number> | undefined;
+  let enclosure: { westCol: number; r0: number; r1: number; gateRow: number } | null = null;
   if (!isNaval && !p.field && !namedMap && width >= 8 && height >= 6) {
     const occupied = new Set(finalUnits.map((u) => `${u.coord.col},${u.coord.row}`));
     const hp: Record<string, number> = {};
@@ -401,6 +408,7 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
       const r0 = Math.floor(height * 0.28);          // north face row
       const r1 = Math.ceil(height * 0.72) - 1;       // south face row
       const sideGateCol = Math.min(width - 2, westCol + 2);
+      enclosure = { westCol, r0, r1, gateRow };
       battleTiles = tiles.map((t) => {
         const { col, row } = t.coord;
         const key = `${col},${row}`;
@@ -429,6 +437,57 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     if (Object.keys(hp).length > 0) wallHp = hp;
   }
 
+  // ── 攻城方略 — siege works applied over the raised defences ──
+  let workedUnits = finalUnits;
+  if (!isNaval && !p.field && !namedMap && p.siegeWorks === 'invest') {
+    // 圍困 — the city was invested until the granaries ran dry: the
+    // garrison opens the assault starving and shaken.
+    workedUnits = workedUnits.map((u) => u.side === 'defender'
+      ? {
+          ...u,
+          morale: Math.max(30, u.morale - 30),
+          effects: [...u.effects, { kind: 'starving' as const, turnsLeft: 99 }],
+        }
+      : u);
+    log.push({ turn: 1, text: '圍困日久，城中糧盡 — 守軍飢疲，士氣大墮。', kind: 'event' });
+  }
+  if (p.siegeWorks === 'flood' && enclosure && wallHp) {
+    // 水攻 — the dikes are broken upstream: floodwater pools at the foot
+    // of the walls, washes out wall segments, and drowns part of the
+    // garrison (水淹七軍).
+    const { westCol, r0, r1, gateRow } = enclosure;
+    const washed = battleTiles
+      .filter((t) => t.terrain === 'wall')
+      .sort((a, b) => ((a.coord.row * 31 + a.coord.col * 7) % 11) - ((b.coord.row * 31 + b.coord.col * 7) % 11))
+      .slice(0, 3)
+      .map((t) => `${t.coord.col},${t.coord.row}`);
+    const washedSet = new Set(washed);
+    battleTiles = battleTiles.map((t) => {
+      const key = `${t.coord.col},${t.coord.row}`;
+      if (washedSet.has(key)) return { ...t, terrain: 'river' as TerrainKind };
+      // Floodwater pooled along the western approach — the causeway (road
+      // row) stays above the water.
+      if (t.coord.col === westCol - 1 && t.coord.row >= r0 && t.coord.row <= r1
+        && t.coord.row !== gateRow
+        && (t.terrain === 'plain' || t.terrain === 'road' || t.terrain === 'marsh' || t.terrain === 'forest')) {
+        return { ...t, terrain: 'river' as TerrainKind };
+      }
+      return t;
+    });
+    const nextHp = { ...wallHp };
+    for (const key of washed) delete nextHp[key];
+    wallHp = Object.keys(nextHp).length > 0 ? nextHp : undefined;
+    workedUnits = workedUnits.map((u) => u.side === 'defender'
+      ? {
+          ...u,
+          troops: Math.max(1, Math.floor(u.troops * 0.88)),
+          maxTroops: Math.max(1, Math.floor(u.maxTroops * 0.88)),
+          morale: Math.max(30, u.morale - 20),
+        }
+      : u);
+    log.push({ turn: 1, text: '決堤！洪水灌城，城牆崩毀數段 — 守軍溺損，軍心動搖。', kind: 'event' });
+  }
+
   return {
     id: `tac-${p.cityId}-${Date.now()}`,
     cityId: p.cityId,
@@ -437,15 +496,15 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     width,
     height,
     tiles: battleTiles,
-    units: finalUnits,
+    units: workedUnits,
     turn: 1,
     activeSide: 'attacker',
     stratagemCooldowns: {},
     attackerLosses: 0,
     defenderLosses: 0,
     startTroops: {
-      attacker: finalUnits.filter((u) => u.side === 'attacker').reduce((s, u) => s + u.maxTroops, 0),
-      defender: finalUnits.filter((u) => u.side === 'defender').reduce((s, u) => s + u.maxTroops, 0),
+      attacker: workedUnits.filter((u) => u.side === 'attacker').reduce((s, u) => s + u.maxTroops, 0),
+      defender: workedUnits.filter((u) => u.side === 'defender').reduce((s, u) => s + u.maxTroops, 0),
     },
     attackerFormation: p.attackerFormation ?? 'none',
     defenderFormation: p.defenderFormation ?? 'none',

@@ -238,6 +238,21 @@ export function battleGroundAt(x: number, y: number): BattleGround {
 }
 
 /**
+ * Is this map point close enough to a river (or lake) for water-works —
+ * gates the 水攻 (dike-breaking flood) siege option: you can only drown
+ * a city that actually sits by the water (襄陽/下邳…, not 許昌).
+ */
+export function isRiverside(x: number, y: number, range = 14): boolean {
+  for (const r of [...RIVERS, ...RIVERS_DETAIL]) {
+    if (distToPolyline(x, y, r.pts) < r.width + range) return true;
+  }
+  for (const lk of LAKES_GAME) {
+    if (Math.hypot(x - lk.x, y - lk.y) < lk.r + range) return true;
+  }
+  return false;
+}
+
+/**
  * Name the ground a battle is fought on — 「漢水之濱」「秦嶺山中」
  * 「洞庭湖畔」 — for season-report flavour. Returns null on open plain.
  */

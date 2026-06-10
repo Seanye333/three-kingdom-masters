@@ -3,7 +3,7 @@ import { generateTerrain, type BattleGeo } from './battlefieldTerrain';
 import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance } from './tactical';
 import { buildInitialCities } from '../data/cities';
 import { cityPos } from '../data/cityGeo';
-import { describeBattleSite } from '../data/geography';
+import { describeBattleSite, isRiverside } from '../data/geography';
 
 const cities = buildInitialCities({});
 const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
@@ -157,6 +157,47 @@ describe('real-geography battlefields (战斗地图写实)', () => {
     // After a few turns the engine must have closed on the gate (or already
     // be chipping fortifications down).
     expect(after < before || battered, `器械应逼近城门(${before}→${after})或已开砸`).toBe(true);
+  });
+
+  it('圍困 starves the garrison; 水攻 washes out walls and drowns defenders', () => {
+    const off = (id: string) => ({ officer: { id, name: { zh: id, en: id }, skills: [], stats: { war: 70, leadership: 70, intelligence: 60, politics: 50, charisma: 50 } } as never, troops: 4000 });
+    const base = {
+      width: W, height: H,
+      attackerForceId: 'a', defenderForceId: 'b',
+      attackers: [off('atk')], defenders: [off('def')],
+    };
+    // 圍困 at 許昌 (plains city)
+    const invest = setupTacticalBattle({
+      ...base, cityId: 'xuchang', terrainHint: { terrain: 'plain' },
+      battleGeo: siegeGeo('chenliu', 'xuchang'), siegeWorks: 'invest',
+    });
+    const investDef = invest.units.filter((u) => u.side === 'defender');
+    expect(investDef.every((u) => u.effects.some((e) => e.kind === 'starving'))).toBe(true);
+    expect(investDef.every((u) => u.morale <= 80)).toBe(true);
+
+    // 水攻 at 鄴 (riverside of the 黄河 — 曹操灌鄴) vs plain storm —
+    // washed-out walls, drowned garrison
+    const storm = setupTacticalBattle({
+      ...base, cityId: 'ye', terrainHint: { terrain: 'plain' },
+      battleGeo: siegeGeo('liyang', 'ye'), siegeWorks: 'storm',
+    });
+    const flood = setupTacticalBattle({
+      ...base, cityId: 'ye', terrainHint: { terrain: 'plain' },
+      battleGeo: siegeGeo('liyang', 'ye'), siegeWorks: 'flood',
+    });
+    const wallCount = (b: typeof storm) => b.tiles.filter((t) => t.terrain === 'wall').length;
+    expect(wallCount(flood), '决堤应冲垮墙段').toBeLessThan(wallCount(storm));
+    const floodDef = flood.units.filter((u) => u.side === 'defender');
+    const stormDef = storm.units.filter((u) => u.side === 'defender');
+    expect(floodDef[0].troops).toBeLessThan(stormDef[0].troops);
+    expect(floodDef.every((u) => u.morale <= 90)).toBe(true);
+  });
+
+  it('isRiverside gates the flood option by real geography', () => {
+    const xy = cityPos(byId['xiangyang']);
+    const xc = cityPos(byId['xuchang']);
+    expect(isRiverside(xy.x, xy.y), '襄陽臨漢水').toBe(true);
+    expect(isRiverside(xc.x, xc.y), '許昌不臨水').toBe(false);
   });
 
   it('is deterministic for the same battle and varies across battles', () => {
