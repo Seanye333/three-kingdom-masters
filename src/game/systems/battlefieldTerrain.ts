@@ -15,7 +15,7 @@
  */
 import type { TerrainKind, TacticalTile } from '../types';
 import type { Terrain } from '../data/cities';
-import { battleGroundAt } from '../data/geography';
+import { battleGroundAt, isFrozenWater } from '../data/geography';
 
 /**
  * Real-geography placement of a battle on the strategic map — when
@@ -32,6 +32,9 @@ export interface BattleGeo {
   /** Grid column the anchor sits on. Sieges anchor the city just behind
    *  its rampart (width-2); field battles default to the grid centre. */
   anchorCol?: number;
+  /** Season — in winter the northern rivers (黄河 belt, lat ≳33.5°N)
+   *  freeze into crossable ice. */
+  season?: 'spring' | 'summer' | 'autumn' | 'winter';
 }
 
 export interface TerrainHint {
@@ -155,7 +158,10 @@ function generateRealTerrain(
       const my = geo.y + (uy * dc + vy * dr) * TILE_PX;
       const g = battleGroundAt(mx, my);
       let terrain: TerrainKind = 'plain';
-      if (g === 'sea' || g === 'lake' || g === 'river') terrain = 'river';
+      if (g === 'sea' || g === 'lake' || g === 'river') {
+        // 冰封 — northern waters freeze over in winter: crossable ice.
+        terrain = (g === 'river' && isFrozenWater(my, geo.season)) ? 'ice' : 'river';
+      }
       else if (g === 'riverbank') terrain = rng() < 0.45 ? 'marsh' : 'plain';
       else if (g === 'mountain') terrain = 'mountain';
       else if (g === 'hill') terrain = rng() < 0.7 ? 'hill' : 'mountain';
@@ -179,6 +185,7 @@ function generateRealTerrain(
     if (row === midRow) {
       if (t.terrain === 'river') t.terrain = 'bridge';
       else if (t.terrain === 'mountain' || t.terrain === 'hill' || t.terrain === 'plain') t.terrain = 'road';
+      // ice stays ice — in winter the frozen river itself is the road.
     }
     // Both armies muster on dry, open ground — entry columns can't be
     // water or cliff (the riverbank camp / beachhead).

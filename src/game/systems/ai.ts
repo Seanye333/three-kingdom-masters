@@ -151,6 +151,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
         forceTargetId,
         posture,
         hegemonId,
+        input.date.season,
       );
       if (!decision) continue;
 
@@ -773,6 +774,7 @@ function decideCommand(
   forceTargetId: EntityId | null = null,
   posture: 'aggressive' | 'defensive' = 'aggressive',
   hegemonId: EntityId | null = null,
+  season?: 'spring' | 'summer' | 'autumn' | 'winter',
 ): Decision | null {
   const ownRulerId = forces[forceId]?.rulerOfficerId;
   // 1. Food crisis — develop agriculture
@@ -986,7 +988,7 @@ function decideCommand(
       }
       const companions = picked.map((c) => c.id);
 
-      const dur = marchDurationFor(city, target);
+      const dur = marchDurationFor(city, target, season);
       const cmd: MarchCommand = {
         type: 'march',
         cityId: city.id,
@@ -1013,7 +1015,7 @@ function decideCommand(
       if (send >= 2000) {
         const o = officersHere.find((c) => !isCombatLiability(c)) ?? officersHere[0];
         if (o) {
-          const dur = marchDurationFor(city, dest);
+          const dur = marchDurationFor(city, dest, season);
           const cmd: MarchCommand = {
             type: 'march', cityId: city.id, officerId: o.id, targetCityId: dest.id,
             troops: send, seasonsRemaining: dur, totalSeasons: dur,

@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { generateTerrain, type BattleGeo } from './battlefieldTerrain';
-import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance, movementCost, repairWall, planSiegeRelief, endTurn } from './tactical';
+import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance, movementCost, repairWall, planSiegeRelief, endTurn, attackUnits, applyStratagem } from './tactical';
 import { handleMarch } from './combat';
 import { resolveSeason } from './resolution';
-import { buildInitialCities } from '../data/cities';
+import { buildInitialCities, marchDurationFor } from '../data/cities';
 import { cityPos } from '../data/cityGeo';
-import { describeBattleSite, isRiverside } from '../data/geography';
+import { describeBattleSite, isRiverside, isFrozenWater } from '../data/geography';
 
 const cities = buildInitialCities({});
 const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
@@ -385,6 +385,68 @@ describe('real-geography battlefields (战斗地图写实)', () => {
     const rainy = { ...base, weather: 'rain' as const, groundFires: [{ coord: { col: 3, row: 2 }, turnsLeft: 2 }] };
     const after3 = endTurn(rainy);
     expect(after3.groundFires ?? []).toHaveLength(0);
+  });
+
+  it('冰封 — winter freezes northern waters and shortens 黄河 crossings', () => {
+    // The frozen Yellow River belt: 白馬→黎陽 crossing gets ice tiles in winter.
+    const winterGeo = { ...siegeGeo('baima', 'liyang'), season: 'winter' as const };
+    const tiles = generateTerrain('liyang', W, H, {}, undefined, winterGeo);
+    expect(tiles.some((t) => t.terrain === 'ice'), '冬季黄河应结冰').toBe(true);
+    expect(tiles.some((t) => t.terrain === 'river'), '').toBe(false);
+    // Southern waters never freeze: 新野→襄陽 keeps open 漢水.
+    const south = generateTerrain('xiangyang', W, H, {}, undefined, { ...siegeGeo('xinye', 'xiangyang'), season: 'winter' as const });
+    expect(south.some((t) => t.terrain === 'ice')).toBe(false);
+    // Strategic: marching across the frozen river is cheaper.
+    const winterDur = marchDurationFor(byId['baima'], byId['liyang'], 'winter');
+    const summerDur = marchDurationFor(byId['baima'], byId['liyang'], 'summer');
+    expect(winterDur).toBeLessThanOrEqual(summerDur);
+    expect(isFrozenWater(180, 'winter')).toBe(true);   // north
+    expect(isFrozenWater(400, 'winter')).toBe(false);  // south
+    expect(isFrozenWater(180, 'summer')).toBe(false);
+  });
+
+  it('居高臨下 — striking downhill outdamages flat ground', async () => {
+    const { mkBattle, mkUnit, mkTiles } = await import('../../test/factories');
+    const officers = {} as never;
+    const mk = (terrOverrides: Record<string, import('../types').TerrainKind>) => mkBattle({
+      units: [
+        mkUnit({ id: 'A1', officerId: 'oA1', side: 'attacker', coord: { col: 2, row: 2 }, troops: 5000, ap: 3 }),
+        mkUnit({ id: 'D1', officerId: 'oD1', side: 'defender', coord: { col: 3, row: 2 }, troops: 5000 }),
+      ],
+      tiles: mkTiles(8, 8, terrOverrides),
+    });
+    const flat = attackUnits(mk({}), 'A1', 'D1', officers, () => 0.5);
+    const high = attackUnits(mk({ '2,2': 'hill' }), 'A1', 'D1', officers, () => 0.5);
+    const dmgFlat = 5000 - flat.units.find((u) => u.id === 'D1')!.troops;
+    const dmgHigh = 5000 - high.units.find((u) => u.id === 'D1')!.troops;
+    expect(dmgHigh, '高地攻击应更痛').toBeGreaterThan(dmgFlat);
+  });
+
+  it('落石 seals the path; 燒橋 drops the span into the river', async () => {
+    const { mkBattle, mkUnit, mkTiles } = await import('../../test/factories');
+    const officers = {
+      oA1: { id: 'oA1', name: { zh: '魏延', en: 'Wei Yan' }, skills: [], traits: [], equipment: [], stats: { war: 80, leadership: 70, intelligence: 60, politics: 40, charisma: 50 } },
+    } as never;
+    const b = mkBattle({
+      units: [
+        mkUnit({ id: 'A1', officerId: 'oA1', side: 'attacker', coord: { col: 2, row: 2 }, troops: 4000, ap: 3 }),
+        mkUnit({ id: 'D1', officerId: 'oD1', side: 'defender', coord: { col: 3, row: 2 }, troops: 4000 }),
+      ],
+      tiles: mkTiles(8, 8, { '2,1': 'mountain', '3,2': 'road' }),
+    });
+    const r = applyStratagem(b, 'A1', 'rockslide', { col: 3, row: 2 }, officers);
+    expect(r.ok, r.reason ?? '').toBe(true);
+    expect(r.battle.tiles.find((t) => t.coord.col === 3 && t.coord.row === 2)?.terrain).toBe('mountain');
+    expect(r.battle.units.find((u) => u.id === 'D1')!.troops).toBeLessThan(4000);
+
+    // 燒橋: a burning bridge collapses into the river when the fire dies.
+    const bridge = mkBattle({
+      units: [mkUnit({ id: 'A1', officerId: 'oA1', side: 'attacker', coord: { col: 1, row: 1 }, troops: 3000 })],
+      tiles: mkTiles(8, 8, { '4,4': 'bridge' }),
+    });
+    const burning = { ...bridge, groundFires: [{ coord: { col: 4, row: 4 }, turnsLeft: 1 }] };
+    const after = endTurn(burning);
+    expect(after.tiles.find((t) => t.coord.col === 4 && t.coord.row === 4)?.terrain).toBe('river');
   });
 
   it('is deterministic for the same battle and varies across battles', () => {

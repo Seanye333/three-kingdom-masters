@@ -242,6 +242,8 @@ export interface GameState {
     sourceCityId: EntityId; targetCityId: EntityId;
     officerIds: EntityId[]; troops: number;
   }>;
+  /** 行軍預覽 — transient route highlight while the march picker is open. */
+  marchPreview: { fromId: EntityId; toId: EntityId } | null;
   /** Heaven's Mandate per force (0-100). */
   mandate: MandateState;
   /** Active 截糧 / delayed stratagem effects ticking down per season. */
@@ -340,6 +342,7 @@ export const EMPTY_STATE: GameState = {
   fieldBattleMarks: [],
   pendingFieldBattleQueue: [],
   pendingSiegeDefenseQueue: [],
+  marchPreview: null,
   mandate: { byForce: {} },
   pendingDelayedEffects: [],
   pendingBattleTheaters: [],
@@ -539,6 +542,7 @@ export function loadScenario(
     fieldBattleMarks: [],
     pendingFieldBattleQueue: [],
   pendingSiegeDefenseQueue: [],
+  marchPreview: null,
     mandate: createInitialMandate(scenario.forces.map((f) => f.id)),
     pendingDelayedEffects: [],
     pendingBattleTheaters: [],

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FORMATIONS, NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../../game/data';
-import { inferUnitType, setupTacticalBattle, planSiegeRelief } from '../../game/systems/tactical';
+import { inferUnitType, setupTacticalBattle, planSiegeRelief, rollTimeOfDay } from '../../game/systems/tactical';
 import { cityPos } from '../../game/data/cityGeo';
 import { isRiverside } from '../../game/data/geography';
 import { useGameStore } from '../../game/state/store';
@@ -103,6 +103,7 @@ export function BattlePrepModal({
   const cities = useGameStore((s) => s.cities);
   const startTactical = useGameStore((s) => s.startTacticalBattle);
   const currentWeather = useGameStore((s) => s.weather);
+  const currentSeason = useGameStore((s) => s.date.season);
   const lang = useLanguage();
   const desc = useDesc();
 
@@ -221,6 +222,7 @@ export function BattlePrepModal({
       defenders: defenderEntries,
       attackerFormation: formation,
       weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
+      timeOfDay: rollTimeOfDay(),
       windDirection: currentWeather?.wind ?? 'calm',
       // Carry the defender city's perimeter defense structures into the battle.
       buildSlots: target.buildSlots,
@@ -243,6 +245,7 @@ export function BattlePrepModal({
           x: tp.x, y: tp.y,
           bearing: Math.atan2(tp.y - sp.y, tp.x - sp.x),
           anchorCol: (namedMap?.width ?? 18) - 2,
+          season: currentSeason,
         };
       })(),
       siegeWorks,

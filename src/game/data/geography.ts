@@ -160,17 +160,28 @@ function distToPolyline(px: number, py: number, pts: Array<[number, number]>): n
  * through mountains (up to ~1.6×) and a bump for river crossings. Used to
  * weight march distance so marches through the mountains take longer.
  */
-export function terrainMarchCost(x: number, y: number): number {
+export function terrainMarchCost(x: number, y: number, opts?: { frozenRivers?: boolean }): number {
   let cost = 0;
   for (const m of MOUNTAINS) {
     const d = distToPolyline(x, y, m.ridge);
     if (d < m.width) cost += m.cost * (1 - d / m.width);
   }
   for (const r of RIVERS) {
+    // 冰封 — in deep winter the northern rivers freeze solid and armies
+    // simply walk across (曹操渡冰擊馬超). The Yangtze never freezes.
+    if (opts?.frozenRivers && r.zh === '黃河') continue;
     const d = distToPolyline(x, y, r.pts);
     if (d < r.width) cost += 0.5 * (1 - d / r.width);
   }
   return cost;
+}
+
+/** Does water at this map point freeze in winter? Northern waters only
+ *  (lat ≳33.5°N — the 黄河/渭水 belt; the Yangtze never ices over). */
+export function isFrozenWater(y: number, season?: string): boolean {
+  if (season !== 'winter') return false;
+  const lat = GEO_LAT_MAX - (y / MAP_H) * GEO_LAT_SPAN;
+  return lat > 33.5;
 }
 
 // ── Battlefield sampling (战斗地图写实) ──────────────────────────

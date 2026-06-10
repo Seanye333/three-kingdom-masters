@@ -100,6 +100,7 @@ function hexPoints(cx: number, cy: number, size = HEX_SIZE): string {
 
 const TERRAIN_FILL: Record<TerrainKind, string> = {
   plain:    'url(#tkmPlainGrad)',
+  ice:      'url(#tkmRiverGrad)',
   forest:   'url(#tkmForestGrad)',
   mountain: 'url(#tkmMountainGrad)',
   river:    'url(#tkmRiverGrad)',

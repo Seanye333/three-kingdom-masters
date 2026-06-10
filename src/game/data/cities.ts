@@ -1050,7 +1050,7 @@ export const CITY_IDS = CITY_TEMPLATES.map((t) => t.id);
  * than a flat march of the same distance. Pass-terrain endpoints (劍閣,
  * 散關…) add a chokepoint season. Capped at 4 seasons.
  */
-export function marchDurationFor(from: City, to: City): number {
+export function marchDurationFor(from: City, to: City, season?: 'spring' | 'summer' | 'autumn' | 'winter'): number {
   // Geo-anchored positions — the same ones the 3D map renders and the
   // terrain layer (geography.ts) is authored in, so the cost integral
   // below samples the mountains the column actually crosses.
@@ -1066,7 +1066,7 @@ export function marchDurationFor(from: City, to: City): number {
   let costSum = 0;
   for (let i = 0; i < STEPS; i++) {
     const t = (i + 0.5) / STEPS;
-    costSum += terrainMarchCost(a.x + dx * t, a.y + dy * t);
+    costSum += terrainMarchCost(a.x + dx * t, a.y + dy * t, { frozenRivers: season === 'winter' });
   }
   const terrainMul = 1 + (costSum / STEPS); // 1 (plains) … ~2.3 (deep mountains)
   let effDist = dist * terrainMul;

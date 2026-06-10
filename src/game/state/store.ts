@@ -74,7 +74,7 @@ import {
   attemptRecruit,
 } from '../systems/officerFate';
 import { resolveSeason } from '../systems/resolution';
-import { setupTacticalBattle, inferUnitType, planSiegeRelief } from '../systems/tactical';
+import { setupTacticalBattle, inferUnitType, planSiegeRelief, rollTimeOfDay } from '../systems/tactical';
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
 import { DEFENSE_BUILDINGS } from '../data/defenseBuildings';
 import { SHIP_CLASSES_BY_ID } from '../data/ships';
@@ -280,6 +280,8 @@ interface GameStore extends GameState {
   /** 馳援 — deduct a relief column's troops from its home city when it
    *  marches for a besieged neighbour (survivors return after battle). */
   dispatchRelief: (cityId: EntityId, troops: number) => void;
+  /** 行軍預覽 — highlight a prospective march route on the 3D map. */
+  setMarchPreview: (preview: { fromId: EntityId; toId: EntityId } | null) => void;
   /** Start the next AI-initiated field battle queued from season resolution
    *  (the player fights clashes the AI forced). No-op if the queue is empty. */
   startNextFieldBattle: () => void;
@@ -490,6 +492,7 @@ function buildFieldBattle(
     attackerFormation: pArmy.holding ? 'ten-ambush' : undefined,
     defenderFormation: eArmy.holding ? 'ten-ambush' : undefined,
     weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
+    timeOfDay: rollTimeOfDay(),
     windDirection: s.weather?.wind ?? 'calm',
     terrainHint: { terrain: terrainTypeAt(midX, midY), x: midX, y: midY },
     // Real-map battlefield: anchored at the clash point, oriented along
@@ -497,6 +500,7 @@ function buildFieldBattle(
     battleGeo: {
       x: midX, y: midY,
       bearing: Math.atan2(eArmy.y - pArmy.y, eArmy.x - pArmy.x),
+      season: s.date.season,
     },
     field: true,
   });
@@ -546,7 +550,7 @@ export const useGameStore = create<GameStore>()(
         // New leg length source→newTarget; preserve how far the army has come
         // so it "turns" toward the new objective rather than restarting.
         // Redirecting also lifts any hold.
-        const total = marchDurationFor(src, tgt);
+        const total = marchDurationFor(src, tgt, state.date.season);
         const remaining = Math.max(1, Math.ceil((1 - army.progress) * total));
         set({
           pendingCommands: {
@@ -843,7 +847,7 @@ export const useGameStore = create<GameStore>()(
           };
         }
 
-        const dur = marchDurationFor(source, state.cities[targetId]);
+        const dur = marchDurationFor(source, state.cities[targetId], state.date.season);
         set({
           cities: {
             ...state.cities,
@@ -3453,6 +3457,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
 
       startTacticalBattle: (battle) => set({ tacticalBattle: battle }),
 
+      setMarchPreview: (preview) => set({ marchPreview: preview }),
+
       dispatchRelief: (cityId, troops) => {
         const state = get();
         const city = state.cities[cityId];
@@ -3549,10 +3555,11 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           attackers,
           defenders,
           weather: (stratWeather === 'drought' ? 'clear' : stratWeather) as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
+          timeOfDay: rollTimeOfDay(),
           windDirection: state.weather?.wind ?? 'calm',
           buildSlots: tgt.buildSlots,
           terrainHint: { terrain: tgt.terrain, port: tgt.port, x: tgt.coords.x, y: tgt.coords.y },
-          battleGeo: { x: tp.x, y: tp.y, bearing, anchorCol: 16 },
+          battleGeo: { x: tp.x, y: tp.y, bearing, anchorCol: 16, season: state.date.season },
           siegeWorks: works,
           reinforcements: relief.reinforcements,
         });

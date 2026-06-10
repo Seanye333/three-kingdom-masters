@@ -125,6 +125,7 @@ export interface HexCoord {
 
 export type TerrainKind =
   | 'plain' | 'forest' | 'mountain' | 'river' | 'road'
+  | 'ice'         // 冰面 — frozen northern river: crossable but slow/slippery
   | 'hill'        // 高地 — archers gain +1 range, melee gains charge bonus
   | 'marsh'       // 沼澤 — movement halved, cavalry suffers
   | 'chokepoint'  // 隘口 — only 1 unit can pass; defenders +30% defense
@@ -211,7 +212,8 @@ export type StratagemId =
   | 'board'         // 接舷 — board an adjacent ship; marine melee, shatters morale
   | 'fire-ship'     // 火船 — fireships; devastating against chained fleets (赤壁)
   // ── Supply raiding ──
-  | 'raid-supply';  // 劫糧道 — from deep in the enemy rear, burn their grain (烏巢)
+  | 'raid-supply'   // 劫糧道 — from deep in the enemy rear, burn their grain (烏巢)
+  | 'rockslide';    // 落石 — from the heights, bury the path below in stone
 
 export interface Stratagem {
   id: StratagemId;

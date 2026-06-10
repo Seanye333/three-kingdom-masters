@@ -291,6 +291,15 @@ export function planSiegeRelief(args: {
   return out;
 }
 
+/** Roll the hour a battle opens at — most assaults go in by day, but
+ *  some come at dusk or in the dead of night (夜戰). */
+export function rollTimeOfDay(r: number = Math.random()): TimeOfDay {
+  if (r < 0.15) return 'night';
+  if (r < 0.27) return 'dusk';
+  if (r < 0.34) return 'dawn';
+  return 'day';
+}
+
 export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   // Named map override?
   const namedMapId = p.namedMapId ?? NAMED_MAPS_BY_CITY[p.cityId];
@@ -612,6 +621,7 @@ export function computeSlotPositions(width: number, height: number): HexCoord[] 
 const TERRAIN_MOVE_COST: Record<TerrainKind, number> = {
   plain: 1,
   road: 1,    // road cost = 1 (no bonus in this simple model)
+  ice: 2,     // 冰面 — crossable but slow and slippery
   forest: 2,
   mountain: 3,
   river: 3,
@@ -888,7 +898,7 @@ export function attackUnits(
   if (!canAttack(b, attacker, target)) return b;
   // Ambush bonus + reveal: hidden attacker striking from concealment
   // gets +30% damage this hit, then is revealed.
-  const ambushBonus = attacker.hidden ? 1.3 : 1.0;
+  const ambushBonus = attacker.hidden ? (b.timeOfDay === 'night' ? 1.5 : 1.3) : 1.0;
   if (attacker.hidden) {
     b = { ...b, units: b.units.map((u) => u.id === attackerId ? { ...u, hidden: false } : u) };
   }
@@ -928,6 +938,14 @@ export function attackUnits(
 
   // Weather effects.
   const weatherMul = weatherDamageMul(b.weather, attacker.unitType);
+  // 夜戰 — confusion dampens open blows but sharpens the knife in the dark.
+  const nightMul = b.timeOfDay === 'night' ? 0.94 : 1.0;
+  // 居高臨下 — striking downhill hits harder; fighting uphill, softer.
+  const ELEV: Partial<Record<TerrainKind, number>> = { mountain: 2, watchtower: 2, hill: 1 };
+  const aElev = aTerrainTile ? (ELEV[aTerrainTile.terrain] ?? 0) : 0;
+  const dElevTile = tileAt(b, target.coord);
+  const dElev = dElevTile ? (ELEV[dElevTile.terrain] ?? 0) : 0;
+  const heightMul = aElev > dElev ? 1.15 : aElev < dElev ? 0.92 : 1.0;
 
   // Defender's terrain shield (chokepoint, watchtower, hill, mountain,
   // forest, gate) reduces incoming damage.
@@ -954,7 +972,8 @@ export function attackUnits(
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
     base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
-    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul * pincerMul,
+    dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul * pincerMul *
+    nightMul * heightMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
@@ -1197,11 +1216,15 @@ export function applyStratagem(
       if (hexDistance(unit.coord, targetCoord) > 3)
         return { battle: b, ok: false, reason: 'out of range' };
       const target = unitAt(b, targetCoord);
-      if (!target || target.side === unit.side)
+      const bareTile = tileAt(b, targetCoord);
+      const tileFlammable = !!bareTile && ['forest', 'plain', 'road', 'bridge'].includes(bareTile.terrain);
+      if ((!target || target.side === unit.side) && !(target == null && tileFlammable && b.weather !== 'rain'))
         return { battle: b, ok: false, reason: 'invalid target' };
       // Wind doubles fire duration; rain halves it.
       const turns = b.weather === 'wind' ? 5 : b.weather === 'rain' ? 1 : 3;
-      let updated = setStatus(b, target.id, { kind: 'burning', turnsLeft: turns });
+      let updated = target && target.side !== unit.side
+        ? setStatus(b, target.id, { kind: 'burning', turnsLeft: turns })
+        : b;
       // The ground itself catches — a spreading field fire (火攻).
       const groundTile = tileAt(b, targetCoord);
       if (groundTile && (groundTile.terrain === 'forest' || groundTile.terrain === 'plain' || groundTile.terrain === 'road') && b.weather !== 'rain') {
@@ -1559,6 +1582,41 @@ export function applyStratagem(
       next = setStatus(next, target.id, { kind: 'burning', turnsLeft: turns });
       return finalize(next, unitId, stratagem, 3);
     }
+    case 'rockslide': {
+      if ((off?.stats.war ?? 0) < 55)
+        return { battle: b, ok: false, reason: 'requires WAR 55' };
+      if (hexDistance(unit.coord, targetCoord) > 2)
+        return { battle: b, ok: false, reason: 'out of range' };
+      // Must hold (or flank) the heights.
+      const onMountain = [unit.coord, ...hexNeighbours(unit.coord)].some((c) => {
+        const t = tileAt(b, c);
+        return t?.terrain === 'mountain';
+      });
+      if (!onMountain) return { battle: b, ok: false, reason: 'needs mountain footing' };
+      const tTile = tileAt(b, targetCoord);
+      if (!tTile || !['road', 'plain', 'hill', 'chokepoint'].includes(tTile.terrain))
+        return { battle: b, ok: false, reason: 'invalid ground' };
+      const victim = unitAt(b, targetCoord);
+      let next = b;
+      if (victim && victim.side !== unit.side) {
+        const dmg = Math.min(victim.troops, Math.floor(victim.troops * 0.18) + 250);
+        next = {
+          ...next,
+          units: next.units.map((u) => u.id === victim.id
+            ? { ...u, troops: Math.max(0, u.troops - dmg), morale: Math.max(0, u.morale - 12) }
+            : u),
+        };
+      }
+      next = {
+        ...next,
+        tiles: next.tiles.map((t) =>
+          t.coord.col === targetCoord.col && t.coord.row === targetCoord.row
+            ? { ...t, terrain: 'mountain' as TerrainKind }
+            : t),
+        log: [...(next.log ?? []), { turn: b.turn, text: '山崩石落，道路斷絕！', kind: 'event' }],
+      };
+      return finalize(next, unitId, stratagem, 0);
+    }
     case 'raid-supply': {
       // 劫糧道 — only from deep in the enemy rear (flank a raider around the
       // line, 烏巢-style). Torches the grain: every enemy unit starts starving
@@ -1739,7 +1797,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
       return { ...u, troops: Math.max(0, u.troops - loss), morale: Math.max(0, u.morale - 4), effects };
     });
     // Spread downwind into flammable neighbours.
-    const FLAMMABLE: Record<string, number> = { forest: 0.5, plain: 0.22, road: 0.12, marsh: 0.05 };
+    const FLAMMABLE: Record<string, number> = { forest: 0.5, bridge: 0.45, plain: 0.22, road: 0.12, marsh: 0.05 };
     const windDelta2: Record<NonNullable<TacticalBattle['windDirection']>, { col: number; row: number }> = {
       north: { col: 0, row: -1 }, south: { col: 0, row: 1 },
       east: { col: 1, row: 0 }, west: { col: -1, row: 0 }, calm: { col: 0, row: 0 },
@@ -1775,6 +1833,13 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
           x.coord.col === f.coord.col && x.coord.row === f.coord.row
             ? { ...x, terrain: 'plain' as TerrainKind }
             : x);
+      } else if (t?.terrain === 'bridge') {
+        // 燒橋 — the span collapses into the river; the crossing is cut.
+        nextTiles = nextTiles.map((x) =>
+          x.coord.col === f.coord.col && x.coord.row === f.coord.row
+            ? { ...x, terrain: 'river' as TerrainKind }
+            : x);
+        fireLog.push({ turn: b.turn, text: '橋樑焚斷，退路已絕！', kind: 'event' });
       }
     }
     if (b.weather === 'rain' && expiring.length > 0) fireLog.push({ turn: b.turn, text: '大雨傾盆，野火漸熄。', kind: 'event' });
@@ -2055,10 +2120,24 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     ? Math.max(0, startTroops.defender - curDef)
     : b.defenderLosses + newDefenderLoss;
 
+  // 天有不測風雲 — the weather can turn mid-battle (affects next turn:
+  // rain douses fires and bows, wind feeds the flames).
+  let nextWeather = b.weather;
+  const wroll = Math.random();
+  if (b.weather === 'clear' && wroll < 0.05) nextWeather = 'rain';
+  else if (b.weather === 'clear' && wroll < 0.09) nextWeather = 'wind';
+  else if (b.weather === 'rain' && wroll < 0.18) nextWeather = 'clear';
+  else if (b.weather === 'wind' && wroll < 0.12) nextWeather = 'clear';
+  else if (b.weather === 'fog' && wroll < 0.15) nextWeather = 'clear';
+  const weatherLog: NonNullable<TacticalBattle['log']> = nextWeather !== b.weather
+    ? [{ turn: b.turn, text: nextWeather === 'rain' ? '驟雨傾盆，火攻難繼！' : nextWeather === 'wind' ? '狂風驟起，火借風勢！' : '雲開天霽。', kind: 'event' }]
+    : [];
+
   return {
     ...b,
     units: finalUnits,
     tiles: nextTiles,
+    weather: nextWeather,
     groundFires: nextGroundFires.length > 0 ? nextGroundFires : undefined,
     turn: b.turn + 1,
     activeSide: b.activeSide === 'attacker' ? 'defender' : 'attacker',
@@ -2070,7 +2149,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     defenderObjective: defenderObj,
     reinforcements: remaining,
     casualties,
-    log: [...(b.log ?? []), ...fireLog, ...arrivalLog, ...structureLog],
+    log: [...(b.log ?? []), ...fireLog, ...weatherLog, ...arrivalLog, ...structureLog],
     damagePopups: structurePopups, // visible briefly on turn flip
     cityStructures: updatedStructures,
   };

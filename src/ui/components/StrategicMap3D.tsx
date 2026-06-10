@@ -2,9 +2,9 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
-import { positionAlongRoute, marchDestCoords } from '../../game/data/territories';
+import { positionAlongRoute, marchDestCoords, terrainRoute } from '../../game/data/territories';
 import { snapToHexCenter, geoToPixel } from '../../game/data/geography';
-import { cityPixel } from '../../game/data/cityGeo';
+import { cityPixel, cityPos } from '../../game/data/cityGeo';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
@@ -705,9 +705,9 @@ function Ocean() {
 }
 
 /* ─── Render rivers as visible blue ribbons on top of terrain ─── */
-function RiverRibbons() {
+function RiverRibbons({ frozen = false }: { frozen?: boolean }) {
   const ribbons = useMemo(() => {
-    const out: Array<{ geom: THREE.BufferGeometry; width: number }> = [];
+    const out: Array<{ geom: THREE.BufferGeometry; width: number; freezes: boolean }> = [];
     for (const r of RIVERS) {
       const pts: THREE.Vector3[] = [];
       for (const [px, py] of r.points) {
@@ -717,7 +717,7 @@ function RiverRibbons() {
         pts.push(new THREE.Vector3(wx, h, wz));
       }
       if (pts.length < 2) continue;
-      out.push({ geom: new THREE.BufferGeometry().setFromPoints(pts), width: r.width });
+      out.push({ geom: new THREE.BufferGeometry().setFromPoints(pts), width: r.width, freezes: r.name === 'yellow' });
     }
     return out;
   }, []);
@@ -726,7 +726,10 @@ function RiverRibbons() {
       {ribbons.map((r, i) => (
         <line key={i}>
           <primitive object={r.geom} attach="geometry" />
-          <lineBasicMaterial color="#5a9bc8" transparent opacity={0.85} linewidth={r.width / 2} />
+          {/* 冰封 — the frozen Yellow River goes pale ice-blue in winter */}
+          <lineBasicMaterial
+            color={frozen && r.freezes ? '#cfe8f4' : '#5a9bc8'}
+            transparent opacity={0.85} linewidth={r.width / 2} />
         </line>
       ))}
     </group>
@@ -2430,6 +2433,123 @@ function ProvinceLabels3D() {
   );
 }
 
+/* ─── 冬雪 — a snow blanket draped over the northern terrain in winter ─
+ *  Static latitude/altitude mask (built once), shown only in winter.
+ *  The Yellow River freezes too — its ribbon goes pale ice-blue. */
+let snowMaskCache: THREE.Texture | null = null;
+function buildSnowMask(): THREE.Texture {
+  if (snowMaskCache) return snowMaskCache;
+  const W = 500, H = 360;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const px = (x / W) * 1000, py = (y / H) * 720;
+      const lat = GEO_LAT_MAX - (py / 720) * GEO_LAT_SPAN;
+      let alpha = Math.max(0, Math.min(1, (lat - 31) / 6)) * 0.62;   // deep north whitens
+      const { h } = sampleTerrain(px, py);
+      if (h < 0) alpha = 0;                                          // no snow on water
+      else if (h > 0.5) alpha = Math.min(0.85, alpha + 0.35);        // snow-capped ranges
+      const i = (y * W + x) * 4;
+      d[i] = 245; d[i + 1] = 248; d[i + 2] = 252;
+      d[i + 3] = Math.round(alpha * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = true;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  snowMaskCache = tex;
+  return tex;
+}
+
+function SnowBlanket() {
+  const geom = useMemo(() => {
+    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 240, 180);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i);
+      const wy = pos.getY(i);
+      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
+      pos.setZ(i, sampleTerrain(px, py).h + 0.04);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  const texture = useMemo(() => buildSnowMask(), []);
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={1}>
+      <meshBasicMaterial map={texture} transparent depthWrite={false} />
+    </mesh>
+  );
+}
+
+/* ─── 行軍預覽 — glowing route while the march picker is open ─────── */
+function MarchPreviewLine({ fromId, toId, cities }: {
+  fromId: string; toId: string; cities: Record<string, City>;
+}) {
+  const data = useMemo(() => {
+    const from = cities[fromId];
+    const to = cities[toId];
+    if (!from || !to) return null;
+    const fp = cityPos(from);
+    const tp = cityPos(to);
+    const route = terrainRoute(fp.x, fp.y, tp.x, tp.y);
+    const pts = route.map((p) => {
+      const [wx, wz] = pxToWorld(p.x, p.y);
+      return new THREE.Vector3(wx, sampleTerrainHeight(wx, wz) + 0.12, wz);
+    });
+    // Cities the column marches past that could sally out at it.
+    const risky: Array<[number, number]> = [];
+    for (const c of Object.values(cities)) {
+      if (!c.ownerForceId || c.ownerForceId === from.ownerForceId) continue;
+      if (c.id === toId || c.id === fromId) continue;
+      if (c.troops < 4000) continue;
+      const cp = cityPos(c);
+      const near = route.some((p) => Math.hypot(p.x - cp.x, p.y - cp.y) < 67);
+      if (near) risky.push(pxToWorld(cp.x, cp.y));
+    }
+    return { pts, risky };
+  }, [fromId, toId, cities]);
+  const matRef = useRef<THREE.LineDashedMaterial>(null);
+  useFrame(({ clock }) => {
+    if (matRef.current) matRef.current.opacity = 0.75 + Math.sin(clock.elapsedTime * 3) * 0.2;
+  });
+  const geom = useMemo(() => {
+    if (!data) return null;
+    const g = new THREE.BufferGeometry().setFromPoints(data.pts);
+    return g;
+  }, [data]);
+  const lineObj = useMemo(() => {
+    if (!geom) return null;
+    const mat = new THREE.LineDashedMaterial({ color: '#ffd75e', dashSize: 0.5, gapSize: 0.3, transparent: true, opacity: 0.95 });
+    const l = new THREE.Line(geom, mat);
+    l.computeLineDistances();
+    return { l, mat };
+  }, [geom]);
+  useEffect(() => {
+    if (lineObj) matRef.current = lineObj.mat as never;
+  }, [lineObj]);
+  if (!data || !lineObj) return null;
+  return (
+    <group>
+      <primitive object={lineObj.l} />
+      {/* 邀擊 risk — hostile garrisons within sally reach of the route */}
+      {data.risky.map(([wx, wz], i) => (
+        <mesh key={i} position={[wx, sampleTerrainHeight(wx, wz) + 0.1, wz]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.5, 0.66, 24]} />
+          <meshBasicMaterial color="#ff5040" transparent opacity={0.8} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function MapScene({ overlayMode, onPortClick, onFortClick }: {
   overlayMode: OverlayMode;
   onPortClick: (portId: string) => void;
@@ -2447,6 +2567,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
   const fieldBattleMarks = useGameStore((s) => s.fieldBattleMarks);
   const portsForMarch = useGameStore((s) => s.ports);
   const weather = useGameStore((s) => s.weather);
+  const marchPreview = useGameStore((s) => s.marchPreview);
   const weatherPreset = WEATHER_PRESETS[weather.kind];
   const season = useGameStore((s) => s.date.season) as Season;
   const seasonPreset = SEASON_PRESETS[season];
@@ -2509,11 +2630,15 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       </Suspense>
       <Ocean />
       <Lakes3D />
-      <RiverRibbons />
+      <RiverRibbons frozen={season === 'winter'} />
+      {season === 'winter' && <SnowBlanket />}
       <Forest3D />
       <GreatWall3D />
       <ProvinceBorders3D cities={cities} />
       <ProvinceLabels3D />
+      {marchPreview && (
+        <MarchPreviewLine fromId={marchPreview.fromId} toId={marchPreview.toId} cities={cities} />
+      )}
 
       <Roads cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} />

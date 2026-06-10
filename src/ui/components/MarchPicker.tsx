@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { navalReachableCityIds } from '../../game/data/ports';
@@ -25,6 +25,8 @@ export function MarchPicker({ cityId, onClose }: Props) {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const officersMap = useGameStore((s) => s.officers);
+  const season = useGameStore((s) => s.date.season);
+  const setMarchPreview = useGameStore((s) => s.setMarchPreview);
   const territoryOwnership = useGameStore((s) => s.territoryOwnership ?? EMPTY_OWNERSHIP);
   const [showPrep, setShowPrep] = useState(false);
 
@@ -113,8 +115,14 @@ export function MarchPicker({ cityId, onClose }: Props) {
     const cells = route.slice(1, -1).map((p) => ownerAt(p.x, p.y));
     const myForce = src.ownerForceId;
     const hostileCells = cells.filter((f) => f && f !== myForce).length;
-    return { cells, seasons: marchDurationFor(src, tgt), hostileCells, myForce };
+    return { cells, seasons: marchDurationFor(src, tgt, season), hostileCells, myForce };
   }, [cityId, targetId, cities, territoryOwnership]);
+  // Light the prospective route up on the 3D map while picking.
+  useEffect(() => {
+    if (targetId) setMarchPreview({ fromId: cityId, toId: targetId });
+    return () => setMarchPreview(null);
+  }, [cityId, targetId, setMarchPreview]);
+
   const [additionalIds, setAdditionalIds] = useState<EntityId[]>([]);
   const [troops, setTroops] = useState<number>(
     Math.min(2000, source?.troops ?? 0),
@@ -221,7 +229,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
                           <span className={styles.friendly}>{t('移', 'MOVE')}</span>
                         )}
                         <span className={styles.muted}>
-                          {c.troops.toLocaleString()}t · D{c.defense} · {marchDurationFor(source, c)}{t('季', 's')}
+                          {c.troops.toLocaleString()}t · D{c.defense} · {marchDurationFor(source, c, season)}{t('季', 's')}
                         </span>
                       </span>
                     </button>

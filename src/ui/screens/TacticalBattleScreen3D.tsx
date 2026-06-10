@@ -99,6 +99,7 @@ export const HEX_ROW_STEP = ROW_STEP;
 
 export const TERRAIN_HEIGHT: Record<TerrainKind, number> = {
   river:    -0.08,
+  ice:       0.02,
   road:      0.04,
   plain:     0.10,
   forest:    0.14,
@@ -113,6 +114,7 @@ export const TERRAIN_HEIGHT: Record<TerrainKind, number> = {
 };
 export const TERRAIN_COLOR: Record<TerrainKind, string> = {
   river:    '#2c5882',
+  ice:      '#b8d8e8',
   road:     '#7a6038',
   plain:    '#4a5e30',
   forest:   '#2a4220',

@@ -190,6 +190,17 @@ export const STRATAGEMS: Stratagem[] = [
     range: 0,
     cooldown: 6,
   },
+  {
+    id: 'rockslide',
+    name: { en: 'Rockslide', zh: '落石' },
+    description:
+      'From commanding heights, bury the path below in stone — heavy damage to whoever stands there, and the ground itself is sealed into impassable scree. Once per battle; the caster must hold (or flank) a mountain hex.',
+    descriptionZh: '據高臨下，推石塞道 — 砸傷當地之敵，亂石封絕道路。一戰一次，須立足山巖之側。',
+    minIntelligence: 40,
+    minWar: 55,
+    range: 2,
+    cooldown: 0,
+  },
 ];
 
 export const STRATAGEMS_BY_ID: Record<string, Stratagem> = Object.fromEntries(

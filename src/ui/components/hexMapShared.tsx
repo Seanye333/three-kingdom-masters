@@ -137,6 +137,7 @@ export function CompassRose({ x, y }: { x: number; y: number }) {
 /** Map terrain to its gradient fill URL. */
 export const TERRAIN_FILL_URL: Record<TerrainKind, string> = {
   plain:    'url(#tkmPlainGrad)',
+  ice:      'url(#tkmRiverGrad)',
   forest:   'url(#tkmForestGrad)',
   mountain: 'url(#tkmMountainGrad)',
   river:    'url(#tkmRiverGrad)',
