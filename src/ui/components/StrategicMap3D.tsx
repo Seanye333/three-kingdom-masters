@@ -408,7 +408,10 @@ function valueNoise(x: number, z: number): number {
 const C_SEA       = new THREE.Color('#2c5882');
 const C_SHALLOW   = new THREE.Color('#5a8acf');
 const C_BEACH     = new THREE.Color('#c8b078');
-const C_PLAIN     = new THREE.Color('#7a8a4a');     // 华北/江汉/成都 — fertile
+const C_PLAIN     = new THREE.Color('#7a8a4a');     // 中原/江汉 — fertile olive (mid band)
+const C_LOESS     = new THREE.Color('#b8a566');     // 华北/黄土 — wheat-gold north
+const C_SOUTH     = new THREE.Color('#577d36');     // 江南 — lush green
+const C_TROPIC    = new THREE.Color('#3d6b2c');     // 岭南/交州 — deep tropical green
 const C_HILL      = new THREE.Color('#6a7038');
 const C_FOREST    = new THREE.Color('#3a5a2a');
 const C_MOUNTAIN  = new THREE.Color('#6a5440');
@@ -418,6 +421,35 @@ const C_DESERT    = new THREE.Color('#c0a070');
 const C_RIVER     = new THREE.Color('#3a6a98');
 
 /** Sample terrain (height + color) at a pixel coordinate. */
+/** Latitude-banded plain colour: wheat-gold north → olive 中原 → green 江南
+ *  → deep tropical 交州. py runs 0 (lat 43, north) … 720 (lat 17, south). A
+ *  mild east-west term dries the far west toward loess. Colour only — terrain
+ *  height is untouched, so movement/biome geometry is unchanged. */
+function plainColor(px: number, py: number): THREE.Color {
+  const stops: Array<[number, THREE.Color]> = [
+    [120, C_LOESS],   // 北疆/华北   lat ~37.7
+    [250, C_PLAIN],   // 中原        lat ~34
+    [400, C_SOUTH],   // 江南        lat ~28.5
+    [580, C_TROPIC],  // 岭南/交州   lat ~22
+  ];
+  let col: THREE.Color;
+  if (py <= stops[0][0]) col = stops[0][1].clone();
+  else if (py >= stops[stops.length - 1][0]) col = stops[stops.length - 1][1].clone();
+  else {
+    col = stops[0][1].clone();
+    for (let i = 0; i < stops.length - 1; i++) {
+      if (py >= stops[i][0] && py <= stops[i + 1][0]) {
+        const t = (py - stops[i][0]) / (stops[i + 1][0] - stops[i][0]);
+        col = stops[i][1].clone().lerp(stops[i + 1][1], smoothstep(t));
+        break;
+      }
+    }
+  }
+  // Far west is drier (rain-shadow / loess) — nudge toward wheat-gold.
+  col.lerp(C_LOESS, smoothstep((300 - px) / 300) * 0.25);
+  return col;
+}
+
 function sampleTerrain(px: number, py: number): { h: number; color: THREE.Color } {
   // 1. Sea / land
   const sdf = landSDF(px, py);
@@ -431,7 +463,7 @@ function sampleTerrain(px: number, py: number): { h: number; color: THREE.Color 
 
   // 2. Coastal beach
   let baseH = 0.04 + valueNoise(px * 0.02, py * 0.02);
-  let color = C_PLAIN.clone();
+  let color = plainColor(px, py);
   if (sdf < 12) {
     color = C_BEACH.clone();
     baseH = 0.02;
@@ -447,12 +479,14 @@ function sampleTerrain(px: number, py: number): { h: number; color: THREE.Color 
     }
   }
   if (mountainH > 0.05) {
-    // Blend color: low slopes brown, mid peaks light brown, very tall white snow
-    const peakT = Math.min(1, mountainH / 1.8);
-    if (peakT < 0.5) {
-      color = C_MOUNTAIN.clone().lerp(C_PEAK, peakT * 2);
+    // Blend color: low slopes brown, mid peaks light brown, tall caps white.
+    // Snowline drops toward the cold north/west so high ranges read snowy.
+    const snowBoost = smoothstep((220 - py) / 220) * 0.35 + smoothstep((260 - px) / 260) * 0.25;
+    const peakT = Math.min(1, mountainH / 1.5 + snowBoost * 0.4);
+    if (peakT < 0.45) {
+      color = C_MOUNTAIN.clone().lerp(C_PEAK, peakT / 0.45);
     } else {
-      color = C_PEAK.clone().lerp(C_SNOW, (peakT - 0.5) * 2);
+      color = C_PEAK.clone().lerp(C_SNOW, (peakT - 0.45) / 0.55);
     }
   }
 
@@ -461,7 +495,7 @@ function sampleTerrain(px: number, py: number): { h: number; color: THREE.Color 
     const dist = Math.hypot(px - d.x, py - d.y);
     if (dist < d.r) {
       const t = 1 - dist / d.r;
-      color = color.lerp(C_DESERT, t * 0.85);
+      color = color.lerp(C_DESERT, smoothstep(t) * 0.95);
       baseH += t * 0.05 * Math.sin(px * 0.06);   // dunes
     }
   }
