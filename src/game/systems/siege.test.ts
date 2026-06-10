@@ -22,11 +22,11 @@ describe('setupTacticalBattle — city rampart', () => {
     terrainHint: { terrain: 'plain' },
   });
 
-  it('raises a wall line with a central gate and tracks HP', () => {
+  it('raises a walled town — three faces, a main gate + two side gates', () => {
     const walls = battle.tiles.filter((t) => t.terrain === 'wall');
     const gates = battle.tiles.filter((t) => t.terrain === 'gate');
     expect(walls.length).toBeGreaterThan(0);
-    expect(gates.length).toBe(1);
+    expect(gates.length).toBe(3);
     expect(battle.wallHp).toBeTruthy();
     // Every wall/gate hex has tracked HP.
     for (const w of [...walls, ...gates]) {

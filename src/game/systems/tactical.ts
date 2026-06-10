@@ -362,36 +362,66 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     return next;
   });
 
-  // ── City rampart: procedural sieges get a battered wall line just in front
-  // of the defender with a central gate. The wall spans only the middle rows,
-  // so an army without siege gear can still flow around the flanks (just
-  // slower) and the fight never hard-stalls. Named maps (their own terrain),
+  // ── City walls. A procedural siege raises a walled town on the defender
+  // side: west face (toward the attacker) with the main gate on the road
+  // row, north + south faces each with their own gate, the back open to the
+  // map edge (the far city sprawls off-field — also the long flanking route,
+  // so an army without siege gear never hard-stalls). Pass cities (劍閣/
+  // 虎牢…) keep the single wall line plugging their corridor. Named maps,
   // field battles and naval engagements stay unwalled.
   let battleTiles = tiles;
   let wallHp: Record<string, number> | undefined;
   if (!isNaval && !p.field && !namedMap && width >= 8 && height >= 6) {
-    const wallCol = Math.max(2, width - 3);
-    const r0 = Math.floor(height * 0.28);
-    const r1 = Math.ceil(height * 0.72) - 1;
-    const gateRow = Math.floor(height / 2);
     const occupied = new Set(finalUnits.map((u) => `${u.coord.col},${u.coord.row}`));
     const hp: Record<string, number> = {};
-    battleTiles = tiles.map((t) => {
-      if (t.coord.col !== wallCol || t.coord.row < r0 || t.coord.row > r1) return t;
-      const key = `${t.coord.col},${t.coord.row}`;
-      if (occupied.has(key)) return t; // never wall over a unit
-      if (t.coord.row === gateRow) {
-        // Where the road crossed water (real-geo bridge), the entrance is a
-        // water-gate (水門) — still a gate, still breachable.
-        hp[key] = 700;
-        return { ...t, terrain: 'gate' as TerrainKind };
-      }
-      // 贴水而建 — where the real map puts the river along the wall line,
-      // keep the water: the river IS that flank's defence (襄陽 on the 漢水).
-      if (t.terrain === 'river') return t;
-      hp[key] = 1000;
-      return { ...t, terrain: 'wall' as TerrainKind };
-    });
+    const gateRow = Math.floor(height / 2);
+    if (p.terrainHint?.terrain === 'pass') {
+      // Mountain fort — one wall line across the corridor.
+      const wallCol = Math.max(2, width - 3);
+      const r0 = Math.floor(height * 0.28);
+      const r1 = Math.ceil(height * 0.72) - 1;
+      battleTiles = tiles.map((t) => {
+        if (t.coord.col !== wallCol || t.coord.row < r0 || t.coord.row > r1) return t;
+        const key = `${t.coord.col},${t.coord.row}`;
+        if (occupied.has(key)) return t; // never wall over a unit
+        if (t.coord.row === gateRow) {
+          hp[key] = 700;
+          return { ...t, terrain: 'gate' as TerrainKind };
+        }
+        if (t.terrain === 'river') return t;
+        hp[key] = 1000;
+        return { ...t, terrain: 'wall' as TerrainKind };
+      });
+    } else {
+      // Walled town (城郭) — three faces + gates; 贴水而建: any face the
+      // real map runs a river along stays open water (the river is that
+      // side's defence — 襄陽 on the 漢水), so which faces you can assault
+      // depends on the actual geography. 四面看地形.
+      const westCol = Math.max(2, width - 4);
+      const r0 = Math.floor(height * 0.28);          // north face row
+      const r1 = Math.ceil(height * 0.72) - 1;       // south face row
+      const sideGateCol = Math.min(width - 2, westCol + 2);
+      battleTiles = tiles.map((t) => {
+        const { col, row } = t.coord;
+        const key = `${col},${row}`;
+        const onWest = col === westCol && row >= r0 && row <= r1;
+        const onNorth = row === r0 && col > westCol;
+        const onSouth = row === r1 && col > westCol;
+        if (!onWest && !onNorth && !onSouth) {
+          // Interior streets — the town is built on level ground.
+          if (col > westCol && row > r0 && row < r1
+            && (t.terrain === 'mountain' || t.terrain === 'hill' || t.terrain === 'forest')) {
+            return { ...t, terrain: 'plain' as TerrainKind };
+          }
+          return t;
+        }
+        if (occupied.has(key)) return t; // never wall over a unit
+        const isGate = (onWest && row === gateRow) || ((onNorth || onSouth) && col === sideGateCol);
+        if (t.terrain === 'river' && !isGate) return t;  // water face
+        hp[key] = isGate ? 700 : 1000;
+        return { ...t, terrain: (isGate ? 'gate' : 'wall') as TerrainKind };
+      });
+    }
     if (Object.keys(hp).length > 0) wallHp = hp;
   }
 

@@ -75,7 +75,7 @@ describe('real-geography battlefields (战斗地图写实)', () => {
       terrainHint: { terrain: target.terrain, port: target.port },
       battleGeo: siegeGeo('xinye', 'xiangyang'),
     });
-    const wallCol = W - 3;
+    const wallCol = W - 4;   // walled-town west face
     const colTiles = battle.tiles.filter((t) => t.coord.col === wallCol && t.coord.row >= 3 && t.coord.row <= 8);
     const rivers = colTiles.filter((t) => t.terrain === 'river').length;
     const walls = colTiles.filter((t) => t.terrain === 'wall' || t.terrain === 'gate').length;
