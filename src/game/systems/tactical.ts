@@ -175,6 +175,9 @@ export interface SetupParams {
   buildSlots?: ReadonlyArray<{ slot: number; buildingId?: import('../data/defenseBuildings').DefenseBuildingId; level: number }>;
   /** Geography hint (terrain category, port flag, coords) — drives terrain generation. */
   terrainHint?: TerrainHint;
+  /** Real-map placement (anchor + approach bearing) — when set, the
+   *  battlefield samples the actual strategic-map geography. */
+  battleGeo?: import('./battlefieldTerrain').BattleGeo;
   /** Field battle (army vs army in the open) — no city, so no rampart wall. */
   field?: boolean;
 }
@@ -242,12 +245,15 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   const isNaval = !namedMap && p.terrainHint?.terrain === 'water';
 
   // Geography-aware terrain — uses the city's terrain/port/coords if provided.
+  // With battleGeo (and no scripted named map) the grid samples the REAL
+  // strategic map along the approach bearing.
   const tiles = generateTerrain(
     p.cityId,
     width,
     height,
     { ...(p.terrainHint ?? {}), naval: isNaval },
     namedMap?.terrainOverrides,
+    namedMap ? undefined : p.battleGeo,
   );
 
   const placeUnits = (

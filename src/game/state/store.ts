@@ -482,6 +482,12 @@ function buildFieldBattle(
     weather: tacticalWeather as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
     windDirection: s.weather?.wind ?? 'calm',
     terrainHint: { terrain: terrainTypeAt(midX, midY), x: midX, y: midY },
+    // Real-map battlefield: anchored at the clash point, oriented along
+    // the player army's line of advance toward the enemy.
+    battleGeo: {
+      x: midX, y: midY,
+      bearing: Math.atan2(eArmy.y - pArmy.y, eArmy.x - pArmy.x),
+    },
     field: true,
   });
   battle.attackerArmyId = playerArmyId;

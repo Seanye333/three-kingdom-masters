@@ -173,6 +173,70 @@ export function terrainMarchCost(x: number, y: number): number {
   return cost;
 }
 
+// ── Battlefield sampling (战斗地图写实) ──────────────────────────
+// Finer water features that matter on a TACTICAL battlefield but are
+// deliberately kept out of terrainMarchCost — strategic march crossings
+// stay gated by the two great rivers (黄河/长江) only.
+// Courses are nudged so riverside cities sit on the BANK, not in the
+// water (襄陽 south of the 漢水, 長安 south of the 渭水, 汝南 north of
+// the 淮河) — a siege from across the river crosses it; from the same
+// bank it does not.
+const RIVERS_DETAIL = ([
+  { pts: [[106.6, 33.15], [108, 32.8], [110, 32.4], [111.3, 32.0], [112.2, 31.95], [113.5, 31.15], [114.3, 30.62]], width: 0.14 }, // 漢水 漢中→襄陽北→夏口
+  { pts: [[112.9, 32.4], [115, 32.6], [117, 32.9], [119, 33.3]], width: 0.12 },                          // 淮河 桐柏→蚌埠
+  { pts: [[104, 24], [108, 23.5], [111, 23], [113, 23], [114.5, 22.5]], width: 0.14 },                   // 珠江/西江
+  { pts: [[110.5, 25.8], [112, 27], [112.8, 28.2], [113.0, 29.3]], width: 0.10 },                        // 湘江 零陵→長沙→洞庭
+  { pts: [[104.5, 35.9], [106, 34.9], [107.2, 34.52], [108.9, 34.45], [110.3, 34.68]], width: 0.10 },    // 渭水 隴右→長安北→潼關
+] as const).map((r) => ({ pts: ridgePx(r.pts), width: Math.max(4, r.width * DEG_TO_PX) }));
+
+// The three great lakes — battlefield water (march routing ignores them;
+// they are small next to the 24px nav grid).
+const LAKES_GAME: ReadonlyArray<{ x: number; y: number; r: number }> = ([
+  { lon: 112.9, lat: 29.3, r_deg: 0.92 },  // 洞庭湖
+  { lon: 116.3, lat: 29.0, r_deg: 0.70 },  // 鄱阳湖
+  { lon: 120.2, lat: 31.2, r_deg: 0.48 },  // 太湖
+] as const).map((l) => {
+  const [px, py] = geoToPixel(l.lon, l.lat);
+  return { x: px, y: py, r: l.r_deg * DEG_TO_PX };
+});
+
+export type BattleGround = 'sea' | 'lake' | 'river' | 'riverbank' | 'mountain' | 'hill' | 'plain';
+
+/**
+ * Classify the real ground at a map pixel for battlefield generation —
+ * sea/lakes, the great rivers plus tactical rivers (漢水/淮河/珠江/湘江/
+ * 渭水), mountain mass and foothills. The tactical generator maps a
+ * battle grid over the strategic map through this, so the battlefield
+ * reproduces the actual local geography (a 汉水 crossing when storming
+ * 襄陽 from the north; ridges flanking the Shu passes).
+ */
+export function battleGroundAt(x: number, y: number): BattleGround {
+  if (landSDF(x, y) < 0) return 'sea';
+  for (const lk of LAKES_GAME) {
+    if (Math.hypot(x - lk.x, y - lk.y) < lk.r) return 'lake';
+  }
+  let riverD = Infinity;
+  let riverW = 1;
+  for (const r of RIVERS) {
+    const d = distToPolyline(x, y, r.pts);
+    if (d - r.width < riverD - riverW) { riverD = d; riverW = r.width; }
+  }
+  for (const r of RIVERS_DETAIL) {
+    const d = distToPolyline(x, y, r.pts);
+    if (d - r.width < riverD - riverW) { riverD = d; riverW = r.width; }
+  }
+  if (riverD < riverW) return 'river';
+  if (riverD < riverW * 1.9) return 'riverbank';
+  let mountainScore = 0;
+  for (const m of MOUNTAINS) {
+    const d = distToPolyline(x, y, m.ridge);
+    if (d < m.width) mountainScore = Math.max(mountainScore, m.cost * (1 - d / m.width));
+  }
+  if (mountainScore > 0.55) return 'mountain';
+  if (mountainScore > 0.28) return 'hill';
+  return 'plain';
+}
+
 /**
  * Classify the dominant terrain at a map pixel — used to theme a field
  * battle's tactical battlefield after the real ground the clash happens on.

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FORMATIONS, NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../../game/data';
 import { inferUnitType, setupTacticalBattle } from '../../game/systems/tactical';
+import { cityPos } from '../../game/data/cityGeo';
 import { useGameStore } from '../../game/state/store';
 import type {
   EntityId,
@@ -203,6 +204,20 @@ export function BattlePrepModal({
         x: target.coords.x,
         y: target.coords.y,
       },
+      // Real-map siege ground: the grid is anchored on the target city
+      // (just behind its rampart) and oriented along the true approach
+      // bearing from the attacking city — storm 襄陽 from the north and
+      // the 漢水 lies between you and the walls; from the south it does
+      // not. 四面不同,看真实地形。
+      battleGeo: (() => {
+        const sp = cityPos(source);
+        const tp = cityPos(target);
+        return {
+          x: tp.x, y: tp.y,
+          bearing: Math.atan2(tp.y - sp.y, tp.x - sp.x),
+          anchorCol: (namedMap?.width ?? 18) - 2,
+        };
+      })(),
     });
 
     // 舌戰 is now triggered AFTER the 3D battle opens — see TacticalBattleScreen.
