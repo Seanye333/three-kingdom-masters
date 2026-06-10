@@ -140,6 +140,11 @@ const ISLANDS_3D: ReadonlyArray<{ cx: number; cy: number; hw: number; hh: number
   { cx: 502, cy: 640, hw: 18, hh: 18 }, // Hainan — thin strait off the Leizhou coast
 ];
 
+/** Quick land test for ground-click targets. */
+function isLandPx(px: number, py: number): boolean {
+  return landSDF(px, py) > 2;
+}
+
 /** Land = positive distance to coast, sea = negative. */
 function landSDF(x: number, y: number): number {
   const eastBoundary  = coastXAt(y);
@@ -698,8 +703,8 @@ function TerritoryGroundLayer({
 }
 
 /* ─── Procedural China terrain ───────────────────────────────────── */
-function MapTerrain() {
-  // Both textures are EXPENSIVE — build once per mount.
+function MapTerrain({ onGroundClick }: { onGroundClick?: (px: number, py: number) => void } = {}) {
+  // Both textures are EXPENSIVE — module-cached, see the builders above.
   const texture = useMemo(() => buildTerrainTexture(), []);
   const normalMap = useMemo(() => buildNormalMap(), []);
   const geom = useMemo(() => {
@@ -728,6 +733,13 @@ function MapTerrain() {
       position={[0, 0, 0]}
       receiveShadow
       geometry={geom}
+      onClick={(e) => {
+        if (!onGroundClick) return;
+        e.stopPropagation();
+        const px = (e.point.x + MAP_W / 2) / PIXEL_TO_WORLD;
+        const py = (e.point.z + MAP_D / 2) / PIXEL_TO_WORLD;
+        onGroundClick(px, py);
+      }}
     >
       <meshStandardMaterial
         map={texture}
@@ -1421,13 +1433,14 @@ function Roads({ cities }: { cities: Record<string, City> }) {
 }
 
 /* ─── Marching army arrows (animated) ──────────────────────── */
-function MarchingArmies({ cities, pendingCommands, forces, officers, ports, selectedArmyId }: {
+function MarchingArmies({ cities, pendingCommands, forces, officers, ports, selectedArmyId, onArmyClick }: {
   cities: Record<string, City>;
   pendingCommands: Record<string, { cityId?: string; type: string; targetCityId?: string; troops?: number; officerId?: string; seasonsRemaining?: number; totalSeasons?: number }>;
   forces: Record<string, { color: string }>;
   officers: Record<string, import('../../game/types').Officer>;
   ports: Record<string, import('../../game/types').Port>;
   selectedArmyId: string | null;
+  onArmyClick?: (officerId: string) => void;
 }) {
   const armies = useMemo(() => {
     return Object.values(pendingCommands)
@@ -1454,6 +1467,7 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports, sele
         const landRoute = [{ x: fgx, y: fgy }, { x: dgx, y: dgy }];
         const weaponType: WeaponType = commander ? deriveWeaponType(commander) : 'none';
         return {
+          officerId: cmd.officerId,
           from,
           to,
           color: hostile ? '#b8442e' : (force?.color ?? '#d4a84a'),
@@ -1479,7 +1493,7 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports, sele
           seasonsRemaining={a.seasonsRemaining} totalSeasons={a.totalSeasons}
           landRoute={a.landRoute} weaponType={a.weaponType}
           selected={a.selected} holding={a.holding} cellTarget={a.cellTarget}
-          ports={ports} />
+          ports={ports} onClick={onArmyClick ? () => onArmyClick(a.officerId) : undefined} />
       ))}
     </group>
   );
@@ -1496,7 +1510,7 @@ const UNIT_TAG: Record<WeaponType, string> = {
 // between.
 const ARMY_TOKEN_SCALE = 0.7;
 
-function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, landRoute, weaponType, selected, holding, cellTarget, ports }: {
+function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining, totalSeasons, landRoute, weaponType, selected, holding, cellTarget, ports, onClick }: {
   from: City; to: City; color: string;
   commanderName: string; troops: number;
   seasonsRemaining: number; totalSeasons: number;
@@ -1506,6 +1520,7 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   holding: boolean;
   cellTarget: boolean;
   ports: Record<string, import('../../game/types').Port>;
+  onClick?: () => void;
 }) {
   const [fpx, fpy] = cityPixel(from.id, from.coords.x, from.coords.y);
   const [tpx, tpy] = cityPixel(to.id, to.coords.x, to.coords.y);
@@ -1593,6 +1608,18 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   const etaLabel = holding ? '  駐' : totalSeasons > 1 ? `  ${seasonsRemaining}/${totalSeasons}季` : '';
   return (
     <group ref={groupRef} scale={ARMY_TOKEN_SCALE}>
+      {/* Click target — generous invisible disc over the squad. */}
+      {onClick && (
+        <mesh
+          position={[0, 0.18, 0]}
+          onClick={(e) => { e.stopPropagation(); onClick(); }}
+          onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = 'pointer'; }}
+          onPointerOut={() => { document.body.style.cursor = ''; }}
+        >
+          <cylinderGeometry args={[0.55, 0.55, 0.42, 10]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+      )}
       {/* Selection ring on the ground under the squad. */}
       {selected && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
@@ -2727,6 +2754,30 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
   const openCityMap = useGameStore((s) => s.openCityMap);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectedArmyId3D = useGameStore((s) => s.selectedArmyId);
+  const selectArmy = useGameStore((s) => s.selectArmy);
+  const redirectArmy = useGameStore((s) => s.redirectArmy);
+  const moveArmyToCell = useGameStore((s) => s.moveArmyToCell);
+  const mergeArmyInto = useGameStore((s) => s.mergeArmyInto);
+  const startFieldBattle = useGameStore((s) => s.startFieldBattle);
+  const armiesState = useGameStore((s) => s.armies);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const handleArmyClick = (officerId: string) => {
+    const clicked = armiesState[officerId];
+    if (!clicked) return;
+    // No selection yet → select own column.
+    if (!selectedArmyId3D) {
+      if (clicked.forceId === playerForceId) selectArmy(officerId);
+      return;
+    }
+    if (officerId === selectedArmyId3D) { selectArmy(null); return; }
+    // Friendly column → rendezvous and merge; enemy → ride out and engage.
+    if (clicked.forceId === playerForceId) {
+      if (mergeArmyInto(selectedArmyId3D, officerId)) selectArmy(null);
+      else selectArmy(officerId);
+    } else {
+      if (startFieldBattle(selectedArmyId3D, officerId)) selectArmy(null);
+    }
+  };
   const fieldBattleMarks = useGameStore((s) => s.fieldBattleMarks);
   const portsForMarch = useGameStore((s) => s.ports);
   const weather = useGameStore((s) => s.weather);
@@ -2790,7 +2841,15 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       {weatherPreset.particles === 'snow' && <SnowParticles bounds={particleBounds} />}
 
       <Suspense fallback={null}>
-        <MapTerrain />
+        <MapTerrain onGroundClick={(px, py) => {
+          // With an army selected, clicking open land marches it to that
+          // cell and digs in — coords are geo-pixels, the same space the
+          // whole simulation runs in (the old 2D path fed painted-map
+          // coords here, a cross-space bug retired with it).
+          if (selectedArmyId3D && isLandPx(px, py) && moveArmyToCell(selectedArmyId3D, px, py)) {
+            selectArmy(null);
+          }
+        }} />
         <TerritoryGroundLayer cities={cities} forces={forces} territoryOwnership={territoryOwnership} />
       </Suspense>
       <Ocean />
@@ -2807,7 +2866,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       )}
 
       <Roads cities={cities} />
-      <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} />
+      <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} />
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} />
@@ -2827,7 +2886,16 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
             isSelected={selectedCityId === city.id}
             terrainY={terrainY}
             overlay={overlayForCity(city, overlayMode, maxes)}
-            onClick={() => (selectedCityId === city.id ? openCityMap() : selectCity(city.id))}
+            onClick={() => {
+              // RTS-style: with an army selected, clicking a city re-routes
+              // the column there (the 2D map used to own this interaction).
+              if (selectedArmyId3D && redirectArmy(selectedArmyId3D, city.id)) {
+                selectArmy(null);
+                return;
+              }
+              if (selectedCityId === city.id) openCityMap();
+              else selectCity(city.id);
+            }}
           />
         );
       })}
