@@ -25,6 +25,11 @@ import {
   DefenseStructure,
 } from './TacticalBattleScreen3D';
 
+/** Coarse-pointer / small-screen device — drop pixel ratio and skip the
+ *  post-processing pass so phones keep a playable framerate. */
+const IS_MOBILE = typeof window !== 'undefined'
+  && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
+
 /**
  * 3D version of CityMapScreen — uses the same hex tile / lighting /
  * structure primitives as the live tactical battle, so what you see
@@ -2650,6 +2655,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
         <Canvas
           camera={{ position: [centerX, camHeight, centerZ + camOffset], fov: 50 }}
           shadows
+          dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
           style={{ background: light.sky }}
         >
           <CityScene
@@ -2680,9 +2686,11 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             maxDistance={citySpan * 1.6}
           />
           {/* Lanterns, braziers and water all catch a soft glow. */}
-          <EffectComposer>
-            <Bloom luminanceThreshold={0.85} intensity={0.35} mipmapBlur />
-          </EffectComposer>
+          {!IS_MOBILE && (
+            <EffectComposer>
+              <Bloom luminanceThreshold={0.85} intensity={0.35} mipmapBlur />
+            </EffectComposer>
+          )}
         </Canvas>
 
         {/* Slot editor overlay */}

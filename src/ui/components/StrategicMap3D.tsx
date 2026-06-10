@@ -19,6 +19,11 @@ import { FortPanel } from './FortPanel';
 import { BuildStockadePicker } from './BuildStockadePicker';
 import { useT } from '../i18n';
 
+/** Coarse-pointer / small-screen device — drop pixel ratio and skip the
+ *  post-processing pass so phones keep a playable framerate. */
+const IS_MOBILE = typeof window !== 'undefined'
+  && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
+
 type OverlayMode = 'none' | 'gold' | 'food' | 'troops' | 'loyalty' | 'province';
 
 const PROVINCE_COLOR: Record<string, string> = {
@@ -427,22 +432,45 @@ function sampleTerrain(px: number, py: number): { h: number; color: THREE.Color 
 }
 
 /* ─── Build a high-res procedural map texture (painted at pixel level)
- * Per-pixel sampling gives **crisp** biome borders + per-pixel grain, instead
- * of the gradient bleed you get from interpolating vertex colors across
- * triangles. Cached after first build. */
-function buildTerrainTexture(): THREE.Texture {
-  const TEX_W = 3000;
-  const TEX_H = 2160;
-  const canvas = document.createElement('canvas');
-  canvas.width = TEX_W;
-  canvas.height = TEX_H;
-  const ctx = canvas.getContext('2d')!;
-  const img = ctx.createImageData(TEX_W, TEX_H);
-  const data = img.data;
-  for (let y = 0; y < TEX_H; y++) {
+ * Per-pixel sampling gives **crisp** biome borders + per-pixel grain.
+ *
+ * PERF: this is the single most expensive startup computation (millions
+ * of sampleTerrain calls), so it is (a) module-cached — built once per
+ * SESSION, not per mount (dev StrictMode double-mounts used to pay it
+ * twice), and (b) row-chunked behind warmStrategicAssets() so the title
+ * screen can pre-bake it in idle slices and entering the map never
+ * blocks. If the player outruns the warm-up, the remainder finishes
+ * synchronously on mount. */
+// Phones get a lighter sheet — sampleTerrain costs the same per pixel
+// everywhere, and 2.6× fewer pixels is the difference between the
+// warm-up finishing during the title screen or not.
+const TEX_W = IS_MOBILE ? 960 : 2000;
+const TEX_H = IS_MOBILE ? 691 : 1440;
+let terrainTexCache: THREE.Texture | null = null;
+let terrainJob: { canvas: HTMLCanvasElement; img: ImageData; row: number } | null = null;
+
+function terrainJobState() {
+  if (!terrainJob) {
+    const canvas = document.createElement('canvas');
+    canvas.width = TEX_W;
+    canvas.height = TEX_H;
+    terrainJob = { canvas, img: new ImageData(TEX_W, TEX_H), row: 0 };
+  }
+  return terrainJob;
+}
+
+/** Paint scanlines until the time budget runs out; true when the whole
+ *  sheet is done. Deadline-based so warm-up ticks never jank the UI. */
+function terrainFillFor(budgetMs: number): boolean {
+  const job = terrainJobState();
+  const data = job.img.data;
+  const deadline = performance.now() + budgetMs;
+  const end = TEX_H;
+  for (let y = job.row; y < end; y++) {
+    if (performance.now() > deadline) { job.row = y; return false; }
+    const py = (y / TEX_H) * 720;
     for (let x = 0; x < TEX_W; x++) {
       const px = (x / TEX_W) * 1000;
-      const py = (y / TEX_H) * 720;
       const { color } = sampleTerrain(px, py);
       // High-freq pixel grain so grass and dirt look textured, not flat
       const grain = (
@@ -457,22 +485,53 @@ function buildTerrainTexture(): THREE.Texture {
       data[i + 3] = 255;
     }
   }
-  ctx.putImageData(img, 0, 0);
-  const tex = new THREE.CanvasTexture(canvas);
+  job.row = end;
+  return true;
+}
+
+function buildTerrainTexture(): THREE.Texture {
+  if (terrainTexCache) return terrainTexCache;
+  while (!terrainFillFor(100)) { /* finish whatever the warm-up left */ }
+  const job = terrainJobState();
+  job.canvas.getContext('2d')!.putImageData(job.img, 0, 0);
+  const tex = new THREE.CanvasTexture(job.canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.magFilter = THREE.LinearFilter;
   tex.anisotropy = 8;
   tex.generateMipmaps = true;
+  terrainTexCache = tex;
+  terrainJob = null;
   return tex;
 }
 
 /* ─── Build a normal map from terrain heights — mountain ridges + river
- *  banks get real per-pixel relief under lighting. Lower resolution than
- *  color (1500×1080) since lighting detail doesn't need super high res. */
+ *  banks get real per-pixel relief under lighting. Module-cached and
+ *  row-chunked, same as the colour sheet. */
+const NM_W = IS_MOBILE ? 640 : 1000;
+const NM_H = IS_MOBILE ? 461 : 720;
+let normalMapCache: THREE.Texture | null = null;
+let normalJob: { heights: Float32Array; row: number } | null = null;
+
+function normalFillFor(budgetMs: number): boolean {
+  if (!normalJob) normalJob = { heights: new Float32Array(NM_W * NM_H), row: 0 };
+  const deadline = performance.now() + budgetMs;
+  const end = NM_H;
+  for (let y = normalJob.row; y < end; y++) {
+    if (performance.now() > deadline) { normalJob.row = y; return false; }
+    const py = (y / NM_H) * 720;
+    for (let x = 0; x < NM_W; x++) {
+      normalJob.heights[y * NM_W + x] = sampleTerrain((x / NM_W) * 1000, py).h;
+    }
+  }
+  normalJob.row = end;
+  return true;
+}
+
 function buildNormalMap(): THREE.Texture {
-  const NM_W = 1500;
-  const NM_H = 1080;
+  if (normalMapCache) return normalMapCache;
+  while (!normalFillFor(100)) { /* finish remainder */ }
+  const heights = normalJob!.heights;
   const canvas = document.createElement('canvas');
   canvas.width = NM_W;
   canvas.height = NM_H;
@@ -480,23 +539,12 @@ function buildNormalMap(): THREE.Texture {
   const img = ctx.createImageData(NM_W, NM_H);
   const data = img.data;
   const STRENGTH = 12;  // scales the apparent slope — higher = more dramatic
-  // Sample heights into a temporary grid first so neighbors share lookups
-  const heights = new Float32Array(NM_W * NM_H);
-  for (let y = 0; y < NM_H; y++) {
-    for (let x = 0; x < NM_W; x++) {
-      const px = (x / NM_W) * 1000;
-      const py = (y / NM_H) * 720;
-      heights[y * NM_W + x] = sampleTerrain(px, py).h;
-    }
-  }
-  // Convert height gradients to RGB-encoded normals
   for (let y = 0; y < NM_H; y++) {
     for (let x = 0; x < NM_W; x++) {
       const xL = Math.max(0, x - 1), xR = Math.min(NM_W - 1, x + 1);
       const yU = Math.max(0, y - 1), yD = Math.min(NM_H - 1, y + 1);
       const dx = (heights[y * NM_W + xR] - heights[y * NM_W + xL]) * STRENGTH;
       const dy = (heights[yD * NM_W + x] - heights[yU * NM_W + x]) * STRENGTH;
-      // Normal vector pointing roughly +z (out of texture surface)
       const nx = -dx;
       const ny = -dy;
       const nz = 1.0;
@@ -514,7 +562,28 @@ function buildNormalMap(): THREE.Texture {
   tex.magFilter = THREE.LinearFilter;
   tex.anisotropy = 8;
   tex.generateMipmaps = true;
+  normalMapCache = tex;
+  normalJob = null;
   return tex;
+}
+
+/**
+ * Pre-bake the strategic map's expensive sheets in small slices — call
+ * repeatedly from an idle loop (the title screen does); each call does a
+ * bounded chunk of work (~15-30ms) and returns true once EVERYTHING the
+ * map needs at mount is cached.
+ */
+export function warmStrategicAssets(): boolean {
+  if (!terrainTexCache) {
+    if (terrainFillFor(14)) buildTerrainTexture();
+    return false;
+  }
+  if (!normalMapCache) {
+    if (normalFillFor(14)) buildNormalMap();
+    return false;
+  }
+  buildWaterAlphaMask();
+  return true;
 }
 
 /* ─── Water alpha-mask — keeps the territory tint off the water ───
@@ -2873,9 +2942,9 @@ export function StrategicMap3D() {
 
       <Canvas
         shadows
-        dpr={[1, 2]}
+        dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
         camera={{ position: [0, MAP_D * 0.9, MAP_D * 0.7], fov: 45 }}
-        gl={{ antialias: true }}
+        gl={{ antialias: !IS_MOBILE }}
       >
         <Suspense fallback={null}>
           <MapScene
@@ -2892,9 +2961,11 @@ export function StrategicMap3D() {
             dampingFactor={0.1}
           />
           {/* Gentle bloom — beacons, fires and water shimmer get a halo. */}
-          <EffectComposer>
-            <Bloom luminanceThreshold={0.85} intensity={0.35} mipmapBlur />
-          </EffectComposer>
+          {!IS_MOBILE && (
+            <EffectComposer>
+              <Bloom luminanceThreshold={0.85} intensity={0.35} mipmapBlur />
+            </EffectComposer>
+          )}
         </Suspense>
       </Canvas>
 

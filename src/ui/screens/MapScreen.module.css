@@ -177,14 +177,24 @@
 }
 
 @media (max-width: 640px) {
+  /* Portrait phones: stack map above the city panel and give the 3D
+     canvas a real box — `height: auto` (a relic of the old 2D canvas)
+     collapsed the WebGL canvas to a few pixels. */
+  .main {
+    flex-direction: column;
+    overflow: auto;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
   .mapWrap {
-    padding: 0.2rem;
-    min-height: 45vh;
-    max-height: 55vh;
+    padding: 0;
+    flex: none;
+    min-height: 62vh;
+    height: 62vh;
     position: relative;
   }
   .mapWrap canvas {
     width: 100% !important;
-    height: auto !important;
+    height: 100% !important;
   }
 }

@@ -18,6 +18,11 @@ import { BattleResultsModal } from '../components/BattleResultsModal';
 import { DuelGameModal } from '../components/DuelGameModal';
 import { useT, useDesc, useLanguage } from '../i18n';
 
+/** Coarse-pointer / small-screen device — drop pixel ratio and skip the
+ *  post-processing pass so phones keep a playable framerate. */
+const IS_MOBILE = typeof window !== 'undefined'
+  && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
+
 type ActionMode =
   | { kind: 'none' }
   | { kind: 'move' }
@@ -2054,8 +2059,9 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
       <div style={{ flex: 1, position: 'relative' }}>
         <Canvas
           shadows
+          dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
           camera={{ position: [target[0] - 8, 14, target[2] + 12], fov: 45 }}
-          gl={{ antialias: true }}
+          gl={{ antialias: !IS_MOBILE }}
         >
           <Suspense fallback={null}>
             <BattleScene
@@ -2079,9 +2085,11 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
               dampingFactor={0.1}
             />
             {/* Fires, beacons and night lanterns glow. */}
-            <EffectComposer>
-              <Bloom luminanceThreshold={0.8} intensity={0.45} mipmapBlur />
-            </EffectComposer>
+            {!IS_MOBILE && (
+              <EffectComposer>
+                <Bloom luminanceThreshold={0.8} intensity={0.45} mipmapBlur />
+              </EffectComposer>
+            )}
           </Suspense>
         </Canvas>
 

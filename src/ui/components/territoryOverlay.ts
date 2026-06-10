@@ -12,7 +12,11 @@ import { isLand, hexCorners, HEX_W, HEX_V, HEX_SIZE } from '../../game/data/geog
 
 const W = 1000;
 const H = 720;
-const SS = 3; // supersample factor for crisp fine-grid lines
+// Supersample factor for crisp fine-grid lines — phones take 2× (the
+// 3× canvas costs seconds of main-thread paint on mobile CPUs).
+const IS_MOBILE_TO = typeof window !== 'undefined'
+  && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
+const SS = IS_MOBILE_TO ? 2 : 3;
 const NEUTRAL_COLOR = '#5a4530';
 const FILL_ALPHA = 0.42;
 

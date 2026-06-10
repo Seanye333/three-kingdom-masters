@@ -1,5 +1,6 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { SCENARIOS } from '../../game/data';
+import { warmStrategicAssets } from '../components/StrategicMap3D';
 import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
@@ -32,6 +33,21 @@ export function TitleScreen() {
   const setTutorialStep = useGameStore((s) => s.setTutorialStep);
   const setHotSeatPlayers = useGameStore((s) => s.setHotSeatPlayers);
   const [scenarioId, setScenarioId] = useState<string>(SCENARIOS[0].id);
+
+  // Pre-bake the 3D strategic map's expensive textures while the player is
+  // still reading the title screen — small idle slices, so the UI never
+  // stutters and entering the map is instant instead of seconds of freeze.
+  useEffect(() => {
+    let stop = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      if (stop) return;
+      const done = warmStrategicAssets();
+      if (!done) timer = setTimeout(tick, 8);
+    };
+    timer = setTimeout(tick, 400);
+    return () => { stop = true; clearTimeout(timer); };
+  }, []);
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
   const [showOfficers, setShowOfficers] = useState(false);
   const [showCustomOfficer, setShowCustomOfficer] = useState(false);
