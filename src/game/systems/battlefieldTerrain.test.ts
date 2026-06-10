@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateTerrain, type BattleGeo } from './battlefieldTerrain';
-import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance } from './tactical';
+import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance, movementCost, repairWall } from './tactical';
+import { handleMarch } from './combat';
 import { buildInitialCities } from '../data/cities';
 import { cityPos } from '../data/cityGeo';
 import { describeBattleSite, isRiverside } from '../data/geography';
@@ -198,6 +199,102 @@ describe('real-geography battlefields (战斗地图写实)', () => {
     const xc = cityPos(byId['xuchang']);
     expect(isRiverside(xy.x, xy.y), '襄陽臨漢水').toBe(true);
     expect(isRiverside(xc.x, xc.y), '許昌不臨水').toBe(false);
+  });
+
+  it('garrison countermeasures: gate passage, wall repair, alley plugging', () => {
+    const off = (id: string, war = 70) => ({ officer: { id, name: { zh: id, en: id }, skills: [], stats: { war, leadership: 70, intelligence: 60, politics: 50, charisma: 50 } } as never, troops: 4000 });
+    const battle = setupTacticalBattle({
+      cityId: 'xuchang', width: W, height: H,
+      attackerForceId: 'a', defenderForceId: 'b',
+      attackers: [off('atk')], defenders: [off('def'), off('def2'), off('def3')],
+      terrainHint: { terrain: 'plain' },
+      battleGeo: siegeGeo('chenliu', 'xuchang'),
+    });
+    const gate = battle.tiles.find((t) => t.terrain === 'gate')!;
+    const atk = battle.units.find((u) => u.side === 'attacker')!;
+    const def = battle.units.find((u) => u.side === 'defender')!;
+    // Defenders pass their own gates; attackers cannot.
+    expect(movementCost(battle, { ...def, coord: { col: gate.coord.col + 1, row: gate.coord.row } }, gate.coord)).toBeLessThan(99);
+    expect(movementCost(battle, { ...atk, coord: { col: gate.coord.col - 1, row: gate.coord.row } }, gate.coord)).toBeGreaterThanOrEqual(99);
+    // Repair: chip a wall down, stand a defender next to it, repair restores HP.
+    const wall = battle.tiles.find((t) => t.terrain === 'wall')!;
+    const key = `${wall.coord.col},${wall.coord.row}`;
+    const damaged = {
+      ...battle,
+      wallHp: { ...battle.wallHp, [key]: 300 },
+      units: battle.units.map((u) => u.id === def.id
+        ? { ...u, coord: { col: wall.coord.col + 1, row: wall.coord.row }, ap: 3 } : u),
+    };
+    const repaired = repairWall(damaged, def.id, wall.coord);
+    expect(repaired.wallHp![key]).toBe(480);
+    // Attackers cannot repair.
+    const atkAdj = {
+      ...damaged,
+      units: damaged.units.map((u) => u.id === atk.id
+        ? { ...u, coord: { col: wall.coord.col - 1, row: wall.coord.row }, ap: 3 } : u),
+    };
+    expect(repairWall(atkAdj, atk.id, wall.coord)).toBe(atkAdj);
+  });
+
+  it('defender AI plugs a threatened rear alley', () => {
+    const off = (id: string) => ({ officer: { id, name: { zh: id, en: id }, skills: [], stats: { war: 70, leadership: 70, intelligence: 60, politics: 50, charisma: 50 } } as never, troops: 4000 });
+    let battle = setupTacticalBattle({
+      cityId: 'xuchang', width: W, height: H,
+      attackerForceId: 'a', defenderForceId: 'b',
+      attackers: [off('atk')], defenders: [off('def'), off('def2'), off('def3')],
+      terrainHint: { terrain: 'plain' },
+      battleGeo: siegeGeo('chenliu', 'xuchang'),
+    });
+    const rows = battle.tiles.filter((t) => t.terrain === 'wall' || t.terrain === 'gate').map((t) => t.coord.row);
+    const alley = { col: W - 1, row: Math.min(...rows) };
+    // Park an attacker two hexes from the rear alley, give the turn to the garrison.
+    battle = {
+      ...battle,
+      activeSide: 'defender',
+      units: battle.units.map((u) => u.side === 'attacker'
+        ? { ...u, coord: { col: W - 1, row: Math.max(0, Math.min(...rows) - 2) } } : u),
+    };
+    const officers = Object.fromEntries(battle.units.map((u) => [u.officerId, { id: u.officerId, name: { zh: u.officerId, en: u.officerId }, skills: [], stats: { war: 70, leadership: 70, intelligence: 60, politics: 50, charisma: 50 }, traits: [] } as never]));
+    const distBefore = Math.min(...battle.units.filter((u) => u.side === 'defender').map((u) => hexDistance(u.coord, alley)));
+    const after = aiTakeTurn(battle, officers, () => 0.5, { skill: 1 }).battle;
+    const distAfter = Math.min(...after.units.filter((u) => u.side === 'defender').map((u) => hexDistance(u.coord, alley)));
+    expect(distAfter, `守军应逼近后巷堵口 (${distBefore}→${distAfter})`).toBeLessThan(distBefore);
+  });
+
+  it('AI attackers pick siege works in auto-resolved marches; players do not', () => {
+    const list = buildInitialCities({});
+    const mkCities = () => {
+      const m = Object.fromEntries(list.map((c) => ({ ...c })).map((c) => [c.id, c]));
+      m['xinye'] = { ...m['xinye'], ownerForceId: 'ai-x', gold: 5000, food: 90000, troops: 20000 };
+      m['xiangyang'] = { ...m['xiangyang'], ownerForceId: 'foe-y', troops: 9000 }; // 漢水畔, big garrison
+      m['xuchang'] = { ...m['xuchang'], ownerForceId: 'foe-y', troops: 8000, food: 1000 }; // grain-poor, not riverside
+      m['chenliu'] = { ...m['chenliu'], ownerForceId: 'ai-x', gold: 5000, food: 90000, troops: 20000 };
+      return m;
+    };
+    const officer = { id: 'gen-1', name: { zh: '張遼', en: 'Zhang Liao' }, skills: [], traits: [], equipment: [], stats: { war: 92, leadership: 88, intelligence: 75, politics: 50, charisma: 60 }, forceId: 'ai-x', locationCityId: 'xinye', status: 'idle', task: null } as never;
+    const baseCtx = { officers: { 'gen-1': officer }, rng: () => 0.5, playerForceId: 'me' };
+
+    // AI floods riverside 襄陽.
+    const flood = handleMarch(
+      { type: 'march', cityId: 'xinye', targetCityId: 'xiangyang', officerId: 'gen-1', troops: 8000 } as never,
+      { ...baseCtx, cities: mkCities() } as never,
+    );
+    expect(flood.entries.some((e) => (e.textZh ?? '').includes('水攻')), 'AI 应对临水大城用水攻').toBe(true);
+    expect(flood.cities['xinye'].gold).toBe(5000 - 400);
+
+    // AI invests the grain-poor inland city of 許昌.
+    const invest = handleMarch(
+      { type: 'march', cityId: 'chenliu', targetCityId: 'xuchang', officerId: { ...officer, locationCityId: 'chenliu' } && 'gen-1', troops: 8000 } as never,
+      { ...baseCtx, cities: mkCities() } as never,
+    );
+    expect(invest.entries.some((e) => (e.textZh ?? '').includes('圍困')), 'AI 应围困缺粮之城').toBe(true);
+
+    // The player's own auto-marches stay plain storms.
+    const player = handleMarch(
+      { type: 'march', cityId: 'xinye', targetCityId: 'xiangyang', officerId: 'gen-1', troops: 8000 } as never,
+      { ...baseCtx, cities: mkCities(), playerForceId: 'ai-x' } as never,
+    );
+    expect(player.entries.some((e) => (e.textZh ?? '').includes('水攻'))).toBe(false);
   });
 
   it('is deterministic for the same battle and varies across battles', () => {

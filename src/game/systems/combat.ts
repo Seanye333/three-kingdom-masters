@@ -14,7 +14,7 @@ import { SKILLS_BY_ID } from '../data/skills';
 import { getEliteTroop } from '../data/eliteTroops';
 import { deriveTactics, tacticsTotalBonus, combosPowerMultiplier, findActiveCombos } from '../data/officerAttributes';
 import { combatModifiers, conquestLoyaltyMod, type CombatMods } from './traitEffects';
-import { describeBattleSite } from '../data/geography';
+import { describeBattleSite, isRiverside } from '../data/geography';
 import { cityPos } from '../data/cityGeo';
 import { sidePoolRelationshipBonus, rivalShowdownMultiplier } from './relationshipEffects';
 import { effectivePrestigeEffects } from '../data/prestige';
@@ -759,6 +759,9 @@ export interface MarchContext {
   casusBelliMarks?: Array<{ byForceId: EntityId; targetForceId: EntityId; expiresYear: number; expiresSeason: 'spring' | 'summer' | 'autumn' | 'winter' }>;
   /** Current game date — needed to filter expired casus-belli marks. */
   date?: { year: number; season: 'spring' | 'summer' | 'autumn' | 'winter' };
+  /** The human player's force — AI attackers (≠ player) pick siege works
+   *  (圍困/水攻) on their own; the player chooses via the battle modal. */
+  playerForceId?: EntityId | null;
 }
 
 export interface MarchOutcome {
@@ -849,9 +852,39 @@ export function handleMarch(
     mountain: /shu|mt\.|mountain|hanzhong|jianmen|kuiguan|baidi/.test(target.name.en.toLowerCase()),
     attackerCavalry: commander.skills.includes('cavalry-master'),
   });
+  // ── AI 攻城方略 — a non-player attacker prosecutes the siege like a
+  // player would: flood a riverside city (decisive sieges only), or invest
+  // a grain-poor one until the garrison starves. Costs come out of the
+  // attacking city's stores; effects weaken the defence below.
+  let worksDefenseMul = 1;
+  let worksTroopsMul = 1;
+  let worksNoteZh = '';
+  let worksNoteEn = '';
+  const isAiAttacker = ctx.playerForceId !== undefined && source.ownerForceId !== ctx.playerForceId;
+  if (isAiAttacker && target.ownerForceId && target.troops >= 5000) {
+    const tp = cityPos(target);
+    const investCost = Math.max(800, sentTroops);
+    if (isRiverside(tp.x, tp.y) && ctx.weather?.kind !== 'drought' && cities[source.id].gold >= 1000) {
+      cities[source.id] = { ...cities[source.id], gold: cities[source.id].gold - 400 };
+      worksDefenseMul = 0.6;
+      worksTroopsMul = 0.88;
+      worksNoteZh = `【水攻】${commander.name.zh}決堤灌${target.name.zh} — 城牆崩毀，守軍溺損。`;
+      worksNoteEn = `[Flood] ${commander.name.en} broke the dikes on ${target.name.en} — walls washed out, garrison drowned.`;
+    } else if (target.food < target.troops * 6 && cities[source.id].food >= investCost + 5000) {
+      cities[source.id] = { ...cities[source.id], food: cities[source.id].food - investCost };
+      worksDefenseMul = 0.85;
+      worksTroopsMul = 0.9;
+      worksNoteZh = `【圍困】${commander.name.zh}圍${target.name.zh}而斷其糧 — 城中飢疲，守備鬆弛。`;
+      worksNoteEn = `[Invest] ${commander.name.en} starved ${target.name.en} out — the garrison weakens.`;
+    }
+    if (worksNoteZh) {
+      entries.push({ cityId: target.id, kind: 'note', text: worksNoteEn, textZh: worksNoteZh });
+    }
+  }
+
   const effectiveDefense =
-    target.defense + defenseBonusFromPolicy + slotEffects.defenseBonus + siegeMods.defenseBonus;
-  const defenderTroops = target.troops + siegeMods.garrisonBonus;
+    (target.defense + defenseBonusFromPolicy + slotEffects.defenseBonus + siegeMods.defenseBonus) * worksDefenseMul;
+  const defenderTroops = Math.max(1, Math.floor((target.troops + siegeMods.garrisonBonus) * worksTroopsMul));
 
   // Watchtower / arrow-platform / rockfall pre-strike the attacker before battle math.
   const adjustedAttackerTroops = Math.max(0, sentTroops - slotEffects.rangedPrestrike);

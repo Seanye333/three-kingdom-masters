@@ -665,6 +665,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       appointments: input.appointments,
       casusBelliMarks: input.casusBelliMarks,
       date: input.date,
+      playerForceId: input.playerForceId ?? null,
     });
     cities = outcome.cities;
     officers = outcome.officers;

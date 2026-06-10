@@ -602,7 +602,10 @@ function engagedFoes(b: TacticalBattle, unit: TacticalUnit): TacticalUnit[] {
  * contact is free of the surcharge.
  */
 export function movementCost(b: TacticalBattle, unit: TacticalUnit, to: HexCoord): number {
-  const base = moveCost(b, to);
+  let base = moveCost(b, to);
+  // The garrison opens its own gates — defenders pass gate hexes (slowly);
+  // attackers still have to break them down.
+  if (base >= 99 && unit.side === 'defender' && tileAt(b, to)?.terrain === 'gate') base = 2;
   if (base >= 99) return base;
   const foes = engagedFoes(b, unit);
   if (foes.length === 0) return base;
@@ -646,6 +649,33 @@ export function moveUnit(
       }
       return u;
     }),
+  };
+}
+
+/** Max HP a fortification repairs back toward, by kind. */
+const FORT_MAX_HP: Record<string, number> = { wall: 1000, gate: 700 };
+
+/**
+ * 搶修城防 — a defender adjacent to a battered (but standing) wall or gate
+ * spends its action shoring it back up. Only the garrison repairs, only
+ * fortifications with tracked HP, and never above their original strength.
+ */
+export function repairWall(b: TacticalBattle, unitId: EntityId, coord: HexCoord): TacticalBattle {
+  const unit = b.units.find((u) => u.id === unitId);
+  if (!unit || unit.side !== 'defender' || unit.ap <= 0) return b;
+  if (hexDistance(unit.coord, coord) !== 1) return b;
+  const tile = tileAt(b, coord);
+  if (!tile || (tile.terrain !== 'wall' && tile.terrain !== 'gate')) return b;
+  const key = `${coord.col},${coord.row}`;
+  const cur = b.wallHp?.[key];
+  const max = FORT_MAX_HP[tile.terrain] ?? 1000;
+  if (cur === undefined || cur >= max) return b;
+  const next = Math.min(max, cur + 180);
+  return {
+    ...b,
+    wallHp: { ...b.wallHp, [key]: next },
+    units: b.units.map((u) => (u.id === unitId ? { ...u, ap: 0 } : u)),
+    log: [...(b.log ?? []), { turn: b.turn, text: '守軍搶修城防，缺損處重歸堅固。', kind: 'event' }],
   };
 }
 
@@ -2240,8 +2270,10 @@ function costFieldTo(b: TacticalBattle, goal: HexCoord, mover: TacticalUnit): Ma
       if (!t) continue;
       const nk = key(n);
       if (blocked.has(nk)) continue;
-      const step = TERRAIN_MOVE_COST[t.terrain];
-      if (step >= 99) continue; // gate / impassable
+      let step = TERRAIN_MOVE_COST[t.terrain];
+      // Defenders path through their own gates (sally / repair sorties).
+      if (step >= 99 && mover.side === 'defender' && t.terrain === 'gate') step = 2;
+      if (step >= 99) continue; // wall / impassable
       const nd = d + step;
       if (nd < (dist.get(nk) ?? Infinity)) {
         dist.set(nk, nd);
@@ -2503,6 +2535,75 @@ function aiActOnce(
   if (adjEnemies.length > 0) {
     const t = pickAdjacentTarget(b, unit, adjEnemies, officers);
     if (t) return { battle: attackUnits(b, unit.id, t.id, officers, rng), acted: true, signatures: [] };
+  }
+
+  // ── Garrison countermeasures (守方反制) ──
+  if (unit.side === 'defender' && !fragile) {
+    const forts = b.tiles.filter((t) => t.terrain === 'wall' || t.terrain === 'gate');
+    if (forts.length > 0) {
+      const rows = forts.map((t) => t.coord.row);
+      const r0 = Math.min(...rows);
+      const r1 = Math.max(...rows);
+      // 堵后巷 — the rear corner alleys are the unwalled way in. If a foe
+      // is closing on one and nobody plugs it, the nearest free defender
+      // bodies the gap (an occupied hex blocks movement outright).
+      const alleys: HexCoord[] = [
+        { col: b.width - 1, row: r0 },
+        { col: b.width - 1, row: r1 },
+      ].filter((c) => {
+        const t = tileAt(b, c);
+        return t && TERRAIN_MOVE_COST[t.terrain] < 99;
+      });
+      for (const alley of alleys) {
+        const threat = enemies.some((e) => hexDistance(e.coord, alley) <= 4);
+        if (!threat) continue;
+        const plugged = b.units.some((u) =>
+          u.side === 'defender' && u.troops > 0 && hexDistance(u.coord, alley) === 0);
+        if (plugged) continue;
+        if (unit.coord.col === alley.col && unit.coord.row === alley.row) break; // already here
+        const iAmNearest = !b.units.some((u) =>
+          u.side === 'defender' && u.troops > 0 && u.id !== unit.id && u.ap > 0 &&
+          hexDistance(u.coord, alley) < hexDistance(unit.coord, alley));
+        if (!iAmNearest) continue;
+        const step = bestStepToward(b, unit, alley);
+        if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+      }
+      // 搶修城防 — quiet stretch of wall + battered masonry next door →
+      // shore it up before the next assault.
+      if (skill >= 0.4 && !enemies.some((e) => hexDistance(e.coord, unit.coord) <= 3)) {
+        const damaged = hexNeighbours(unit.coord).find((c) => {
+          const t = tileAt(b, c);
+          if (!t || (t.terrain !== 'wall' && t.terrain !== 'gate')) return false;
+          const hp = b.wallHp?.[`${c.col},${c.row}`];
+          const max = t.terrain === 'gate' ? 700 : 1000;
+          return hp !== undefined && hp < max;
+        });
+        if (damaged) {
+          const repaired = repairWall(b, unit.id, damaged);
+          if (repaired !== b) return { battle: repaired, acted: true, signatures: [] };
+        }
+      }
+      // 夜襲器械 — a hard-hitting garrison unit sorties (through its own
+      // gate — defenders can pass) to burn the siege engines battering the
+      // walls, as long as the garrison isn't already stretched thin.
+      const defendersAlive = b.units.filter((u) => u.side === 'defender' && u.troops > 0).length;
+      if (skill >= 0.5 && (off?.stats.war ?? 0) >= 70 && defendersAlive >= 3) {
+        const engines = enemies.filter((e) =>
+          e.unitType === 'siege' &&
+          forts.some((f) => hexDistance(e.coord, f.coord) <= 3));
+        if (engines.length > 0) {
+          const prey = engines.reduce((bst, e) =>
+            hexDistance(unit.coord, e.coord) < hexDistance(unit.coord, bst.coord) ? e : bst);
+          if (hexDistance(unit.coord, prey.coord) === 1) {
+            return { battle: attackUnits(b, unit.id, prey.id, officers, rng), acted: true, signatures: [] };
+          }
+          if (hexDistance(unit.coord, prey.coord) <= 6) {
+            const step = bestStepToward(b, unit, prey.coord);
+            if (step) return { battle: moveUnit(b, unit.id, step), acted: true, signatures: [] };
+          }
+        }
+      }
+    }
   }
 
   // Foot troops scale an adjacent wall when a friendly engine braces it.
