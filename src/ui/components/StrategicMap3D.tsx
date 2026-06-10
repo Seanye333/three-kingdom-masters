@@ -370,6 +370,17 @@ const DESERTS = DESERTS_GEO.map((d) => {
   return { x: px, y: py, r: d.r_deg * DEG_TO_PX };
 });
 
+/** Major inland lakes — painted as water in the terrain + a surface disc. */
+const LAKES_GEO: Array<{ name: string; lon: number; lat: number; r_deg: number }> = [
+  { name: 'dongting', lon: 112.9, lat: 29.3, r_deg: 0.92 },  // 洞庭湖
+  { name: 'poyang',   lon: 116.3, lat: 29.0, r_deg: 0.70 },  // 鄱阳湖
+  { name: 'taihu',    lon: 120.2, lat: 31.2, r_deg: 0.48 },  // 太湖
+];
+const LAKES = LAKES_GEO.map((l) => {
+  const [px, py] = geoToPixel(l.lon, l.lat);
+  return { name: l.name, x: px, y: py, r: l.r_deg * DEG_TO_PX };
+});
+
 /* ─── Geometry-building helpers ──────────────────────────────────── */
 
 function distToSegment(
@@ -419,6 +430,8 @@ const C_PEAK      = new THREE.Color('#9a8870');
 const C_SNOW      = new THREE.Color('#f0e0c8');
 const C_DESERT    = new THREE.Color('#c0a070');
 const C_RIVER     = new THREE.Color('#3a6a98');
+const C_FOAM      = new THREE.Color('#dfe8e8');     // surf line at the shore
+const C_LAKE      = new THREE.Color('#356f9a');     // inland lake water
 
 /** Sample terrain (height + color) at a pixel coordinate. */
 /** Latitude-banded plain colour: wheat-gold north → olive 中原 → green 江南
@@ -533,6 +546,22 @@ function sampleTerrain(px: number, py: number): { h: number; color: THREE.Color 
 
   // Apply river depression last
   baseH -= riverDepress * 0.10;
+
+  // 7. Coastal surf — a bright foam band on the wet shore (land side of the
+  //    waterline), so coastlines get a crisp white edge instead of a hard cut.
+  if (sdf >= 0 && sdf < 5 && mountainH < 0.05) {
+    color = color.lerp(C_FOAM, smoothstep(1 - sdf / 5) * 0.5);
+  }
+
+  // 8. Major lakes — flat inland water, painted over whatever was here.
+  for (const lk of LAKES) {
+    const dist = Math.hypot(px - lk.x, py - lk.y);
+    if (dist < lk.r) {
+      const t = smoothstep(1 - dist / lk.r);
+      color = C_LAKE.clone().lerp(C_SHALLOW, 0.25);
+      baseH = -0.05 - t * 0.06;   // shallow basin
+    }
+  }
 
   return { h: baseH, color };
 }
@@ -2246,6 +2275,38 @@ function GreatWall3D() {
   );
 }
 
+/* ─── 大湖 — 洞庭/鄱阳/太湖, a shimmering water surface over the painted
+ *  lake basin so the great lakes read as open water, not just blue ground. */
+function Lakes3D() {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    // Gentle opacity shimmer so the lakes feel alive like the sea.
+    const o = 0.86 + Math.sin(clock.elapsedTime * 0.8) * 0.05;
+    ref.current.children.forEach((m) => {
+      const mat = (m as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      if (mat) mat.opacity = o;
+    });
+  });
+  return (
+    <group ref={ref}>
+      {LAKES.map((lk, i) => {
+        const [wx, wz] = pxToWorld(lk.x, lk.y);
+        const r = lk.r * PIXEL_TO_WORLD;
+        // Lift the surface above the territory tint plane (terrain +0.05) so
+        // the lakes read as open water instead of being painted over by it.
+        const y = sampleTerrainHeight(wx, wz) + 0.09;
+        return (
+          <mesh key={i} position={[wx, y, wz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <circleGeometry args={[r, 40]} />
+            <meshStandardMaterial color="#2c6e9c" roughness={0.26} metalness={0.55} transparent opacity={0.86} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 function MapScene({ overlayMode, onPortClick, onFortClick }: {
   overlayMode: OverlayMode;
   onPortClick: (portId: string) => void;
@@ -2324,6 +2385,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
         <TerritoryGroundLayer cities={cities} forces={forces} territoryOwnership={territoryOwnership} />
       </Suspense>
       <Ocean />
+      <Lakes3D />
       <RiverRibbons />
       <Forest3D />
       <GreatWall3D />
