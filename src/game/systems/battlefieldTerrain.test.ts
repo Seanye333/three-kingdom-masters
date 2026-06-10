@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { generateTerrain, type BattleGeo } from './battlefieldTerrain';
-import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance, movementCost, repairWall } from './tactical';
+import { setupTacticalBattle, aiTakeTurn, moveCost, hexDistance, movementCost, repairWall, planSiegeRelief, endTurn } from './tactical';
 import { handleMarch } from './combat';
+import { resolveSeason } from './resolution';
 import { buildInitialCities } from '../data/cities';
 import { cityPos } from '../data/cityGeo';
 import { describeBattleSite, isRiverside } from '../data/geography';
@@ -295,6 +296,95 @@ describe('real-geography battlefields (战斗地图写实)', () => {
       { ...baseCtx, cities: mkCities(), playerForceId: 'ai-x' } as never,
     );
     expect(player.entries.some((e) => (e.textZh ?? '').includes('水攻'))).toBe(false);
+  });
+
+  it('an AI column arriving at a garrisoned player city defers to a 守城戰', () => {
+    const list = buildInitialCities({});
+    const cm = Object.fromEntries(list.map((c) => [c.id, { ...c }]));
+    cm['xinye'] = { ...cm['xinye'], ownerForceId: 'ai-x', troops: 20000, gold: 3000, food: 50000 };
+    cm['xiangyang'] = { ...cm['xiangyang'], ownerForceId: 'me', troops: 8000 };
+    const mkOff = (id: string, forceId: string, locationCityId: string) => ({
+      id, name: { zh: id, en: id }, skills: [], traits: [], equipment: [],
+      stats: { war: 85, leadership: 80, intelligence: 70, politics: 50, charisma: 60 },
+      forceId, locationCityId, status: 'idle', task: null,
+    }) as never;
+    const officers = {
+      'ai-gen': mkOff('ai-gen', 'ai-x', 'xinye'),
+      'my-gen': mkOff('my-gen', 'me', 'xiangyang'),
+    };
+    const out = resolveSeason({
+      date: { year: 200, season: 'spring', month: 1, phase: 'upper' } as never,
+      cities: cm as never,
+      officers: officers as never,
+      forces: {} as never,
+      pendingCommands: {
+        'ai-gen': { type: 'march', cityId: 'xinye', targetCityId: 'xiangyang', officerId: 'ai-gen', troops: 6000, seasonsRemaining: 1, totalSeasons: 1 } as never,
+      },
+      diplomacy: { relations: {} } as never,
+      runtimeBonds: [],
+      lostItems: [],
+      playerForceId: 'me',
+      rng: () => 0.5,
+    });
+    expect(out.pendingSiegeDefenses?.length, '应转交互守城战').toBe(1);
+    const d = out.pendingSiegeDefenses![0];
+    expect(d.targetCityId).toBe('xiangyang');
+    expect(d.troops).toBe(6000);
+    // The column is committed — source troops already deducted.
+    expect(out.cities['xinye'].troops).toBe(20000 - 6000);
+    // The city was NOT auto-assaulted: still the player's.
+    expect(out.cities['xiangyang'].ownerForceId).toBe('me');
+  });
+
+  it('planSiegeRelief sends neighbouring garrisons under their best officers', () => {
+    const list = buildInitialCities({});
+    const cm = Object.fromEntries(list.map((c) => [c.id, { ...c }]));
+    cm['xiangyang'] = { ...cm['xiangyang'], ownerForceId: 'liu-biao' };
+    cm['jiangling'] = { ...cm['jiangling'], ownerForceId: 'liu-biao', troops: 12000 };
+    cm['fancheng'] = { ...cm['fancheng'], ownerForceId: 'liu-biao', troops: 8000 };
+    const mkOff = (id: string, loc: string) => ({
+      id, name: { zh: id, en: id }, skills: [], traits: [], equipment: [],
+      stats: { war: 80, leadership: 75, intelligence: 60, politics: 50, charisma: 50 },
+      forceId: 'liu-biao', locationCityId: loc, status: 'idle', task: null,
+    }) as never;
+    const officers = { o1: mkOff('o1', 'jiangling'), o2: mkOff('o2', 'fancheng') };
+    const relief = planSiegeRelief({
+      target: cm['xiangyang'] as never, cities: cm as never, officers: officers as never,
+      defenderForceId: 'liu-biao', bearing: Math.PI / 2,
+    });
+    expect(relief.plans.length).toBeGreaterThanOrEqual(1);
+    expect(relief.reinforcements.length).toBe(relief.plans.length);
+    for (const r of relief.reinforcements) {
+      expect(r.side).toBe('defender');
+      expect(r.troops).toBeGreaterThanOrEqual(800);
+      expect(['north', 'south', 'east', 'west']).toContain(r.edge);
+    }
+    // 30% of the biggest garrison rode out.
+    expect(relief.plans[0].troops).toBe(Math.floor(12000 * 0.3));
+  });
+
+  it('ground fire burns standers, spreads off rain, and torches forests to plain', async () => {
+    const { mkBattle, mkUnit, mkTiles } = await import('../../test/factories');
+    const unit = mkUnit({ id: 'A1', officerId: 'oA1', side: 'attacker', coord: { col: 2, row: 2 }, troops: 3000 });
+    const foe = mkUnit({ id: 'D1', officerId: 'oD1', side: 'defender', coord: { col: 5, row: 5 }, troops: 3000 });
+    const base = mkBattle({
+      units: [unit, foe],
+      tiles: mkTiles(8, 8, { '2,2': 'forest', '3,2': 'forest' }),
+    });
+    // Standing in the flames: lose troops, catch fire.
+    const burning = { ...base, groundFires: [{ coord: { col: 2, row: 2 }, turnsLeft: 4 }] };
+    const after = endTurn(burning);
+    const u = after.units.find((x) => x.id === 'A1')!;
+    expect(u.troops).toBeLessThan(3000);
+    expect(u.effects.some((e) => e.kind === 'burning')).toBe(true);
+    // Forest burns out → open ground.
+    let b2 = { ...base, groundFires: [{ coord: { col: 3, row: 2 }, turnsLeft: 1 }] };
+    const after2 = endTurn(b2);
+    expect(after2.tiles.find((t) => t.coord.col === 3 && t.coord.row === 2)?.terrain).toBe('plain');
+    // Rain smothers fires fast.
+    const rainy = { ...base, weather: 'rain' as const, groundFires: [{ coord: { col: 3, row: 2 }, turnsLeft: 2 }] };
+    const after3 = endTurn(rainy);
+    expect(after3.groundFires ?? []).toHaveLength(0);
   });
 
   it('is deterministic for the same battle and varies across battles', () => {

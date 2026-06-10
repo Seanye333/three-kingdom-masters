@@ -186,7 +186,7 @@ const WEATHER_FOG_MUL: Record<Weather, number> = {
 
 /* ─── A single hex tile + its terrain art (trees, peaks, water) ─────── */
 export function HexTile({
-  tile, onClick, hovered, highlight, windStrength,
+  tile, onClick, hovered, highlight, windStrength, burning = false,
 }: {
   tile: TacticalTile;
   onClick: () => void;
@@ -194,6 +194,8 @@ export function HexTile({
   /** 'move' = walkable destination, 'attack' = attackable enemy hex, undefined = no highlight */
   highlight: 'move' | 'attack' | undefined;
   windStrength: number;
+  /** 火攻 — this hex is ablaze (ground fire). */
+  burning?: boolean;
 }) {
   const [x, z] = hexWorld(tile.coord.col, tile.coord.row);
   const h = TERRAIN_HEIGHT[tile.terrain];
@@ -239,6 +241,43 @@ export function HexTile({
       {tile.terrain === 'mountain' && <MountainArt y={h} />}
       {tile.terrain === 'river' && <RiverArt y={h} />}
       {tile.terrain === 'bridge' && <BridgeArt y={h} />}
+      {burning && <FireArt y={h} />}
+    </group>
+  );
+}
+
+/** 火攻 — licking flames + ember glow on a burning hex. */
+export function FireArt({ y }: { y: number }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.elapsedTime;
+    ref.current.children.forEach((m, i) => {
+      const f = 1 + Math.sin(t * 7 + i * 2.1) * 0.25;
+      m.scale.set(f, 1 + Math.sin(t * 9 + i) * 0.35, f);
+    });
+  });
+  return (
+    <group position={[0, y, 0]}>
+      {/* Ember-lit ground */}
+      <mesh position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[R * 0.8, 6]} />
+        <meshStandardMaterial color="#3a1408" emissive="#c84a10" emissiveIntensity={0.8} roughness={0.9} />
+      </mesh>
+      {/* Licking flames */}
+      <group ref={ref}>
+        {[[-0.3, -0.15, 0.5], [0.25, 0.2, 0.65], [0, -0.3, 0.45], [0.05, 0.32, 0.4]].map(([px, pz, ph], i) => (
+          <mesh key={i} position={[px, ph / 2, pz]}>
+            <coneGeometry args={[0.16, ph, 6]} />
+            <meshStandardMaterial
+              color={i % 2 ? '#ff9a28' : '#ff5a14'}
+              emissive={i % 2 ? '#ffb840' : '#ff6a1a'}
+              emissiveIntensity={1.8}
+              transparent opacity={0.85}
+            />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 }
@@ -1430,25 +1469,29 @@ function BattleScene({
       {battle.weather === 'snow' && <SnowParticles bounds={bounds} />}
 
       {/* All tiles */}
-      {tiles.map((t) => {
-        const key = `${t.coord.col},${t.coord.row}`;
-        const isHov = !!hovered && hovered.col === t.coord.col && hovered.row === t.coord.row;
-        return (
-          <group
-            key={key}
-            onPointerOver={(e) => { e.stopPropagation(); setHovered(t.coord); }}
-            onPointerOut={() => setHovered(null)}
-          >
-            <HexTile
-              tile={t}
-              onClick={() => onTileClick(t.coord)}
-              hovered={isHov}
-              highlight={highlights.get(key)}
-              windStrength={windStrength}
-            />
-          </group>
-        );
-      })}
+      {(() => {
+        const fireSet = new Set((battle.groundFires ?? []).map((f) => `${f.coord.col},${f.coord.row}`));
+        return tiles.map((t) => {
+          const key = `${t.coord.col},${t.coord.row}`;
+          const isHov = !!hovered && hovered.col === t.coord.col && hovered.row === t.coord.row;
+          return (
+            <group
+              key={key}
+              onPointerOver={(e) => { e.stopPropagation(); setHovered(t.coord); }}
+              onPointerOut={() => setHovered(null)}
+            >
+              <HexTile
+                tile={t}
+                onClick={() => onTileClick(t.coord)}
+                hovered={isHov}
+                highlight={highlights.get(key)}
+                windStrength={windStrength}
+                burning={fireSet.has(key)}
+              />
+            </group>
+          );
+        });
+      })()}
 
       {/* City walls + gatehouses — mounted on the actual wall/gate TILES of
           the walled-town enclosure, oriented per face (battlements toward

@@ -30,7 +30,7 @@ import { ITEMS_BY_ID } from '../data/items';
 import { marchDurationFor } from '../data/cities';
 import { terrainRoute, positionAlongRoute, marchDestCoords } from '../data/territories';
 import { cityPos, CITY_GEO_OVERRIDES } from '../data/cityGeo';
-import { terrainTypeAt } from '../data/geography';
+import { terrainTypeAt, isRiverside } from '../data/geography';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
 import {
@@ -74,7 +74,7 @@ import {
   attemptRecruit,
 } from '../systems/officerFate';
 import { resolveSeason } from '../systems/resolution';
-import { setupTacticalBattle, inferUnitType } from '../systems/tactical';
+import { setupTacticalBattle, inferUnitType, planSiegeRelief } from '../systems/tactical';
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
 import { DEFENSE_BUILDINGS } from '../data/defenseBuildings';
 import { SHIP_CLASSES_BY_ID } from '../data/ships';
@@ -277,9 +277,15 @@ interface GameStore extends GameState {
    *  stores before an assault. Returns false (and deducts nothing) if the
    *  city can't afford it. */
   spendSiegeWorks: (cityId: EntityId, gold: number, food: number) => boolean;
+  /** 馳援 — deduct a relief column's troops from its home city when it
+   *  marches for a besieged neighbour (survivors return after battle). */
+  dispatchRelief: (cityId: EntityId, troops: number) => void;
   /** Start the next AI-initiated field battle queued from season resolution
    *  (the player fights clashes the AI forced). No-op if the queue is empty. */
   startNextFieldBattle: () => void;
+  /** Start the next queued 守城戰 — an AI column at the player's gates,
+   *  fought interactively with the player as DEFENDER. */
+  startNextSiegeDefense: () => void;
   endTacticalBattle: (
     winner: 'attacker' | 'defender',
     attackerLosses: number,
@@ -2667,6 +2673,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               playerArmyId: b.playerArmyId, enemyArmyId: b.enemyArmyId,
             })),
           ],
+          pendingSiegeDefenseQueue: [
+            ...(state.pendingSiegeDefenseQueue ?? []),
+            ...(result.pendingSiegeDefenses ?? []),
+          ],
           mandate: nextMandate,
           pendingDelayedEffects: remainingDelayed,
           appointments: prunedAppointments,
@@ -3443,6 +3453,18 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
 
       startTacticalBattle: (battle) => set({ tacticalBattle: battle }),
 
+      dispatchRelief: (cityId, troops) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city) return;
+        set({
+          cities: {
+            ...state.cities,
+            [cityId]: { ...city, troops: Math.max(0, city.troops - troops) },
+          },
+        });
+      },
+
       spendSiegeWorks: (cityId, gold, food) => {
         const state = get();
         const city = state.cities[cityId];
@@ -3461,6 +3483,87 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (!battle) return false;
         set({ tacticalBattle: battle, selectedArmyId: null });
         return true;
+      },
+
+      startNextSiegeDefense: () => {
+        const state = get();
+        if (state.tacticalBattle) return; // one battle at a time
+        const queue = state.pendingSiegeDefenseQueue ?? [];
+        if (queue.length === 0) return;
+        const [item, ...rest] = queue;
+        const src = state.cities[item.sourceCityId];
+        const tgt = state.cities[item.targetCityId];
+        const offs = item.officerIds
+          .map((id) => state.officers[id])
+          .filter((o): o is Officer => !!o && o.status !== 'dead' && o.status !== 'imprisoned');
+        // Stale entry (city changed hands, attackers gone) — drop and retry.
+        if (!src || !tgt || tgt.ownerForceId !== state.playerForceId || offs.length === 0 || !offs[0].forceId) {
+          set({ pendingSiegeDefenseQueue: rest });
+          return;
+        }
+        const n = offs.length;
+        const base = Math.floor(item.troops / n);
+        const attackers = offs.map((o, i) => ({
+          officer: o,
+          troops: i === 0 ? item.troops - base * (n - 1) : base,
+          unitType: inferUnitType(o),
+        }));
+        const defOffs = Object.values(state.officers)
+          .filter((o) => o.locationCityId === tgt.id && o.forceId === state.playerForceId
+            && o.status !== 'dead' && o.status !== 'unsearched' && !o.task)
+          .sort((a, b) => (b.stats.war * 0.6 + b.stats.leadership * 0.4) - (a.stats.war * 0.6 + a.stats.leadership * 0.4))
+          .slice(0, 6);
+        if (defOffs.length === 0 || tgt.troops < 1) {
+          set({ pendingSiegeDefenseQueue: rest });
+          return;
+        }
+        const dn = defOffs.length;
+        const dbase = Math.floor(tgt.troops / dn);
+        const defenders = defOffs.map((o, i) => ({
+          officer: o,
+          troops: i === 0 ? tgt.troops - dbase * (dn - 1) : dbase,
+          unitType: inferUnitType(o),
+        }));
+        // The AI prosecutes its siege like a player would — works picked by
+        // the same gates as the abstract layer.
+        const tp = cityPos(tgt);
+        const sp = cityPos(src);
+        let works: 'storm' | 'invest' | 'flood' = 'storm';
+        if (tgt.troops >= 5000) {
+          if (isRiverside(tp.x, tp.y) && state.weather?.kind !== 'drought' && src.gold >= 1000) works = 'flood';
+          else if (tgt.food < tgt.troops * 6 && src.food >= Math.max(800, item.troops) + 5000) works = 'invest';
+        }
+        const stratWeather = state.weather?.kind ?? 'clear';
+        const bearing = Math.atan2(tp.y - sp.y, tp.x - sp.x);
+        // 馳援 — the player's neighbouring cities ride to the rescue.
+        const relief = planSiegeRelief({
+          target: tgt, cities: state.cities, officers: state.officers,
+          defenderForceId: state.playerForceId, bearing,
+        });
+        const battle = setupTacticalBattle({
+          cityId: tgt.id,
+          width: 18,
+          height: 12,
+          attackerForceId: offs[0].forceId,
+          defenderForceId: state.playerForceId,
+          attackers,
+          defenders,
+          weather: (stratWeather === 'drought' ? 'clear' : stratWeather) as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
+          windDirection: state.weather?.wind ?? 'calm',
+          buildSlots: tgt.buildSlots,
+          terrainHint: { terrain: tgt.terrain, port: tgt.port, x: tgt.coords.x, y: tgt.coords.y },
+          battleGeo: { x: tp.x, y: tp.y, bearing, anchorCol: 16 },
+          siegeWorks: works,
+          reinforcements: relief.reinforcements,
+        });
+        battle.siegeDefenseSourceCityId = item.sourceCityId;
+        battle.reliefPlans = relief.plans;
+        const citiesAfterRelief = { ...state.cities };
+        for (const plan of relief.plans) {
+          const c = citiesAfterRelief[plan.cityId];
+          if (c) citiesAfterRelief[plan.cityId] = { ...c, troops: Math.max(0, c.troops - plan.troops) };
+        }
+        set({ tacticalBattle: battle, pendingSiegeDefenseQueue: rest, selectedCityId: null, cities: citiesAfterRelief });
       },
 
       startNextFieldBattle: () => {
@@ -3496,7 +3599,16 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           },
         });
       },
-      cancelTacticalBattle: () => set({ tacticalBattle: null }),
+      cancelTacticalBattle: () => {
+        const tb = get().tacticalBattle;
+        // 守城戰 cannot simply be dismissed — walking away abandons the
+        // walls and the city falls to the besieger (棄城).
+        if (tb?.siegeDefenseSourceCityId) {
+          get().applyTacticalResolution([], [], 0, 'attacker');
+          return;
+        }
+        set({ tacticalBattle: null });
+      },
 
       applyTacticalResolution: (captured, dead, lootGold, winner) => {
         const state = get();
@@ -3586,14 +3698,33 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
         }
 
+        // 馳援 — relief columns return home with their survivors (refunded
+        // in full if the battle ended before they arrived). Their losses
+        // belong to the relief city, not the besieged one.
+        let reliefLosses = 0;
+        if (tb.reliefPlans?.length) {
+          for (const plan of tb.reliefPlans) {
+            const unit = tb.units.find((u) => u.officerId === plan.officerId && u.id.includes('-reinforce-'));
+            const back = unit ? Math.max(0, unit.troops) : plan.troops;
+            if (unit) reliefLosses += Math.max(0, plan.troops - Math.max(0, unit.troops));
+            const home = cities[plan.cityId];
+            if (home) cities[plan.cityId] = { ...home, troops: home.troops + back };
+            const o = officers[plan.officerId];
+            if (o && o.status !== 'dead' && o.status !== 'imprisoned') {
+              officers[plan.officerId] = { ...o, locationCityId: plan.cityId, task: null, status: 'idle' };
+            }
+          }
+        }
+
         // Apply troop losses to the source/target cities (siege only — a
         // field battle's casualties write back to the armies below).
         const target = cities[tb.cityId];
         if (target && !tb.field) {
-          // Defender losses are taken from target city.
+          // Defender losses are taken from target city — minus what the
+          // relief columns bled (those came out of their home garrisons).
           cities[tb.cityId] = {
             ...target,
-            troops: Math.max(0, target.troops - tb.defenderLosses),
+            troops: Math.max(0, target.troops - Math.max(0, tb.defenderLosses - reliefLosses)),
           };
         }
 
@@ -3648,6 +3779,23 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           resolveArmy(tb.defenderArmyId, 'defender');
           nextArmies = armies;
           nextFieldPending = pending;
+        }
+
+        // 守城戰 — assault repelled: surviving besiegers stream back to
+        // their home city, their officers stand down there.
+        if (tb.siegeDefenseSourceCityId && winner === 'defender') {
+          const homeId = tb.siegeDefenseSourceCityId;
+          const home = cities[homeId];
+          const survivors = tb.units
+            .filter((u) => u.side === 'attacker')
+            .reduce((s, u) => s + Math.max(0, u.troops), 0);
+          if (home) cities[homeId] = { ...home, troops: home.troops + survivors };
+          for (const u of tb.units.filter((u) => u.side === 'attacker')) {
+            const o = officers[u.officerId];
+            if (o && o.status !== 'dead' && o.status !== 'imprisoned') {
+              officers[u.officerId] = { ...o, locationCityId: homeId, task: null, status: 'idle' };
+            }
+          }
         }
 
         // If attacker won, city falls (taken with attacker's surviving troops).

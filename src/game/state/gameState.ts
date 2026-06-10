@@ -236,6 +236,12 @@ export interface GameState {
   /** Player-involved field clashes the AI forced this season (AI 亲征),
    *  awaiting interactive tactical resolution after the season report. */
   pendingFieldBattleQueue: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId }>;
+  /** 守城戰 queue — AI columns at the player's gates, fought interactively
+   *  after the season report. */
+  pendingSiegeDefenseQueue: Array<{
+    sourceCityId: EntityId; targetCityId: EntityId;
+    officerIds: EntityId[]; troops: number;
+  }>;
   /** Heaven's Mandate per force (0-100). */
   mandate: MandateState;
   /** Active 截糧 / delayed stratagem effects ticking down per season. */
@@ -333,6 +339,7 @@ export const EMPTY_STATE: GameState = {
   burningCities: [],
   fieldBattleMarks: [],
   pendingFieldBattleQueue: [],
+  pendingSiegeDefenseQueue: [],
   mandate: { byForce: {} },
   pendingDelayedEffects: [],
   pendingBattleTheaters: [],
@@ -531,6 +538,7 @@ export function loadScenario(
     burningCities: [],
     fieldBattleMarks: [],
     pendingFieldBattleQueue: [],
+  pendingSiegeDefenseQueue: [],
     mandate: createInitialMandate(scenario.forces.map((f) => f.id)),
     pendingDelayedEffects: [],
     pendingBattleTheaters: [],

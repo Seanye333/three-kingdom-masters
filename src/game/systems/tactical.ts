@@ -1,5 +1,6 @@
 import type {
   BattleObjective,
+  City,
   DamagePopup,
   EntityId,
   FormationId,
@@ -18,6 +19,7 @@ import type {
   UnitType,
   Weather,
 } from '../types';
+import { cityPos } from '../data/cityGeo';
 import { NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../data/namedMaps';
 import { SHIP_CLASSES_BY_ID } from '../data/ships';
 import { pickVoiceLine } from '../data/voiceLines';
@@ -234,6 +236,60 @@ export function previewBattlefield(
   };
 }
 
+
+/**
+ * 馳援 — plan relief columns for a besieged city: up to two neighbouring
+ * cities of the defender's force each dispatch ~30% of their garrison
+ * under their best idle officer, arriving mid-battle from the map edge
+ * that matches their true direction (battle grid is oriented along the
+ * approach bearing). The caller deducts the troops and records the plans
+ * on the battle for the post-battle return trip.
+ */
+export function planSiegeRelief(args: {
+  target: City;
+  cities: Record<EntityId, City>;
+  officers: Record<EntityId, Officer>;
+  defenderForceId: EntityId | null;
+  bearing: number;
+}): { reinforcements: Reinforcement[]; plans: Array<{ cityId: EntityId; officerId: EntityId; troops: number }> } {
+  const out: { reinforcements: Reinforcement[]; plans: Array<{ cityId: EntityId; officerId: EntityId; troops: number }> } = { reinforcements: [], plans: [] };
+  if (!args.defenderForceId) return out;
+  const tp = cityPos(args.target);
+  const neighbours = (args.target.adjacentCityIds ?? [])
+    .map((id) => args.cities[id])
+    .filter((c): c is City => !!c && c.ownerForceId === args.defenderForceId && c.troops >= 3000)
+    .sort((a, b) => b.troops - a.troops)
+    .slice(0, 2);
+  for (const relief of neighbours) {
+    const officer = Object.values(args.officers)
+      .filter((o) => o.locationCityId === relief.id && o.forceId === args.defenderForceId
+        && o.status !== 'dead' && o.status !== 'unsearched' && o.status !== 'imprisoned' && !o.task)
+      .sort((a, b) => (b.stats.war * 0.6 + b.stats.leadership * 0.4) - (a.stats.war * 0.6 + a.stats.leadership * 0.4))[0];
+    if (!officer) continue;
+    const troops = Math.floor(relief.troops * 0.3);
+    if (troops < 800) continue;
+    // Map the relief city's true direction into battle-grid space (the
+    // grid's +col axis runs along the approach bearing).
+    const rp = cityPos(relief);
+    const rel = Math.atan2(rp.y - tp.y, rp.x - tp.x) - args.bearing;
+    const dc = Math.cos(rel);
+    const dr = Math.sin(rel);
+    const edge: Reinforcement['edge'] = Math.abs(dc) > Math.abs(dr)
+      ? (dc > 0 ? 'east' : 'west')
+      : (dr > 0 ? 'south' : 'north');
+    out.reinforcements.push({
+      arriveTurn: out.reinforcements.length === 0 ? 4 : 6,
+      side: 'defender',
+      officerId: officer.id,
+      troops,
+      unitType: inferUnitType(officer),
+      edge,
+      announcement: `${relief.name.zh}馳援！${officer.name.zh}率 ${troops.toLocaleString()} 殺到！`,
+    });
+    out.plans.push({ cityId: relief.id, officerId: officer.id, troops });
+  }
+  return out;
+}
 
 export function setupTacticalBattle(p: SetupParams): TacticalBattle {
   // Named map override?
@@ -1145,7 +1201,19 @@ export function applyStratagem(
         return { battle: b, ok: false, reason: 'invalid target' };
       // Wind doubles fire duration; rain halves it.
       const turns = b.weather === 'wind' ? 5 : b.weather === 'rain' ? 1 : 3;
-      const updated = setStatus(b, target.id, { kind: 'burning', turnsLeft: turns });
+      let updated = setStatus(b, target.id, { kind: 'burning', turnsLeft: turns });
+      // The ground itself catches — a spreading field fire (火攻).
+      const groundTile = tileAt(b, targetCoord);
+      if (groundTile && (groundTile.terrain === 'forest' || groundTile.terrain === 'plain' || groundTile.terrain === 'road') && b.weather !== 'rain') {
+        updated = {
+          ...updated,
+          groundFires: [
+            ...(updated.groundFires ?? []),
+            { coord: targetCoord, turnsLeft: groundTile.terrain === 'forest' ? 4 : 2 },
+          ],
+          log: [...(updated.log ?? []), { turn: b.turn, text: '烈火騰起，野地燃成一片！', kind: 'event' }],
+        };
+      }
       return finalize(updated, unitId, stratagem, 0);
     }
     case 'confusion': {
@@ -1652,6 +1720,70 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     }
   }
 
+  // ── Ground fire (火攻): hexes ablaze burn whoever stands on them,
+  // creep downwind through flammable ground, drown in the rain, and
+  // leave torched forests as open ground.
+  let nextTiles = b.tiles;
+  let nextGroundFires = b.groundFires ?? [];
+  const fireLog: NonNullable<TacticalBattle['log']> = [];
+  if (nextGroundFires.length > 0) {
+    const fireKey = (c: HexCoord) => `${c.col},${c.row}`;
+    const burningSet = new Set(nextGroundFires.map((f) => fireKey(f.coord)));
+    // Burn whoever stands in the flames (and set them alight).
+    tickedUnits = tickedUnits.map((u) => {
+      if (!burningSet.has(fireKey(u.coord)) || u.troops <= 0) return u;
+      const loss = Math.max(40, Math.floor(u.troops * 0.07));
+      const effects = u.effects.some((e) => e.kind === 'burning')
+        ? u.effects
+        : [...u.effects, { kind: 'burning' as const, turnsLeft: 2 }];
+      return { ...u, troops: Math.max(0, u.troops - loss), morale: Math.max(0, u.morale - 4), effects };
+    });
+    // Spread downwind into flammable neighbours.
+    const FLAMMABLE: Record<string, number> = { forest: 0.5, plain: 0.22, road: 0.12, marsh: 0.05 };
+    const windDelta2: Record<NonNullable<TacticalBattle['windDirection']>, { col: number; row: number }> = {
+      north: { col: 0, row: -1 }, south: { col: 0, row: 1 },
+      east: { col: 1, row: 0 }, west: { col: -1, row: 0 }, calm: { col: 0, row: 0 },
+    };
+    const wd2 = windDelta2[b.windDirection ?? 'calm'];
+    const sparked: Array<{ coord: HexCoord; turnsLeft: number }> = [];
+    if (b.weather !== 'rain') {
+      for (const f of nextGroundFires) {
+        for (const n of hexNeighbours(f.coord)) {
+          if (burningSet.has(fireKey(n))) continue;
+          const t = nextTiles.find((x) => x.coord.col === n.col && x.coord.row === n.row);
+          if (!t) continue;
+          let chance = FLAMMABLE[t.terrain] ?? 0;
+          if (chance <= 0) continue;
+          const align = wd2.col * (n.col - f.coord.col) + wd2.row * (n.row - f.coord.row);
+          if (b.windDirection !== 'calm') chance *= align > 0 ? 1.8 : 0.5;
+          if (b.weather === 'wind') chance *= 1.4;
+          if (Math.random() < chance) {
+            sparked.push({ coord: n, turnsLeft: t.terrain === 'forest' ? 4 : 2 });
+            burningSet.add(fireKey(n));
+          }
+        }
+      }
+    }
+    if (sparked.length > 0) fireLog.push({ turn: b.turn, text: '風助火勢，烈焰蔓延！', kind: 'event' });
+    // Tick down (rain smothers fast); torched forest becomes open ground.
+    const tickAmount = b.weather === 'rain' ? 2 : 1;
+    const expiring = nextGroundFires.filter((f) => f.turnsLeft - tickAmount <= 0);
+    for (const f of expiring) {
+      const t = nextTiles.find((x) => x.coord.col === f.coord.col && x.coord.row === f.coord.row);
+      if (t?.terrain === 'forest') {
+        nextTiles = nextTiles.map((x) =>
+          x.coord.col === f.coord.col && x.coord.row === f.coord.row
+            ? { ...x, terrain: 'plain' as TerrainKind }
+            : x);
+      }
+    }
+    if (b.weather === 'rain' && expiring.length > 0) fireLog.push({ turn: b.turn, text: '大雨傾盆，野火漸熄。', kind: 'event' });
+    nextGroundFires = [
+      ...nextGroundFires.map((f) => ({ ...f, turnsLeft: f.turnsLeft - tickAmount })).filter((f) => f.turnsLeft > 0),
+      ...sparked,
+    ];
+  }
+
   // ── Morale chain: any unit whose troops just dropped to 0 (routing this
   // turn) drags adjacent ALLY morale down by 15 — panic spreads.
   const justRouted = tickedUnits.filter(
@@ -1926,6 +2058,8 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   return {
     ...b,
     units: finalUnits,
+    tiles: nextTiles,
+    groundFires: nextGroundFires.length > 0 ? nextGroundFires : undefined,
     turn: b.turn + 1,
     activeSide: b.activeSide === 'attacker' ? 'defender' : 'attacker',
     attackerLosses,
@@ -1936,7 +2070,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     defenderObjective: defenderObj,
     reinforcements: remaining,
     casualties,
-    log: [...(b.log ?? []), ...arrivalLog, ...structureLog],
+    log: [...(b.log ?? []), ...fireLog, ...arrivalLog, ...structureLog],
     damagePopups: structurePopups, // visible briefly on turn flip
     cityStructures: updatedStructures,
   };

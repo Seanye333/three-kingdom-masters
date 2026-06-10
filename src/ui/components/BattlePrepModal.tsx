@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FORMATIONS, NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../../game/data';
-import { inferUnitType, setupTacticalBattle } from '../../game/systems/tactical';
+import { inferUnitType, setupTacticalBattle, planSiegeRelief } from '../../game/systems/tactical';
 import { cityPos } from '../../game/data/cityGeo';
 import { isRiverside } from '../../game/data/geography';
 import { useGameStore } from '../../game/state/store';
@@ -153,6 +153,7 @@ export function BattlePrepModal({
   // flowing water (not a drought); invest burns the besiegers' grain.
   const [siegeWorks, setSiegeWorks] = useState<'storm' | 'invest' | 'flood'>('storm');
   const spendSiegeWorks = useGameStore((s) => s.spendSiegeWorks);
+  const dispatchRelief = useGameStore((s) => s.dispatchRelief);
   const targetPos = target ? cityPos(target) : null;
   const riverside = targetPos ? isRiverside(targetPos.x, targetPos.y) : false;
   const drought = currentWeather?.kind === 'drought';
@@ -199,6 +200,15 @@ export function BattlePrepModal({
     const stratWeather = currentWeather?.kind ?? 'clear';
     const tacticalWeather = stratWeather === 'drought' ? 'clear' : stratWeather;
 
+    // 馳援 — the defender's neighbouring cities ride to the rescue
+    // mid-battle (their troops leave home now; survivors return after).
+    const sp0 = cityPos(source);
+    const tp0 = cityPos(target);
+    const bearing0 = Math.atan2(tp0.y - sp0.y, tp0.x - sp0.x);
+    const relief = planSiegeRelief({
+      target, cities, officers,
+      defenderForceId: target.ownerForceId, bearing: bearing0,
+    });
     const battle = setupTacticalBattle({
       cityId: target.id,
       // Procedural default sized for tactical depth — named maps still
@@ -236,7 +246,10 @@ export function BattlePrepModal({
         };
       })(),
       siegeWorks,
+      reinforcements: relief.reinforcements,
     });
+    battle.reliefPlans = relief.plans;
+    for (const plan of relief.plans) dispatchRelief(plan.cityId, plan.troops);
 
     // 舌戰 is now triggered AFTER the 3D battle opens — see TacticalBattleScreen.
     startTactical(battle);

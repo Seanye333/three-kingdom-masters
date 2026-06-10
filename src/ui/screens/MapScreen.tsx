@@ -618,10 +618,14 @@ function FieldBattleMount() {
   const theaters = useGameStore((s) => s.pendingBattleTheaters);
   const tacticalBattle = useGameStore((s) => s.tacticalBattle);
   const queueLen = useGameStore((s) => s.pendingFieldBattleQueue?.length ?? 0);
+  const siegeQueueLen = useGameStore((s) => s.pendingSiegeDefenseQueue?.length ?? 0);
   const startNext = useGameStore((s) => s.startNextFieldBattle);
+  const startNextSiege = useGameStore((s) => s.startNextSiegeDefense);
   useEffect(() => {
-    if (lastReport || theaters.length > 0 || tacticalBattle || queueLen === 0) return;
-    startNext();
-  }, [lastReport, theaters.length, tacticalBattle, queueLen, startNext]);
+    if (lastReport || theaters.length > 0 || tacticalBattle) return;
+    // Field clashes first, then any column at our gates (守城戰).
+    if (queueLen > 0) { startNext(); return; }
+    if (siegeQueueLen > 0) startNextSiege();
+  }, [lastReport, theaters.length, tacticalBattle, queueLen, siegeQueueLen, startNext, startNextSiege]);
   return null;
 }

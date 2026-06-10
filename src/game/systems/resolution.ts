@@ -81,6 +81,14 @@ export interface ResolutionOutput {
   /** Player-involved field clashes deferred to interactive tactical battles
    *  (AI 亲征) — the store fights these after the season report. */
   pendingFieldBattles?: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId; x: number; y: number }>;
+  /** 守城戰 — AI columns arriving at a defended player city this season,
+   *  deferred to interactive defence battles (fought after the report).
+   *  Troops are already deducted from the source city; survivors return
+   *  only if the assault is repelled. */
+  pendingSiegeDefenses?: Array<{
+    sourceCityId: EntityId; targetCityId: EntityId;
+    officerIds: EntityId[]; troops: number;
+  }>;
   /** Pending delayed effects from stratagems (e.g. 截糧 troop drain). */
   delayedEffects?: Array<{ targetCityId?: EntityId; seasons: number; perSeason: number }>;
   /**
@@ -460,7 +468,50 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   const moving = liveMarches.filter((c) => !c.holding);
   const arriving = moving.filter((c) => (c.seasonsRemaining ?? 1) <= 1);
   // City-target arrivals assault/merge; open-cell arrivals become garrisons.
-  const marches = arriving.filter((c) => c.targetX == null).map(withTroops);
+  let marches = arriving.filter((c) => c.targetX == null).map(withTroops);
+
+  // ── 守城戰 — an AI column arriving at a garrisoned player city becomes
+  // an interactive defence battle instead of an abstract roll. The column
+  // is committed (troops leave its source now); survivors stream home only
+  // if the walls hold. Capped at one per season.
+  const pendingSiegeDefenses: NonNullable<ResolutionOutput['pendingSiegeDefenses']> = [];
+  if (input.playerForceId) {
+    for (const cmd of marches) {
+      if (pendingSiegeDefenses.length >= 1) break;
+      const atkOff = officers[cmd.officerId];
+      const target = cities[cmd.targetCityId];
+      const src = cities[cmd.cityId];
+      if (!atkOff?.forceId || !target || !src) continue;
+      if (atkOff.forceId === input.playerForceId) continue;
+      if (target.ownerForceId !== input.playerForceId) continue;
+      if (!isHostilePermitted(input.diplomacy, atkOff.forceId, target.ownerForceId)) continue;
+      if (cmd.troops < 2500) continue;
+      // The garrison must be able to man the walls — empty cities still
+      // fall abstractly.
+      const garrison = Object.values(officers).some((o) =>
+        o.locationCityId === target.id && o.forceId === input.playerForceId
+        && o.status !== 'dead' && o.status !== 'unsearched' && !o.task);
+      if (target.troops < 500 || !garrison) continue;
+      cities[src.id] = { ...src, troops: Math.max(0, src.troops - cmd.troops) };
+      pendingSiegeDefenses.push({
+        sourceCityId: src.id,
+        targetCityId: target.id,
+        officerIds: [cmd.officerId, ...(cmd.additionalOfficerIds ?? [])],
+        troops: cmd.troops,
+      });
+      entries.push({
+        cityId: target.id,
+        kind: 'battle',
+        text: `${atkOff.name.en}'s host (${cmd.troops.toLocaleString()}) is at the gates of ${target.name.en} — man the walls!`,
+        textZh: `${atkOff.name.zh}率軍 ${cmd.troops.toLocaleString()} 兵臨${target.name.zh}城下 — 守城戰開！`,
+      });
+    }
+    if (pendingSiegeDefenses.length > 0) {
+      const deferredIds = new Set(pendingSiegeDefenses.map((d) => d.officerIds[0]));
+      marches = marches.filter((c) => !deferredIds.has(c.officerId));
+    }
+  }
+
   const arrivedCells = arriving
     .filter((c) => c.targetX != null)
     .map(withTroops)
@@ -1127,6 +1178,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     territoryOwnership,
     fieldBattleMarks: fieldBattleMarks.length > 0 ? fieldBattleMarks : undefined,
     pendingFieldBattles: pendingFieldBattles.length > 0 ? pendingFieldBattles : undefined,
+    pendingSiegeDefenses: pendingSiegeDefenses.length > 0 ? pendingSiegeDefenses : undefined,
     delayedEffects: delayedEffects.length > 0 ? delayedEffects : undefined,
     deedDeltas: deedDeltas.length > 0 ? deedDeltas : undefined,
   };

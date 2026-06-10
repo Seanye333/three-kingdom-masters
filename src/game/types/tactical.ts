@@ -236,6 +236,18 @@ export interface TacticalBattle {
   id: EntityId;
   /** The strategic-map city we're fighting over. */
   cityId: EntityId;
+  /** 守城戰 — set when this is an interactive defence of a player city
+   *  against an AI column; survivors of a repelled assault stream back
+   *  to this city. */
+  siegeDefenseSourceCityId?: EntityId;
+  /** 馳援 — relief columns marching to this battle from the defender's
+   *  neighbouring cities. Troops were deducted at dispatch; survivors
+   *  return home afterwards (refunded in full if they never arrived). */
+  reliefPlans?: Array<{ cityId: EntityId; officerId: EntityId; troops: number }>;
+  /** 火攻 — ground hexes ablaze: damage whoever stands on them, creep
+   *  downwind through flammable terrain, die in the rain, and burn
+   *  forests down to open ground. */
+  groundFires?: Array<{ coord: HexCoord; turnsLeft: number }>;
   attackerForceId: EntityId | null;
   defenderForceId: EntityId | null;
   width: number;
