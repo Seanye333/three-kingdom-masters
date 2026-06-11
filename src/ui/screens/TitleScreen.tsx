@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { SCENARIOS } from '../../game/data';
 import { warmStrategicAssets } from '../components/StrategicMap3D';
 import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
-import { AchievementsModal } from '../components/AchievementsModal';
 import { CustomOfficerCreator } from '../components/CustomOfficerCreator';
 import { ItemsBrowser } from '../components/ItemsBrowser';
-import { FormationsModal } from '../components/FormationsModal';
 import { TacticsModal } from '../components/TacticsModal';
 import { PoliciesModal } from '../components/PoliciesModal';
 import { IndividualitiesModal } from '../components/IndividualitiesModal';
@@ -18,6 +16,13 @@ import { HeroModeModal } from '../components/HeroModeModal';
 import { EventEditorModal } from '../components/EventEditorModal';
 import { OfficerPortrait } from '../components/OfficerPortrait';
 import { DYNASTY_DEFS, type Dynasty } from '../../game/data/dynasties';
+
+// Lazy — MapScreen also imports these dynamically; a static import here was
+// pinning them into the main bundle (rolldown INEFFECTIVE_DYNAMIC_IMPORT).
+const AchievementsModal = lazy(() =>
+  import('../components/AchievementsModal').then((m) => ({ default: m.AchievementsModal })));
+const FormationsModal = lazy(() =>
+  import('../components/FormationsModal').then((m) => ({ default: m.FormationsModal })));
 import { useT, useLanguage, useDesc } from '../i18n';
 import styles from './TitleScreen.module.css';
 
@@ -607,9 +612,13 @@ export function TitleScreen() {
       {showHeroMode && <HeroModeModal onClose={() => setShowHeroMode(false)} />}
       {showEventEditor && <EventEditorModal scenario={scenario} onClose={() => setShowEventEditor(false)} />}
       {showLoad && <SaveSlotsModal mode="load" onClose={() => setShowLoad(false)} />}
-      {showAchievements && <AchievementsModal onClose={() => setShowAchievements(false)} />}
+      {showAchievements && (
+        <Suspense fallback={null}><AchievementsModal onClose={() => setShowAchievements(false)} /></Suspense>
+      )}
       {showItems && <ItemsBrowser onClose={() => setShowItems(false)} />}
-      {showFormations && <FormationsModal onClose={() => setShowFormations(false)} />}
+      {showFormations && (
+        <Suspense fallback={null}><FormationsModal onClose={() => setShowFormations(false)} /></Suspense>
+      )}
       {showTactics && <TacticsModal onClose={() => setShowTactics(false)} />}
       {showPolicies && <PoliciesModal onClose={() => setShowPolicies(false)} />}
       {showIndividualities && <IndividualitiesModal onClose={() => setShowIndividualities(false)} />}
