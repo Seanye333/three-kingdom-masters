@@ -15,12 +15,15 @@ import type { City, Force, HexCoord, Season } from '../../game/types';
 import { FACILITY_DEFS } from '../../game/types';
 // The battle diorama reuses the real battle scene (embedded mode) + its hex
 // coordinate helper, so the fight on the world map IS the fight.
-import { BattleScene, hexWorld as battleHexWorld, stratagemFxKind, FX_DURATION } from '../screens/TacticalBattleScreen3D';
+import { BattleScene, hexWorld as battleHexWorld, stratagemFxKind, FX_DURATION, SIGNATURE_FLAVOR } from '../screens/TacticalBattleScreen3D';
 // In-place battle commanding — the SAME pure battle ops the fullscreen uses.
-import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStratagem } from '../../game/systems/tactical';
+import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStratagem, hexDistance } from '../../game/systems/tactical';
+import { canDuel } from '../../game/systems/duel';
+import { personalTacticsForUnit } from '../../game/systems/personalTactics';
+import { DuelGameModal } from './DuelGameModal';
 import { playSfx } from '../../game/systems/sound';
 import { STRATAGEMS } from '../../game/data';
-import type { StratagemId } from '../../game/types';
+import type { Officer, StratagemId } from '../../game/types';
 import type { WeatherKind } from '../../game/systems/weather';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
@@ -2918,7 +2921,7 @@ const HEXWORLD_COLOR: Record<string, string> = {
 // builds COLUMN-CHUNKED so the title screen's asset warmer can grind it out
 // during idle time before the player ever opens the map.
 let HEXWORLD_CACHE: HexWorldTile[] | null = null;
-let hexWarmPartial: HexWorldTile[] = [];
+const hexWarmPartial: HexWorldTile[] = [];
 let hexWarmCol = 0;
 function buildHexColumn(c: number, out: HexWorldTile[]): boolean {
   const x = -MAP_W / 2 + HEXW_R + c * HEXW_COL;
@@ -3166,7 +3169,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
   /** 原地指揮 — in-place battle commanding state, owned by the outer shell. */
   dioSelectedId: string | null;
   dioMode: 'move' | 'attack';
-  dioCast: StratagemId | null;
+  dioCast: { id: StratagemId; tacticId?: string } | null;
   dioArcs: Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>;
   dioFx: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }>;
   dioHover: HexCoord | null;
@@ -3362,7 +3365,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
                 battle={tacticalBattle}
                 playerSide={pSide}
                 actionMode={dioCast && dioSelectedId
-                  ? { kind: 'stratagem', id: dioCast }
+                  ? { kind: 'stratagem', id: dioCast.id, tacticId: dioCast.tacticId }
                   : dioSelectedId ? { kind: dioMode } : { kind: 'none' }}
                 selectedId={dioSelectedId}
                 hovered={dioHover}
@@ -3587,8 +3590,13 @@ export function StrategicMap3D() {
     setDioHoverRaw((prev) => (prev?.col === c?.col && prev?.row === c?.row ? prev : c));
   };
   // 計謀 — an armed stratagem waiting for its target hex; FX ride the diorama.
-  const [dioCast, setDioCast] = useState<StratagemId | null>(null);
+  // tacticId set = a personal/signature tactic riding an underlying stratagem.
+  const [dioCast, setDioCast] = useState<{ id: StratagemId; tacticId?: string } | null>(null);
   const [dioFx, setDioFx] = useState<Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }>>([]);
+  // 單挑 — armed duel waiting for an adjacent enemy commander; the bout itself
+  // runs in the same DuelGameModal the fullscreen uses.
+  const [dioDuelArm, setDioDuelArm] = useState(false);
+  const [worldDuel, setWorldDuel] = useState<{ me: Officer; foe: Officer } | null>(null);
   const [dioArcs, setDioArcs] = useState<Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>>([]);
   const dioSelectedId = worldBattle && dioPick && dioPick.bid === worldBattle.id
     && worldBattle.units.some((u) => u.id === dioPick.uid) ? dioPick.uid : null;
@@ -3618,28 +3626,53 @@ export function StrategicMap3D() {
     if (dioCast) {
       const sel0 = dioSelectedId ? b.units.find((x) => x.id === dioSelectedId) : null;
       if (!sel0) { setDioCast(null); return; }
-      const r = applyStratagem(b, sel0.id, dioCast, c, useGameStore.getState().officers);
+      const r = applyStratagem(b, sel0.id, dioCast.id, c, useGameStore.getState().officers);
       if (r.ok) {
-        const fxKind = stratagemFxKind(dioCast);
+        const fxKind = stratagemFxKind(dioCast.id);
         if (fxKind) {
           const fxId = Date.now();
-          const isSelf = ['defend', 'precognition', 'dragon-veil'].includes(dioCast);
+          const isSelf = ['defend', 'precognition', 'dragon-veil'].includes(dioCast.id);
           const fxCoord = isSelf ? sel0.coord : c;
           setDioFx((arr) => [...arr, { id: fxId, coord: fxCoord, kind: fxKind, spawnedAt: fxId }]);
           const lifeMs = (FX_DURATION[fxKind] ?? 1.5) * 1000 + 200;
           setTimeout(() => setDioFx((arr) => arr.filter((f) => f.id !== fxId)), lifeMs);
         }
-        startBattleUpdate(r.battle);
+        // N6 — signature flavor line for famous personal tactics.
+        const flavor = dioCast.tacticId ? SIGNATURE_FLAVOR[dioCast.tacticId] : undefined;
+        const next = flavor
+          ? { ...r.battle, log: [...(r.battle.log ?? []), { turn: r.battle.turn, text: flavor.en, kind: 'event' as const }] }
+          : r.battle;
+        startBattleUpdate(next);
       } else if (r.reason) {
         alert(r.reason);
       }
       setDioCast(null);
       return;
     }
+    // An armed duel needs an ADJACENT enemy commander — same gates as the
+    // fullscreen flow (canDuel both sides, costs the unit's AP).
+    if (dioDuelArm && u && u.side !== pSide) {
+      const sel0 = dioSelectedId ? b.units.find((x) => x.id === dioSelectedId) : null;
+      if (!sel0) { setDioDuelArm(false); return; }
+      if (hexDistance(sel0.coord, u.coord) !== 1) { alert('須與敵將相鄰方可單挑'); return; }
+      const officers = useGameStore.getState().officers;
+      const me = officers[sel0.officerId];
+      const foe = officers[u.officerId];
+      if (!me || !foe) return;
+      const meCheck = canDuel(me);
+      const foeCheck = canDuel(foe);
+      if (!meCheck.ok) { alert(`我將無法單挑: ${meCheck.reason}`); return; }
+      if (!foeCheck.ok) { alert(`敵將無法應戰: ${foeCheck.reason}`); return; }
+      startBattleUpdate({ ...b, units: b.units.map((unit) => unit.id === sel0.id ? { ...unit, ap: 0 } : unit) });
+      setWorldDuel({ me, foe });
+      setDioDuelArm(false);
+      return;
+    }
     if (u && u.side === pSide) {
       setDioPick({ bid: b.id, uid: u.id });
       setDioMode('move');
       setDioCast(null);
+      setDioDuelArm(false);
       return;
     }
     const sel = dioSelectedId ? b.units.find((x) => x.id === dioSelectedId) : null;
@@ -3836,6 +3869,36 @@ export function StrategicMap3D() {
                 </span>
                 {modeBtn('move', '移動', 'Move')}
                 {modeBtn('attack', '攻擊', 'Attack')}
+                {/* 單挑 — adjacent enemy commander, same gates as fullscreen. */}
+                <button
+                  onClick={() => { setDioDuelArm(!dioDuelArm); setDioCast(null); }}
+                  title={t('單挑 — 點相鄰敵將開打(耗盡AP)', 'Duel — tap an adjacent enemy commander (costs all AP)')}
+                  style={{
+                    background: dioDuelArm ? 'rgba(214,126,126,0.22)' : 'transparent',
+                    border: `1px solid ${dioDuelArm ? '#d67e7e' : '#5a3a3a'}`,
+                    color: dioDuelArm ? '#f0bcbc' : '#c88888',
+                    padding: '0.15rem 0.45rem', cursor: 'pointer',
+                    fontFamily: 'inherit', fontSize: '0.72rem',
+                  }}
+                >{t('單挑', 'Duel')}</button>
+                {/* 個人戰術 — signature moves riding underlying stratagems. */}
+                {personalTacticsForUnit(off, sel).slice(0, 3).map((pt) => {
+                  const armed = dioCast?.id === pt.underlying && dioCast?.tacticId === pt.tacticId;
+                  return (
+                    <button
+                      key={pt.id}
+                      onClick={() => { setDioCast(armed ? null : { id: pt.underlying, tacticId: pt.tacticId }); setDioDuelArm(false); }}
+                      title={pt.nameEn}
+                      style={{
+                        background: armed ? 'rgba(193,154,240,0.22)' : 'transparent',
+                        border: `1px solid ${armed ? '#c19af0' : '#4a3a5a'}`,
+                        color: armed ? '#ddc8f5' : '#a88fc8',
+                        padding: '0.15rem 0.45rem', cursor: 'pointer',
+                        fontFamily: 'inherit', fontSize: '0.72rem',
+                      }}
+                    >{pt.nameZh}</button>
+                  );
+                })}
                 {/* 計謀 — same availability rules as the fullscreen panel. */}
                 {STRATAGEMS.filter((s) => {
                   if (s.signatureOf && !s.signatureOf.includes(off.id)) return false;
@@ -3843,12 +3906,12 @@ export function StrategicMap3D() {
                   if (s.minWar && off.stats.war < s.minWar) return false;
                   if (s.requiresUnitType && !s.requiresUnitType.includes(sel.unitType)) return false;
                   return true;
-                }).slice(0, 5).map((s) => {
-                  const armed = dioCast === s.id;
+                }).slice(0, 4).map((s) => {
+                  const armed = dioCast?.id === s.id && !dioCast?.tacticId;
                   return (
                     <button
                       key={s.id}
-                      onClick={() => setDioCast(armed ? null : s.id)}
+                      onClick={() => { setDioCast(armed ? null : { id: s.id }); setDioDuelArm(false); }}
                       title={s.descriptionZh ?? s.description}
                       style={{
                         background: armed ? 'rgba(136,183,232,0.22)' : 'transparent',
@@ -3860,9 +3923,9 @@ export function StrategicMap3D() {
                     >{s.name.zh}</button>
                   );
                 })}
-                {dioCast && (
-                  <span style={{ color: '#88b7e8', fontSize: '0.7rem' }}>
-                    {t('點目標格施放', 'tap a target hex')}
+                {(dioCast || dioDuelArm) && (
+                  <span style={{ color: dioDuelArm ? '#d67e7e' : '#88b7e8', fontSize: '0.7rem' }}>
+                    {dioDuelArm ? t('點相鄰敵將', 'tap adjacent foe') : t('點目標格施放', 'tap a target hex')}
                   </span>
                 )}
               </>
@@ -3905,6 +3968,45 @@ export function StrategicMap3D() {
           </div>
         );
       })()}
+
+      {/* 單挑 from the world map — same modal & writeback as the fullscreen. */}
+      {worldDuel && (
+        <DuelGameModal
+          attacker={worldDuel.me}
+          defender={worldDuel.foe}
+          onComplete={(outcome) => {
+            const { me, foe } = worldDuel;
+            const b = useGameStore.getState().tacticalBattle;
+            setWorldDuel(null);
+            if (!b) return;
+            const killedId = outcome.killedId === 'defender' ? foe.id
+              : outcome.killedId === 'attacker' ? me.id : null;
+            let next = b;
+            if (killedId) {
+              const fallen = next.units.find((u) => u.officerId === killedId);
+              const prevCas = next.casualties ?? { attacker: [], defender: [] };
+              next = {
+                ...next,
+                units: next.units.filter((u) => u.officerId !== killedId),
+                casualties: fallen
+                  ? { ...prevCas, [fallen.side]: [...prevCas[fallen.side], killedId] }
+                  : prevCas,
+              };
+            }
+            next = {
+              ...next,
+              log: [...(next.log ?? []), {
+                turn: next.turn,
+                text: outcome.winner === 'draw'
+                  ? `${me.name.en} and ${foe.name.en} fought to a draw — both wounded.`
+                  : `${outcome.winner === 'attacker' ? me.name.en : foe.name.en} bested ${outcome.winner === 'attacker' ? foe.name.en : me.name.en} in single combat!`,
+                kind: 'event' as const,
+              }],
+            };
+            startBattleUpdate(next);
+          }}
+        />
+      )}
 
       {/* 軍令提示 — with a column selected, spell out what a tap does. The
           orders existed but were invisible; this makes them discoverable. */}
