@@ -586,6 +586,12 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     naval: isNaval || undefined,
     wallHp,
     field: p.field || undefined,
+    // The board's window into the strategic map — lets every view (this battle,
+    // the city map, the world map) describe where it sits in one coordinate
+    // space, so a "you are here" locator and zoom transitions line up.
+    geoAnchor: p.battleGeo
+      ? { x: p.battleGeo.x, y: p.battleGeo.y, bearing: p.battleGeo.bearing }
+      : undefined,
   };
 }
 

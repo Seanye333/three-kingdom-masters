@@ -38,6 +38,8 @@ import { DuelGameModal } from '../components/DuelGameModal';
 import { OfficerPortrait } from '../components/OfficerPortrait';
 import { MapDefs as SharedMapDefs, MapFrame as SharedMapFrame, CompassRose as SharedCompassRose, TerrainArt as SharedTerrainArt } from '../components/hexMapShared';
 import { TacticalBattleScreen3D } from './TacticalBattleScreen3D';
+import { LocatorMap } from '../components/LocatorMap';
+import { battleViewWindow } from '../viewWindow';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { DebateGameModal } from '../components/DebateGameModal';
 import { useT, useDesc } from '../i18n';
@@ -450,6 +452,14 @@ export function TacticalBattleScreen() {
 
   return (
     <div className={styles.root}>
+      {/* "You are here" locator — this battlefield's window on the world map,
+          rotated to the assault's true bearing. Hidden during the cinematic. */}
+      {!showCinematic && (
+        <div style={{ position: 'fixed', left: 10, bottom: 10, zIndex: 970 }}>
+          <LocatorMap window={battleViewWindow(battle)} focusCityId={battle.cityId} width={132} />
+        </div>
+      )}
+
       {/* Signature stratagem fullscreen flash — fades over 1.6s. */}
       {sigFlash && (
         <div

@@ -324,6 +324,12 @@ export interface TacticalBattle {
    */
   field?: boolean;
   /**
+   * The board's window into the strategic map: where its centre sits (x,y on the
+   * 1000×720 world) and the bearing (radians, attacker→defender) it's rotated to.
+   * Lets a shared locator place "you are here" and orient the compass.
+   */
+  geoAnchor?: { x: number; y: number; bearing: number };
+  /**
    * 演習 — a sparring drill launched from a city. Casualties, captures, XP and
    * loot are all discarded when it ends; nothing writes back to the campaign.
    */

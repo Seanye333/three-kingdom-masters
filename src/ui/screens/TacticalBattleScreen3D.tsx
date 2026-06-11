@@ -15,6 +15,7 @@ import { canDuel } from '../../game/systems/duel';
 import { personalTacticsForUnit } from '../../game/systems/personalTactics';
 import { FORMATIONS_BY_ID, STRATAGEMS } from '../../game/data';
 import { BattleResultsModal } from '../components/BattleResultsModal';
+import { IntroDive } from '../components/IntroDive';
 import { DuelGameModal } from '../components/DuelGameModal';
 import { useT, useDesc, useLanguage } from '../i18n';
 
@@ -1796,6 +1797,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
   }, [battle, selectedId, actionMode, start]);
 
   const [attackArcs, setAttackArcs] = useState<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }[]>([]);
+  const [introDone, setIntroDone] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [interactiveDuel, setInteractiveDuel] = useState<{ me: Officer; foe: Officer } | null>(null);
   const [voiceLine, setVoiceLine] = useState<{ text: string; key: number } | null>(null);
@@ -2061,9 +2063,16 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
         <Canvas
           shadows
           dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
-          camera={{ position: [target[0] - 8, 14, target[2] + 12], fov: 45 }}
+          camera={{ position: [target[0] - 8, 40, target[2] + 6], fov: 45 }}
           gl={{ antialias: !IS_MOBILE }}
         >
+          {/* Swoop down onto the field from overhead when the battle opens. */}
+          <IntroDive
+            start={[target[0] - 8, 40, target[2] + 6]}
+            end={[target[0] - 8, 14, target[2] + 12]}
+            target={target}
+            onDone={() => setIntroDone(true)}
+          />
           <Suspense fallback={null}>
             <BattleScene
               battle={battle}
@@ -2078,6 +2087,7 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
               officers={officers}
             />
             <OrbitControls
+              enabled={introDone}
               target={target}
               maxPolarAngle={Math.PI / 2.2}
               minDistance={6}

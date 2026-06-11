@@ -1,0 +1,117 @@
+// ─── Shared "you are here" locator ──────────────────────────────────────
+// A small north-up minimap of the whole world that highlights the current
+// view's window (city map or battle board) as a rectangle — rotated to its
+// real bearing — so you always know where on the strategic map you are and
+// which way is north. Driven entirely by the unified ViewWindow model.
+
+import { useGameStore } from '../../game/state/store';
+import { MAP_W, MAP_H } from '../../game/data/geography';
+import type { ViewWindow } from '../viewWindow';
+import { useT } from '../i18n';
+
+export function LocatorMap({
+  window: win, focusCityId, width = 150,
+}: {
+  window: ViewWindow | null;
+  focusCityId?: string;
+  width?: number;
+}) {
+  const cities = useGameStore((s) => s.cities);
+  const forces = useGameStore((s) => s.forces);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const t = useT();
+
+  const height = width * (MAP_H / MAP_W);
+  const sx = width / MAP_W;
+  const sy = height / MAP_H;
+
+  const cityList = Object.values(cities);
+  const focus = focusCityId ? cities[focusCityId] : null;
+
+  const winRectDeg = win ? (win.rotation * 180) / Math.PI : 0;
+
+  return (
+    <div style={{
+      background: 'rgba(12, 10, 6, 0.82)',
+      border: '1px solid #5a4530',
+      borderRadius: 4,
+      padding: '4px 5px 2px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+    }}>
+      <svg width={width} height={height} style={{ display: 'block' }}>
+        {/* Sea backdrop */}
+        <rect x={0} y={0} width={width} height={height} fill="#10202e" rx={2} />
+
+        {/* City dots — coloured by owner; player cities brighter. */}
+        {cityList.map((c) => {
+          const owner = c.ownerForceId ? forces[c.ownerForceId] : null;
+          const mine = c.ownerForceId === playerForceId;
+          return (
+            <circle
+              key={c.id}
+              cx={c.coords.x * sx}
+              cy={c.coords.y * sy}
+              r={mine ? 1.8 : 1.3}
+              fill={owner?.color ?? '#6a6050'}
+              opacity={mine ? 1 : 0.6}
+            />
+          );
+        })}
+
+        {/* The current view's window, rotated to its true bearing. */}
+        {win && (
+          <rect
+            x={win.cx * sx - (win.spanX * sx) / 2}
+            y={win.cy * sy - (win.spanY * sy) / 2}
+            width={Math.max(4, win.spanX * sx)}
+            height={Math.max(4, win.spanY * sy)}
+            fill="rgba(240, 224, 160, 0.12)"
+            stroke="#f0e0b0"
+            strokeWidth={1.2}
+            transform={`rotate(${winRectDeg}, ${win.cx * sx}, ${win.cy * sy})`}
+          />
+        )}
+
+        {/* Focused city — a gold ring + name. */}
+        {focus && (
+          <>
+            <circle
+              cx={focus.coords.x * sx}
+              cy={focus.coords.y * sy}
+              r={3.2}
+              fill="none"
+              stroke="#f0d98a"
+              strokeWidth={1.4}
+            />
+            <text
+              x={focus.coords.x * sx}
+              y={focus.coords.y * sy - 5}
+              textAnchor="middle"
+              fontSize={9}
+              fill="#f0d98a"
+              fontFamily="Songti SC, serif"
+              style={{ paintOrder: 'stroke', stroke: '#000', strokeWidth: 2 }}
+            >
+              {focus.name.zh}
+            </text>
+          </>
+        )}
+
+        {/* Compass — the locator is always north-up. */}
+        <g transform={`translate(${width - 12}, 12)`}>
+          <line x1={0} y1={5} x2={0} y2={-5} stroke="#d4a84a" strokeWidth={1.2} />
+          <path d="M 0 -7 L -2.4 -3 L 2.4 -3 Z" fill="#d4a84a" />
+          <text x={0} y={-9} textAnchor="middle" fontSize={7} fill="#d4a84a">N</text>
+        </g>
+      </svg>
+      <div style={{
+        color: '#8a7050', fontSize: '0.58rem', letterSpacing: '0.05rem',
+        textAlign: 'center', marginTop: 1, fontFamily: 'Songti SC, serif',
+      }}>
+        {win?.kind === 'battle'
+          ? t('戰場位置', 'Battlefield location')
+          : t('城邑位置', 'City location')}
+      </div>
+    </div>
+  );
+}

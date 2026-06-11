@@ -1704,12 +1704,40 @@ const CAMP_TENTS: ReadonlyArray<readonly [number, number]> = [
 ];
 
 /** Crossed-sabre / broken-stockade markers at recent field-battle sites. */
+/** An expanding ground ring marking a fresh battle site — the world reacting to
+ *  a fight that just happened (③ causal flow). Loops, with a per-site phase. */
+function BattlePulseRing3D({ wx, y, wz, color, phase }: {
+  wx: number; y: number; wz: number; color: string; phase: number;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  const mat = useRef<THREE.MeshBasicMaterial>(null);
+  useFrame((state) => {
+    const t = ((state.clock.elapsedTime + phase) % 1.7) / 1.7; // 0..1 loop
+    const s = 0.12 + t * 0.55;
+    if (ref.current) ref.current.scale.set(s, s, s);
+    if (mat.current) mat.current.opacity = (1 - t) * 0.55;
+  });
+  return (
+    <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[wx, y + 0.03, wz]}>
+      <ringGeometry args={[0.7, 0.9, 28]} />
+      <meshBasicMaterial ref={mat} color={color} transparent side={THREE.DoubleSide} />
+    </mesh>
+  );
+}
+
 function FieldBattleMarks3D({ marks }: {
   marks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number }>;
 }) {
   if (!marks || marks.length === 0) return null;
   return (
     <group>
+      {/* Fresh sites (this season) pulse — "fought here just now". */}
+      {marks.filter((m) => m.seasonsLeft >= 2).map((m, i) => {
+        const [wx, wz] = pxToWorld(m.x, m.y);
+        const y = sampleTerrainHeight(wx, wz) + 0.06;
+        const color = m.kind === 'ambush' ? '#e0a83a' : m.kind === 'camp' ? '#e0552a' : '#d4a84a';
+        return <BattlePulseRing3D key={`pulse-${i}`} wx={wx} y={y} wz={wz} color={color} phase={i * 0.37} />;
+      })}
       {marks.map((m, i) => {
         const [wx, wz] = pxToWorld(m.x, m.y);
         const y = sampleTerrainHeight(wx, wz) + 0.06;
