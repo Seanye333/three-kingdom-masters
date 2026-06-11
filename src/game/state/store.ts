@@ -3532,8 +3532,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         if (state.tacticalBattle) return false; // one battle at a time
         const city = state.cities[cityId];
         if (!city || city.ownerForceId !== state.playerForceId) return false;
-        // The garrison takes the field — its best officers split into two
-        // sparring teams (紅 / 藍) on the city's own battlefield.
+        // 守城演習 — the player defends this city's REAL battlefield: its walls,
+        // its terrain, and the perimeter defences it has actually built. A
+        // mirror of the garrison plays the sparring assault force (AI-driven).
         const garrison = Object.values(state.officers)
           .filter((o) => o.locationCityId === cityId && o.forceId === state.playerForceId
             && o.status !== 'dead' && o.status !== 'unsearched' && o.status !== 'imprisoned')
@@ -3556,16 +3557,20 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           cityId,
           width: 18,
           height: 12,
-          attackerForceId: state.playerForceId,
+          // Player holds the walls (defender); the sparring assault is AI-run
+          // under a sentinel force id so playerSide resolves to 'defender'.
+          attackerForceId: '__spar__',
           defenderForceId: state.playerForceId,
           attackers: teamOf(garrison),
           defenders: teamOf(garrison),
           weather: (stratWeather === 'drought' ? 'clear' : stratWeather) as 'clear' | 'rain' | 'wind' | 'fog' | 'snow',
           timeOfDay: rollTimeOfDay(),
           windDirection: state.weather?.wind ?? 'calm',
+          // The city's own perimeter defences (箭樓 / 拒馬 / 鐵索…) man the walls
+          // and fire on the AI attacker — exactly as in a live 守城戰.
+          buildSlots: city.buildSlots,
           terrainHint: { terrain: city.terrain, port: city.port, x: city.coords.x, y: city.coords.y },
           battleGeo: { x: tp.x, y: tp.y, bearing: 0, anchorCol: 16, season: state.date.season },
-          field: true,
         });
         battle.practice = true;
         set({ tacticalBattle: battle, selectedCityId: cityId });

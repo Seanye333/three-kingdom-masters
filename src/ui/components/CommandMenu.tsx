@@ -167,7 +167,7 @@ export function CommandMenu({ cityId }: Props) {
           title={
             garrisonCount === 0
               ? t('需有武將駐城方可演習', 'Need a stationed officer to drill')
-              : t('演習 — 在城邑戰場上操演佈陣,不損兵將,純為練習戰術', 'Drill — rehearse tactics on the city battlefield. No losses; practice only.')
+              : t('守城演習 — 在本城真實戰場(城牆+你建的箭樓拒馬)上操演守備,不損兵將', 'Siege drill — defend this city\'s real battlefield (walls + the towers/traps you built). No losses; practice only.')
           }
           style={{ borderColor: '#7ed68a' }}
         >
