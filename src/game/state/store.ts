@@ -3560,7 +3560,18 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         set({ pendingEvent: null });
       },
 
-      startTacticalBattle: (battle) => set({ tacticalBattle: battle }),
+      startTacticalBattle: (battle) => set((s) => {
+        // 回放採集 — when a NEW TURN begins, snapshot the outgoing state (slim:
+        // no popups, trimmed log) so the replay viewer can scrub the battle
+        // turn by turn. Capped; reset whenever a different battle starts.
+        const prev = s.tacticalBattle;
+        let snaps = s.currentBattleSnapshots;
+        if (!prev || prev.id !== battle.id) snaps = [];
+        else if (battle.turn > prev.turn) {
+          snaps = [...snaps, { ...prev, damagePopups: [], log: (prev.log ?? []).slice(-20) }].slice(-60);
+        }
+        return { tacticalBattle: battle, currentBattleSnapshots: snaps };
+      }),
 
       setMarchPreview: (preview) => set({ marchPreview: preview }),
 
@@ -3853,7 +3864,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           attackerForceName: tb.attackerForceId ? state.forces[tb.attackerForceId]?.name : undefined,
           defenderForceName: tb.defenderForceId ? state.forces[tb.defenderForceId]?.name : undefined,
           finalBattle: tb,
-          snapshots: [tb],
+          // The per-turn trail captured during play, closed out by the final state.
+          snapshots: [...state.currentBattleSnapshots.filter((s2) => s2.id === tb.id), tb],
         }];
         void force;
 
@@ -4125,6 +4137,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           armies: nextArmies,
           pendingCommands: nextFieldPending,
           fieldBattleMarks: battleSiteMarks,
+          currentBattleSnapshots: [],
           tacticalBattle: null,
           deeds: titleGrant.deeds,
           battleReplays: replays,

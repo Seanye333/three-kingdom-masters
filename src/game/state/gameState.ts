@@ -185,6 +185,9 @@ export interface GameState {
   }>;
   /** Saved battle replays. */
   battleReplays: import('../types').BattleReplay[];
+  /** Per-turn snapshots of the CURRENT battle (transient, not persisted) —
+   *  harvested into the replay when the battle resolves. */
+  currentBattleSnapshots: import('../types').TacticalBattle[];
   /** Heroic deeds tracker keyed by officer id. */
   deeds: Record<EntityId, import('../types').HeroicDeeds>;
   /** Fog of war on (player-only flag, cosmetic). */
@@ -325,6 +328,7 @@ export const EMPTY_STATE: GameState = {
   lostItems: [],
   itemHistory: [],
   battleReplays: [],
+  currentBattleSnapshots: [],
   deeds: {},
   fogOfWar: false,
   commandTemplates: [],
@@ -526,6 +530,7 @@ export function loadScenario(
     lostItems: computeLostItems(officers, scaledCities, state.placementMode),
     itemHistory: [],
     battleReplays: [],
+  currentBattleSnapshots: [],
     deeds: {},
     fogOfWar: state.fogOfWar,
     commandTemplates: state.commandTemplates,
