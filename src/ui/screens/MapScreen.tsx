@@ -47,6 +47,7 @@ const BattleReplayModal = lazy(() => import('../components/BattleReplayModal').t
 const AchievementsModal = lazy(() => import('../components/AchievementsModal').then(m => ({ default: m.AchievementsModal })));
 const CampaignStatsModal = lazy(() => import('../components/CampaignStatsModal').then(m => ({ default: m.CampaignStatsModal })));
 const ChronicleModal = lazy(() => import('../components/ChronicleModal').then(m => ({ default: m.ChronicleModal })));
+const RelationsModal = lazy(() => import('../components/RelationsModal').then(m => ({ default: m.RelationsModal })));
 const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
 const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
 const DiplomacyGraphModal = lazy(() => import('../components/DiplomacyGraphModal').then(m => ({ default: m.DiplomacyGraphModal })));
@@ -89,6 +90,7 @@ export function MapScreen() {
   const [showGovernors, setShowGovernors] = useState(false);
   const [showCampaignStats, setShowCampaignStats] = useState(false);
   const [showChronicle, setShowChronicle] = useState(false);
+  const [showRelations, setShowRelations] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
@@ -281,6 +283,7 @@ export function MapScreen() {
             { label: t('任官', 'Titles'),    onClick: () => setShowTitles(true) },
             { label: t('州牧', 'Governors'), onClick: () => setShowGovernors(true) },
             { label: t('朝廷', 'Court'),     onClick: () => setShowCourt(true) },
+            { label: t('邦交', 'Relations'), onClick: () => setShowRelations(true) },
             { label: t('書信', 'Letters'),   onClick: () => setShowWishes(true), badge: wishes.length },
           ]}
         />
@@ -421,6 +424,7 @@ export function MapScreen() {
         {showAch && <AchievementsModal onClose={() => setShowAch(false)} />}
         {showCampaignStats && <CampaignStatsModal onClose={() => setShowCampaignStats(false)} />}
         {showChronicle && <ChronicleModal onClose={() => setShowChronicle(false)} />}
+        {showRelations && <RelationsModal onClose={() => setShowRelations(false)} />}
       </Suspense>
       {/* Achievement toast — bottom-right when something just unlocked */}
       {recentAchievementUnlocks.length > 0 && (
