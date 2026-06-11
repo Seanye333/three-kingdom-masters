@@ -341,6 +341,29 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     const backCol  = side === 'attacker' ? 1 : width - 2;
     // Front rank takes the most units height permits; overflow goes to back rank.
     const frontRankCapacity = height; // can fill the whole column if needed
+    // Spawn placement is terrain-aware: a land unit must not materialise in a
+    // river or inside a wall (map-ruxukou's mid-field river caught commanders
+    // standing in the water). Nearest standable row wins; taken rows skip.
+    const tileTerrainAt = new Map(tiles.map((t) => [`${t.coord.col},${t.coord.row}`, t.terrain]));
+    const takenSpawns = new Set<string>();
+    const standable = (col: number, row: number) => {
+      if (isNaval) return true; // every contingent is a ship — water is home
+      const g = tileTerrainAt.get(`${col},${row}`);
+      return g !== 'river' && g !== 'wall' && g !== 'gate';
+    };
+    const settleRow = (col: number, wantRow: number): number => {
+      for (let d = 0; d < height; d++) {
+        for (const candidate of d === 0 ? [wantRow] : [wantRow - d, wantRow + d]) {
+          if (candidate < 0 || candidate >= height) continue;
+          const key = `${col},${candidate}`;
+          if (takenSpawns.has(key)) continue;
+          if (!standable(col, candidate)) continue;
+          takenSpawns.add(key);
+          return candidate;
+        }
+      }
+      return Math.max(0, Math.min(height - 1, wantRow)); // pathological map — give up gracefully
+    };
     return pool.slice(0, frontRankCapacity * 2).map((entry, i) => {
       const isBackRank = i >= frontRankCapacity;
       const rankIndex = isBackRank ? i - frontRankCapacity : i;
@@ -359,7 +382,7 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
         side,
         coord: {
           col: isBackRank ? backCol : frontCol,
-          row: Math.max(0, Math.min(height - 1, row)),
+          row: settleRow(isBackRank ? backCol : frontCol, Math.max(0, Math.min(height - 1, row))),
         },
         troops: entry.troops,
         maxTroops: entry.troops,
@@ -573,7 +596,10 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
 
   // ── 攻城方略 — siege works applied over the raised defences ──
   let workedUnits = finalUnits;
-  if (!isNaval && !p.field && !namedMap && p.siegeWorks === 'invest') {
+  // (No !namedMap here — the invest debuff touches only units, and the
+  // attacker already paid the grain; scripted fields starve the same. Same
+  // precedent as the flood fallback below.)
+  if (!isNaval && !p.field && p.siegeWorks === 'invest') {
     // 圍困 — the city was invested until the granaries ran dry: the
     // garrison opens the assault starving and shaken.
     workedUnits = workedUnits.map((u) => u.side === 'defender'

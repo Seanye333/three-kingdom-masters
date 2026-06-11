@@ -226,3 +226,41 @@ describe('防壁 throws a battlefield wall line via setupTacticalBattle', () => 
     expect(towers).toHaveLength(1);
   });
 });
+
+describe('named-map regressions (review findings)', () => {
+  it('圍困 starves defenders on scripted battlefields too (hefei)', () => {
+    const battle = setupTacticalBattle({
+      cityId: 'hefei', // resolves to map-hefei now that the keys are fixed
+      width: 18, height: 12,
+      attackerForceId: 'A', defenderForceId: 'B',
+      attackers: [{ officer: mkOfficer({ id: 'ia' }), troops: 5000 }],
+      defenders: [{ officer: mkOfficer({ id: 'id' }), troops: 5000 }],
+      siegeWorks: 'invest',
+    });
+    const defender = battle.units.find((u) => u.side === 'defender')!;
+    expect(defender.effects.some((e) => e.kind === 'starving')).toBe(true);
+  });
+
+  it('no land unit ever spawns in a river/wall hex (ruxukou mid-field river)', () => {
+    const battle = setupTacticalBattle({
+      cityId: 'ruxu', // map-ruxukou: river crosses rows 4-5 full width
+      width: 18, height: 12,
+      attackerForceId: 'A', defenderForceId: 'B',
+      attackers: [
+        { officer: mkOfficer({ id: 'ra1' }), troops: 3000 },
+        { officer: mkOfficer({ id: 'ra2' }), troops: 3000 },
+        { officer: mkOfficer({ id: 'ra3' }), troops: 3000 },
+      ],
+      defenders: [
+        { officer: mkOfficer({ id: 'rd1' }), troops: 3000 },
+        { officer: mkOfficer({ id: 'rd2' }), troops: 3000 },
+        { officer: mkOfficer({ id: 'rd3' }), troops: 3000 },
+      ],
+    });
+    const terrain = new Map(battle.tiles.map((t) => [`${t.coord.col},${t.coord.row}`, t.terrain]));
+    for (const u of battle.units) {
+      const g = terrain.get(`${u.coord.col},${u.coord.row}`);
+      expect(['river', 'wall', 'gate'], `${u.id} spawned on ${g}`).not.toContain(g);
+    }
+  });
+});
