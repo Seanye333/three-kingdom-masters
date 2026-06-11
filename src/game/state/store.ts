@@ -274,9 +274,11 @@ interface GameStore extends GameState {
    *  against an adjacent enemy army. Returns false if not allowed. */
   startFieldBattle: (playerArmyId: EntityId, enemyArmyId: EntityId) => boolean;
   /** 演習 — launch a sparring drill on the city's own battlefield using its
-   *  garrison, against a mirror sparring force. Nothing writes back to the
-   *  campaign. Returns false if the city has no officers to field. */
-  startPracticeBattle: (cityId: EntityId) => boolean;
+   *  garrison, against a mirror sparring force. Optional `bearing` (radians,
+   *  attacker→city) aims the assault from a chosen approach so the board shows
+   *  that direction's real terrain. Nothing writes back to the campaign.
+   *  Returns false if the city has no officers to field. */
+  startPracticeBattle: (cityId: EntityId, bearing?: number) => boolean;
   /** Pay for siege works (圍困糧耗 / 水攻決堤) from the attacking city's
    *  stores before an assault. Returns false (and deducts nothing) if the
    *  city can't afford it. */
@@ -3527,7 +3529,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         return true;
       },
 
-      startPracticeBattle: (cityId) => {
+      startPracticeBattle: (cityId, bearing = 0) => {
         const state = get();
         if (state.tacticalBattle) return false; // one battle at a time
         const city = state.cities[cityId];
@@ -3570,7 +3572,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           // and fire on the AI attacker — exactly as in a live 守城戰.
           buildSlots: city.buildSlots,
           terrainHint: { terrain: city.terrain, port: city.port, x: city.coords.x, y: city.coords.y },
-          battleGeo: { x: tp.x, y: tp.y, bearing: 0, anchorCol: 16, season: state.date.season },
+          // The assault rolls in along the chosen approach — so the board samples
+          // the real ground in that direction (the same geography the city map's
+          // hinterland shows there) and the attackers enter from that bearing.
+          battleGeo: { x: tp.x, y: tp.y, bearing, anchorCol: 16, season: state.date.season },
         });
         battle.practice = true;
         set({ tacticalBattle: battle, selectedCityId: cityId });
@@ -4031,11 +4036,21 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // Grant any newly-earned deed-titles from this battle's deed bumps.
         const titleGrant = grantDeedTitles(deeds, officers);
 
+        // ③ 戰局因果流 — an interactively-fought battle leaves a scar on the
+        // strategic map at its real location, so returning to the world view
+        // shows where you just fought (decays over 2 seasons like field marks).
+        const markPos = tb.geoAnchor
+          ?? (() => { const c = state.cities[tb.cityId]; return c ? cityPos(c) : null; })();
+        const battleSiteMarks = markPos
+          ? [...state.fieldBattleMarks, { x: markPos.x, y: markPos.y, kind: 'clash' as const, seasonsLeft: 2 }].slice(-40)
+          : state.fieldBattleMarks;
+
         set({
           officers: titleGrant.officers,
           cities,
           armies: nextArmies,
           pendingCommands: nextFieldPending,
+          fieldBattleMarks: battleSiteMarks,
           tacticalBattle: null,
           deeds: titleGrant.deeds,
           battleReplays: replays,

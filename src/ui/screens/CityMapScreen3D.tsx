@@ -12,6 +12,9 @@ import {
 import { previewBattlefield } from '../../game/systems/tactical';
 import { battleGroundAt } from '../../game/data/geography';
 import { citySize } from '../../game/systems/citySize';
+import { LocatorMap } from '../components/LocatorMap';
+import { IntroDive } from '../components/IntroDive';
+import { cityViewWindow } from '../viewWindow';
 import { BUILDING_DEFS, BUILDING_DEFS_BY_ID } from '../../game/data/buildings';
 import { startCityAmbience, stopCityAmbience } from '../../game/systems/sound';
 import type { EntityId, BuildingId } from '../../game/types';
@@ -2062,10 +2065,12 @@ interface Neighbor {
   rel: 'self' | 'other' | 'neutral';
 }
 
-const HINTERLAND_BELT_DEPTH = 15;    // world units of countryside beyond the moat
-const HINTERLAND_STRAT_REACH = 60;   // strategic units the belt's outer edge samples toward neighbours
-const HINTERLAND_TILE_SP = 1.7;      // belt sampling spacing (world units)
+const HINTERLAND_BELT_DEPTH = 21;    // world units of countryside beyond the moat
+const HINTERLAND_STRAT_REACH = 70;   // fallback reach (strategic units) for directions with no neighbour
+const HINTERLAND_TILE_SP = IS_MOBILE ? 1.7 : 1.2; // belt sampling spacing — denser on desktop resolves thin rivers
 const MOAT_PAD = 4;                  // moat half-extends this far past the grid
+const HINTERLAND_REACH_MIN = 32;     // never sample shorter than this…
+const HINTERLAND_REACH_MAX = 150;    // …nor farther than this (strategic units)
 
 // Real-ground → colour / relief. Water sits flat & low; hills and mountains
 // rise so the countryside reads in 3D.
@@ -2170,14 +2175,39 @@ function Hinterland3D({
   const outerX = innerX + HINTERLAND_BELT_DEPTH;
   const outerZ = innerZ + HINTERLAND_BELT_DEPTH;
 
-  // Sample a belt of real ground around the city. Each tile's depth across the
-  // belt maps to how far out (toward the neighbours) we sample the strategic
-  // map, so the inner shore is the city's doorstep and the outer fringe is the
-  // open country on the road to its neighbours.
+  // True bearing + strategic distance to each neighbour (same x=east / +y=south
+  // frame the belt samples in), so each approach can reach its neighbour's real
+  // distance rather than a flat fixed reach.
+  const nbVecs = useMemo(
+    () => neighbors.map((n) => ({
+      bearing: Math.atan2(n.y - city.coords.y, n.x - city.coords.x),
+      dist: Math.hypot(n.x - city.coords.x, n.y - city.coords.y),
+    })),
+    [neighbors, city.coords.x, city.coords.y],
+  );
+
+  // Sample a belt of real ground around the city. A tile's depth across the
+  // belt maps to how far out we sample the strategic map; the OUTER reach in a
+  // given direction is blended from the actual neighbours that lie that way —
+  // so the country shown on each approach is the real ground between this city
+  // and the neighbour it leads to, all the way to its doorstep.
   const tiles = useMemo(() => {
     const out: Array<{ x: number; z: number; color: string; h: number; water: boolean }> = [];
     const ellR = (ang: number, rx: number, rz: number) =>
       1 / Math.hypot(Math.cos(ang) / rx, Math.sin(ang) / rz);
+    const reachAt = (ang: number) => {
+      if (nbVecs.length === 0) return HINTERLAND_STRAT_REACH;
+      let ws = 0, ds = 0;
+      for (const n of nbVecs) {
+        let d = Math.abs(ang - n.bearing);
+        if (d > Math.PI) d = 2 * Math.PI - d;
+        // Weight peaks sharply toward a neighbour's bearing, with a small floor
+        // so in-between directions still blend rather than snap.
+        const w = Math.pow(Math.max(0, Math.cos(d)), 3) + 0.08;
+        ws += w; ds += w * n.dist;
+      }
+      return Math.max(HINTERLAND_REACH_MIN, Math.min(HINTERLAND_REACH_MAX, ds / ws));
+    };
     for (let wx = cx - outerX; wx <= cx + outerX; wx += HINTERLAND_TILE_SP) {
       for (let wz = cz - outerZ; wz <= cz + outerZ; wz += HINTERLAND_TILE_SP) {
         const dx = wx - cx, dz = wz - cz;
@@ -2188,7 +2218,7 @@ function Hinterland3D({
         const outR = ellR(ang, outerX, outerZ);
         if (r < inR || r > outR) continue;
         const t = (r - inR) / Math.max(0.001, outR - inR);
-        const strat = 6 + t * HINTERLAND_STRAT_REACH;
+        const strat = 6 + t * (reachAt(ang) - 6);
         const ux = dx / r, uz = dz / r;
         const g = battleGroundAt(city.coords.x + ux * strat, city.coords.y + uz * strat);
         out.push({
@@ -2200,14 +2230,15 @@ function Hinterland3D({
       }
     }
     return out;
-  }, [cx, cz, innerX, innerZ, outerX, outerZ, city.coords.x, city.coords.y]);
+  }, [cx, cz, innerX, innerZ, outerX, outerZ, city.coords.x, city.coords.y, nbVecs]);
 
   const slotMap = new Map((slots ?? []).map((s) => [s.slot, s]));
 
   return (
     <group>
-      {/* Countryside belt — instanced hex prisms, coloured & raised by real ground */}
-      <Instances limit={Math.max(1, tiles.length)} castShadow receiveShadow>
+      {/* Countryside belt — instanced hex prisms, coloured & raised by real ground.
+          No castShadow: shadow-mapping the whole belt is costly and barely visible. */}
+      <Instances limit={Math.max(1, tiles.length)} receiveShadow>
         <cylinderGeometry args={[1.0, 1.0, 1, 6]} />
         <meshStandardMaterial roughness={0.92} metalness={0.02} />
         {tiles.map((t, i) => (
@@ -2358,7 +2389,10 @@ function CityScene({
         shadow-mapSize-width={2048} shadow-mapSize-height={2048}
       />
       <directionalLight position={[-8, 6, -6]} intensity={0.25} color={light.sun} />
-      <fog attach="fog" args={[light.fog, 35, 80]} />
+      {/* Fog far-plane scales with the whole region (city + hinterland) so the
+          countryside stays visible when the camera pulls back; near keeps the
+          close-up atmosphere. */}
+      <fog attach="fog" args={[light.fog, 40, Math.max(preview.width * HEX_COL_STEP, preview.height * HEX_ROW_STEP) * 5]} />
 
       {/* Warm lantern glow — stronger in the dim seasons, so winter reads as a
           lantern-lit dusk and summer is barely tinted. */}
@@ -2594,6 +2628,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const upgradeAction = useGameStore((s) => s.upgradeDefenseStructure);
   const demolishAction = useGameStore((s) => s.demolishDefenseStructure);
   const startBuilding = useGameStore((s) => s.startBuilding);
+  const startPracticeBattle = useGameStore((s) => s.startPracticeBattle);
   const season = useGameStore((s) => s.date.season) as SeasonKey;
   const light = SEASON_LIGHT[season] ?? SEASON_LIGHT.spring;
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
@@ -2603,6 +2638,10 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const [hovered, setHovered] = useState<{ col: number; row: number } | null>(null);
   const [showOverlays, setShowOverlays] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [introDone, setIntroDone] = useState(false);
+  // Exit by rising back up toward the strategic-map vantage, then unmount.
+  const [exiting, setExiting] = useState(false);
+  const beginClose = () => setExiting(true);
   const lang = useLanguage();
 
   const rawPreview = useMemo(
@@ -2744,6 +2783,18 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
     setError(null);
   };
 
+  // 守城演習 from a chosen approach — the assault rolls in along this slot's
+  // bearing (from the real neighbour that way, else the compass octant), so the
+  // battle board IS this direction's slice of the map at full combat scale.
+  const drillFromSlot = (slot: number) => {
+    if (!isPlayer || !city) return;
+    const guard = (slotGuards.get(slot) ?? [])[0];
+    const bearing = guard
+      ? Math.atan2(city.coords.y - guard.y, city.coords.x - guard.x)
+      : Math.atan2(-COMPASS_DIR[slot][1], -COMPASS_DIR[slot][0]);
+    if (startPracticeBattle(cityId, bearing)) onClose();
+  };
+
   const handlePlotClick = (plotIndex: number) => {
     if (!isPlayer) return;
     setSelectedSlot(null);
@@ -2812,7 +2863,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const currentSlot = selectedSlot !== null ? slots.find((s) => s.slot === selectedSlot) : null;
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') beginClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
@@ -2870,7 +2921,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
           >
             ⇄ 切換 2D
           </button>
-          <button onClick={onClose} style={{
+          <button onClick={beginClose} style={{
             background: 'transparent', border: 'none', color: '#d4a84a',
             fontSize: '1.5rem', cursor: 'pointer', padding: '0 0.5rem',
           }}>×</button>
@@ -2880,11 +2931,29 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
       {/* 3D canvas */}
       <div style={{ flex: 1, position: 'relative' }}>
         <Canvas
-          camera={{ position: [centerX, camHeight, centerZ + camOffset], fov: 50 }}
+          camera={{ position: [centerX, camHeight * 2.6, centerZ + camOffset * 0.18], fov: 50 }}
           shadows
           dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
           style={{ background: light.sky }}
         >
+          {/* Swoop down into the city on entry; rise back up on exit. */}
+          {exiting ? (
+            <IntroDive
+              mode="out"
+              start={[centerX, camHeight * 2.6, centerZ + camOffset * 0.18]}
+              end={[centerX, camHeight, centerZ + camOffset]}
+              target={[centerX, 0, centerZ]}
+              duration={0.5}
+              onDone={onClose}
+            />
+          ) : (
+            <IntroDive
+              start={[centerX, camHeight * 2.6, centerZ + camOffset * 0.18]}
+              end={[centerX, camHeight, centerZ + camOffset]}
+              target={[centerX, 0, centerZ]}
+              onDone={() => setIntroDone(true)}
+            />
+          )}
           <CityScene
             preview={preview}
             slots={slots}
@@ -2910,6 +2979,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             onSlotClick={handleSlotClick}
           />
           <OrbitControls
+            enabled={introDone && !exiting}
             target={[centerX, 0, centerZ]}
             enablePan
             maxPolarAngle={Math.PI / 2.2}
@@ -2923,6 +2993,11 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             </EffectComposer>
           )}
         </Canvas>
+
+        {/* "You are here" locator — this city's window on the world map. */}
+        <div style={{ position: 'absolute', left: 12, bottom: 12 }}>
+          <LocatorMap window={cityViewWindow(city)} focusCityId={cityId} />
+        </div>
 
         {/* Slot editor overlay */}
         {selectedSlot !== null && isPlayer && (
@@ -2966,6 +3041,25 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
                 </div>
               );
             })()}
+            {/* 守城演習此面 — fight a sparring assault from exactly this approach,
+                on this direction's real terrain with the defences you've built. */}
+            <button
+              onClick={() => drillFromSlot(selectedSlot)}
+              title={lang === 'en'
+                ? 'Drill a siege from this approach — same terrain & defences as a real assault here. No losses.'
+                : '在此面來敵的真實地形上演練守城,連同你建的防禦一同上陣。不損兵將。'}
+              style={{
+                width: '100%', padding: '0.45rem',
+                background: 'linear-gradient(180deg, #2a3a20, #1d2a16)',
+                color: '#9ed68a', border: '1px solid #7ed68a',
+                marginBottom: '0.5rem', fontFamily: 'inherit', cursor: 'pointer',
+                letterSpacing: '0.1rem',
+              }}
+            >
+              ⚔ {lang === 'en'
+                ? `Drill defence — assault from ${COMPASS_EN[selectedSlot]}`
+                : `守城演習 · ${COMPASS_ZH[selectedSlot]}面來敵`}
+            </button>
             {currentSlot?.buildingId ? (
               <div>
                 <div style={{ color: DEFENSE_BUILDINGS[currentSlot.buildingId].color, marginBottom: '0.3rem' }}>
