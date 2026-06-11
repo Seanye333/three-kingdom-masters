@@ -1,6 +1,6 @@
 import { Suspense, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Html, OrbitControls, Stars } from '@react-three/drei';
+import { Billboard, Html, OrbitControls, Stars, Text } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
@@ -1040,7 +1040,19 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
       htmlRef.current.style.opacity = String(1 - t);
     }
   });
-  if (embedded) return null; // DOM popups don't scale with the diorama
+  if (embedded) {
+    // The diorama can't use DOM popups (they don't scale with the group) —
+    // real 3D text rides the same float-up animation instead.
+    return (
+      <group ref={groupRef} position={[x, 1.5, z]}>
+        <Billboard>
+          <Text fontSize={1.1} color={color} outlineWidth={0.09} outlineColor="#000" anchorX="center" anchorY="middle">
+            {text}
+          </Text>
+        </Billboard>
+      </group>
+    );
+  }
   return (
     <group ref={groupRef} position={[x, 1.5, z]}>
       <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
