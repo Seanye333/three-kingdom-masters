@@ -15,10 +15,12 @@ import type { City, Force, HexCoord, Season } from '../../game/types';
 import { FACILITY_DEFS } from '../../game/types';
 // The battle diorama reuses the real battle scene (embedded mode) + its hex
 // coordinate helper, so the fight on the world map IS the fight.
-import { BattleScene, hexWorld as battleHexWorld } from '../screens/TacticalBattleScreen3D';
+import { BattleScene, hexWorld as battleHexWorld, stratagemFxKind, FX_DURATION } from '../screens/TacticalBattleScreen3D';
 // In-place battle commanding — the SAME pure battle ops the fullscreen uses.
-import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn } from '../../game/systems/tactical';
+import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStratagem } from '../../game/systems/tactical';
 import { playSfx } from '../../game/systems/sound';
+import { STRATAGEMS } from '../../game/data';
+import type { StratagemId } from '../../game/types';
 import type { WeatherKind } from '../../game/systems/weather';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
@@ -3156,7 +3158,7 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
   );
 }
 
-function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelectedId, dioMode, dioArcs, dioHover, onDioHover, onDioramaTile }: {
+function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
   onPortClick: (portId: string) => void;
@@ -3164,7 +3166,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
   /** 原地指揮 — in-place battle commanding state, owned by the outer shell. */
   dioSelectedId: string | null;
   dioMode: 'move' | 'attack';
+  dioCast: StratagemId | null;
   dioArcs: Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>;
+  dioFx: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }>;
   dioHover: HexCoord | null;
   onDioHover: (c: HexCoord | null) => void;
   onDioramaTile: (c: HexCoord) => void;
@@ -3357,13 +3361,15 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
                 embedded
                 battle={tacticalBattle}
                 playerSide={pSide}
-                actionMode={dioSelectedId ? { kind: dioMode } : { kind: 'none' }}
+                actionMode={dioCast && dioSelectedId
+                  ? { kind: 'stratagem', id: dioCast }
+                  : dioSelectedId ? { kind: dioMode } : { kind: 'none' }}
                 selectedId={dioSelectedId}
                 hovered={dioHover}
                 setHovered={onDioHover}
                 onTileClick={onDioramaTile}
                 attackArcs={dioArcs}
-                stratagemFx={[]}
+                stratagemFx={dioFx}
                 officers={officers}
               />
             </group>
@@ -3580,6 +3586,9 @@ export function StrategicMap3D() {
   const setDioHover = (c: HexCoord | null) => {
     setDioHoverRaw((prev) => (prev?.col === c?.col && prev?.row === c?.row ? prev : c));
   };
+  // 計謀 — an armed stratagem waiting for its target hex; FX ride the diorama.
+  const [dioCast, setDioCast] = useState<StratagemId | null>(null);
+  const [dioFx, setDioFx] = useState<Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }>>([]);
   const [dioArcs, setDioArcs] = useState<Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>>([]);
   const dioSelectedId = worldBattle && dioPick && dioPick.bid === worldBattle.id
     && worldBattle.units.some((u) => u.id === dioPick.uid) ? dioPick.uid : null;
@@ -3604,9 +3613,33 @@ export function StrategicMap3D() {
       : b.defenderForceId === playerForceId ? 'defender' : null;
     if (!pSide || b.activeSide !== pSide || b.winner) return;
     const u = unitAt(b, c);
+    // An armed stratagem treats ANY click as its target (incl. friendlies —
+    // rally-style buffs), exactly like the fullscreen flow.
+    if (dioCast) {
+      const sel0 = dioSelectedId ? b.units.find((x) => x.id === dioSelectedId) : null;
+      if (!sel0) { setDioCast(null); return; }
+      const r = applyStratagem(b, sel0.id, dioCast, c, useGameStore.getState().officers);
+      if (r.ok) {
+        const fxKind = stratagemFxKind(dioCast);
+        if (fxKind) {
+          const fxId = Date.now();
+          const isSelf = ['defend', 'precognition', 'dragon-veil'].includes(dioCast);
+          const fxCoord = isSelf ? sel0.coord : c;
+          setDioFx((arr) => [...arr, { id: fxId, coord: fxCoord, kind: fxKind, spawnedAt: fxId }]);
+          const lifeMs = (FX_DURATION[fxKind] ?? 1.5) * 1000 + 200;
+          setTimeout(() => setDioFx((arr) => arr.filter((f) => f.id !== fxId)), lifeMs);
+        }
+        startBattleUpdate(r.battle);
+      } else if (r.reason) {
+        alert(r.reason);
+      }
+      setDioCast(null);
+      return;
+    }
     if (u && u.side === pSide) {
       setDioPick({ bid: b.id, uid: u.id });
       setDioMode('move');
+      setDioCast(null);
       return;
     }
     const sel = dioSelectedId ? b.units.find((x) => x.id === dioSelectedId) : null;
@@ -3735,7 +3768,9 @@ export function StrategicMap3D() {
             onFortClick={setSelectedFortId}
             dioSelectedId={worldBattleMinimized ? dioSelectedId : null}
             dioMode={dioMode}
+            dioCast={worldBattleMinimized ? dioCast : null}
             dioArcs={dioArcs}
+            dioFx={dioFx}
             dioHover={worldBattleMinimized ? dioHover : null}
             onDioHover={setDioHover}
             onDioramaTile={handleDioramaTile}
@@ -3801,6 +3836,35 @@ export function StrategicMap3D() {
                 </span>
                 {modeBtn('move', '移動', 'Move')}
                 {modeBtn('attack', '攻擊', 'Attack')}
+                {/* 計謀 — same availability rules as the fullscreen panel. */}
+                {STRATAGEMS.filter((s) => {
+                  if (s.signatureOf && !s.signatureOf.includes(off.id)) return false;
+                  if (s.minIntelligence && off.stats.intelligence < s.minIntelligence) return false;
+                  if (s.minWar && off.stats.war < s.minWar) return false;
+                  if (s.requiresUnitType && !s.requiresUnitType.includes(sel.unitType)) return false;
+                  return true;
+                }).slice(0, 5).map((s) => {
+                  const armed = dioCast === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setDioCast(armed ? null : s.id)}
+                      title={s.descriptionZh ?? s.description}
+                      style={{
+                        background: armed ? 'rgba(136,183,232,0.22)' : 'transparent',
+                        border: `1px solid ${armed ? '#88b7e8' : '#3a4a5a'}`,
+                        color: armed ? '#bcd8f0' : '#88a7c8',
+                        padding: '0.15rem 0.45rem', cursor: 'pointer',
+                        fontFamily: 'inherit', fontSize: '0.72rem',
+                      }}
+                    >{s.name.zh}</button>
+                  );
+                })}
+                {dioCast && (
+                  <span style={{ color: '#88b7e8', fontSize: '0.7rem' }}>
+                    {t('點目標格施放', 'tap a target hex')}
+                  </span>
+                )}
               </>
             ) : (
               <span style={{ color: '#8a7050', fontSize: '0.74rem' }}>

@@ -1097,7 +1097,7 @@ function AttackArc({ from, to, kind, spawnedAt }: {
 /* ─── Stratagem visual effects — fire / lightning / aura / swirl / etc ── */
 
 /** Map each StratagemId → FX kind. */
-function stratagemFxKind(id: StratagemId):
+export function stratagemFxKind(id: StratagemId):
   | 'fire' | 'lightning' | 'arrows' | 'aura' | 'swirl' | 'shockwave' | 'shield' | 'chain' | null {
   switch (id) {
     case 'fire-attack':      return 'fire';
@@ -1129,7 +1129,7 @@ const FX_COLOR: Record<string, string> = {
 };
 
 /** Per-FX duration in seconds. */
-const FX_DURATION: Record<string, number> = {
+export const FX_DURATION: Record<string, number> = {
   fire: 2.0, lightning: 0.6, arrows: 1.2, aura: 1.6,
   swirl: 1.6, shockwave: 1.0, shield: 1.6, chain: 1.2,
 };
