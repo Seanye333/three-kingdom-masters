@@ -10,7 +10,8 @@ import {
   aggregateSlotEffects,
 } from '../../game/data/defenseBuildings';
 import { previewBattlefield } from '../../game/systems/tactical';
-import { battleGroundAt } from '../../game/data/geography';
+import { battleGroundAt, geoToPixel } from '../../game/data/geography';
+import { FACILITY_DEFS, type FacilityKind } from '../../game/types';
 import { citySize } from '../../game/systems/citySize';
 import { LocatorMap } from '../components/LocatorMap';
 import { IntroDive } from '../components/IntroDive';
@@ -2065,6 +2066,18 @@ interface Neighbor {
   rel: 'self' | 'other' | 'neutral';
 }
 
+/** A strategic 施設 near this city, projected into the hinterland by its true
+ *  bearing/distance so the same building shows on the world, city and battle. */
+interface HinterlandFacility {
+  id: EntityId;
+  kind: FacilityKind;
+  /** Geo-pixel offset from the city centre (east = +dx, south = +dy). */
+  dx: number;
+  dy: number;
+  dist: number;
+  owned: boolean;
+}
+
 const HINTERLAND_BELT_DEPTH = 21;    // world units of countryside beyond the moat
 const HINTERLAND_STRAT_REACH = 70;   // fallback reach (strategic units) for directions with no neighbour
 const HINTERLAND_TILE_SP = IS_MOBILE ? 1.7 : 1.2; // belt sampling spacing — denser on desktop resolves thin rivers
@@ -2157,11 +2170,12 @@ function HinterlandSlot3D({
 }
 
 function Hinterland3D({
-  preview, city, neighbors, slots, selectedSlot, onSlotClick, showOverlays,
+  preview, city, neighbors, facilities, slots, selectedSlot, onSlotClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   city: { coords: { x: number; y: number } };
   neighbors: Neighbor[];
+  facilities: HinterlandFacility[];
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
   selectedSlot: number | null;
   onSlotClick: (slot: number) => void;
@@ -2330,6 +2344,41 @@ function Hinterland3D({
           </group>
         );
       })}
+
+      {/* 施設 — strategic facilities (箭樓/投石臺/陣/防壁) near this city, placed
+          on the hinterland by their true bearing so the SAME building shows on
+          the world map, here, and on the battlefield. */}
+      {facilities.map((f) => {
+        const ang = Math.atan2(f.dy, f.dx);
+        const ellR = (rx: number, rz: number) => 1 / Math.hypot(Math.cos(ang) / rx, Math.sin(ang) / rz);
+        const inR = ellR(innerX, innerZ), outR = ellR(outerX, outerZ);
+        const tt = Math.min(1, f.dist / HINTERLAND_STRAT_REACH);
+        const r = inR + tt * (outR - inR);
+        const fpx = cx + Math.cos(ang) * r, fpz = cz + Math.sin(ang) * r;
+        const def = FACILITY_DEFS[f.kind];
+        return (
+          <group key={f.id} position={[fpx, 0, fpz]}>
+            <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
+              <boxGeometry args={[0.7, 0.9, 0.7]} />
+              <meshStandardMaterial color="#5a4530" roughness={0.92} />
+            </mesh>
+            <mesh position={[0, 1.15, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+              <coneGeometry args={[0.42, 0.7, f.kind === 'catapult' ? 3 : 4]} />
+              <meshStandardMaterial color={def.color} emissive={def.color} emissiveIntensity={0.3} roughness={0.6} />
+            </mesh>
+            {showOverlays && (
+              <Html center position={[0, 1.95, 0]} distanceFactor={28} occlude={false}>
+                <div style={{
+                  color: f.owned ? '#f0d98a' : '#e0a0a0',
+                  fontFamily: 'Songti SC, serif', fontSize: '12px',
+                  letterSpacing: '1px', whiteSpace: 'nowrap',
+                  textShadow: '0 1px 3px #000', pointerEvents: 'none',
+                }}>{def.name.zh}</div>
+              </Html>
+            )}
+          </group>
+        );
+      })}
     </group>
   );
 }
@@ -2337,7 +2386,7 @@ function Hinterland3D({
 function CityScene({
   preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season, stats, grand, onInspect,
   selectedPlot, onPlotClick, hovered, onHover, onClick, showOverlays,
-  city, neighbors, selectedSlot, onSlotClick,
+  city, neighbors, facilities, selectedSlot, onSlotClick,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
@@ -2359,6 +2408,7 @@ function CityScene({
   showOverlays: boolean;
   city: { coords: { x: number; y: number } };
   neighbors: Neighbor[];
+  facilities: HinterlandFacility[];
   selectedSlot: number | null;
   onSlotClick: (slot: number) => void;
 }) {
@@ -2559,6 +2609,7 @@ function CityScene({
         preview={preview}
         city={city}
         neighbors={neighbors}
+        facilities={facilities}
         slots={slots}
         selectedSlot={selectedSlot}
         onSlotClick={onSlotClick}
@@ -2623,6 +2674,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const forces = useGameStore((s) => s.forces);
   const allCities = useGameStore((s) => s.cities);
+  const allForts = useGameStore((s) => s.forts);
   const allBuildings = useGameStore((s) => s.buildings);
   const buildAction = useGameStore((s) => s.buildDefenseStructure);
   const upgradeAction = useGameStore((s) => s.upgradeDefenseStructure);
@@ -2757,6 +2809,24 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
         };
       });
   }, [city, allCities, forces, playerForceId]);
+
+  // Strategic 施設 near this city — projected into the hinterland so the same
+  // building shows on the world map, here, and (in range) on the battlefield.
+  const nearbyFacilities = useMemo<HinterlandFacility[]>(() => {
+    if (!city) return [];
+    return Object.values(allForts)
+      .filter((f) => f.facility)
+      .map((f) => {
+        const [fx, fy] = geoToPixel(f.coords.lon, f.coords.lat);
+        const dx = fx - city.coords.x, dy = fy - city.coords.y;
+        return {
+          id: f.id, kind: f.facility!, dx, dy,
+          dist: Math.hypot(dx, dy),
+          owned: f.ownerForceId === playerForceId,
+        };
+      })
+      .filter((f) => f.dist < 95); // only ones in this city's hinterland
+  }, [allForts, city, playerForceId]);
 
   // For the selected slot: which neighbour(s) lie in its compass octant.
   const slotGuards = useMemo(() => {
@@ -2987,6 +3057,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             showOverlays={showOverlays}
             city={city}
             neighbors={neighbors}
+            facilities={nearbyFacilities}
             selectedSlot={selectedSlot}
             onSlotClick={handleSlotClick}
           />

@@ -470,6 +470,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   //   防壁 (block) stalls hostile columns in transit for a season.
   const blockedOfficers = new Set<EntityId>();
   const facilities = Object.values(input.forts ?? {}).filter((f) => f.facility && f.ownerForceId);
+  const pf = input.playerForceId ?? null;
   if (facilities.length > 0) {
     for (const cmd of allMarches) {
       if (cancelledMarchOfficers.has(cmd.officerId) || deferredOfficers.has(cmd.officerId)) continue;
@@ -478,15 +479,16 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       const pos = armyPosition(cmd);
       if (!pos) continue;
       let dmg = 0, heal = 0, blocked = false;
+      let byPlayer = false; // a player-owned facility contributed damage/block
       for (const f of facilities) {
         const def = FACILITY_DEFS[f.facility!];
         const [fx, fy] = geoToPixel(f.coords.lon, f.coords.lat);
         if (Math.hypot(pos.x - fx, pos.y - fy) > def.range) continue;
         const own = f.ownerForceId === force;
         const hostile = !own && isHostilePermitted(input.diplomacy, f.ownerForceId!, force);
-        if (def.effect === 'ranged' && hostile) dmg += def.power;
+        if (def.effect === 'ranged' && hostile) { dmg += def.power; if (f.ownerForceId === pf) byPlayer = true; }
         else if (def.effect === 'supply' && own) heal += def.power;
-        else if (def.effect === 'block' && hostile) blocked = true;
+        else if (def.effect === 'block' && hostile) { blocked = true; if (f.ownerForceId === pf) byPlayer = true; }
       }
       if (dmg > 0 || heal > 0) {
         const base = troopOverride[cmd.officerId] ?? cmd.troops;
@@ -494,6 +496,28 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         if (heal > 0) next = Math.min(next, cmd.troops); // 陣 reinforces back to full, no further
         troopOverride[cmd.officerId] = Math.max(0, next);
         if (dmg > 0) fieldBattleMarks.push({ x: pos.x, y: pos.y, kind: 'ambush' });
+      }
+      // Player-facing feedback — only surface marches the player cares about.
+      const nm = officers[cmd.officerId]?.name;
+      if (nm) {
+        if (dmg > 0 && force === pf) {
+          entries.push({ cityId: null, kind: 'battle',
+            text: `Enemy facilities shelled ${nm.en}'s column on the march (−${dmg}).`,
+            textZh: `敵軍施設於途中轟擊${nm.zh}部，折兵 ${dmg}。` });
+        } else if (dmg > 0 && byPlayer) {
+          entries.push({ cityId: null, kind: 'battle',
+            text: `Your facilities shelled ${nm.en}'s marching column (−${dmg}).`,
+            textZh: `我軍施設轟擊${nm.zh}行軍之眾，殺 ${dmg}。` });
+        }
+        if (blocked && force === pf) {
+          entries.push({ cityId: null, kind: 'command-failure',
+            text: `${nm.en}'s march was stalled a season by an enemy barricade.`,
+            textZh: `${nm.zh}行軍為敵防壁所阻，滯留一季。` });
+        } else if (blocked && byPlayer) {
+          entries.push({ cityId: null, kind: 'command-success',
+            text: `Your barricade stalled ${nm.en}'s march a season.`,
+            textZh: `我軍防壁攔阻${nm.zh}之師，滯其一季。` });
+        }
       }
       if (blocked) blockedOfficers.add(cmd.officerId);
     }

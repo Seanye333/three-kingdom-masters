@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
-import type { EntityId } from '../../game/types';
+import { FACILITY_DEFS, type EntityId } from '../../game/types';
 import { canPlayerAttackFort } from '../../game/data/forts';
 import { useT } from '../i18n';
 
@@ -57,6 +57,13 @@ export function FortPanel({ fortId, onClose }: Props) {
   }, [fort, cities, officersMap, playerForceId]);
 
   if (!fort) return null;
+  const fac = fort.facility ? FACILITY_DEFS[fort.facility] : null;
+  const facEffectZh = fac
+    ? (fac.effect === 'ranged' ? '遠程轟擊過路敵軍' : fac.effect === 'supply' ? '補給過境友軍' : '阻斷敵軍行軍')
+    : '';
+  const facEffectEn = fac
+    ? (fac.effect === 'ranged' ? 'Shells passing foes' : fac.effect === 'supply' ? 'Resupplies allies' : 'Blocks enemy march')
+    : '';
   const owner = fort.ownerForceId ? forces[fort.ownerForceId] : null;
   const isMine = fort.ownerForceId === playerForceId;
   const ownerColor = owner?.color ?? '#5a4530';
@@ -110,7 +117,7 @@ export function FortPanel({ fortId, onClose }: Props) {
               {SUBTYPE_LABEL[fort.subtype] ?? '⚔'} {fort.name.zh}
             </div>
             <div style={{ fontSize: '0.72rem', color: '#a89070' }}>
-              {fort.name.en} · {fort.subtype === 'stockade' ? t('壘', 'Stockade') : t('砦', 'Fort')}
+              {fort.name.en} · {fac ? t(fac.name.zh, fac.name.en) : fort.subtype === 'stockade' ? t('壘', 'Stockade') : t('砦', 'Fort')}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -125,6 +132,20 @@ export function FortPanel({ fortId, onClose }: Props) {
             {owner?.name.zh ?? t('無主', 'Neutral')}
             {isMine && <span style={{ color: '#7ed68a', marginLeft: 6 }}>{t('（自軍）', '(yours)')}</span>}
           </span>
+
+          {fac && (
+            <>
+              <span style={{ color: '#8a7050' }}>{t('施設', 'Facility')}</span>
+              <span style={{ color: fac.color, fontSize: '0.8rem' }}>
+                {t(facEffectZh, facEffectEn)}
+                {fac.range > 0 && t(` · 射程 ${fac.range}`, ` · range ${fac.range}`)}
+                {fac.power > 0 && t(
+                  ` · 每季 ${fac.effect === 'supply' ? '+' : '−'}${fac.power} 兵`,
+                  ` · ${fac.effect === 'supply' ? '+' : '−'}${fac.power}/season`,
+                )}
+              </span>
+            </>
+          )}
 
           <span style={{ color: '#8a7050' }}>{t('等級', 'Level')}</span>
           <span style={{ color: '#d4a84a', fontWeight: 'bold' }}>

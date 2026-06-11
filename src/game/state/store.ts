@@ -87,7 +87,7 @@ import { evaluateCoalition } from '../systems/coalition';
 import { rollDialogue } from '../systems/dialogueRoll';
 import { DIALOGUE_EVENTS_BY_ID } from '../data/dialogues';
 import { applyAutoBuild } from '../systems/autoBuild';
-import { planAIBuildOrders } from '../systems/aiBuild';
+import { planAIBuildOrders, planAIFacilities } from '../systems/aiBuild';
 import { SCENARIO_OBJECTIVES } from '../data/objectives';
 import { SCENARIOS } from '../data';
 import { findChallenge, evaluateChallenge, challengeStars } from '../data/challenges';
@@ -2292,6 +2292,23 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           } else {
             nextForts[id] = fort;
           }
+        }
+
+        // AI 施設 — frontier forces fortify with strategic facilities (箭樓/投石臺/
+        // 防壁) once a season; built from their capital's coffers, capped so the
+        // map can't fill up. The same forts then interdict marches & join battles.
+        if (seasonBoundary) {
+          const aiFac = planAIFacilities({
+            cities: postCities,
+            forces: postForces,
+            forts: nextForts,
+            diplomacy: planned.diplomacy,
+            playerForceId: state.playerForceId,
+            rng: Math.random,
+          });
+          postCities = aiFac.cities;
+          Object.assign(nextForts, aiFac.newForts);
+          if (aiFac.entries.length > 0) result.report.entries.push(...aiFac.entries);
         }
 
         // Wishes consumed by training completions this tick — filtered out
