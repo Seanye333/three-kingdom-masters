@@ -281,7 +281,7 @@ interface GameStore extends GameState {
    *  attacker→city) aims the assault from a chosen approach so the board shows
    *  that direction's real terrain. Nothing writes back to the campaign.
    *  Returns false if the city has no officers to field. */
-  startPracticeBattle: (cityId: EntityId, bearing?: number) => boolean;
+  startPracticeBattle: (cityId: EntityId, bearing?: number, officerIds?: EntityId[]) => boolean;
   /** Pay for siege works (圍困糧耗 / 水攻決堤) from the attacking city's
    *  stores before an assault. Returns false (and deducts nothing) if the
    *  city can't afford it. */
@@ -3575,7 +3575,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         return true;
       },
 
-      startPracticeBattle: (cityId, bearing = 0) => {
+      startPracticeBattle: (cityId, bearing = 0, officerIds) => {
         const state = get();
         if (state.tacticalBattle) return false; // one battle at a time
         const city = state.cities[cityId];
@@ -3583,11 +3583,16 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // 守城演習 — the player defends this city's REAL battlefield: its walls,
         // its terrain, and the perimeter defences it has actually built. A
         // mirror of the garrison plays the sparring assault force (AI-driven).
-        const garrison = Object.values(state.officers)
-          .filter((o) => o.locationCityId === cityId && o.forceId === state.playerForceId
-            && o.status !== 'dead' && o.status !== 'unsearched' && o.status !== 'imprisoned')
-          .sort((a, b) => (b.stats.war * 0.6 + b.stats.leadership * 0.4) - (a.stats.war * 0.6 + a.stats.leadership * 0.4))
-          .slice(0, 6);
+        const eligible = (o: Officer | undefined): o is Officer => !!o
+          && o.locationCityId === cityId && o.forceId === state.playerForceId
+          && o.status !== 'dead' && o.status !== 'unsearched' && o.status !== 'imprisoned';
+        // Hand-picked roster if given; otherwise the garrison's best six.
+        const garrison = officerIds && officerIds.length > 0
+          ? officerIds.map((id) => state.officers[id]).filter(eligible).slice(0, 6)
+          : Object.values(state.officers)
+              .filter(eligible)
+              .sort((a, b) => (b.stats.war * 0.6 + b.stats.leadership * 0.4) - (a.stats.war * 0.6 + a.stats.leadership * 0.4))
+              .slice(0, 6);
         if (garrison.length === 0) return false;
         // A drill always fields a meaningful body of troops even if the city's
         // larder is empty — split the garrison's strength evenly per officer.

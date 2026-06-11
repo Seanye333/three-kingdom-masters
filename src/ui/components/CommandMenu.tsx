@@ -35,7 +35,8 @@ type ModalState =
   | { kind: 'closed' }
   | { kind: 'internal'; type: InternalAffairsType }
   | { kind: 'march' }
-  | { kind: 'training' };
+  | { kind: 'training' }
+  | { kind: 'drill' };
 
 export function CommandMenu({ cityId }: Props) {
   const [modal, setModal] = useState<ModalState>({ kind: 'closed' });
@@ -53,7 +54,6 @@ export function CommandMenu({ cityId }: Props) {
   const buildings = useGameStore((s) => s.buildings);
   const pendingTrainings = useGameStore((s) => s.pendingTrainings);
   const playerForceId = useGameStore((s) => s.playerForceId);
-  const startPracticeBattle = useGameStore((s) => s.startPracticeBattle);
   const t = useT();
   const lang = useLanguage();
   const desc = useDesc();
@@ -162,7 +162,7 @@ export function CommandMenu({ cityId }: Props) {
         </button>
         <button
           className={styles.cmdButton}
-          onClick={() => startPracticeBattle(cityId)}
+          onClick={() => setModal({ kind: 'drill' })}
           disabled={garrisonCount === 0}
           title={
             garrisonCount === 0
@@ -216,6 +216,109 @@ export function CommandMenu({ cityId }: Props) {
           onClose={() => setModal({ kind: 'closed' })}
         />
       )}
+      {modal.kind === 'drill' && (
+        <DrillPicker
+          cityId={cityId}
+          onClose={() => setModal({ kind: 'closed' })}
+        />
+      )}
     </>
+  );
+}
+
+/** 演習點將 — pick which stationed officers take the field for the drill
+ *  (the garrison's best six come pre-checked; cap six per side). */
+function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => void }) {
+  const officersMap = useGameStore((s) => s.officers);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const startPracticeBattle = useGameStore((s) => s.startPracticeBattle);
+  const t = useT();
+  const lang = useLanguage();
+  const garrison = useMemo(
+    () => Object.values(officersMap)
+      .filter((o) => o.locationCityId === cityId && o.forceId === playerForceId
+        && o.status !== 'dead' && o.status !== 'unsearched' && o.status !== 'imprisoned')
+      .sort((a, b) => (b.stats.war * 0.6 + b.stats.leadership * 0.4) - (a.stats.war * 0.6 + a.stats.leadership * 0.4)),
+    [officersMap, cityId, playerForceId],
+  );
+  const [picked, setPicked] = useState<Set<string>>(
+    () => new Set(garrison.slice(0, 6).map((o) => o.id)),
+  );
+  const toggle = (id: string) => setPicked((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id);
+    else if (next.size < 6) next.add(id);
+    return next;
+  });
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+        display: 'grid', placeItems: 'center', zIndex: 240,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: '#1a1410', border: '1px solid #7ed68a', padding: '1rem 1.2rem',
+          minWidth: 320, maxWidth: 440, maxHeight: '80vh', overflow: 'auto',
+          fontFamily: 'Songti SC, serif', color: '#e8d9b0',
+        }}
+      >
+        <div style={{ color: '#9ed68a', letterSpacing: '0.25rem', marginBottom: '0.3rem' }}>
+          ⚔ {t('演習點將', 'Drill Roster')}
+        </div>
+        <div style={{ color: '#8a7050', fontSize: '0.72rem', marginBottom: '0.6rem' }}>
+          {t(`選至多 6 員上場(已選 ${picked.size})— 不損兵將,純為練兵`,
+             `Pick up to 6 to take the field (${picked.size} picked) — no losses, practice only`)}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          {garrison.map((o) => {
+            const on = picked.has(o.id);
+            return (
+              <button
+                key={o.id}
+                onClick={() => toggle(o.id)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: on ? 'rgba(126, 214, 138, 0.12)' : 'transparent',
+                  border: `1px solid ${on ? '#7ed68a' : '#3a2d20'}`,
+                  color: on ? '#d8f0c8' : '#a08a60', cursor: 'pointer',
+                  padding: '0.35rem 0.6rem', fontFamily: 'inherit', fontSize: '0.8rem',
+                }}
+              >
+                <span>{on ? '☑' : '☐'} {lang === 'en' ? o.name.en : o.name.zh}</span>
+                <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>
+                  {t('武', 'W')}{o.stats.war} {t('統', 'L')}{o.stats.leadership}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.8rem' }}>
+          <button
+            onClick={() => {
+              if (picked.size === 0) return;
+              if (startPracticeBattle(cityId, 0, [...picked])) onClose();
+            }}
+            disabled={picked.size === 0}
+            style={{
+              flex: 1, padding: '0.45rem', cursor: picked.size > 0 ? 'pointer' : 'not-allowed',
+              background: 'linear-gradient(180deg, #2a3a20, #1d2a16)',
+              color: '#9ed68a', border: '1px solid #7ed68a', fontFamily: 'inherit',
+              letterSpacing: '0.15rem',
+            }}
+          >{t('開始演習', 'Start Drill')}</button>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '0.45rem 0.8rem', cursor: 'pointer', background: 'transparent',
+              color: '#8a7050', border: '1px solid #4a3520', fontFamily: 'inherit',
+            }}
+          >{t('取消', 'Cancel')}</button>
+        </div>
+      </div>
+    </div>
   );
 }
