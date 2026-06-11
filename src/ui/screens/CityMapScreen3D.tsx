@@ -2844,7 +2844,20 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   onClose: () => void;
   onSwitch2D: () => void;
 }) {
+  // Thin shell — the early bail lives HERE so the inner component's ~20 hooks
+  // always run unconditionally (the old in-body `if (!city) return null`
+  // violated the Rules of Hooks for every hook declared after it).
   const city = useGameStore((s) => s.cities[cityId]);
+  if (!city) return null;
+  return <CityMapScreen3DInner city={city} cityId={cityId} onClose={onClose} onSwitch2D={onSwitch2D} />;
+}
+
+function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
+  city: import('../../game/types').City;
+  cityId: EntityId;
+  onClose: () => void;
+  onSwitch2D: () => void;
+}) {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const forces = useGameStore((s) => s.forces);
   const allCities = useGameStore((s) => s.cities);
@@ -2896,7 +2909,6 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
     ),
   }), [rawPreview]);
 
-  if (!city) return null;
   const isPlayer = city.ownerForceId === playerForceId;
   const slots = city.buildSlots ?? [];
   const size = citySize(city);
@@ -3565,7 +3577,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             color: '#8a7050', fontFamily: 'Songti SC, serif',
             fontSize: '0.7rem', letterSpacing: '0.15rem',
           }}>
-            點金色八角位 → 城外防禦　·　點地基(金框) → 城内營建
+            點金色八角位 → 城外防禦 · 點地基(金框) → 城内營建
           </div>
         )}
 

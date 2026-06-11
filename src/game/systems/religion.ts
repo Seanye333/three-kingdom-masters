@@ -57,7 +57,7 @@ export function rollReligiousRebellion(input: ReligionInput): ReligionOutput {
   const target = ripe[Math.floor(input.rng() * ripe.length)];
 
   // Pick cult flavor based on location heuristic.
-  let cult: CultKind = 'taiping';
+  let cult: CultKind;
   if (target.terrain === 'mountain' || target.name.zh.includes('漢中')) cult = 'wudou';
   else if (input.date.year < 195) cult = 'huangtian';
   else cult = 'taiping';

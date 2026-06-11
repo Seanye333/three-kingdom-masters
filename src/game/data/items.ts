@@ -3672,7 +3672,7 @@ export const ITEMS: Item[] = [
     name: { en: 'Eight Banner Statutes', zh: '八旗令' },
     kind: 'book',
     originCityId: 'shenyang',
-    description: "Nurhaci\'s Eight Banner system — every Jurchen man a soldier, every banner self-sustaining. The framework on which the Qing took the empire.",
+    description: "Nurhaci's Eight Banner system — every Jurchen man a soldier, every banner self-sustaining. The framework on which the Qing took the empire.",
     descriptionZh: "努爾哈赤創八旗制。女真人皆兵,各旗自給自足。清入關之根本。",
     effects: { leadership: 7, war: 6, politics: 4 },
   },
