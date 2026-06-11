@@ -3113,7 +3113,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle }: {
       {mapStyle === 'classic' && <Lakes3D />}
       {mapStyle === 'classic' && <RiverRibbons frozen={season === 'winter'} />}
       {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
-      {mapStyle === 'classic' && <Forest3D />}
+      {/* Forests plant at the shared height function, so the same trees stand
+          perfectly on the hex quilt too. */}
+      <Forest3D />
       <GreatWall3D />
       <DriftingClouds />
       {/* Province borders are flat ground decals — they'd sink into the
@@ -3246,6 +3248,45 @@ const WEATHER_ZH: Record<WeatherKind, string> = {
 const SEASON_ZH: Record<Season, string> = {
   spring: '春', summer: '夏', autumn: '秋', winter: '冬',
 };
+
+/**
+ * 軍令提示 — when one of the player's columns is selected, a bar spells out
+ * what tapping each thing does (the orders existed, but nothing on screen
+ * said so). Also the visible way to deselect.
+ */
+function ArmyOrdersHint() {
+  const selectedArmyId = useGameStore((s) => s.selectedArmyId);
+  const army = useGameStore((s) => (s.selectedArmyId ? s.armies[s.selectedArmyId] : null));
+  const officers = useGameStore((s) => s.officers);
+  const selectArmy = useGameStore((s) => s.selectArmy);
+  const t = useT();
+  if (!selectedArmyId || !army) return null;
+  const commander = officers[army.commanderId];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 12, display: 'flex', alignItems: 'center', gap: '0.6rem',
+      background: 'rgba(20, 14, 8, 0.92)', border: '1px solid #d4a84a', borderRadius: 4,
+      padding: '0.4rem 0.8rem', fontFamily: 'Songti SC, serif',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.55)', whiteSpace: 'nowrap',
+    }}>
+      <span style={{ color: '#f0d98a', letterSpacing: '0.1rem', fontSize: '0.85rem' }}>
+        ⚑ {commander?.name.zh ?? '?'}{t('部', '')} {army.troops.toLocaleString()}{t('兵', '')}
+      </span>
+      <span style={{ color: '#8a7050', fontSize: '0.72rem', letterSpacing: '0.05rem' }}>
+        {t('點城市:改道 · 點空地:進駐 · 點友軍:合流 · 點敵軍:野戰',
+           'Tap city: redirect · ground: dig in · ally: merge · enemy: engage')}
+      </span>
+      <button
+        onClick={() => selectArmy(null)}
+        style={{
+          background: 'transparent', border: '1px solid #5a4530', color: '#c0a878',
+          padding: '0.15rem 0.5rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem',
+        }}
+      >✕ {t('取消', 'Cancel')}</button>
+    </div>
+  );
+}
 
 /**
  * 戰場引燃 — when a battle ignites, fly the world camera down to the clash
@@ -3453,6 +3494,10 @@ export function StrategicMap3D() {
           )}
         </Suspense>
       </Canvas>
+
+      {/* 軍令提示 — with a column selected, spell out what a tap does. The
+          orders existed but were invisible; this makes them discoverable. */}
+      <ArmyOrdersHint />
 
       {selectedPortId && (
         <PortPanel
