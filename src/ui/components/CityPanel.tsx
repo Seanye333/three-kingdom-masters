@@ -109,27 +109,13 @@ export function CityPanel() {
         })()}
       </header>
 
-      {/* Prominent "enter the city" button — the reliable tap target on mobile
-          (the re-click-to-enter gesture only works with a mouse). */}
-      <button
-        onClick={() => setShowCityMap(true)}
-        style={{
-          width: '100%', margin: '0.4rem 0', padding: '0.6rem',
-          background: 'linear-gradient(180deg, #3a2a18, #2a1d10)',
-          border: '1px solid #d4a84a', color: '#f0d98a',
-          fontFamily: 'var(--tkm-font-zh)', fontSize: '1rem', letterSpacing: '0.2rem',
-          cursor: 'pointer', borderRadius: 3,
-        }}
-      >
-        ⛩ {t('進城 · 城邑地圖', 'Enter City · City Map')}
-      </button>
-
       {/* City size badge — derived from population */}
       <CitySizeBadge city={city} />
 
-      {/* Inline mini-map preview — clicking opens the full screen.
-          Shows the city walls + 8 build slots so the player can see at a
-          glance what's built and what's not. */}
+      {/* Inline mini-map preview — the single "enter city" entry. Clicking
+          opens the full 3D city map; it also shows walls + 8 build slots so
+          the player sees at a glance what's built. Reliable tap target on
+          mobile (the re-click-to-enter gesture only works with a mouse). */}
       <CityMiniMap city={city} onClick={() => setShowCityMap(true)} />
 
       <section className={styles.section}>
@@ -399,17 +385,17 @@ function CityMiniMapText({ builtCount, wallTier }: { builtCount: number; wallTie
   return (
     <div style={{ textAlign: 'left', flex: 1 }}>
       <div style={{
-        color: '#d4a84a', fontSize: '0.85rem',
+        color: '#f0d98a', fontSize: '0.95rem',
         letterSpacing: '0.2rem', fontWeight: 'bold',
         fontFamily: 'var(--tkm-font-zh)',
       }}>
-        ★ {t('城邑地圖', 'City Map')}
+        ⛩ {t('進城 · 城邑地圖', 'Enter City · City Map')}
       </div>
-      <div style={{ color: '#c0a878', fontSize: '0.68rem', letterSpacing: '0.1rem' }}>
+      <div style={{ color: '#c0a878', fontSize: '0.68rem', letterSpacing: '0.1rem', marginTop: '0.15rem' }}>
         {builtCount}/8 {t('建築', 'buildings')} · {t('城壁', 'Wall')} Tier {wallTier}
       </div>
       <div style={{ color: '#8a7050', fontSize: '0.6rem', marginTop: '0.15rem' }}>
-        {t('點擊建造 箭樓 / 拒馬 / 鐵索 / 落石…', 'Click to build towers / caltrops / chains / boulders…')}
+        {t('點擊進城建造 箭樓 / 拒馬 / 鐵索 …', 'Tap to enter — build towers / caltrops / chains …')}
       </div>
     </div>
   );
