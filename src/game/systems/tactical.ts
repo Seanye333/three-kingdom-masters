@@ -20,6 +20,8 @@ import type {
   Weather,
 } from '../types';
 import { cityPos } from '../data/cityGeo';
+import { geoToPixel } from '../data/geography';
+import { FACILITY_DEFS, type Fort } from '../types/fort';
 import { NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../data/namedMaps';
 import { SHIP_CLASSES_BY_ID } from '../data/ships';
 import { pickVoiceLine } from '../data/voiceLines';
@@ -175,6 +177,9 @@ export interface SetupParams {
   namedMapId?: EntityId;
   /** Build slots from the defender's city — placed on the hex grid as fixed structures. */
   buildSlots?: ReadonlyArray<{ slot: number; buildingId?: import('../data/defenseBuildings').DefenseBuildingId; level: number }>;
+  /** Strategic 施設 — nearby ranged facilities (箭樓/投石臺) owned by the
+   *  defender appear on the board as auto-firing emplacements. */
+  forts?: Record<EntityId, Fort>;
   /** Geography hint (terrain category, port flag, coords) — drives terrain generation. */
   terrainHint?: TerrainHint;
   /** Real-map placement (anchor + approach bearing) — when set, the
@@ -410,6 +415,53 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
         coord: target,
         hp: 100 * slot.level + 100,
       });
+    }
+  }
+
+  // 施設參戰 — strategic ranged facilities (箭樓/投石臺) the defender has built
+  // within range of this battlefield join the fight as auto-firing emplacements,
+  // exactly like the city's own perimeter defences. (Built directly into the
+  // cityStructures list so the existing auto-attack handles them.)
+  if (p.forts && p.battleGeo && p.defenderForceId) {
+    const FACILITY_TO_BUILDING: Partial<Record<import('../types/fort').FacilityKind, import('../data/defenseBuildings').DefenseBuildingId>> = {
+      tower: 'watchtower',
+      catapult: 'arrow-platform',
+    };
+    const taken = new Set([
+      ...units.map((u) => `${u.coord.col},${u.coord.row}`),
+      ...cityStructures.map((s) => `${s.coord.col},${s.coord.row}`),
+    ]);
+    const tileTerrain2 = new Map(tiles.map((t) => [`${t.coord.col},${t.coord.row}`, t.terrain]));
+    // Candidate emplacement hexes on the defender's side (right band), inland a
+    // little from the very edge so they sit behind the line.
+    const candidates: HexCoord[] = [];
+    for (let col = width - 2; col >= width - 4 && col >= 0; col--) {
+      for (let row = 1; row < height - 1; row += 2) candidates.push({ col, row });
+    }
+    let ci = 0;
+    for (const f of Object.values(p.forts)) {
+      if (!f.facility || f.ownerForceId !== p.defenderForceId) continue;
+      const buildingId = FACILITY_TO_BUILDING[f.facility];
+      if (!buildingId) continue; // only ranged facilities take the field
+      const [fx, fy] = geoToPixel(f.coords.lon, f.coords.lat);
+      if (Math.hypot(fx - p.battleGeo.x, fy - p.battleGeo.y) > FACILITY_DEFS[f.facility].range) continue;
+      // Find the next free, dry candidate hex.
+      while (ci < candidates.length) {
+        const c = candidates[ci++];
+        const key = `${c.col},${c.row}`;
+        if (taken.has(key)) continue;
+        const g = tileTerrain2.get(key);
+        if (g === 'river' || g === 'bridge' || g === 'wall' || g === 'gate') continue;
+        taken.add(key);
+        cityStructures.push({
+          slotIndex: 100 + cityStructures.length, // synthetic — not a city slot
+          buildingId,
+          level: 2,
+          coord: c,
+          hp: 300,
+        });
+        break;
+      }
     }
   }
 

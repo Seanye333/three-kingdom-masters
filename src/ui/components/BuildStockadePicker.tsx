@@ -1,25 +1,50 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
-import type { EntityId } from '../../game/types';
+import { FACILITY_DEFS, type EntityId, type FacilityKind } from '../../game/types';
 import styles from './MarriagePicker.module.css';
-import { useT } from '../i18n';
+import { useT, useLanguage } from '../i18n';
 
 interface Props { onClose: () => void; }
+
+type BuildKind = 'stockade' | FacilityKind;
+
+// What you can build on the strategic map. 壘 blocks & must be assaulted; the
+// 施設 act on armies marching nearby each season. (陣/防壁 land next.)
+const STOCKADE_COST = 300;
+const BUILD_TYPES: Array<{
+  id: BuildKind; zh: string; en: string; cost: number; descZh: string; descEn: string; color: string;
+}> = [
+  { id: 'stockade', zh: '壘', en: 'Stockade', cost: STOCKADE_COST,
+    descZh: '臨時木堡，阻擋並需被攻打', descEn: 'Temporary fort — blocks, must be assaulted', color: '#9a8358' },
+  { id: 'tower', zh: FACILITY_DEFS.tower.name.zh, en: FACILITY_DEFS.tower.name.en, cost: FACILITY_DEFS.tower.cost,
+    descZh: `近射 · 過路敵軍每季 −${FACILITY_DEFS.tower.power} 兵`, descEn: `Short range · −${FACILITY_DEFS.tower.power} troops/season to passing foes`, color: FACILITY_DEFS.tower.color },
+  { id: 'catapult', zh: FACILITY_DEFS.catapult.name.zh, en: FACILITY_DEFS.catapult.name.en, cost: FACILITY_DEFS.catapult.cost,
+    descZh: `遠射高傷 · 每季 −${FACILITY_DEFS.catapult.power} 兵`, descEn: `Long range, heavy · −${FACILITY_DEFS.catapult.power} troops/season`, color: FACILITY_DEFS.catapult.color },
+  { id: 'camp', zh: FACILITY_DEFS.camp.name.zh, en: FACILITY_DEFS.camp.name.en, cost: FACILITY_DEFS.camp.cost,
+    descZh: `補給 · 友軍過境每季回 +${FACILITY_DEFS.camp.power} 兵`, descEn: `Supply · friendly columns +${FACILITY_DEFS.camp.power} troops/season`, color: FACILITY_DEFS.camp.color },
+  { id: 'wall', zh: FACILITY_DEFS.wall.name.zh, en: FACILITY_DEFS.wall.name.en, cost: FACILITY_DEFS.wall.cost,
+    descZh: '阻斷 · 敵軍行軍經過被攔停一季', descEn: 'Barricade · stalls a passing enemy march a season', color: FACILITY_DEFS.wall.color },
+];
 
 export function BuildStockadePicker({ onClose }: Props) {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const cities = useGameStore((s) => s.cities);
   const buildStockade = useGameStore((s) => s.buildStockade);
+  const buildFacility = useGameStore((s) => s.buildFacility);
   const playerCapitalGold = useGameStore((s) => {
     const f = playerForceId ? s.forces[playerForceId] : null;
     const c = f ? s.cities[f.capitalCityId] : null;
     return c?.gold ?? 0;
   });
 
+  const [kind, setKind] = useState<BuildKind>('stockade');
   const [pickCityId, setPickCityId] = useState<EntityId | null>(null);
   const [label, setLabel] = useState('');
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const t = useT();
+  const lang = useLanguage();
+
+  const sel = BUILD_TYPES.find((b) => b.id === kind)!;
 
   const ownedCities = useMemo(() =>
     Object.values(cities)
@@ -29,7 +54,9 @@ export function BuildStockadePicker({ onClose }: Props) {
 
   const handleSubmit = () => {
     if (!pickCityId) return;
-    const r = buildStockade(pickCityId, label.trim() || '壘');
+    const r = kind === 'stockade'
+      ? buildStockade(pickCityId, label.trim() || '壘')
+      : buildFacility(pickCityId, kind, label.trim());
     setFeedback({ ok: r.ok, text: r.message });
     if (r.ok) setLabel('');
   };
@@ -39,20 +66,50 @@ export function BuildStockadePicker({ onClose }: Props) {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <div>
-            <div className={styles.titleZh}>築壘</div>
-            <div className={styles.titleEn}>{t('300金 · 10季', 'Build Stockade (300g · 10 seasons)')}</div>
+            <div className={styles.titleZh}>{t('築堡 · 施設', 'Build · Facilities')}</div>
+            <div className={styles.titleEn}>
+              {lang === 'en' ? `${sel.en} · ${sel.cost}g` : `${sel.zh} · ${sel.cost}金`}
+            </div>
           </div>
           <button className={styles.closeButton} onClick={onClose}>×</button>
         </header>
 
         <div className={styles.meta}>
-          {t(`木壘為臨時軍堡。國庫金：${playerCapitalGold}`,
-             `A stockade is a temporary wooden fort. Capital gold: ${playerCapitalGold}g.`)}
+          {t(`箭樓/投石臺會自動轟擊路過的敵軍。國庫金：${playerCapitalGold}`,
+             `Towers & catapults shell enemy armies passing within range. Capital gold: ${playerCapitalGold}g.`)}
+        </div>
+
+        {/* Type selector */}
+        <div style={{ display: 'flex', gap: '0.35rem', padding: '0.5rem 0.8rem 0', flexWrap: 'wrap' }}>
+          {BUILD_TYPES.map((b) => {
+            const on = kind === b.id;
+            return (
+              <button
+                key={b.id}
+                onClick={() => setKind(b.id)}
+                title={lang === 'en' ? b.descEn : b.descZh}
+                style={{
+                  flex: '1 1 30%', minWidth: 90, padding: '0.4rem 0.5rem',
+                  background: on ? 'rgba(212,168,74,0.16)' : '#1a1410',
+                  border: `1px solid ${on ? b.color : '#3a2d20'}`,
+                  color: on ? '#f0e0b0' : '#a08a60', cursor: 'pointer',
+                  fontFamily: 'Songti SC, serif', textAlign: 'left',
+                }}
+              >
+                <div style={{ fontSize: '0.85rem', color: on ? b.color : undefined }}>
+                  {lang === 'en' ? b.en : b.zh} <span style={{ float: 'right', opacity: 0.8 }}>{b.cost}g</span>
+                </div>
+                <div style={{ fontSize: '0.58rem', color: '#8a7050', marginTop: 2, lineHeight: 1.25 }}>
+                  {lang === 'en' ? b.descEn : b.descZh}
+                </div>
+              </button>
+            );
+          })}
         </div>
 
         <div style={{ padding: '0.5rem 0.8rem' }}>
           <input
-            placeholder={t('壘名（如 街壘、山壘）', 'Stockade name (e.g. Jielou, Shanlou)')}
+            placeholder={lang === 'en' ? `${sel.en} name (optional)` : `${sel.zh}名（可留空）`}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             style={{
@@ -102,8 +159,8 @@ export function BuildStockadePicker({ onClose }: Props) {
           <button
             className={styles.submitButton}
             onClick={handleSubmit}
-            disabled={!pickCityId || playerCapitalGold < 300}
-          >{t('築壘', 'Build')}</button>
+            disabled={!pickCityId || playerCapitalGold < sel.cost}
+          >{lang === 'en' ? `Build ${sel.en}` : `築 ${sel.zh}`}</button>
         </footer>
       </div>
     </div>

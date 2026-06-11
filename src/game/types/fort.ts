@@ -30,7 +30,55 @@ export interface Fort {
   seasonsRemaining?: number;
   /** Upgrade level — 1 (default) to 3. Each level: +50% maxHp, taller mesh. */
   level?: 1 | 2 | 3;
+  /**
+   * 施設 — a strategic-map installation (built on a stockade footprint) that
+   * acts on armies marching nearby (RTK-XIV 櫓/投石臺/陣/防壁). Undefined = a
+   * plain stockade (blocks/assault only, no field effect).
+   */
+  facility?: FacilityKind;
 }
+
+/** Strategic facilities that act on passing armies each season. */
+export type FacilityKind = 'tower' | 'catapult' | 'camp' | 'wall';
+
+export interface FacilityDef {
+  name: BilingualName;
+  /** 'ranged' shells hostile columns in range; 'supply' heals friendly ones;
+   *  'block' bars the route (no field damage). */
+  effect: 'ranged' | 'supply' | 'block';
+  cost: number;        // gold to build
+  hp: number;
+  seasons: number;     // woodrot timer (like a stockade)
+  /** Strategic-map units of effect radius (0 for a pure blocker). */
+  range: number;
+  /** Troops/season: damage to hostile columns (ranged) or healing to friendly (supply). */
+  power: number;
+  /** Map accent colour. */
+  color: string;
+}
+
+export const FACILITY_DEFS: Record<FacilityKind, FacilityDef> = {
+  tower: {
+    name: { zh: '箭樓', en: 'Arrow Tower' },
+    effect: 'ranged', cost: 250, hp: 300, seasons: 12, range: 30, power: 450,
+    color: '#d4a84a',
+  },
+  catapult: {
+    name: { zh: '投石臺', en: 'Catapult' },
+    effect: 'ranged', cost: 450, hp: 220, seasons: 10, range: 52, power: 850,
+    color: '#c46a3a',
+  },
+  camp: {
+    name: { zh: '陣', en: 'Camp' },
+    effect: 'supply', cost: 200, hp: 280, seasons: 14, range: 26, power: 350,
+    color: '#7ed68a',
+  },
+  wall: {
+    name: { zh: '防壁', en: 'Barricade' },
+    effect: 'block', cost: 350, hp: 520, seasons: 14, range: 16, power: 0,
+    color: '#9aa6b4',
+  },
+};
 
 /** Effective maxHp at the fort's current level. */
 export function fortMaxHpForLevel(baseMaxHp: number, level: number | undefined): number {

@@ -12,6 +12,7 @@ import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
 import { citySize } from '../../game/systems/citySize';
 import type { City, Force, Season } from '../../game/types';
+import { FACILITY_DEFS } from '../../game/types';
 import type { WeatherKind } from '../../game/systems/weather';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
@@ -2124,10 +2125,12 @@ function SnowParticles({ count = 1500, bounds }: { count?: number; bounds: { x: 
 function Forts3D({ onFortClick }: { onFortClick: (fortId: string) => void }) {
   const forts = useGameStore((s) => s.forts);
   const forces = useGameStore((s) => s.forces);
+  const playerForceId = useGameStore((s) => s.playerForceId);
   return (
     <group>
       {Object.values(forts).map((fort) => {
         const color = fort.ownerForceId ? (forces[fort.ownerForceId]?.color ?? '#5a4530') : '#5a4530';
+        const fac = fort.facility ? FACILITY_DEFS[fort.facility] : null;
         const [wx, wz] = pxToWorld(...geoToPixel(fort.coords.lon, fort.coords.lat));
         const wy = sampleTerrainHeight(wx, wz) + 0.04;
         // Scale grows with level: Lv1 ×0.5, Lv2 ×0.62, Lv3 ×0.75
@@ -2166,6 +2169,26 @@ function Forts3D({ onFortClick }: { onFortClick: (fortId: string) => void }) {
               <planeGeometry args={[0.16, 0.10]} />
               <meshStandardMaterial color={color} side={THREE.DoubleSide} />
             </mesh>
+            {/* 施設 accent + interdiction range ring. The ring radius is the
+                facility's range in map-pixels, undone through the group scale so
+                it reads at true world size. Own facilities ring brightest. */}
+            {fac && (
+              <mesh position={[0, 0.96, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+                <coneGeometry args={[0.13, 0.26, fort.facility === 'catapult' ? 3 : 4]} />
+                <meshStandardMaterial color={fac.color} emissive={fac.color} emissiveIntensity={0.25} roughness={0.6} />
+              </mesh>
+            )}
+            {fac && fac.range > 0 && (
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+                <ringGeometry args={[fac.range / (50 * levelMul) - 0.06, fac.range / (50 * levelMul), 48]} />
+                <meshBasicMaterial
+                  color={fac.color}
+                  transparent
+                  opacity={fort.ownerForceId === playerForceId ? 0.5 : 0.22}
+                  side={THREE.DoubleSide}
+                />
+              </mesh>
+            )}
             {/* Label + HP bar */}
             <Html position={[0, 1.10, 0]} center distanceFactor={10} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
               <div style={{
@@ -3032,8 +3055,8 @@ export function StrategicMap3D() {
             fontFamily: 'Songti SC, serif',
             fontSize: '0.78rem',
           }}
-          title={t('建造壘寨 (300金，存續10季)', 'Build a stockade (300g, 10 seasons life)')}
-        >{t('築壘', 'Build Stockade')}</button>
+          title={t('築壘寨 / 箭樓 / 投石臺 — 施設可轟擊路過敵軍', 'Build stockade / arrow tower / catapult — facilities shell passing enemies')}
+        >{t('築堡施設', 'Build')}</button>
       </div>
 
       <Canvas

@@ -12,8 +12,9 @@ import type {
 import { OATH_BONDS, type OathBond } from '../data/bonds';
 import { isHostilePermitted } from '../types';
 import { generateTerritories, terrainRoute, positionAlongRoute, marchDestCoords, type Territory } from '../data/territories';
-import { terrainMarchCost, describeBattleSite } from '../data/geography';
+import { terrainMarchCost, describeBattleSite, geoToPixel } from '../data/geography';
 import { cityPos } from '../data/cityGeo';
+import { FACILITY_DEFS, type Fort } from '../types/fort';
 import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
 import { handleSearch, resolveInternalAffairs, type LostItemRef } from './commands';
@@ -46,6 +47,8 @@ export interface ResolutionInput {
   casusBelliMarks?: Array<{ byForceId: EntityId; targetForceId: EntityId; expiresYear: number; expiresSeason: 'spring' | 'summer' | 'autumn' | 'winter' }>;
   /** Transient 求賢令 recruit multipliers — folded into recruit commands. */
   recruitBonusSeasons?: Record<EntityId, { multiplier: number; seasonsLeft: number }>;
+  /** Strategic-map installations (箭樓/投石臺/陣/防壁) that act on passing armies. */
+  forts?: Record<EntityId, Fort>;
   rng?: () => number;
   weather?: import('./weather').Weather;
   /**
@@ -460,6 +463,42 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     }
   }
 
+  // ── 施設 — strategic-map installations act on columns marching within range:
+  //   箭樓/投石臺 (ranged) shell hostile columns (投石臺 reaches further, hits
+  //     harder) — damage feeds troopOverride and leaves a battle scar;
+  //   陣 (supply) reinforces friendly columns back toward full strength;
+  //   防壁 (block) stalls hostile columns in transit for a season.
+  const blockedOfficers = new Set<EntityId>();
+  const facilities = Object.values(input.forts ?? {}).filter((f) => f.facility && f.ownerForceId);
+  if (facilities.length > 0) {
+    for (const cmd of allMarches) {
+      if (cancelledMarchOfficers.has(cmd.officerId) || deferredOfficers.has(cmd.officerId)) continue;
+      const force = officers[cmd.officerId]?.forceId;
+      if (!force) continue;
+      const pos = armyPosition(cmd);
+      if (!pos) continue;
+      let dmg = 0, heal = 0, blocked = false;
+      for (const f of facilities) {
+        const def = FACILITY_DEFS[f.facility!];
+        const [fx, fy] = geoToPixel(f.coords.lon, f.coords.lat);
+        if (Math.hypot(pos.x - fx, pos.y - fy) > def.range) continue;
+        const own = f.ownerForceId === force;
+        const hostile = !own && isHostilePermitted(input.diplomacy, f.ownerForceId!, force);
+        if (def.effect === 'ranged' && hostile) dmg += def.power;
+        else if (def.effect === 'supply' && own) heal += def.power;
+        else if (def.effect === 'block' && hostile) blocked = true;
+      }
+      if (dmg > 0 || heal > 0) {
+        const base = troopOverride[cmd.officerId] ?? cmd.troops;
+        let next = base - dmg + heal;
+        if (heal > 0) next = Math.min(next, cmd.troops); // 陣 reinforces back to full, no further
+        troopOverride[cmd.officerId] = Math.max(0, next);
+        if (dmg > 0) fieldBattleMarks.push({ x: pos.x, y: pos.y, kind: 'ambush' });
+      }
+      if (blocked) blockedOfficers.add(cmd.officerId);
+    }
+  }
+
   const liveMarches = allMarches.filter((c) => !cancelledMarchOfficers.has(c.officerId));
   const withTroops = (c: Extract<Command, { type: 'march' }>) =>
     troopOverride[c.officerId] !== undefined ? { ...c, troops: troopOverride[c.officerId] } : c;
@@ -579,9 +618,11 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
 
   const keptCommands: Record<EntityId, Command> = {};
   for (const cmd of inTransit) {
+    // 防壁 — a barricade in the column's path stalls it this season (no advance).
+    const advance = blockedOfficers.has(cmd.officerId) ? 0 : 1;
     keptCommands[cmd.officerId] = {
       ...cmd,
-      seasonsRemaining: (cmd.seasonsRemaining ?? 1) - 1,
+      seasonsRemaining: (cmd.seasonsRemaining ?? 1) - advance,
     };
   }
   // Held marches are carried forward unchanged (frozen in place).
@@ -616,7 +657,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       cellTarget: cmd.targetX != null,
     };
   };
-  for (const cmd of inTransit) deriveArmy(cmd, (cmd.seasonsRemaining ?? 1) - 1, false);
+  for (const cmd of inTransit) deriveArmy(cmd, (cmd.seasonsRemaining ?? 1) - (blockedOfficers.has(cmd.officerId) ? 0 : 1), false);
   for (const cmd of held) deriveArmy(cmd, cmd.seasonsRemaining ?? 1, true);
 
   // Phase 3c — territory capture stamps. Every army on the road this

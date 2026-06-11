@@ -80,7 +80,7 @@ import { DEFENSE_BUILDINGS } from '../data/defenseBuildings';
 import { SHIP_CLASSES_BY_ID } from '../data/ships';
 import { canPlayerAttackPort, migratePorts, navalReachableCityIds } from '../data/ports';
 import { canPlayerAttackFort, migrateForts } from '../data/forts';
-import { fortMaxHpForLevel } from '../types';
+import { fortMaxHpForLevel, FACILITY_DEFS, type FacilityKind } from '../types';
 import { awardBattleXp } from '../systems/growth';
 import { tickBuildings } from '../systems/buildings';
 import { evaluateCoalition } from '../systems/coalition';
@@ -364,6 +364,13 @@ interface GameStore extends GameState {
     nearCityId: EntityId,
     label: string,
   ) => { ok: boolean; message: string };
+  /** Build a strategic facility (箭樓/投石臺/陣/防壁) near a city. Costs gold
+   *  from the capital; acts on armies marching nearby each season. */
+  buildFacility: (
+    nearCityId: EntityId,
+    kind: FacilityKind,
+    label: string,
+  ) => { ok: boolean; message: string };
   /** Officer-led attack on a fort. Same pattern as attackPort. */
   attackFort: (
     fortId: EntityId,
@@ -508,6 +515,7 @@ function buildFieldBattle(
       bearing: Math.atan2(eArmy.y - pArmy.y, eArmy.x - pArmy.x),
       season: s.date.season,
     },
+    forts: s.forts,
     field: true,
   });
   battle.attackerArmyId = playerArmyId;
@@ -1237,6 +1245,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           casusBelliMarks: casusBelliAfterCourt,
           recruitBonusSeasons: state.recruitBonusSeasons,
           weather: state.weather,
+          forts: state.forts,
           seasonBoundary,
         });
         // Prepend AI diplomatic announcements to the report.
@@ -3571,6 +3580,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           // The city's own perimeter defences (箭樓 / 拒馬 / 鐵索…) man the walls
           // and fire on the AI attacker — exactly as in a live 守城戰.
           buildSlots: city.buildSlots,
+          forts: state.forts,
           terrainHint: { terrain: city.terrain, port: city.port, x: city.coords.x, y: city.coords.y },
           // The assault rolls in along the chosen approach — so the board samples
           // the real ground in that direction (the same geography the city map's
@@ -3649,6 +3659,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           timeOfDay: rollTimeOfDay(),
           windDirection: state.weather?.wind ?? 'calm',
           buildSlots: tgt.buildSlots,
+          forts: state.forts,
           terrainHint: { terrain: tgt.terrain, port: tgt.port, x: tgt.coords.x, y: tgt.coords.y },
           battleGeo: { x: tp.x, y: tp.y, bearing, anchorCol: 16, season: state.date.season },
           siegeWorks: works,
@@ -4750,6 +4761,53 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         return {
           ok: true,
           message: `Stockade "${label || '壘'}" built near ${city.name.zh} (10 seasons before rot).`,
+        };
+      },
+
+      buildFacility: (nearCityId, kind, label) => {
+        const def = FACILITY_DEFS[kind];
+        const state = get();
+        if (!state.playerForceId) return { ok: false, message: 'No player force.' };
+        const city = state.cities[nearCityId];
+        if (!city) return { ok: false, message: 'City not found.' };
+        if (city.ownerForceId !== state.playerForceId)
+          return { ok: false, message: 'You must own the host city.' };
+        const player = state.forces[state.playerForceId];
+        const capital = player ? state.cities[player.capitalCityId] : null;
+        if (!capital || capital.gold < def.cost)
+          return { ok: false, message: `Need ${def.cost}g in capital.` };
+        // Offset ~0.4° from the city in a random compass direction (same as 築壘).
+        const angle = Math.random() * Math.PI * 2;
+        const geo = CITY_GEO_OVERRIDES[city.id];
+        const cityLon = geo ? geo[0] : 96 + (city.coords.x / 1000) * 29;
+        const cityLat = geo ? geo[1] : 43 - (city.coords.y / 720) * 26;
+        const lon = cityLon + Math.cos(angle) * 0.4;
+        const lat = cityLat + Math.sin(angle) * 0.4;
+        const id = `facility-${kind}-${Date.now()}`;
+        set({
+          cities: {
+            ...state.cities,
+            [capital.id]: { ...capital, gold: capital.gold - def.cost },
+          },
+          forts: {
+            ...state.forts,
+            [id]: {
+              id,
+              name: { zh: label || def.name.zh, en: label || def.name.en },
+              subtype: 'stockade',
+              facility: kind,
+              coords: { lon, lat },
+              ownerForceId: state.playerForceId,
+              hp: def.hp,
+              maxHp: def.hp,
+              guards: [nearCityId],
+              seasonsRemaining: def.seasons,
+            },
+          },
+        });
+        return {
+          ok: true,
+          message: `${def.name.zh} built near ${city.name.zh}.`,
         };
       },
 
