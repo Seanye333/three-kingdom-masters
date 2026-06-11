@@ -18,8 +18,13 @@ import {
   unlockAudio,
 } from './game/systems/sound';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
-import { MapScreen } from './ui/screens/MapScreen';
+import { Suspense, lazy } from 'react';
 import { TitleScreen } from './ui/screens/TitleScreen';
+
+// The realm (three.js + the whole map/battle stack) is by far the heaviest
+// chunk — lazy so the title paints instantly; the title screen pre-warms the
+// chunk in the background the moment it mounts.
+const MapScreen = lazy(() => import('./ui/screens/MapScreen').then((m) => ({ default: m.MapScreen })));
 
 // Expose province lookup for the canvas overlay.
 (window as unknown as { __provinceByCity?: Record<string, string> }).__provinceByCity = PROVINCE_BY_CITY;
@@ -80,7 +85,17 @@ export default function App() {
 
   return (
     <ErrorBoundary fallbackLabel="Game crashed">
-      {scenarioId ? <MapScreen /> : <TitleScreen />}
+      {scenarioId ? (
+        <Suspense fallback={
+          <div style={{
+            position: 'fixed', inset: 0, display: 'grid', placeItems: 'center',
+            background: '#0a0805', color: '#d4a84a',
+            fontFamily: 'Songti SC, serif', letterSpacing: '0.4rem', fontSize: '1.1rem',
+          }}>展開輿圖…</div>
+        }>
+          <MapScreen />
+        </Suspense>
+      ) : <TitleScreen />}
     </ErrorBoundary>
   );
 }

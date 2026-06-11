@@ -1,6 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { SCENARIOS } from '../../game/data';
-import { warmStrategicAssets } from '../components/StrategicMap3D';
 import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
@@ -45,12 +44,18 @@ export function TitleScreen() {
   useEffect(() => {
     let stop = false;
     let timer: ReturnType<typeof setTimeout>;
-    const tick = () => {
+    // Dynamic import — the title chunk must NOT statically pull the whole
+    // three.js map stack (that's what made first paint a 5MB download). The
+    // map chunk streams in the background and warms while the player reads.
+    import('../components/StrategicMap3D').then(({ warmStrategicAssets }) => {
       if (stop) return;
-      const done = warmStrategicAssets();
-      if (!done) timer = setTimeout(tick, 8);
-    };
-    timer = setTimeout(tick, 400);
+      const tick = () => {
+        if (stop) return;
+        const done = warmStrategicAssets();
+        if (!done) timer = setTimeout(tick, 8);
+      };
+      timer = setTimeout(tick, 400);
+    });
     return () => { stop = true; clearTimeout(timer); };
   }, []);
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
