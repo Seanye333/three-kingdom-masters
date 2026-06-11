@@ -2640,8 +2640,16 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const [error, setError] = useState<string | null>(null);
   const [introDone, setIntroDone] = useState(false);
   // Exit by rising back up toward the strategic-map vantage, then unmount.
+  // A timeout OWNS the close so we never depend on the camera animation's
+  // callback firing — clicking × always gets you out.
   const [exiting, setExiting] = useState(false);
-  const beginClose = () => setExiting(true);
+  const closingRef = useRef(false);
+  const beginClose = () => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setExiting(true);
+    window.setTimeout(onClose, 480);
+  };
   const lang = useLanguage();
 
   const rawPreview = useMemo(
@@ -2936,18 +2944,22 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
           dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
           style={{ background: light.sky }}
         >
-          {/* Swoop down into the city on entry; rise back up on exit. */}
+          {/* Swoop down into the city on entry; rise back up on exit. Distinct
+              keys so the exit dive mounts fresh (a reused instance would keep
+              its finished state and never animate). The close itself is owned
+              by beginClose's timeout, so this is purely visual. */}
           {exiting ? (
             <IntroDive
+              key="out"
               mode="out"
               start={[centerX, camHeight * 2.6, centerZ + camOffset * 0.18]}
               end={[centerX, camHeight, centerZ + camOffset]}
               target={[centerX, 0, centerZ]}
-              duration={0.5}
-              onDone={onClose}
+              duration={0.45}
             />
           ) : (
             <IntroDive
+              key="in"
               start={[centerX, camHeight * 2.6, centerZ + camOffset * 0.18]}
               end={[centerX, camHeight, centerZ + camOffset]}
               target={[centerX, 0, centerZ]}

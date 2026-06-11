@@ -2056,6 +2056,21 @@ export function TacticalBattleScreen3D({ onClose }: { onClose: () => void }) {
           }}
           title={t('切換 2D 視圖', 'Switch to 2D view')}
         >{t('切換 2D', 'Switch 2D')} ⇄</button>
+        {/* Direct way out of the 3D view — instant for a drill, confirmed for a
+            real battle (forfeiting / 棄城 has consequences). */}
+        <button
+          onClick={() => {
+            if (battle.practice || window.confirm(t('確定退出此戰?', 'Leave this battle?'))) {
+              cancelBattle();
+            }
+          }}
+          style={{
+            background: '#3a1a16', color: '#f0c0b0', border: '1px solid #b8584a',
+            padding: '0.3rem 0.8rem', cursor: 'pointer', marginLeft: '0.4rem',
+            fontFamily: 'Songti SC, serif',
+          }}
+          title={battle.practice ? t('結束演習', 'End the drill') : t('退出戰鬥', 'Leave the battle')}
+        >✕ {battle.practice ? t('結束演習', 'End Drill') : t('退出', 'Exit')}</button>
       </div>
 
       {/* 3D canvas */}
