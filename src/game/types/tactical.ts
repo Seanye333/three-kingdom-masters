@@ -326,9 +326,11 @@ export interface TacticalBattle {
   /**
    * The board's window into the strategic map: where its centre sits (x,y on the
    * 1000×720 world) and the bearing (radians, attacker→defender) it's rotated to.
-   * Lets a shared locator place "you are here" and orient the compass.
+   * anchorCol = which board column sits on (x,y) — sieges anchor the city near
+   * the defender edge. Lets a shared locator place "you are here", orient the
+   * compass, and pin the in-world battle diorama on the right spot.
    */
-  geoAnchor?: { x: number; y: number; bearing: number };
+  geoAnchor?: { x: number; y: number; bearing: number; anchorCol?: number };
   /**
    * 演習 — a sparring drill launched from a city. Casualties, captures, XP and
    * loot are all discarded when it ends; nothing writes back to the campaign.

@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -31,8 +31,16 @@ type ActionMode =
   | { kind: 'duel' }
   | { kind: 'stratagem'; id: StratagemId; tacticId?: string };
 
-/** N6 — Signature-tactic flavor lines for the battle log. Keyed by tacticId. */
-const SIGNATURE_FLAVOR: Record<string, { zh: string; en: string }> = {
+/**
+ * True when BattleScene is embedded as a diorama inside another scene (the
+ * strategic map). Children read it to skip scene-global attachments (fog,
+ * lights, surround, weather) and DOM label overlays that don't scale.
+ */
+export const EmbeddedSceneCtx = createContext(false);
+
+/** N6 — Signature-tactic flavor lines for the battle log. Keyed by tacticId.
+ *  Exported for the headless AI driver (it appends the same flavor lines). */
+export const SIGNATURE_FLAVOR: Record<string, { zh: string; en: string }> = {
   'borrow-wind':    { zh: '今夜東風大作 — 諸葛祭壇神算!', en: 'A great east wind rises by night — divined by stratagem!' },
   'borrow-arrow':   { zh: '草船借箭,十萬箭歸我軍!', en: '100,000 arrows seized from the river mist!' },
   'eight-gates':    { zh: '八門遁甲開,敵入死門!', en: 'Eight Gates of Heaven open — the foe is trapped!' },
@@ -554,6 +562,7 @@ function UnitMesh({
 }) {
   const [tx, tz] = hexWorld(unit.coord.col, unit.coord.row);
   const color = isPlayer ? '#3a7dd9' : '#b8442e';
+  const embedded = useContext(EmbeddedSceneCtx);
   // Animated position — lerps to target hex when unit moves
   const groupRef = useRef<THREE.Group>(null);
   const prevTarget = useRef<{ x: number; z: number }>({ x: tx, z: tz });
@@ -655,8 +664,9 @@ function UnitMesh({
           <meshBasicMaterial color="#d4a84a" side={THREE.DoubleSide} />
         </mesh>
       )}
-      {/* HTML overlay — unit info, always-upright crisp text */}
-      <Html
+      {/* HTML overlay — unit info, always-upright crisp text. Skipped in the
+          embedded diorama (DOM labels don't scale with the group). */}
+      {!embedded && <Html
         position={[0, 1.6, 0]}
         center
         distanceFactor={8}
@@ -698,7 +708,7 @@ function UnitMesh({
             }} />
           </div>
         </div>
-      </Html>
+      </Html>}
     </group>
   );
 }
@@ -885,6 +895,7 @@ export function DefenseStructure({
   const [x, z] = hexWorld(coord.col, coord.row);
   const visual = DEFENSE_BUILDING_VISUAL[buildingId];
   const hpPct = Math.max(0, Math.min(1, hp / maxHp));
+  const embedded = useContext(EmbeddedSceneCtx);
   const isFlame = buildingId === 'beacon';
   const flameRef = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
@@ -922,8 +933,8 @@ export function DefenseStructure({
       {isFlame && (
         <pointLight position={[0, visual.height + 0.5, 0]} color="#ff6020" intensity={2} distance={4} />
       )}
-      {/* HTML label with HP bar */}
-      <Html position={[0, visual.height + 1.0, 0]} center distanceFactor={8} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+      {/* HTML label with HP bar (skipped in the embedded diorama) */}
+      {!embedded && <Html position={[0, visual.height + 1.0, 0]} center distanceFactor={8} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{
           background: 'rgba(20, 14, 8, 0.85)',
           border: `1px solid ${visual.color}`,
@@ -943,7 +954,7 @@ export function DefenseStructure({
             }} />
           </div>
         </div>
-      </Html>
+      </Html>}
     </group>
   );
 }
@@ -1019,6 +1030,7 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
   const [x, z] = hexWorld(coord.col, coord.row);
   const groupRef = useRef<THREE.Group>(null);
   const htmlRef = useRef<HTMLDivElement>(null);
+  const embedded = useContext(EmbeddedSceneCtx);
   useFrame(() => {
     if (!groupRef.current) return;
     const age = (Date.now() - spawnedAt) / 1000;
@@ -1028,6 +1040,7 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
       htmlRef.current.style.opacity = String(1 - t);
     }
   });
+  if (embedded) return null; // DOM popups don't scale with the diorama
   return (
     <group ref={groupRef} position={[x, 1.5, z]}>
       <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
@@ -1319,6 +1332,7 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
   // Hooks must run unconditionally — early returns only AFTER them (a side
   // toggling its formation on/off used to change the hook order and crash).
   const ringRef = useRef<THREE.MeshBasicMaterial>(null);
+  const embedded = useContext(EmbeddedSceneCtx);
   useFrame(({ clock }) => {
     if (ringRef.current) {
       ringRef.current.opacity = 0.45 + Math.sin(clock.elapsedTime * 1.5) * 0.15;
@@ -1360,8 +1374,8 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
         <circleGeometry args={[rW - 0.05, 32]} />
         <meshBasicMaterial color={color} transparent opacity={0.06} side={THREE.DoubleSide} />
       </mesh>
-      {/* Floating label */}
-      <Html position={[0, 0.4, 0]} center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+      {/* Floating label (skipped in the embedded diorama) */}
+      {!embedded && <Html position={[0, 0.4, 0]} center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{
           color: '#fff',
           fontFamily: 'Songti SC, serif',
@@ -1374,7 +1388,7 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
           whiteSpace: 'nowrap',
           boxShadow: `0 0 8px ${color}`,
         }}>{side === 'attacker' ? 'A' : 'D'} · {labelZh}</div>
-      </Html>
+      </Html>}
     </group>
   );
 }
@@ -1480,10 +1494,10 @@ function FieldDressing({ tiles }: { tiles: TacticalTile[] }) {
   );
 }
 
-function BattleScene({
+export function BattleScene({
   battle, playerSide, actionMode,
   selectedId, hovered, setHovered, onTileClick,
-  attackArcs, stratagemFx, officers,
+  attackArcs, stratagemFx, officers, embedded = false,
 }: {
   battle: TacticalBattle;
   playerSide: 'attacker' | 'defender' | null;
@@ -1495,6 +1509,9 @@ function BattleScene({
   attackArcs: { id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }[];
   stratagemFx: Array<{ id: number; coord: HexCoord; kind: NonNullable<ReturnType<typeof stratagemFxKind>>; spawnedAt: number }>;
   officers: Record<EntityId, Officer>;
+  /** Diorama mode — rendered inside ANOTHER scene (the strategic map): skip
+   *  scene-global fog/lights/surround/ground/weather and DOM overlays. */
+  embedded?: boolean;
 }) {
   const { tiles, units } = battle;
   const tileByCoord = useMemo(() => {
@@ -1545,42 +1562,49 @@ function BattleScene({
   }, [battle, selectedUnit, playerSide, actionMode, tiles, units]);
 
   return (
-    <>
-      <fog attach="fog" args={[lighting.fog[0], fogNear, fogFar]} />
-      <BattleSurround width={battle.width} height={battle.height} timeOfDay={battle.timeOfDay} />
+    <EmbeddedSceneCtx.Provider value={embedded}>
+      {/* Scene globals — fog, surround hills, stars, lights, shadow-catch
+          ground and weather all belong to the FULLSCREEN battle only; as an
+          embedded diorama the host scene provides its own. */}
+      {!embedded && (
+        <>
+          <fog attach="fog" args={[lighting.fog[0], fogNear, fogFar]} />
+          <BattleSurround width={battle.width} height={battle.height} timeOfDay={battle.timeOfDay} />
+          {lighting.showStars && <Stars radius={80} depth={50} count={2500} factor={3} fade speed={0.5} />}
+
+          {/* Lighting per time-of-day */}
+          <ambientLight intensity={lighting.ambient} />
+          <directionalLight
+            position={lighting.sun.position}
+            intensity={lighting.sun.intensity}
+            color={lighting.sun.color}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-camera-left={-30}
+            shadow-camera-right={30}
+            shadow-camera-top={30}
+            shadow-camera-bottom={-30}
+          />
+          <directionalLight
+            position={[-lighting.sun.position[0], 6, -lighting.sun.position[2]]}
+            intensity={lighting.fill.intensity}
+            color={lighting.fill.color}
+          />
+          <hemisphereLight args={[lighting.sky[0], '#3a2818', 0.3]} />
+
+          {/* Ground plane for shadow catching beyond hexes */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]} receiveShadow>
+            <planeGeometry args={[200, 200]} />
+            <meshStandardMaterial color="#1a1408" />
+          </mesh>
+
+          {/* Weather particles */}
+          {battle.weather === 'rain' && <RainParticles bounds={bounds} />}
+          {battle.weather === 'snow' && <SnowParticles bounds={bounds} />}
+        </>
+      )}
       <FieldDressing tiles={tiles} />
-      {lighting.showStars && <Stars radius={80} depth={50} count={2500} factor={3} fade speed={0.5} />}
-
-      {/* Lighting per time-of-day */}
-      <ambientLight intensity={lighting.ambient} />
-      <directionalLight
-        position={lighting.sun.position}
-        intensity={lighting.sun.intensity}
-        color={lighting.sun.color}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-left={-30}
-        shadow-camera-right={30}
-        shadow-camera-top={30}
-        shadow-camera-bottom={-30}
-      />
-      <directionalLight
-        position={[-lighting.sun.position[0], 6, -lighting.sun.position[2]]}
-        intensity={lighting.fill.intensity}
-        color={lighting.fill.color}
-      />
-      <hemisphereLight args={[lighting.sky[0], '#3a2818', 0.3]} />
-
-      {/* Ground plane for shadow catching beyond hexes */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]} receiveShadow>
-        <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color="#1a1408" />
-      </mesh>
-
-      {/* Weather particles */}
-      {battle.weather === 'rain' && <RainParticles bounds={bounds} />}
-      {battle.weather === 'snow' && <SnowParticles bounds={bounds} />}
 
       {/* All tiles */}
       {(() => {
@@ -1709,7 +1733,7 @@ function BattleScene({
           spawnedAt={f.spawnedAt}
         />
       ))}
-    </>
+    </EmbeddedSceneCtx.Provider>
   );
 }
 
@@ -1721,6 +1745,7 @@ export function TacticalBattleScreen3D() {
   const start = useGameStore((s) => s.startTacticalBattle);
   const applyResolution = useGameStore((s) => s.applyTacticalResolution);
   const cancelBattle = useGameStore((s) => s.cancelTacticalBattle);
+  const setBattleViewMinimized = useGameStore((s) => s.setBattleViewMinimized);
   const battleSpeed = useGameStore((s) => s.battleSpeed);
   const difficulty = useGameStore((s) => s.difficulty);
 
@@ -2048,6 +2073,18 @@ export function TacticalBattleScreen3D() {
             opacity: !myTurn ? 0.4 : 1,
           }}
         >{t('結束回合', 'End Turn')}</button>
+        {/* 觀戰 — drop back to the world map; the battle keeps playing as a
+            diorama on the very ground it's fought over. Tap it to return. */}
+        <button
+          onClick={() => setBattleViewMinimized(true)}
+          style={{
+            marginLeft: 'auto',
+            background: '#16261a', color: '#9ed68a', border: '1px solid #5a8a3a',
+            padding: '0.3rem 0.8rem', cursor: 'pointer',
+            fontFamily: 'Songti SC, serif',
+          }}
+          title={t('回大地圖觀戰 — 戰鬥在原地繼續', 'Watch from the world map — the battle continues in place')}
+        >🌏 {t('大地圖', 'World')}</button>
         {/* Direct way out — instant for a drill, confirmed for a real battle
             (forfeiting / 棄城 has consequences). The 2D view is retired. */}
         <button
@@ -2057,7 +2094,7 @@ export function TacticalBattleScreen3D() {
             }
           }}
           style={{
-            marginLeft: 'auto',
+            marginLeft: '0.4rem',
             background: '#3a1a16', color: '#f0c0b0', border: '1px solid #b8584a',
             padding: '0.3rem 0.8rem', cursor: 'pointer',
             fontFamily: 'Songti SC, serif',

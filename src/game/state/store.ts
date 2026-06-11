@@ -158,6 +158,9 @@ interface GameStore extends GameState {
   /** Open / close the city-interior map for the selected city. */
   openCityMap: () => void;
   closeCityMap: () => void;
+  /** 觀戰 — minimize the fullscreen battle to its world-map diorama (or
+   *  restore it). The battle keeps running headless while minimized. */
+  setBattleViewMinimized: (minimized: boolean) => void;
   selectArmy: (armyId: EntityId | null) => void;
   redirectArmy: (armyId: EntityId, newTargetId: EntityId) => boolean;
   holdArmy: (armyId: EntityId) => boolean;
@@ -548,6 +551,8 @@ export const useGameStore = create<GameStore>()(
 
       openCityMap: () => set(() => ({ cityMapOpen: true })),
       closeCityMap: () => set(() => ({ cityMapOpen: false })),
+
+      setBattleViewMinimized: (minimized) => set(() => ({ battleViewMinimized: minimized })),
 
       selectArmy: (armyId) => set(() => ({ selectedArmyId: armyId })),
 

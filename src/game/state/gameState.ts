@@ -69,6 +69,9 @@ export interface GameState {
   selectedArmyId: EntityId | null;
   /** Whether the city-interior map is open for the selected city (UI flag). */
   cityMapOpen: boolean;
+  /** 觀戰 — the fullscreen battle view is minimized to its world-map diorama
+   *  (the battle keeps running headless; tap the diorama to re-enter). */
+  battleViewMinimized: boolean;
   cities: Record<EntityId, City>;
   forces: Record<EntityId, Force>;
   officers: Record<EntityId, Officer>;
@@ -269,6 +272,7 @@ export const EMPTY_STATE: GameState = {
   selectedCityId: null,
   selectedArmyId: null,
   cityMapOpen: false,
+  battleViewMinimized: false,
   cities: {},
   forces: {},
   officers: {},

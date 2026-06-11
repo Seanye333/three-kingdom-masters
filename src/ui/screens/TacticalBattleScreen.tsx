@@ -20,13 +20,22 @@ import styles from './TacticalBattleScreen.module.css';
  * Everything else — board, panels, AI driver, keyboard, results, duels —
  * lives in TacticalBattleScreen3D.
  */
+
+// Once-per-battle latches that survive unmounts — the host remounts every
+// time the player returns from the world-map diorama, and neither the
+// cinematic nor the word-war should replay mid-battle.
+let cinematicPlayedFor: string | null = null;
+let wordWarFiredFor: string | null = null;
+
 export function TacticalBattleScreen() {
   const battle = useGameStore((s) => s.tacticalBattle);
   const officers = useGameStore((s) => s.officers);
   const start = useGameStore((s) => s.startTacticalBattle);
   const playerForceId = useGameStore((s) => s.playerForceId);
 
-  const [showCinematic, setShowCinematic] = useState(true);
+  const [showCinematic, setShowCinematic] = useState(
+    () => useGameStore.getState().tacticalBattle?.id !== cinematicPlayedFor,
+  );
   // 舌戰 — opens after the opening cinematic when both sides have INT ≥ 80.
   const [interactiveDebate, setInteractiveDebate] = useState<{ me: Officer; foe: Officer } | null>(null);
   // Track whether we've already evaluated word war this battle, so it
@@ -47,7 +56,9 @@ export function TacticalBattleScreen() {
   // when the player dismisses the modal.
   useEffect(() => {
     if (!battle || showCinematic || wordWarChecked.current) return;
+    if (wordWarFiredFor === battle.id) return; // already fired this battle
     wordWarChecked.current = true;
+    wordWarFiredFor = battle.id;
     const sideOfficers = (side: 'attacker' | 'defender') => battle.units
       .filter((u) => u.side === side)
       .map((u) => officers[u.officerId])
@@ -66,9 +77,11 @@ export function TacticalBattleScreen() {
     return () => window.clearTimeout(id);
   }, [battle, showCinematic, officers, playerSide]);
 
-  // Hide cinematic after the full curtain + title + seal sequence.
+  // Hide cinematic after the full curtain + title + seal sequence — once per
+  // battle (returning from the world-map diorama must not replay it).
   useEffect(() => {
-    if (!battle) return;
+    if (!battle || cinematicPlayedFor === battle.id) return;
+    cinematicPlayedFor = battle.id;
     // Curtains slide for 1.8s, title reveals through 2.8s, seal stamps at 2.9s.
     // Hold the full sequence + breath for the player to read.
     const id = setTimeout(() => setShowCinematic(false), 4500);

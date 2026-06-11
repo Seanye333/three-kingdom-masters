@@ -33,6 +33,7 @@ import { TutorialOverlay } from '../components/TutorialOverlay';
 import { VictoryModal } from '../components/VictoryModal';
 import { WishesModal } from '../components/WishesModal';
 import { TacticalBattleScreen } from './TacticalBattleScreen';
+import { BattleAIDriver } from '../components/BattleAIDriver';
 import { HudMenu } from '../components/HudMenu';
 import { THEMES, getStoredTheme, applyTheme, type ThemeId } from '../theme';
 import { useT } from '../i18n';
@@ -114,6 +115,18 @@ export function MapScreen() {
     return () => window.clearTimeout(id);
   }, [battleId]);
   const battleRevealed = !!battleId && revealedForBattle === battleId;
+  // 觀戰 — minimized battles live as a diorama on the world map; the headless
+  // driver keeps AI turns flowing. A fresh battle always opens fullscreen, and
+  // a finished one reopens itself so the results modal can land.
+  const battleViewMinimized = useGameStore((s) => s.battleViewMinimized);
+  const setBattleViewMinimized = useGameStore((s) => s.setBattleViewMinimized);
+  useEffect(() => {
+    if (battleId) setBattleViewMinimized(false);
+  }, [battleId, setBattleViewMinimized]);
+  useEffect(() => {
+    if (tacticalBattle?.winner && battleViewMinimized) setBattleViewMinimized(false);
+  }, [tacticalBattle?.winner, battleViewMinimized, setBattleViewMinimized]);
+  const battleScreenUp = !!tacticalBattle && battleRevealed && !battleViewMinimized;
   // Gates for the bond ceremony — it waits behind season report / events /
   // battle playback so it plays on a clear map, not buried under a modal.
   const ceremonyBlocked = useGameStore(
@@ -567,7 +580,11 @@ export function MapScreen() {
         <EndingsModal onClose={() => setShowEnding(false)} />
       )}
       <TutorialOverlay />
-      {tacticalBattle && battleRevealed && <TacticalBattleScreen />}
+      {/* Headless AI turns while the fullscreen battle view is down (fly-in
+          delay or minimized to the diorama) — never alongside the screen's
+          own driver. */}
+      <BattleAIDriver active={!!tacticalBattle && !battleScreenUp} />
+      {battleScreenUp && <TacticalBattleScreen />}
     </div>
   );
 }

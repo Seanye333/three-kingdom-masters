@@ -13,6 +13,9 @@ import { PROVINCE_BY_CITY } from '../../game/data';
 import { citySize } from '../../game/systems/citySize';
 import type { City, Force, Season } from '../../game/types';
 import { FACILITY_DEFS } from '../../game/types';
+// The battle diorama reuses the real battle scene (embedded mode) + its hex
+// coordinate helper, so the fight on the world map IS the fight.
+import { BattleScene, hexWorld as battleHexWorld } from '../screens/TacticalBattleScreen3D';
 import type { WeatherKind } from '../../game/systems/weather';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
@@ -1434,7 +1437,7 @@ function Roads({ cities }: { cities: Record<string, City> }) {
 }
 
 /* ─── Marching army arrows (animated) ──────────────────────── */
-function MarchingArmies({ cities, pendingCommands, forces, officers, ports, selectedArmyId, onArmyClick }: {
+function MarchingArmies({ cities, pendingCommands, forces, officers, ports, selectedArmyId, onArmyClick, hideNearPx }: {
   cities: Record<string, City>;
   pendingCommands: Record<string, { cityId?: string; type: string; targetCityId?: string; troops?: number; officerId?: string; seasonsRemaining?: number; totalSeasons?: number }>;
   forces: Record<string, { color: string }>;
@@ -1442,6 +1445,8 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports, sele
   ports: Record<string, import('../../game/types').Port>;
   selectedArmyId: string | null;
   onArmyClick?: (officerId: string) => void;
+  /** Suppress tokens near an active battle site (they're IN the diorama). */
+  hideNearPx?: { x: number; y: number } | null;
 }) {
   const armies = useMemo(() => {
     return Object.values(pendingCommands)
@@ -1466,6 +1471,14 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports, sele
           ? cityPixel(cmd.targetCityId, dest.x, dest.y)
           : [dest.x, dest.y];
         const landRoute = [{ x: fgx, y: fgy }, { x: dgx, y: dgy }];
+        // Suppress tokens marching beside an active battle — those columns are
+        // IN the diorama; a second flag next to it reads as a phantom army.
+        if (hideNearPx) {
+          const tEl = Math.min(0.95, Math.max(0.05, (totalSeasons - seasonsRemaining + 0.5) / totalSeasons));
+          const ax = fgx + (dgx - fgx) * tEl;
+          const ay = fgy + (dgy - fgy) * tEl;
+          if (Math.hypot(ax - hideNearPx.x, ay - hideNearPx.y) < 50) return null;
+        }
         const weaponType: WeaponType = commander ? deriveWeaponType(commander) : 'none';
         return {
           officerId: cmd.officerId,
@@ -1484,7 +1497,7 @@ function MarchingArmies({ cities, pendingCommands, forces, officers, ports, sele
         };
       })
       .filter((a): a is NonNullable<typeof a> => !!a);
-  }, [cities, pendingCommands, forces, officers, selectedArmyId]);
+  }, [cities, pendingCommands, forces, officers, selectedArmyId, hideNearPx]);
 
   return (
     <group>
@@ -2122,7 +2135,10 @@ function SnowParticles({ count = 1500, bounds }: { count?: number; bounds: { x: 
  *  Placed at real (lon, lat). Owner color independent of any city.
  *  Sea routes drawn as faint blue lines connecting linked ports. */
 /* ─── Forts (砦/壘) — small wooden military strongpoints ─────────── */
-function Forts3D({ onFortClick }: { onFortClick: (fortId: string) => void }) {
+function Forts3D({ onFortClick, hideNearPx }: {
+  onFortClick: (fortId: string) => void;
+  hideNearPx?: { x: number; y: number } | null;
+}) {
   const forts = useGameStore((s) => s.forts);
   const forces = useGameStore((s) => s.forces);
   const playerForceId = useGameStore((s) => s.playerForceId);
@@ -2131,7 +2147,10 @@ function Forts3D({ onFortClick }: { onFortClick: (fortId: string) => void }) {
       {Object.values(forts).map((fort) => {
         const color = fort.ownerForceId ? (forces[fort.ownerForceId]?.color ?? '#5a4530') : '#5a4530';
         const fac = fort.facility ? FACILITY_DEFS[fort.facility] : null;
-        const [wx, wz] = pxToWorld(...geoToPixel(fort.coords.lon, fort.coords.lat));
+        const [fpx, fpy] = geoToPixel(fort.coords.lon, fort.coords.lat);
+        // Hidden under the battle diorama (in-range facilities fight ON it).
+        if (hideNearPx && Math.hypot(fpx - hideNearPx.x, fpy - hideNearPx.y) < 42) return null;
+        const [wx, wz] = pxToWorld(fpx, fpy);
         const wy = sampleTerrainHeight(wx, wz) + 0.04;
         // Scale grows with level: Lv1 ×0.5, Lv2 ×0.62, Lv3 ×0.75
         const levelMul = 0.50 + 0.125 * ((fort.level ?? 1) - 1);
@@ -2831,6 +2850,12 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
   };
   const fieldBattleMarks = useGameStore((s) => s.fieldBattleMarks);
   const portsForMarch = useGameStore((s) => s.ports);
+  // 戰場立體微縮 — the live battle rendered in place on the world map.
+  const tacticalBattle = useGameStore((s) => s.tacticalBattle);
+  const setBattleViewMinimized = useGameStore((s) => s.setBattleViewMinimized);
+  const battleSitePx = tacticalBattle?.geoAnchor
+    ? { x: tacticalBattle.geoAnchor.x, y: tacticalBattle.geoAnchor.y }
+    : null;
   const weather = useGameStore((s) => s.weather);
   const marchPreview = useGameStore((s) => s.marchPreview);
   const weatherPreset = WEATHER_PRESETS[weather.kind];
@@ -2917,15 +2942,83 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       )}
 
       <Roads cities={cities} />
-      <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} />
+      <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <Ports3D onPortClick={onPortClick} />
-      <Forts3D onFortClick={onFortClick} />
+      <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
+
+      {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
+          over (same scene component, same state; rotated to its true bearing,
+          anchored on its geoAnchor column). Tap to enter the fullscreen view. */}
+      {tacticalBattle?.geoAnchor && (() => {
+        const ga = tacticalBattle.geoAnchor;
+        const [bwx, bwz] = pxToWorld(ga.x, ga.y);
+        const by = sampleTerrainHeight(bwx, bwz) + 0.12;
+        const S = 0.16;
+        const [acx, acz] = battleHexWorld(
+          ga.anchorCol ?? Math.floor(tacticalBattle.width / 2),
+          Math.floor(tacticalBattle.height / 2),
+        );
+        const [bcx, bcz] = battleHexWorld(
+          Math.floor(tacticalBattle.width / 2),
+          Math.floor(tacticalBattle.height / 2),
+        );
+        const pSide = tacticalBattle.attackerForceId === playerForceId ? 'attacker' as const
+          : tacticalBattle.defenderForceId === playerForceId ? 'defender' as const : null;
+        return (
+          <group position={[bwx, by, bwz]} rotation={[0, -ga.bearing, 0]} scale={S}>
+            <group position={[-acx, 0, -acz]}>
+              {/* Dark plinth so the board reads cleanly over sloped terrain */}
+              <mesh position={[bcx, -0.7, bcz]} receiveShadow>
+                <boxGeometry args={[tacticalBattle.width * 1.5 + 3, 1.3, tacticalBattle.height * Math.sqrt(3) + 3]} />
+                <meshStandardMaterial color="#241c12" roughness={0.95} />
+              </mesh>
+              <BattleScene
+                embedded
+                battle={tacticalBattle}
+                playerSide={pSide}
+                actionMode={{ kind: 'none' }}
+                selectedId={null}
+                hovered={null}
+                setHovered={() => {}}
+                onTileClick={() => setBattleViewMinimized(false)}
+                attackArcs={[]}
+                stratagemFx={[]}
+                officers={officers}
+              />
+            </group>
+          </group>
+        );
+      })()}
+      {tacticalBattle?.geoAnchor && (() => {
+        const [bwx, bwz] = pxToWorld(tacticalBattle.geoAnchor.x, tacticalBattle.geoAnchor.y);
+        const by = sampleTerrainHeight(bwx, bwz);
+        return (
+          <Html position={[bwx, by + 1.15, bwz]} center distanceFactor={10} zIndexRange={[60, 50]}>
+            <button
+              onClick={() => setBattleViewMinimized(false)}
+              style={{
+                background: 'rgba(26, 16, 10, 0.92)', color: '#f0d98a',
+                border: '1px solid #d4a84a', borderRadius: 3,
+                padding: '3px 10px', cursor: 'pointer',
+                fontFamily: 'Songti SC, serif', fontSize: '13px',
+                letterSpacing: '1px', whiteSpace: 'nowrap',
+                boxShadow: '0 0 10px rgba(212,168,74,0.45)',
+              }}
+            >
+              ⚔ 戰鬥進行中 · 第{tacticalBattle.turn}回 ▸ 進入
+            </button>
+          </Html>
+        );
+      })()}
 
       {Object.values(cities).map((city) => {
         const force = forces[city.ownerForceId ?? ''];
         const color = force?.color ?? NEUTRAL;
         const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
+        // The battle diorama replaces the local scenery — a besieged city's
+        // walls are ON the board, so the giant token underneath would clash.
+        if (battleSitePx && Math.hypot(px - battleSitePx.x, py - battleSitePx.y) < 50) return null;
         const [wx, wz] = pxToWorld(px, py);
         const terrainY = cityElevation(wx, wz);
         return (
@@ -3036,6 +3129,8 @@ export function StrategicMap3D() {
   // target back; BattleFocusFly animates it to a clash site, then locks it in.
   const controlsRef = useRef<{ target: THREE.Vector3; update: () => void; enabled: boolean } | null>(null);
   const [orbitTarget, setOrbitTarget] = useState<[number, number, number]>([0, 0, 0]);
+  // While a battle diorama is on the map, let the camera dive much closer.
+  const battleActive = useGameStore((s) => !!s.tacticalBattle);
   const weather = useGameStore((s) => s.weather);
   const season = useGameStore((s) => s.date.season) as Season;
   const t = useT();
@@ -3135,7 +3230,7 @@ export function StrategicMap3D() {
             ref={controlsRef as React.Ref<never>}
             target={orbitTarget}
             maxPolarAngle={Math.PI / 2.1}
-            minDistance={3}
+            minDistance={battleActive ? 0.9 : 3}
             maxDistance={100}
             enableDamping
             dampingFactor={0.1}
