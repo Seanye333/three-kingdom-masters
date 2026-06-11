@@ -11,11 +11,14 @@ import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
 import { citySize } from '../../game/systems/citySize';
-import type { City, Force, Season } from '../../game/types';
+import type { City, Force, HexCoord, Season } from '../../game/types';
 import { FACILITY_DEFS } from '../../game/types';
 // The battle diorama reuses the real battle scene (embedded mode) + its hex
 // coordinate helper, so the fight on the world map IS the fight.
 import { BattleScene, hexWorld as battleHexWorld } from '../screens/TacticalBattleScreen3D';
+// In-place battle commanding — the SAME pure battle ops the fullscreen uses.
+import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn } from '../../game/systems/tactical';
+import { playSfx } from '../../game/systems/sound';
 import type { WeatherKind } from '../../game/systems/weather';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
@@ -2861,6 +2864,50 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
 }) {
   const tiles = useMemo(() => buildHexWorldTiles(), []);
 
+  // Shared (c,r) → tile-index lookup for neighbours, roads and hover.
+  const tileIndex = useMemo(() => {
+    const m = new Map<string, number>();
+    tiles.forEach((t, i) => m.set(`${t.c},${t.r}`, i));
+    return m;
+  }, [tiles]);
+
+  // 道路地塊 — walk every adjacent-city pair's REAL march route and stamp the
+  // hexes under it as road, so the network armies actually travel is the one
+  // you see paved into the quilt.
+  const roadTiles = useMemo(() => {
+    const set = new Set<number>();
+    const seen = new Set<string>();
+    const stepPx = (HEXW_ROW / PIXEL_TO_WORLD) * 0.5;
+    for (const a of Object.values(cities)) {
+      for (const adjId of a.adjacentCityIds ?? []) {
+        const b = cities[adjId];
+        if (!b) continue;
+        const key = a.id < adjId ? a.id + adjId : adjId + a.id;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const pa = cityPos(a);
+        const pb = cityPos(b);
+        const route = terrainRoute(pa.x, pa.y, pb.x, pb.y);
+        for (let s = 0; s < route.length - 1; s++) {
+          const p0 = route[s], p1 = route[s + 1];
+          const steps = Math.max(1, Math.ceil(Math.hypot(p1.x - p0.x, p1.y - p0.y) / stepPx));
+          for (let k = 0; k <= steps; k++) {
+            const px = p0.x + (p1.x - p0.x) * (k / steps);
+            const py = p0.y + (p1.y - p0.y) * (k / steps);
+            const x = px * PIXEL_TO_WORLD - MAP_W / 2;
+            const z = py * PIXEL_TO_WORLD - MAP_D / 2;
+            const c = Math.round((x + MAP_W / 2 - HEXW_R) / HEXW_COL);
+            const zoff = c & 1 ? HEXW_ROW / 2 : 0;
+            const r = Math.round((z + MAP_D / 2 - HEXW_ROW / 2 - zoff) / HEXW_ROW);
+            const i = tileIndex.get(`${c},${r}`);
+            if (i !== undefined) set.add(i);
+          }
+        }
+      }
+    }
+    return set;
+  }, [tiles, tileIndex, cities]);
+
   // 領土歸屬 — each land hex takes its nearest territory centroid's owner
   // (override ?? parent city's lord), the SAME resolution the painted
   // territory layer uses, so both map styles always agree on borders.
@@ -2889,8 +2936,6 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
   // borders cut sharply. Sea/river neighbours don't count (coasts and rivers
   // already outline themselves).
   const tileBorder = useMemo(() => {
-    const idx = new Map<string, number>();
-    tiles.forEach((t, i) => idx.set(`${t.c},${t.r}`, i));
     const isWater = (k: string) => k === 'river' || k === 'lake';
     return tiles.map((t, i) => {
       if (isWater(t.kind)) return false;
@@ -2901,14 +2946,14 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
         ? [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, 1], [1, 1]]
         : [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1]];
       for (const [dc, dr] of nbs) {
-        const j = idx.get(`${t.c + dc},${t.r + dr}`);
+        const j = tileIndex.get(`${t.c + dc},${t.r + dr}`);
         if (j === undefined) continue;          // sea — no edge
         if (isWater(tiles[j].kind)) continue;   // river — no edge
         if (tileOwner[j] !== own) return true;
       }
       return false;
     });
-  }, [tiles, tileOwner]);
+  }, [tiles, tileIndex, tileOwner]);
 
   // Per-tile colour — terrain base blended toward the owning force's colour
   // (deeper on frontier tiles); seasonal: snow-dusted land in winter.
@@ -2918,29 +2963,59 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
     const owner = ownerId ? (forces[ownerId]?.color ?? null) : null;
     const border = tileBorder[i];
     if (winter) {
-      const snow = water ? '#bcd2dc' : t.kind === 'mountain' ? '#cfd4d8' : '#c9cfc3';
-      if (!owner || water) return snow;
+      const roadW = !water && roadTiles.has(i);
+      const snow = water ? '#bcd2dc' : roadW ? '#a89878' : t.kind === 'mountain' ? '#cfd4d8' : '#c9cfc3';
+      if (!owner || water || roadW) return snow; // packed dirt shows through the snow
       const col = new THREE.Color(snow).lerp(new THREE.Color(owner), border ? 0.5 : 0.26);
       if (border) col.offsetHSL(0, 0, -0.06);
       return `#${col.getHexString()}`;
     }
-    const base = HEXWORLD_COLOR[t.kind] ?? HEXWORLD_COLOR.plain;
+    const road = !water && roadTiles.has(i);
+    const base = road ? '#9a8358' : (HEXWORLD_COLOR[t.kind] ?? HEXWORLD_COLOR.plain);
     const col = new THREE.Color(base);
     // Cheap deterministic tint so the plains read as a quilt, not a slab.
-    if (t.kind === 'plain' || t.kind === 'hill') {
+    if (!road && (t.kind === 'plain' || t.kind === 'hill')) {
       const h = Math.abs(Math.sin(t.x * 12.9898 + t.z * 78.233)) * 0.12;
       col.offsetHSL(0, 0, h - 0.06);
     }
     if (owner && !water) {
-      col.lerp(new THREE.Color(owner), border ? 0.68 : 0.38);
-      if (border) col.offsetHSL(0, 0.05, -0.08);
+      // Roads take only a light realm wash so the network stays readable.
+      col.lerp(new THREE.Color(owner), road ? 0.18 : border ? 0.68 : 0.38);
+      if (border && !road) col.offsetHSL(0, 0.05, -0.08);
     }
     return `#${col.getHexString()}`;
-  }), [tiles, winter, tileOwner, tileBorder, forces]);
+  }), [tiles, winter, tileOwner, tileBorder, roadTiles, forces]);
+
+  // ~22k <Instance> children are expensive to re-create — keep the JSX in a
+  // memo so hover-state changes below never touch it.
+  const instanced = useMemo(() => (
+    <Instances limit={Math.max(1, tiles.length)} receiveShadow frustumCulled={false}>
+      {/* thetaStart π/6 points the hex vertices along ±x — the flat-top
+          orientation our 1.5R/√3R column layout tessellates with. Without
+          it the hexes sit 30° off and leave diagonal gaps. */}
+      <cylinderGeometry args={[1, 1, 1, 6, 1, false, Math.PI / 6]} />
+      <meshStandardMaterial roughness={0.93} metalness={0.02} />
+      {tiles.map((t, i) => (
+        <Instance
+          key={i}
+          position={[t.x, (t.topY - 0.3) / 2, t.z]}
+          scale={[HEXW_R * 0.995, t.topY + 0.3, HEXW_R * 0.995]}
+          color={colors[i]}
+        />
+      ))}
+    </Instances>
+  ), [tiles, colors]);
+
+  // 地塊資訊 — hover (desktop) names the tile: terrain, road, owning realm.
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const hoverTile = hoverIdx != null ? tiles[hoverIdx] : null;
+  const KIND_ZH: Record<string, string> = {
+    plain: '平原', hill: '丘陵', mountain: '山地', river: '大河', lake: '湖泊', riverbank: '河岸',
+  };
 
   return (
     <group>
-      {/* Invisible click-catcher — same contract as the painted MapTerrain. */}
+      {/* Invisible click/hover-catcher — same click contract as MapTerrain. */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0, 0]}
@@ -2951,34 +3026,50 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
           const py = (e.point.z + MAP_D / 2) / PIXEL_TO_WORLD;
           onGroundClick(px, py);
         }}
+        onPointerMove={IS_MOBILE ? undefined : (e) => {
+          const c = Math.round((e.point.x + MAP_W / 2 - HEXW_R) / HEXW_COL);
+          const zoff = c & 1 ? HEXW_ROW / 2 : 0;
+          const r = Math.round((e.point.z + MAP_D / 2 - HEXW_ROW / 2 - zoff) / HEXW_ROW);
+          const i = tileIndex.get(`${c},${r}`) ?? null;
+          if (i !== hoverIdx) setHoverIdx(i);
+        }}
+        onPointerOut={IS_MOBILE ? undefined : () => setHoverIdx(null)}
       >
         <planeGeometry args={[MAP_W, MAP_D]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      <Instances limit={Math.max(1, tiles.length)} receiveShadow frustumCulled={false}>
-        {/* thetaStart π/6 points the hex vertices along ±x — the flat-top
-            orientation our 1.5R/√3R column layout tessellates with. Without
-            it the hexes sit 30° off and leave diagonal gaps. */}
-        <cylinderGeometry args={[1, 1, 1, 6, 1, false, Math.PI / 6]} />
-        <meshStandardMaterial roughness={0.93} metalness={0.02} />
-        {tiles.map((t, i) => (
-          <Instance
-            key={i}
-            position={[t.x, (t.topY - 0.3) / 2, t.z]}
-            scale={[HEXW_R * 0.995, t.topY + 0.3, HEXW_R * 0.995]}
-            color={colors[i]}
-          />
-        ))}
-      </Instances>
+      {instanced}
+      {hoverTile && (() => {
+        const ownerId = tileOwner[hoverIdx!];
+        const ownerName = ownerId ? forces[ownerId]?.name.zh : null;
+        const road = roadTiles.has(hoverIdx!);
+        return (
+          <Html position={[hoverTile.x, hoverTile.topY + 0.35, hoverTile.z]} center distanceFactor={9} zIndexRange={[30, 20]} style={{ pointerEvents: 'none' }}>
+            <div style={{
+              background: 'rgba(20, 14, 8, 0.88)', border: '1px solid #5a4530', borderRadius: 3,
+              padding: '2px 7px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+              color: '#e8d9b0', whiteSpace: 'nowrap', letterSpacing: '0.5px',
+            }}>
+              {KIND_ZH[hoverTile.kind] ?? hoverTile.kind}{road ? ' · 道' : ''}
+              {ownerName ? <span style={{ color: forces[ownerId!]?.color ?? '#c0a878' }}> · {ownerName}領</span> : ' · 無主之地'}
+            </div>
+          </Html>
+        );
+      })()}
     </group>
   );
 }
 
-function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle }: {
+function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelectedId, dioMode, dioArcs, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
   onPortClick: (portId: string) => void;
   onFortClick: (fortId: string) => void;
+  /** 原地指揮 — in-place battle commanding state, owned by the outer shell. */
+  dioSelectedId: string | null;
+  dioMode: 'move' | 'attack';
+  dioArcs: Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>;
+  onDioramaTile: (c: HexCoord) => void;
 }) {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
@@ -3126,7 +3217,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle }: {
         <MarchPreviewLine fromId={marchPreview.fromId} toId={marchPreview.toId} cities={cities} />
       )}
 
-      <Roads cities={cities} />
+      {/* In hex mode the road network is paved into the quilt itself. */}
+      {mapStyle === 'classic' && <Roads cities={cities} />}
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <Ports3D onPortClick={onPortClick} />
@@ -3162,12 +3254,12 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle }: {
                 embedded
                 battle={tacticalBattle}
                 playerSide={pSide}
-                actionMode={{ kind: 'none' }}
-                selectedId={null}
+                actionMode={dioSelectedId ? { kind: dioMode } : { kind: 'none' }}
+                selectedId={dioSelectedId}
                 hovered={null}
                 setHovered={() => {}}
-                onTileClick={() => setBattleViewMinimized(false)}
-                attackArcs={[]}
+                onTileClick={onDioramaTile}
+                attackArcs={dioArcs}
                 stratagemFx={[]}
                 officers={officers}
               />
@@ -3259,12 +3351,14 @@ function ArmyOrdersHint() {
   const army = useGameStore((s) => (s.selectedArmyId ? s.armies[s.selectedArmyId] : null));
   const officers = useGameStore((s) => s.officers);
   const selectArmy = useGameStore((s) => s.selectArmy);
+  // The in-place battle commander bar owns the bottom slot when up.
+  const battleBarUp = useGameStore((s) => !!s.tacticalBattle && s.battleViewMinimized);
   const t = useT();
   if (!selectedArmyId || !army) return null;
   const commander = officers[army.commanderId];
   return (
     <div style={{
-      position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+      position: 'absolute', bottom: battleBarUp ? 64 : 14, left: '50%', transform: 'translateX(-50%)',
       zIndex: 12, display: 'flex', alignItems: 'center', gap: '0.6rem',
       background: 'rgba(20, 14, 8, 0.92)', border: '1px solid #d4a84a', borderRadius: 4,
       padding: '0.4rem 0.8rem', fontFamily: 'Songti SC, serif',
@@ -3364,6 +3458,62 @@ export function StrategicMap3D() {
     const next = mapStyle === 'hex' ? 'classic' : 'hex';
     setMapStyle(next);
     localStorage.setItem('tkm-map-style', next);
+  };
+
+  // ── 原地指揮 (stage 3) — command the minimized battle right on the map ──
+  // Selection is keyed by battle id so a stale pick can't leak into the next
+  // fight (unit ids repeat across battles); validity is derived, no effects.
+  const worldBattle = useGameStore((s) => s.tacticalBattle);
+  const worldBattleMinimized = useGameStore((s) => s.battleViewMinimized);
+  const setBattleViewMinimized = useGameStore((s) => s.setBattleViewMinimized);
+  const startBattleUpdate = useGameStore((s) => s.startTacticalBattle);
+  const officersAll = useGameStore((s) => s.officers);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const [dioPick, setDioPick] = useState<{ bid: string; uid: string } | null>(null);
+  const [dioMode, setDioMode] = useState<'move' | 'attack'>('move');
+  const [dioArcs, setDioArcs] = useState<Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>>([]);
+  const dioSelectedId = worldBattle && dioPick && dioPick.bid === worldBattle.id
+    && worldBattle.units.some((u) => u.id === dioPick.uid) ? dioPick.uid : null;
+  const worldPlayerSide: 'attacker' | 'defender' | null = worldBattle
+    ? (worldBattle.attackerForceId === playerForceId ? 'attacker'
+      : worldBattle.defenderForceId === playerForceId ? 'defender' : null)
+    : null;
+  const worldMyTurn = !!worldBattle && !!worldPlayerSide
+    && worldBattle.activeSide === worldPlayerSide && !worldBattle.winner;
+
+  // Same select/move/attack semantics as the fullscreen onTileClick — the
+  // deep actions (stratagems, duels, formations) live one ⤢ tap away.
+  const handleDioramaTile = (c: HexCoord) => {
+    const b = useGameStore.getState().tacticalBattle;
+    if (!b) return;
+    if (!useGameStore.getState().battleViewMinimized) {
+      // Pre-reveal (fly-in) click — just open the fullscreen view.
+      setBattleViewMinimized(false);
+      return;
+    }
+    const pSide = b.attackerForceId === playerForceId ? 'attacker'
+      : b.defenderForceId === playerForceId ? 'defender' : null;
+    if (!pSide || b.activeSide !== pSide || b.winner) return;
+    const u = unitAt(b, c);
+    if (u && u.side === pSide) {
+      setDioPick({ bid: b.id, uid: u.id });
+      setDioMode('move');
+      return;
+    }
+    const sel = dioSelectedId ? b.units.find((x) => x.id === dioSelectedId) : null;
+    if (!sel) return;
+    if (u && u.side !== pSide && canAttack(b, sel, u)) {
+      const kind: 'melee' | 'ranged' = sel.unitType === 'archers' || sel.unitType === 'siege' ? 'ranged' : 'melee';
+      const aid = Date.now();
+      playSfx(kind === 'ranged' ? 'arrow' : 'sword');
+      setDioArcs((a) => [...a, { id: aid, from: sel.coord, to: u.coord, kind, spawnedAt: aid }]);
+      setTimeout(() => setDioArcs((a) => a.filter((x) => x.id !== aid)), 600);
+      startBattleUpdate(attackUnits(b, sel.id, u.id, useGameStore.getState().officers, Math.random));
+      return;
+    }
+    if (!u && dioMode === 'move' && canMove(b, sel, c)) {
+      startBattleUpdate(moveUnit(b, sel.id, c));
+    }
   };
   const weather = useGameStore((s) => s.weather);
   const season = useGameStore((s) => s.date.season) as Season;
@@ -3474,6 +3624,10 @@ export function StrategicMap3D() {
             mapStyle={mapStyle}
             onPortClick={setSelectedPortId}
             onFortClick={setSelectedFortId}
+            dioSelectedId={worldBattleMinimized ? dioSelectedId : null}
+            dioMode={dioMode}
+            dioArcs={dioArcs}
+            onDioramaTile={handleDioramaTile}
           />
           <OrbitControls
             ref={controlsRef as React.Ref<never>}
@@ -3494,6 +3648,77 @@ export function StrategicMap3D() {
           )}
         </Suspense>
       </Canvas>
+
+      {/* 原地指揮 — command the minimized battle right on the map: select,
+          move, attack, end turn. Deep actions (stratagems/duels) are one ⤢
+          tap away in the fullscreen view. */}
+      {worldBattle && worldBattleMinimized && (() => {
+        const sel = dioSelectedId ? worldBattle.units.find((u) => u.id === dioSelectedId) : null;
+        const off = sel ? officersAll[sel.officerId] : null;
+        const modeBtn = (mode: 'move' | 'attack', zh: string, en: string) => (
+          <button
+            onClick={() => setDioMode(mode)}
+            style={{
+              background: dioMode === mode ? 'rgba(212,168,74,0.22)' : 'transparent',
+              border: `1px solid ${dioMode === mode ? '#d4a84a' : '#5a4530'}`,
+              color: dioMode === mode ? '#f0d98a' : '#c0a878',
+              padding: '0.15rem 0.55rem', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: '0.75rem',
+            }}
+          >{t(zh, en)}</button>
+        );
+        return (
+          <div style={{
+            position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 13, display: 'flex', alignItems: 'center', gap: '0.55rem',
+            background: 'rgba(20, 14, 8, 0.94)', border: '1px solid #b8584a', borderRadius: 4,
+            padding: '0.4rem 0.8rem', fontFamily: 'Songti SC, serif',
+            boxShadow: '0 2px 14px rgba(0,0,0,0.6)', whiteSpace: 'nowrap',
+          }}>
+            <span style={{ color: '#e0a0a0', fontSize: '0.78rem', letterSpacing: '0.1rem' }}>
+              ⚔ {t(`第${worldBattle.turn}回`, `T${worldBattle.turn}`)} · {worldBattle.winner
+                ? t('勝負已分', 'Decided')
+                : worldMyTurn ? t('我方回合', 'YOUR TURN') : t('敵方回合', 'enemy turn')}
+            </span>
+            {sel && off ? (
+              <>
+                <span style={{ color: '#f0d98a', fontSize: '0.8rem' }}>
+                  {off.name.zh} · AP {sel.ap}/{sel.maxAp} · {sel.troops.toLocaleString()}{t('兵', '')}
+                </span>
+                {modeBtn('move', '移動', 'Move')}
+                {modeBtn('attack', '攻擊', 'Attack')}
+              </>
+            ) : (
+              <span style={{ color: '#8a7050', fontSize: '0.74rem' }}>
+                {t('點選棋盤上我方部隊下令', 'Tap one of your units on the board')}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                const b = useGameStore.getState().tacticalBattle;
+                if (!b || !worldMyTurn) return;
+                startBattleUpdate(endTurn(b));
+                setDioPick(null);
+              }}
+              disabled={!worldMyTurn}
+              style={{
+                background: worldMyTurn ? '#5a4530' : '#241c12', color: worldMyTurn ? '#f0e0b0' : '#6a5238',
+                border: '1px solid #d4a84a', padding: '0.15rem 0.6rem',
+                cursor: worldMyTurn ? 'pointer' : 'not-allowed',
+                fontFamily: 'inherit', fontSize: '0.75rem',
+              }}
+            >{t('結束回合', 'End Turn')}</button>
+            <button
+              onClick={() => setBattleViewMinimized(false)}
+              style={{
+                background: '#16261a', color: '#9ed68a', border: '1px solid #5a8a3a',
+                padding: '0.15rem 0.6rem', cursor: 'pointer',
+                fontFamily: 'inherit', fontSize: '0.75rem',
+              }}
+            >⤢ {t('全屏戰場', 'Fullscreen')}</button>
+          </div>
+        );
+      })()}
 
       {/* 軍令提示 — with a column selected, spell out what a tap does. The
           orders existed but were invisible; this makes them discoverable. */}
