@@ -587,7 +587,10 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // consolidate into one column: the largest absorbs the others' troops
   // and officers, so you can mass garrisons in the open field and they
   // fight (and capture territory) as a single, stronger unit.
-  const MERGE_DIST = 29;   // scaled ×1.21 for the geo layout
+  // Kept TIGHT (≈ one cell) so multi-column operations stay multi-column —
+  // at the old 29 two pincer columns a city-gap apart would silently fuse;
+  // now only armies truly stacked on the same spot consolidate.
+  const MERGE_DIST = 15;
   const heldPos = heldRaw.map((c) =>
     armyPosition(c) ?? marchDestCoords(c, cities) ?? { x: 0, y: 0 },
   );
