@@ -12,6 +12,7 @@ import { COMMAND_DEFS } from '../../game/systems/commands';
 export function SeasonReportModal() {
   const report = useGameStore((s) => s.lastReport);
   const dismiss = useGameStore((s) => s.dismissReport);
+  const selectCity = useGameStore((s) => s.selectCity);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const cities = useGameStore((s) => s.cities);
   const officers = useGameStore((s) => s.officers);
@@ -136,6 +137,21 @@ export function SeasonReportModal() {
                 >
                   <span className={styles.kindTag}>{kindLabel(e.kind, lang)}</span>
                   <span className={styles.text}>{body}</span>
+                  {e.cityId && cities[e.cityId] && (
+                    <button
+                      title={lang === 'zh' ? '跳轉至地圖位置' : 'Jump to it on the map'}
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        selectCity(e.cityId!);
+                        dismiss();
+                      }}
+                      style={{
+                        marginLeft: 6, background: 'transparent', border: '1px solid #4a3520',
+                        color: '#d4a84a', cursor: 'pointer', fontSize: '0.7rem',
+                        padding: '0 0.35rem', borderRadius: 2, flexShrink: 0,
+                      }}
+                    >📍 {lang === 'zh' ? cities[e.cityId]!.name.zh : cities[e.cityId]!.name.en}</button>
+                  )}
                 </li>
               );
             })}
