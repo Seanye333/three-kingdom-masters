@@ -2794,6 +2794,27 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               )
             : state.recruitBonusSeasons,
         });
+
+        // 自動存檔 — every season boundary writes one of three rolling
+        // autosave slots, so a bad turn (or a crash) costs at most a season.
+        if (seasonBoundary) {
+          try {
+            const cursorKey = 'tkm-autosave-cursor';
+            const n = ((parseInt(localStorage.getItem(cursorKey) ?? '0', 10) || 0) % 3) + 1;
+            localStorage.setItem(cursorKey, String(n));
+            const fresh = get();
+            const force = fresh.playerForceId ? fresh.forces[fresh.playerForceId] : null;
+            const SEASON_LABEL: Record<string, string> = { spring: '春', summer: '夏', autumn: '秋', winter: '冬' };
+            saveToSlot(
+              `autosave-${n}`,
+              `🕒 自動存檔 ${fresh.date.year}年${SEASON_LABEL[fresh.date.season] ?? fresh.date.season}`,
+              fresh,
+              force?.name.en ?? 'Unknown',
+            );
+          } catch {
+            // localStorage full / private mode — autosave is best-effort.
+          }
+        }
       },
 
       dismissReport: () => set(() => ({ lastReport: null })),
