@@ -2184,14 +2184,37 @@ function HinterlandSlot3D({
   );
 }
 
+type HinterlandSite = { id: string; dx: number; dy: number; dist: number; nameZh: string; owned: boolean };
+
+/** Pulsing ground ring at a recent battle site — same语言 as the world map. */
+function ScarPulse3D({ x, z }: { x: number; z: number }) {
+  const ref = useRef<THREE.Mesh>(null);
+  const mat = useRef<THREE.MeshBasicMaterial>(null);
+  useFrame((state) => {
+    const t = (state.clock.elapsedTime % 1.7) / 1.7;
+    const s = 0.3 + t * 1.4;
+    if (ref.current) ref.current.scale.set(s, s, s);
+    if (mat.current) mat.current.opacity = (1 - t) * 0.5;
+  });
+  return (
+    <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.06, z]}>
+      <ringGeometry args={[0.7, 0.9, 28]} />
+      <meshBasicMaterial ref={mat} color="#d4a84a" transparent side={THREE.DoubleSide} />
+    </mesh>
+  );
+}
+
 function Hinterland3D({
-  preview, city, neighbors, facilities, armies, slots, selectedSlot, onSlotClick, showOverlays,
+  preview, city, neighbors, facilities, armies, stockades, ports, scars, slots, selectedSlot, onSlotClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   city: { coords: { x: number; y: number } };
   neighbors: Neighbor[];
   facilities: HinterlandFacility[];
   armies: HinterlandArmy[];
+  stockades: HinterlandSite[];
+  ports: HinterlandSite[];
+  scars: Array<{ dx: number; dy: number; dist: number; fresh: boolean }>;
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
   selectedSlot: number | null;
   onSlotClick: (slot: number) => void;
@@ -2439,6 +2462,89 @@ function Hinterland3D({
           </group>
         );
       })}
+
+      {/* Shared bearing/depth projection for the point sites below. */}
+      {(() => {
+        const project = (dx: number, dy: number, dist: number): [number, number] => {
+          const ang = Math.atan2(dy, dx);
+          const ellR = (rx: number, rz: number) => 1 / Math.hypot(Math.cos(ang) / rx, Math.sin(ang) / rz);
+          const inR = ellR(innerX, innerZ), outR = ellR(outerX, outerZ);
+          const tt = Math.min(1, Math.max(0.08, dist / HINTERLAND_STRAT_REACH));
+          const r = inR + tt * (outR - inR);
+          return [cx + Math.cos(ang) * r, cz + Math.sin(ang) * r];
+        };
+        return (
+          <>
+            {/* 塢壘/關砦 — wooden fort markers at their true bearing. */}
+            {stockades.map((s) => {
+              const [sx, sz] = project(s.dx, s.dy, s.dist);
+              return (
+                <group key={s.id} position={[sx, 0, sz]}>
+                  <mesh position={[0, 0.35, 0]} castShadow>
+                    <boxGeometry args={[0.8, 0.7, 0.8]} />
+                    <meshStandardMaterial color="#6b4f2a" roughness={0.95} />
+                  </mesh>
+                  <mesh position={[0, 0.95, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+                    <coneGeometry args={[0.34, 0.5, 4]} />
+                    <meshStandardMaterial color="#3a3a4a" roughness={0.85} />
+                  </mesh>
+                  {showOverlays && (
+                    <Html center position={[0, 1.7, 0]} distanceFactor={28} occlude={false}>
+                      <div style={{
+                        color: s.owned ? '#f0d98a' : '#e0a0a0',
+                        fontFamily: 'Songti SC, serif', fontSize: '11px', whiteSpace: 'nowrap',
+                        textShadow: '0 1px 3px #000', pointerEvents: 'none',
+                      }}>{s.nameZh}</div>
+                    </Html>
+                  )}
+                </group>
+              );
+            })}
+            {/* 港口 — a wharf plank + anchor chip at the waterline bearing. */}
+            {ports.map((p) => {
+              const [sx, sz] = project(p.dx, p.dy, p.dist);
+              return (
+                <group key={p.id} position={[sx, 0, sz]}>
+                  <mesh position={[0, 0.12, 0]} castShadow>
+                    <boxGeometry args={[1.3, 0.18, 0.5]} />
+                    <meshStandardMaterial color="#7a6242" roughness={0.9} />
+                  </mesh>
+                  <mesh position={[0.45, 0.55, 0]} castShadow>
+                    <cylinderGeometry args={[0.05, 0.05, 0.8, 5]} />
+                    <meshStandardMaterial color="#4a3a26" />
+                  </mesh>
+                  {showOverlays && (
+                    <Html center position={[0, 1.3, 0]} distanceFactor={28} occlude={false}>
+                      <div style={{
+                        color: p.owned ? '#88b7e8' : '#c0a878',
+                        fontFamily: 'Songti SC, serif', fontSize: '11px', whiteSpace: 'nowrap',
+                        textShadow: '0 1px 3px #000', pointerEvents: 'none',
+                      }}>⚓ {p.nameZh}</div>
+                    </Html>
+                  )}
+                </group>
+              );
+            })}
+            {/* 戰痕 — crossed sabres; fresh sites pulse (同 world map). */}
+            {scars.map((m, i) => {
+              const [sx, sz] = project(m.dx, m.dy, m.dist);
+              return (
+                <group key={`scar-${i}`}>
+                  <group position={[sx, 0.08, sz]} rotation={[-Math.PI / 2, 0, 0]}>
+                    {[Math.PI / 4, -Math.PI / 4].map((rot, k) => (
+                      <mesh key={k} rotation={[0, 0, rot]}>
+                        <boxGeometry args={[0.9, 0.09, 0.02]} />
+                        <meshBasicMaterial color="#9aa6b4" transparent opacity={0.85} />
+                      </mesh>
+                    ))}
+                  </group>
+                  {m.fresh && <ScarPulse3D x={sx} z={sz} />}
+                </group>
+              );
+            })}
+          </>
+        );
+      })()}
     </group>
   );
 }
@@ -2446,7 +2552,7 @@ function Hinterland3D({
 function CityScene({
   preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season, stats, grand, onInspect,
   selectedPlot, onPlotClick, hovered, onHover, onClick, showOverlays,
-  city, neighbors, facilities, armies, selectedSlot, onSlotClick,
+  city, neighbors, facilities, armies, stockades, ports, scars, selectedSlot, onSlotClick,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
@@ -2470,6 +2576,9 @@ function CityScene({
   neighbors: Neighbor[];
   facilities: HinterlandFacility[];
   armies: HinterlandArmy[];
+  stockades: HinterlandSite[];
+  ports: HinterlandSite[];
+  scars: Array<{ dx: number; dy: number; dist: number; fresh: boolean }>;
   selectedSlot: number | null;
   onSlotClick: (slot: number) => void;
 }) {
@@ -2672,6 +2781,9 @@ function CityScene({
         neighbors={neighbors}
         facilities={facilities}
         armies={armies}
+        stockades={stockades}
+        ports={ports}
+        scars={scars}
         slots={slots}
         selectedSlot={selectedSlot}
         onSlotClick={onSlotClick}
@@ -2890,6 +3002,44 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
       })
       .filter((f) => f.dist < 95); // only ones in this city's hinterland
   }, [allForts, city, playerForceId]);
+
+  // 塢壘/關砦 (non-facility forts) near this city — same projection.
+  const nearbyStockades = useMemo(() => {
+    if (!city) return [] as Array<{ id: string; dx: number; dy: number; dist: number; nameZh: string; owned: boolean }>;
+    return Object.values(allForts)
+      .filter((f) => !f.facility)
+      .map((f) => {
+        const [fx, fy] = geoToPixel(f.coords.lon, f.coords.lat);
+        const dx = fx - city.coords.x, dy = fy - city.coords.y;
+        return { id: f.id, dx, dy, dist: Math.hypot(dx, dy), nameZh: f.name.zh, owned: f.ownerForceId === playerForceId };
+      })
+      .filter((f) => f.dist < 95);
+  }, [allForts, city, playerForceId]);
+
+  // 港口 near this city — anchored at their true bearing.
+  const allPorts = useGameStore((s) => s.ports);
+  const nearbyPorts = useMemo(() => {
+    if (!city) return [] as Array<{ id: string; dx: number; dy: number; dist: number; nameZh: string; owned: boolean }>;
+    return Object.values(allPorts)
+      .map((p) => {
+        const [ppx, ppy] = geoToPixel(p.coords.lon, p.coords.lat);
+        const dx = ppx - city.coords.x, dy = ppy - city.coords.y;
+        return { id: p.id, dx, dy, dist: Math.hypot(dx, dy), nameZh: p.name.zh, owned: p.ownerForceId === playerForceId };
+      })
+      .filter((p) => p.dist < 95);
+  }, [allPorts, city, playerForceId]);
+
+  // 戰痕 — recent battle sites near this city pulse on the hinterland too.
+  const fieldBattleMarks = useGameStore((s) => s.fieldBattleMarks);
+  const nearbyScars = useMemo(() => {
+    if (!city) return [] as Array<{ dx: number; dy: number; dist: number; fresh: boolean }>;
+    return fieldBattleMarks
+      .map((m) => {
+        const dx = m.x - city.coords.x, dy = m.y - city.coords.y;
+        return { dx, dy, dist: Math.hypot(dx, dy), fresh: m.seasonsLeft >= 2 };
+      })
+      .filter((m) => m.dist < 95 && m.dist > 3);
+  }, [fieldBattleMarks, city]);
 
   // Armies marching near this city — projected onto the hinterland so you watch
   // columns close in from their true direction (enemy columns flagged a threat).
@@ -3143,6 +3293,9 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             neighbors={neighbors}
             facilities={nearbyFacilities}
             armies={nearbyArmies}
+            stockades={nearbyStockades}
+            ports={nearbyPorts}
+            scars={nearbyScars}
             selectedSlot={selectedSlot}
             onSlotClick={handleSlotClick}
           />
