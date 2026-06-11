@@ -51,7 +51,12 @@ export interface FacilityDef {
   seasons: number;     // woodrot timer (like a stockade)
   /** Strategic-map units of effect radius (0 for a pure blocker). */
   range: number;
-  /** Troops/season: damage to hostile columns (ranged) or healing to friendly (supply). */
+  /**
+   * Troops per HALF-MONTH TICK (the strategic sim resolves 6× per season:
+   * 3 months × 上/下旬): damage to hostile columns (ranged) or healing to
+   * friendly ones (supply). A column crossing a tower's reach typically eats
+   * 2-4 ticks of fire.
+   */
   power: number;
   /** Map accent colour. */
   color: string;
@@ -60,17 +65,17 @@ export interface FacilityDef {
 export const FACILITY_DEFS: Record<FacilityKind, FacilityDef> = {
   tower: {
     name: { zh: '箭樓', en: 'Arrow Tower' },
-    effect: 'ranged', cost: 250, hp: 300, seasons: 12, range: 30, power: 450,
+    effect: 'ranged', cost: 250, hp: 300, seasons: 12, range: 30, power: 180,
     color: '#d4a84a',
   },
   catapult: {
     name: { zh: '投石臺', en: 'Catapult' },
-    effect: 'ranged', cost: 450, hp: 220, seasons: 10, range: 52, power: 850,
+    effect: 'ranged', cost: 450, hp: 220, seasons: 10, range: 52, power: 320,
     color: '#c46a3a',
   },
   camp: {
     name: { zh: '陣', en: 'Camp' },
-    effect: 'supply', cost: 200, hp: 280, seasons: 14, range: 26, power: 350,
+    effect: 'supply', cost: 200, hp: 280, seasons: 14, range: 26, power: 150,
     color: '#7ed68a',
   },
   wall: {

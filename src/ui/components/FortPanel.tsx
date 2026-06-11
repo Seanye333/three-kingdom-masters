@@ -140,8 +140,8 @@ export function FortPanel({ fortId, onClose }: Props) {
                 {t(facEffectZh, facEffectEn)}
                 {fac.range > 0 && t(` · 射程 ${fac.range}`, ` · range ${fac.range}`)}
                 {fac.power > 0 && t(
-                  ` · 每季 ${fac.effect === 'supply' ? '+' : '−'}${fac.power} 兵`,
-                  ` · ${fac.effect === 'supply' ? '+' : '−'}${fac.power}/season`,
+                  ` · 每半月 ${fac.effect === 'supply' ? '+' : '−'}${fac.power} 兵`,
+                  ` · ${fac.effect === 'supply' ? '+' : '−'}${fac.power}/half-month`,
                 )}
               </span>
             </>

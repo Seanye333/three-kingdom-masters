@@ -488,7 +488,15 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         const hostile = !own && isHostilePermitted(input.diplomacy, f.ownerForceId!, force);
         if (def.effect === 'ranged' && hostile) { dmg += def.power; if (f.ownerForceId === pf) byPlayer = true; }
         else if (def.effect === 'supply' && own) heal += def.power;
-        else if (def.effect === 'block' && hostile) { blocked = true; if (f.ownerForceId === pf) byPlayer = true; }
+        else if (def.effect === 'block' && hostile) {
+          // A barricade STALLS rather than pins — 50%/tick, else the column
+          // works around it. (A guaranteed stall would freeze the column in
+          // radius forever: stalled → no advance → still in radius next tick.)
+          if ((input.rng ?? Math.random)() < 0.5) {
+            blocked = true;
+            if (f.ownerForceId === pf) byPlayer = true;
+          }
+        }
       }
       if (dmg > 0 || heal > 0) {
         const base = troopOverride[cmd.officerId] ?? cmd.troops;
@@ -511,12 +519,12 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         }
         if (blocked && force === pf) {
           entries.push({ cityId: null, kind: 'command-failure',
-            text: `${nm.en}'s march was stalled a season by an enemy barricade.`,
-            textZh: `${nm.zh}行軍為敵防壁所阻，滯留一季。` });
+            text: `${nm.en}'s march was stalled half a month by an enemy barricade.`,
+            textZh: `${nm.zh}行軍為敵防壁所阻，滯留半月。` });
         } else if (blocked && byPlayer) {
           entries.push({ cityId: null, kind: 'command-success',
-            text: `Your barricade stalled ${nm.en}'s march a season.`,
-            textZh: `我軍防壁攔阻${nm.zh}之師，滯其一季。` });
+            text: `Your barricade stalled ${nm.en}'s march half a month.`,
+            textZh: `我軍防壁攔阻${nm.zh}之師，滯其半月。` });
         }
       }
       if (blocked) blockedOfficers.add(cmd.officerId);

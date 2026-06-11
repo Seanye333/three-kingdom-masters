@@ -233,9 +233,10 @@ export function planAIFortAssaults(ctx: AIFacilityContext): AIFortAssaultOutput 
     const { fort, city } = best;
     const commitment = Math.min(3000, Math.floor(city.troops * 0.2));
     const damage = 150 + Math.floor(commitment * 0.08);
-    // Ranged facilities bite back hard; plain palisades less so.
+    // Ranged facilities bite back hard; plain palisades less so. (×1.2 of the
+    // per-tick power ≈ a couple of point-blank volleys during the storm.)
     const fac = fort.facility ? FACILITY_DEFS[fort.facility] : null;
-    const casualties = Math.min(commitment, fac && fac.effect === 'ranged' ? Math.floor(fac.power * 0.4) : 150);
+    const casualties = Math.min(commitment, fac && fac.effect === 'ranged' ? Math.floor(fac.power * 1.2) : 150);
     cities[city.id] = { ...cities[city.id], troops: Math.max(0, cities[city.id].troops - casualties) };
     const hpLeft = fort.hp - damage;
     const fortLabel = fac ? fac.name : fort.name;

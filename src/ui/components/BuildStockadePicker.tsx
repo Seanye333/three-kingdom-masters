@@ -17,13 +17,13 @@ const BUILD_TYPES: Array<{
   { id: 'stockade', zh: '壘', en: 'Stockade', cost: STOCKADE_COST,
     descZh: '臨時木堡，阻擋並需被攻打', descEn: 'Temporary fort — blocks, must be assaulted', color: '#9a8358' },
   { id: 'tower', zh: FACILITY_DEFS.tower.name.zh, en: FACILITY_DEFS.tower.name.en, cost: FACILITY_DEFS.tower.cost,
-    descZh: `近射 · 過路敵軍每季 −${FACILITY_DEFS.tower.power} 兵`, descEn: `Short range · −${FACILITY_DEFS.tower.power} troops/season to passing foes`, color: FACILITY_DEFS.tower.color },
+    descZh: `近射 · 過路敵軍每半月 −${FACILITY_DEFS.tower.power} 兵`, descEn: `Short range · −${FACILITY_DEFS.tower.power} troops/half-month to passing foes`, color: FACILITY_DEFS.tower.color },
   { id: 'catapult', zh: FACILITY_DEFS.catapult.name.zh, en: FACILITY_DEFS.catapult.name.en, cost: FACILITY_DEFS.catapult.cost,
-    descZh: `遠射高傷 · 每季 −${FACILITY_DEFS.catapult.power} 兵`, descEn: `Long range, heavy · −${FACILITY_DEFS.catapult.power} troops/season`, color: FACILITY_DEFS.catapult.color },
+    descZh: `遠射高傷 · 每半月 −${FACILITY_DEFS.catapult.power} 兵`, descEn: `Long range, heavy · −${FACILITY_DEFS.catapult.power} troops/half-month`, color: FACILITY_DEFS.catapult.color },
   { id: 'camp', zh: FACILITY_DEFS.camp.name.zh, en: FACILITY_DEFS.camp.name.en, cost: FACILITY_DEFS.camp.cost,
-    descZh: `補給 · 友軍過境每季回 +${FACILITY_DEFS.camp.power} 兵`, descEn: `Supply · friendly columns +${FACILITY_DEFS.camp.power} troops/season`, color: FACILITY_DEFS.camp.color },
+    descZh: `補給 · 友軍過境每半月回 +${FACILITY_DEFS.camp.power} 兵`, descEn: `Supply · friendly columns +${FACILITY_DEFS.camp.power} troops/half-month`, color: FACILITY_DEFS.camp.color },
   { id: 'wall', zh: FACILITY_DEFS.wall.name.zh, en: FACILITY_DEFS.wall.name.en, cost: FACILITY_DEFS.wall.cost,
-    descZh: '阻斷 · 敵軍行軍經過被攔停一季', descEn: 'Barricade · stalls a passing enemy march a season', color: FACILITY_DEFS.wall.color },
+    descZh: '阻斷 · 敵軍行軍經過受阻滯(每半月約半數機率攔停)', descEn: 'Barricade · stalls passing enemy marches (~50% per half-month)', color: FACILITY_DEFS.wall.color },
 ];
 
 export function BuildStockadePicker({ onClose }: Props) {
