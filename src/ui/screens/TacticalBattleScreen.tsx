@@ -31,6 +31,7 @@ export function TacticalBattleScreen() {
   const battle = useGameStore((s) => s.tacticalBattle);
   const officers = useGameStore((s) => s.officers);
   const start = useGameStore((s) => s.startTacticalBattle);
+  const cancelBattle = useGameStore((s) => s.cancelTacticalBattle);
   const playerForceId = useGameStore((s) => s.playerForceId);
 
   const [showCinematic, setShowCinematic] = useState(
@@ -99,7 +100,10 @@ export function TacticalBattleScreen() {
 
   return (
     <div className={styles.root}>
-      <ErrorBoundary fallbackLabel="3D 戰場加載失敗 — 3D battlefield failed to load">
+      <ErrorBoundary
+        fallbackLabel="3D 戰場加載失敗 — 3D battlefield failed to load"
+        escapeAction={{ label: '退出戰鬥 Leave battle', onClick: cancelBattle }}
+      >
         <TacticalBattleScreen3D />
       </ErrorBoundary>
 

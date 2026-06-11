@@ -3,6 +3,10 @@ import { Component, type ReactNode } from 'react';
 interface Props {
   /** Friendly name shown to the user when this boundary catches an error. */
   fallbackLabel?: string;
+  /** Optional escape hatch — e.g. "退出戰鬥" when the battle scene crashes,
+   *  so the player is never trapped (Retry may just re-crash, and Reload
+   *  restores the same persisted state). */
+  escapeAction?: { label: string; onClick: () => void };
   children: ReactNode;
 }
 
@@ -73,6 +77,22 @@ export class ErrorBoundary extends Component<Props, State> {
             >
               Reload page
             </button>
+            {this.props.escapeAction && (
+              <button
+                onClick={this.props.escapeAction.onClick}
+                style={{
+                  background: '#3a1a16',
+                  border: '1px solid #b8584a',
+                  color: '#f0c0b0',
+                  padding: '0.3rem 0.8rem',
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                  marginLeft: '0.5rem',
+                }}
+              >
+                {this.props.escapeAction.label}
+              </button>
+            )}
           </div>
         </div>
       );
