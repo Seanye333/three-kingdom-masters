@@ -595,6 +595,9 @@ export function warmStrategicAssets(): boolean {
     return false;
   }
   buildWaterAlphaMask();
+  // ⬡ hex-world quilt — ground a few columns per call so the first toggle
+  // to the board map is instant instead of a 1-2s sampling stall.
+  if (!warmHexWorldTiles(8)) return false;
   return true;
 }
 
@@ -2833,28 +2836,44 @@ const HEXWORLD_COLOR: Record<string, string> = {
   river: '#2c5882', lake: '#27607f', riverbank: '#8a8a5e',
   mountain: '#6f5e4d', hill: '#7c7250', plain: '#5f7a42',
 };
-// Generated once per session — ~5k geography samples are too slow per render.
+// Generated once per session — ~60k geography samples are far too slow per
+// render, and even one synchronous build hitches the first toggle. The cache
+// builds COLUMN-CHUNKED so the title screen's asset warmer can grind it out
+// during idle time before the player ever opens the map.
 let HEXWORLD_CACHE: HexWorldTile[] | null = null;
-function buildHexWorldTiles(): HexWorldTile[] {
-  if (HEXWORLD_CACHE) return HEXWORLD_CACHE;
-  const out: HexWorldTile[] = [];
-  for (let c = 0; ; c++) {
-    const x = -MAP_W / 2 + HEXW_R + c * HEXW_COL;
-    if (x > MAP_W / 2) break;
-    for (let r = 0; ; r++) {
-      const z = -MAP_D / 2 + HEXW_ROW / 2 + r * HEXW_ROW + (c & 1 ? HEXW_ROW / 2 : 0);
-      if (z > MAP_D / 2) break;
-      const px = (x + MAP_W / 2) / PIXEL_TO_WORLD;
-      const py = (z + MAP_D / 2) / PIXEL_TO_WORLD;
-      const kind = battleGroundAt(px, py);
-      if (kind === 'sea') continue; // let the living ocean show through
-      const water = kind === 'river' || kind === 'lake';
-      const topY = water ? 0.012 : Math.max(0.05, sampleTerrainHeight(x, z));
-      out.push({ x, z, topY, kind, c, r });
-    }
+let hexWarmPartial: HexWorldTile[] = [];
+let hexWarmCol = 0;
+function buildHexColumn(c: number, out: HexWorldTile[]): boolean {
+  const x = -MAP_W / 2 + HEXW_R + c * HEXW_COL;
+  if (x > MAP_W / 2) return false;
+  for (let r = 0; ; r++) {
+    const z = -MAP_D / 2 + HEXW_ROW / 2 + r * HEXW_ROW + (c & 1 ? HEXW_ROW / 2 : 0);
+    if (z > MAP_D / 2) break;
+    const px = (x + MAP_W / 2) / PIXEL_TO_WORLD;
+    const py = (z + MAP_D / 2) / PIXEL_TO_WORLD;
+    const kind = battleGroundAt(px, py);
+    if (kind === 'sea') continue; // let the living ocean show through
+    const water = kind === 'river' || kind === 'lake';
+    const topY = water ? 0.012 : Math.max(0.05, sampleTerrainHeight(x, z));
+    out.push({ x, z, topY, kind, c, r });
   }
-  HEXWORLD_CACHE = out;
-  return out;
+  return true;
+}
+/** Build a slice of the hex world; true once the whole quilt is cached. */
+export function warmHexWorldTiles(cols = 10): boolean {
+  if (HEXWORLD_CACHE) return true;
+  for (let i = 0; i < cols; i++) {
+    if (!buildHexColumn(hexWarmCol, hexWarmPartial)) {
+      HEXWORLD_CACHE = hexWarmPartial;
+      return true;
+    }
+    hexWarmCol++;
+  }
+  return false;
+}
+function buildHexWorldTiles(): HexWorldTile[] {
+  while (!warmHexWorldTiles(64)) { /* finish synchronously if still cold */ }
+  return HEXWORLD_CACHE!;
 }
 
 function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundClick }: {
