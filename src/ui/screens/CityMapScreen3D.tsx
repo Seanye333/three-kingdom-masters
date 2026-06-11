@@ -2078,6 +2078,21 @@ interface HinterlandFacility {
   owned: boolean;
 }
 
+/** An army marching near this city — shown on the hinterland at its true
+ *  bearing so you watch columns close in from the direction they're coming. */
+interface HinterlandArmy {
+  id: EntityId;
+  dx: number;
+  dy: number;
+  dist: number;
+  color: string;
+  troops: number;
+  nameZh: string;
+  own: boolean;
+  /** Bearing down on THIS city. */
+  incoming: boolean;
+}
+
 const HINTERLAND_BELT_DEPTH = 21;    // world units of countryside beyond the moat
 const HINTERLAND_STRAT_REACH = 70;   // fallback reach (strategic units) for directions with no neighbour
 const HINTERLAND_TILE_SP = IS_MOBILE ? 1.7 : 1.2; // belt sampling spacing — denser on desktop resolves thin rivers
@@ -2170,12 +2185,13 @@ function HinterlandSlot3D({
 }
 
 function Hinterland3D({
-  preview, city, neighbors, facilities, slots, selectedSlot, onSlotClick, showOverlays,
+  preview, city, neighbors, facilities, armies, slots, selectedSlot, onSlotClick, showOverlays,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   city: { coords: { x: number; y: number } };
   neighbors: Neighbor[];
   facilities: HinterlandFacility[];
+  armies: HinterlandArmy[];
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
   selectedSlot: number | null;
   onSlotClick: (slot: number) => void;
@@ -2379,6 +2395,50 @@ function Hinterland3D({
           </group>
         );
       })}
+
+      {/* Armies near the city — projected onto the hinterland by true bearing, so
+          you watch columns (enemy in red) close in from the direction they march. */}
+      {armies.map((a) => {
+        const ang = Math.atan2(a.dy, a.dx);
+        const ellR = (rx: number, rz: number) => 1 / Math.hypot(Math.cos(ang) / rx, Math.sin(ang) / rz);
+        const inR = ellR(innerX, innerZ), outR = ellR(outerX, outerZ);
+        const tt = Math.min(1, Math.max(0.08, a.dist / HINTERLAND_STRAT_REACH));
+        const r = inR + tt * (outR - inR);
+        const apx = cx + Math.cos(ang) * r, apz = cz + Math.sin(ang) * r;
+        const threat = a.incoming && !a.own;
+        return (
+          <group key={a.id} position={[apx, 0, apz]}>
+            {/* Banner pole + flag */}
+            <mesh position={[0, 0.7, 0]} castShadow>
+              <cylinderGeometry args={[0.05, 0.05, 1.4, 5]} />
+              <meshStandardMaterial color="#1a1410" />
+            </mesh>
+            <mesh position={[0.32, 1.1, 0]} castShadow>
+              <planeGeometry args={[0.55, 0.36]} />
+              <meshStandardMaterial color={a.color} side={THREE.DoubleSide} emissive={threat ? a.color : '#000'} emissiveIntensity={threat ? 0.4 : 0} />
+            </mesh>
+            {/* A couple of troop blocks at the base */}
+            {[-0.3, 0, 0.3].map((dx, i) => (
+              <mesh key={i} position={[dx, 0.18, 0.25]} castShadow>
+                <boxGeometry args={[0.18, 0.36, 0.18]} />
+                <meshStandardMaterial color={a.own ? '#6a7a8a' : '#8a5a4a'} roughness={0.9} />
+              </mesh>
+            ))}
+            {showOverlays && (
+              <Html center position={[0, 1.95, 0]} distanceFactor={28} occlude={false}>
+                <div style={{
+                  color: a.own ? '#9ec9f0' : '#f0a0a0',
+                  fontFamily: 'Songti SC, serif', fontSize: '11px',
+                  letterSpacing: '0.5px', whiteSpace: 'nowrap',
+                  textShadow: '0 1px 3px #000', pointerEvents: 'none',
+                }}>
+                  {threat ? '⚔ ' : ''}{a.nameZh} {a.troops.toLocaleString()}
+                </div>
+              </Html>
+            )}
+          </group>
+        );
+      })}
     </group>
   );
 }
@@ -2386,7 +2446,7 @@ function Hinterland3D({
 function CityScene({
   preview, slots, buildings, construction, plots, cityWallCol, bannerColor, light, season, stats, grand, onInspect,
   selectedPlot, onPlotClick, hovered, onHover, onClick, showOverlays,
-  city, neighbors, facilities, selectedSlot, onSlotClick,
+  city, neighbors, facilities, armies, selectedSlot, onSlotClick,
 }: {
   preview: ReturnType<typeof previewBattlefield>;
   slots: ReturnType<typeof useGameStore.getState>['cities'][string]['buildSlots'];
@@ -2409,6 +2469,7 @@ function CityScene({
   city: { coords: { x: number; y: number } };
   neighbors: Neighbor[];
   facilities: HinterlandFacility[];
+  armies: HinterlandArmy[];
   selectedSlot: number | null;
   onSlotClick: (slot: number) => void;
 }) {
@@ -2610,6 +2671,7 @@ function CityScene({
         city={city}
         neighbors={neighbors}
         facilities={facilities}
+        armies={armies}
         slots={slots}
         selectedSlot={selectedSlot}
         onSlotClick={onSlotClick}
@@ -2675,6 +2737,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
   const forces = useGameStore((s) => s.forces);
   const allCities = useGameStore((s) => s.cities);
   const allForts = useGameStore((s) => s.forts);
+  const allArmies = useGameStore((s) => s.armies);
   const allBuildings = useGameStore((s) => s.buildings);
   const buildAction = useGameStore((s) => s.buildDefenseStructure);
   const upgradeAction = useGameStore((s) => s.upgradeDefenseStructure);
@@ -2827,6 +2890,27 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
       })
       .filter((f) => f.dist < 95); // only ones in this city's hinterland
   }, [allForts, city, playerForceId]);
+
+  // Armies marching near this city — projected onto the hinterland so you watch
+  // columns close in from their true direction (enemy columns flagged a threat).
+  const nearbyArmies = useMemo<HinterlandArmy[]>(() => {
+    if (!city) return [];
+    return Object.values(allArmies)
+      .map((a) => {
+        const dx = a.x - city.coords.x, dy = a.y - city.coords.y;
+        const force = forces[a.forceId];
+        return {
+          id: a.id, dx, dy, dist: Math.hypot(dx, dy),
+          color: force?.color ?? '#8a7050',
+          troops: a.troops,
+          nameZh: force?.name.zh ?? '',
+          own: a.forceId === playerForceId,
+          incoming: a.targetCityId === cityId,
+        };
+      })
+      // Skip columns sitting on the city itself (garrison) and far-off ones.
+      .filter((a) => a.dist > 4 && a.dist < 95);
+  }, [allArmies, city, forces, playerForceId, cityId]);
 
   // For the selected slot: which neighbour(s) lie in its compass octant.
   const slotGuards = useMemo(() => {
@@ -3058,6 +3142,7 @@ export function CityMapScreen3D({ cityId, onClose, onSwitch2D }: {
             city={city}
             neighbors={neighbors}
             facilities={nearbyFacilities}
+            armies={nearbyArmies}
             selectedSlot={selectedSlot}
             onSlotClick={handleSlotClick}
           />
