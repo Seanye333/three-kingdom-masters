@@ -87,7 +87,7 @@ import { evaluateCoalition } from '../systems/coalition';
 import { rollDialogue } from '../systems/dialogueRoll';
 import { DIALOGUE_EVENTS_BY_ID } from '../data/dialogues';
 import { applyAutoBuild } from '../systems/autoBuild';
-import { planAIBuildOrders, planAIFacilities } from '../systems/aiBuild';
+import { planAIBuildOrders, planAIFacilities, planAIFortAssaults } from '../systems/aiBuild';
 import { SCENARIO_OBJECTIVES } from '../data/objectives';
 import { SCENARIOS } from '../data';
 import { findChallenge, evaluateChallenge, challengeStars } from '../data/challenges';
@@ -2314,6 +2314,21 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           postCities = aiFac.cities;
           Object.assign(nextForts, aiFac.newForts);
           if (aiFac.entries.length > 0) result.report.entries.push(...aiFac.entries);
+
+          // AI 拔點 — hostile forces storm the player's nearby forts/facilities
+          // (HP damage, razed at 0; the assaulting garrison bleeds for it).
+          const assault = planAIFortAssaults({
+            cities: postCities,
+            forces: postForces,
+            forts: nextForts,
+            diplomacy: planned.diplomacy,
+            playerForceId: state.playerForceId,
+            rng: Math.random,
+          });
+          postCities = assault.cities;
+          for (const k of Object.keys(nextForts)) delete nextForts[k];
+          Object.assign(nextForts, assault.forts);
+          if (assault.entries.length > 0) result.report.entries.push(...assault.entries);
         }
 
         // Wishes consumed by training completions this tick — filtered out

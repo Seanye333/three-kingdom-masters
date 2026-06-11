@@ -12,7 +12,8 @@ import type {
 } from '../types';
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
 import { FACILITY_DEFS, isHostilePermitted } from '../types';
-import { CITY_GEO_OVERRIDES } from '../data/cityGeo';
+import { CITY_GEO_OVERRIDES, cityPos } from '../data/cityGeo';
+import { geoToPixel } from '../data/geography';
 
 /**
  * AI building priorities per ruler personality. The list is consulted top-down;
@@ -185,4 +186,75 @@ export function planAIFacilities(ctx: AIFacilityContext): AIFacilityOutput {
   }
 
   return { cities, newForts, entries };
+}
+
+// ─── AI 拔點 — assaulting the player's forts & facilities ────────────────
+const ASSAULT_RANGE = 50;       // strategic px from an AI city to a target fort
+const ASSAULT_CHANCE = 0.22;    // per hostile force per season
+
+export interface AIFortAssaultOutput {
+  cities: Record<EntityId, City>;
+  forts: Record<EntityId, Fort>;
+  entries: ReportEntry[];
+}
+
+/**
+ * The player's forts were untouchable — the AI just marched around towers
+ * shelling its columns. Now a hostile force with a garrisoned city near a
+ * player fort occasionally storms it: the fort loses HP (razed at 0), the
+ * assaulting city bleeds troops (ranged facilities bite back harder).
+ */
+export function planAIFortAssaults(ctx: AIFacilityContext): AIFortAssaultOutput {
+  const cities = { ...ctx.cities };
+  const forts = { ...ctx.forts };
+  const entries: ReportEntry[] = [];
+  if (!ctx.playerForceId) return { cities, forts, entries };
+
+  const playerForts = Object.values(forts).filter((f) => f.ownerForceId === ctx.playerForceId);
+  if (playerForts.length === 0) return { cities, forts, entries };
+
+  for (const force of Object.values(ctx.forces)) {
+    if (force.id === ctx.playerForceId) continue;
+    if (!isHostilePermitted(ctx.diplomacy, force.id, ctx.playerForceId)) continue;
+    if (ctx.rng() > ASSAULT_CHANCE) continue;
+    // Nearest player fort within reach of one of this force's garrisons.
+    let best: { fort: Fort; city: City; d: number } | null = null;
+    for (const fort of playerForts) {
+      if (!forts[fort.id]) continue; // already razed this season
+      const [fx, fy] = geoToPixel(fort.coords.lon, fort.coords.lat);
+      for (const c of Object.values(cities)) {
+        if (c.ownerForceId !== force.id || c.troops < 4000) continue;
+        const cp = cityPos(c);
+        const d = Math.hypot(cp.x - fx, cp.y - fy);
+        if (d < ASSAULT_RANGE && (!best || d < best.d)) best = { fort, city: c, d };
+      }
+    }
+    if (!best) continue;
+    const { fort, city } = best;
+    const commitment = Math.min(3000, Math.floor(city.troops * 0.2));
+    const damage = 150 + Math.floor(commitment * 0.08);
+    // Ranged facilities bite back hard; plain palisades less so.
+    const fac = fort.facility ? FACILITY_DEFS[fort.facility] : null;
+    const casualties = Math.min(commitment, fac && fac.effect === 'ranged' ? Math.floor(fac.power * 0.4) : 150);
+    cities[city.id] = { ...cities[city.id], troops: Math.max(0, cities[city.id].troops - casualties) };
+    const hpLeft = fort.hp - damage;
+    const fortLabel = fac ? fac.name : fort.name;
+    if (hpLeft <= 0) {
+      delete forts[fort.id];
+      entries.push({
+        cityId: fort.guards[0] ?? null, kind: 'battle',
+        text: `${force.name.en} stormed and razed your ${fortLabel.en} (they lost ${casualties}).`,
+        textZh: `${force.name.zh}強攻拔除我方${fortLabel.zh}!(敵折兵 ${casualties})`,
+      });
+    } else {
+      forts[fort.id] = { ...fort, hp: hpLeft };
+      entries.push({
+        cityId: fort.guards[0] ?? null, kind: 'battle',
+        text: `${force.name.en} assaulted your ${fortLabel.en} — ${hpLeft}/${fort.maxHp} HP left (they lost ${casualties}).`,
+        textZh: `${force.name.zh}強攻我方${fortLabel.zh},尚餘 ${hpLeft}/${fort.maxHp} 耐久(敵折兵 ${casualties})。`,
+      });
+    }
+  }
+
+  return { cities, forts, entries };
 }
