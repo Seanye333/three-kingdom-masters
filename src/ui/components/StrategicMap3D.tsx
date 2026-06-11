@@ -1779,6 +1779,94 @@ function BattlePulseRing3D({ wx, y, wz, color, phase }: {
   );
 }
 
+/* ─── 烽火預警 — beacons actually light ─────────────────────────────────
+   A player city with a built 烽火台 (beacon slot) IGNITES when a hostile
+   column is marching on it — and the alarm carries one hop to neighbouring
+   player beacons (the chain the towers were built for). Flame + smoke on
+   the map; the DOM warning chip lives in the outer shell. */
+export function computeBeaconAlerts(
+  cities: Record<string, City>,
+  armies: Record<string, import('../../game/types').Army>,
+  playerForceId: string | null,
+): { threatened: Set<string>; lit: Set<string> } {
+  const threatened = new Set<string>();
+  if (!playerForceId) return { threatened, lit: new Set() };
+  for (const a of Object.values(armies)) {
+    if (a.forceId === playerForceId) continue;
+    const tgt = cities[a.targetCityId];
+    if (tgt?.ownerForceId === playerForceId) threatened.add(tgt.id);
+  }
+  const hasBeacon = (c: City) => (c.buildSlots ?? []).some((sl) => sl.buildingId === 'beacon');
+  const lit = new Set<string>();
+  for (const id of threatened) {
+    const c = cities[id];
+    if (!c) continue;
+    if (hasBeacon(c)) lit.add(id);
+    // The alarm relays one hop to neighbouring player beacons.
+    for (const adj of c.adjacentCityIds ?? []) {
+      const n = cities[adj];
+      if (n?.ownerForceId === playerForceId && hasBeacon(n)) lit.add(adj);
+    }
+  }
+  return { threatened, lit };
+}
+
+function BeaconFlame3D({ wx, wy, wz }: { wx: number; wy: number; wz: number }) {
+  const flameRef = useRef<THREE.Mesh>(null);
+  const smokeRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    if (flameRef.current) {
+      flameRef.current.scale.y = 1 + Math.sin(t * 9) * 0.3;
+      flameRef.current.scale.x = 1 + Math.sin(t * 7 + 1) * 0.15;
+    }
+    if (smokeRef.current) {
+      smokeRef.current.position.y = 0.55 + ((t * 0.25) % 0.5);
+      (smokeRef.current.material as THREE.MeshBasicMaterial).opacity = 0.4 - ((t * 0.25) % 0.5) * 0.6;
+    }
+  });
+  return (
+    <group position={[wx, wy, wz]}>
+      <mesh position={[0, 0.16, 0]} castShadow>
+        <cylinderGeometry args={[0.035, 0.05, 0.32, 5]} />
+        <meshStandardMaterial color="#4a3a26" roughness={0.9} />
+      </mesh>
+      <mesh ref={flameRef} position={[0, 0.4, 0]}>
+        <coneGeometry args={[0.07, 0.22, 6]} />
+        <meshBasicMaterial color="#ff8030" />
+      </mesh>
+      <mesh ref={smokeRef} position={[0, 0.55, 0]}>
+        <sphereGeometry args={[0.07, 6, 6]} />
+        <meshBasicMaterial color="#5a5a5a" transparent opacity={0.4} depthWrite={false} />
+      </mesh>
+      <pointLight position={[0, 0.45, 0]} color="#ff7020" intensity={1.4} distance={2.4} decay={2} />
+    </group>
+  );
+}
+
+function BeaconAlerts3D() {
+  const cities = useGameStore((s) => s.cities);
+  const armies = useGameStore((s) => s.armies);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const { lit } = useMemo(
+    () => computeBeaconAlerts(cities, armies, playerForceId),
+    [cities, armies, playerForceId],
+  );
+  if (lit.size === 0) return null;
+  return (
+    <group>
+      {[...lit].map((id) => {
+        const c = cities[id];
+        if (!c) return null;
+        const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
+        const [wx, wz] = pxToWorld(px, py);
+        const wy = cityElevation(wx, wz);
+        return <BeaconFlame3D key={id} wx={wx + 0.45} wy={wy} wz={wz - 0.45} />;
+      })}
+    </group>
+  );
+}
+
 /** 城防一目了然 — a city's BUILT perimeter defences (buildSlots) show as tiny
  *  gold watch-posts around its token at their true compass positions, so the
  *  world map reads which cities are fortified and on which approaches. */
@@ -3368,6 +3456,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <QueuedBattles3D />
+      <BeaconAlerts3D />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
 
@@ -3603,6 +3692,15 @@ export function StrategicMap3D() {
   const battleActive = useGameStore((s) => !!s.tacticalBattle);
   // 標籤分級 — quantized camera distance, provided to City3D labels.
   const [zoomLod, setZoomLod] = useState<'near' | 'far'>('near');
+  // 烽火示警 — hostile columns marching on player cities (chip top-left).
+  const beaconCities = useGameStore((s) => s.cities);
+  const beaconArmies = useGameStore((s) => s.armies);
+  const beaconSelectCity = useGameStore((s) => s.selectCity);
+  const beaconPlayerForceId = useGameStore((s) => s.playerForceId);
+  const beaconAlerts = useMemo(
+    () => computeBeaconAlerts(beaconCities, beaconArmies, beaconPlayerForceId),
+    [beaconCities, beaconArmies, beaconPlayerForceId],
+  );
   // ⬡ 棋盤世界 experiment — hex-tile world terrain; the painted scroll map
   // stays the default and is always one tap away (backup).
   const [mapStyle, setMapStyle] = useState<'classic' | 'hex'>(
@@ -4014,6 +4112,31 @@ export function StrategicMap3D() {
           </div>
         );
       })()}
+
+      {/* 烽火示警 — who is marching on us, one tap to look. */}
+      {beaconAlerts.threatened.size > 0 && (
+        <div style={{
+          position: 'absolute', top: 56, left: 12, zIndex: 12,
+          display: 'flex', flexDirection: 'column', gap: 4,
+          fontFamily: 'Songti SC, serif',
+        }}>
+          {[...beaconAlerts.threatened].slice(0, 4).map((id) => (
+            <button
+              key={id}
+              onClick={() => beaconSelectCity(id)}
+              style={{
+                background: 'rgba(40, 14, 8, 0.92)', border: '1px solid #e0552a',
+                color: '#f0b0a0', borderRadius: 3, padding: '3px 9px',
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.75rem',
+                letterSpacing: '0.08rem', textAlign: 'left',
+                boxShadow: '0 0 10px rgba(224,85,42,0.35)',
+              }}
+            >
+              🔥 {t('烽火示警', 'Beacons lit')} · {beaconCities[id]?.name.zh ?? id}{t('告急', ' under threat')}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 單挑 from the world map — same modal & writeback as the fullscreen. */}
       {worldDuel && (
