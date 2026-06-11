@@ -1747,6 +1747,48 @@ function BattlePulseRing3D({ wx, y, wz, color, phase }: {
   );
 }
 
+/** 待戰 — battles queued for this season (AI clashes / siege defences not yet
+ *  fought) pulse red at their sites so you can see what's coming before each
+ *  one ignites. */
+function QueuedBattles3D() {
+  const fieldQ = useGameStore((s) => s.pendingFieldBattleQueue);
+  const siegeQ = useGameStore((s) => s.pendingSiegeDefenseQueue);
+  const armies = useGameStore((s) => s.armies);
+  const cities = useGameStore((s) => s.cities);
+  const sites: Array<{ x: number; y: number; zh: string }> = [
+    // Field clashes erupt at the midpoint between the two armies.
+    ...(fieldQ ?? []).flatMap((q) => {
+      const a = armies[q.playerArmyId], b = armies[q.enemyArmyId];
+      return a && b ? [{ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, zh: '野戰待發' }] : [];
+    }),
+    ...(siegeQ ?? []).flatMap((q) => {
+      const c = cities[q.targetCityId];
+      return c ? [{ ...cityPos(c), zh: '守城待戰' }] : [];
+    }),
+  ];
+  if (sites.length === 0) return null;
+  return (
+    <group>
+      {sites.map((s, i) => {
+        const [wx, wz] = pxToWorld(s.x, s.y);
+        const y = sampleTerrainHeight(wx, wz) + 0.06;
+        return (
+          <group key={i}>
+            <BattlePulseRing3D wx={wx} y={y} wz={wz} color="#e0552a" phase={i * 0.31} />
+            <Html position={[wx, y + 0.7, wz]} center distanceFactor={10} zIndexRange={[45, 35]} style={{ pointerEvents: 'none' }}>
+              <div style={{
+                background: 'rgba(40, 14, 8, 0.88)', border: '1px solid #e0552a', borderRadius: 3,
+                padding: '1px 7px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+                color: '#f0b0a0', whiteSpace: 'nowrap', letterSpacing: '1px',
+              }}>⚔ {s.zh}</div>
+            </Html>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function FieldBattleMarks3D({ marks }: {
   marks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number }>;
 }) {
@@ -3242,6 +3284,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
       {mapStyle === 'classic' && <Roads cities={cities} />}
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       <FieldBattleMarks3D marks={fieldBattleMarks} />
+      <QueuedBattles3D />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
 
