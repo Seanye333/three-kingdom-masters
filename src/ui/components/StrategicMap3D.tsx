@@ -2821,7 +2821,7 @@ function DriftingClouds() {
 
 type HexWorldTile = { x: number; z: number; topY: number; kind: string };
 
-const HEXW_R = IS_MOBILE ? 0.34 : 0.26;       // hex radius (world units)
+const HEXW_R = IS_MOBILE ? 0.24 : 0.17;       // hex radius (world units) — finer quilt, ~2.3× more tiles
 const HEXW_COL = 1.5 * HEXW_R;
 const HEXW_ROW = Math.sqrt(3) * HEXW_R;
 const HEXWORLD_COLOR: Record<string, string> = {
