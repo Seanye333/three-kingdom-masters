@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls, Instances, Instance } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
-import { positionAlongRoute, marchDestCoords, terrainRoute } from '../../game/data/territories';
+import { positionAlongRoute, marchDestCoords, terrainRoute, generateTerritories } from '../../game/data/territories';
 import { snapToHexCenter, geoToPixel, battleGroundAt } from '../../game/data/geography';
 import { cityPixel, cityPos } from '../../game/data/cityGeo';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
@@ -2852,25 +2852,57 @@ function buildHexWorldTiles(): HexWorldTile[] {
   return out;
 }
 
-function HexWorldTerrain({ winter, onGroundClick }: {
+function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundClick }: {
   winter: boolean;
+  cities: Record<string, City>;
+  forces: Record<string, Force>;
+  territoryOwnership: Record<string, string | null>;
   onGroundClick?: (px: number, py: number) => void;
 }) {
   const tiles = useMemo(() => buildHexWorldTiles(), []);
-  // Per-tile colour — seasonal: snow-dusted land in winter, iced rivers.
-  const colors = useMemo(() => tiles.map((t) => {
+
+  // 領土染色 — each land hex takes its nearest territory centroid's owner
+  // (override ?? parent city's lord), the SAME resolution the painted
+  // territory layer uses, so both map styles always agree on borders.
+  const tileOwnerColor = useMemo(() => {
+    const seeds = generateTerritories(Object.values(cities)).map((t) => {
+      const owner = territoryOwnership[t.id] ?? cities[t.parentCityId]?.ownerForceId ?? null;
+      return { x: t.coords.x, y: t.coords.y, color: owner ? (forces[owner]?.color ?? null) : null };
+    });
+    return tiles.map((t) => {
+      if (t.kind === 'river' || t.kind === 'lake') return null; // water stays water
+      const px = (t.x + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (t.z + MAP_D / 2) / PIXEL_TO_WORLD;
+      let best: string | null = null;
+      let bestD = Infinity;
+      for (const s of seeds) {
+        const d = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py);
+        if (d < bestD) { bestD = d; best = s.color; }
+      }
+      return best;
+    });
+  }, [tiles, cities, forces, territoryOwnership]);
+
+  // Per-tile colour — terrain base, blended toward the owning force's colour
+  // (RTK-XIV-style painted realm); seasonal: snow-dusted land in winter.
+  const colors = useMemo(() => tiles.map((t, i) => {
     const water = t.kind === 'river' || t.kind === 'lake';
-    if (winter) return water ? '#bcd2dc' : t.kind === 'mountain' ? '#cfd4d8' : '#c9cfc3';
-    const c = HEXWORLD_COLOR[t.kind] ?? HEXWORLD_COLOR.plain;
+    const owner = tileOwnerColor[i];
+    if (winter) {
+      const snow = water ? '#bcd2dc' : t.kind === 'mountain' ? '#cfd4d8' : '#c9cfc3';
+      if (!owner || water) return snow;
+      return `#${new THREE.Color(snow).lerp(new THREE.Color(owner), 0.26).getHexString()}`;
+    }
+    const base = HEXWORLD_COLOR[t.kind] ?? HEXWORLD_COLOR.plain;
+    const col = new THREE.Color(base);
     // Cheap deterministic tint so the plains read as a quilt, not a slab.
     if (t.kind === 'plain' || t.kind === 'hill') {
       const h = Math.abs(Math.sin(t.x * 12.9898 + t.z * 78.233)) * 0.12;
-      const col = new THREE.Color(c);
       col.offsetHSL(0, 0, h - 0.06);
-      return `#${col.getHexString()}`;
     }
-    return c;
-  }), [tiles, winter]);
+    if (owner && !water) col.lerp(new THREE.Color(owner), 0.38);
+    return `#${col.getHexString()}`;
+  }), [tiles, winter, tileOwnerColor]);
 
   return (
     <group>
@@ -3020,6 +3052,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle }: {
         // is the living Ocean below. Same ground-click contract as the scroll.
         <HexWorldTerrain
           winter={season === 'winter'}
+          cities={cities}
+          forces={forces}
+          territoryOwnership={territoryOwnership}
           onGroundClick={(px, py) => {
             if (selectedArmyId3D && isLandPx(px, py) && moveArmyToCell(selectedArmyId3D, px, py)) {
               selectArmy(null);
