@@ -2890,13 +2890,16 @@ function HexWorldTerrain({ winter, onGroundClick }: {
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
       <Instances limit={Math.max(1, tiles.length)} receiveShadow frustumCulled={false}>
-        <cylinderGeometry args={[1, 1, 1, 6]} />
+        {/* thetaStart π/6 points the hex vertices along ±x — the flat-top
+            orientation our 1.5R/√3R column layout tessellates with. Without
+            it the hexes sit 30° off and leave diagonal gaps. */}
+        <cylinderGeometry args={[1, 1, 1, 6, 1, false, Math.PI / 6]} />
         <meshStandardMaterial roughness={0.93} metalness={0.02} />
         {tiles.map((t, i) => (
           <Instance
             key={i}
             position={[t.x, (t.topY - 0.3) / 2, t.z]}
-            scale={[HEXW_R * 0.99, t.topY + 0.3, HEXW_R * 0.99]}
+            scale={[HEXW_R * 0.995, t.topY + 0.3, HEXW_R * 0.995]}
             color={colors[i]}
           />
         ))}
