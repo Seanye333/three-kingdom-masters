@@ -1779,6 +1779,33 @@ function BattlePulseRing3D({ wx, y, wz, color, phase }: {
   );
 }
 
+/* ─── 焚城 — burningCities has been tracked in state since forever but never
+   drawn: a sacked/burning city now shows licking flames and a leaning smoke
+   column for as long as the fire lasts. */
+function BurningCities3D() {
+  const burning = useGameStore((s) => s.burningCities);
+  const cities = useGameStore((s) => s.cities);
+  if (!burning || burning.length === 0) return null;
+  return (
+    <group>
+      {burning.map(({ cityId }) => {
+        const c = cities[cityId];
+        if (!c) return null;
+        const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
+        const [wx, wz] = pxToWorld(px, py);
+        const wy = cityElevation(wx, wz);
+        return (
+          <group key={cityId} position={[wx, wy, wz]}>
+            {[[-0.22, 0.1], [0.18, -0.15], [0, 0.22]].map(([dx, dz], i) => (
+              <BeaconFlame3D key={i} wx={dx} wy={0} wz={dz as number} />
+            ))}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 /* ─── 烽火預警 — beacons actually light ─────────────────────────────────
    A player city with a built 烽火台 (beacon slot) IGNITES when a hostile
    column is marching on it — and the alarm carries one hop to neighbouring
@@ -3457,6 +3484,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <QueuedBattles3D />
       <BeaconAlerts3D />
+      <BurningCities3D />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
 
