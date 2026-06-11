@@ -3123,7 +3123,7 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
   );
 }
 
-function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelectedId, dioMode, dioArcs, onDioramaTile }: {
+function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelectedId, dioMode, dioArcs, dioHover, onDioHover, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
   onPortClick: (portId: string) => void;
@@ -3132,6 +3132,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
   dioSelectedId: string | null;
   dioMode: 'move' | 'attack';
   dioArcs: Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>;
+  dioHover: HexCoord | null;
+  onDioHover: (c: HexCoord | null) => void;
   onDioramaTile: (c: HexCoord) => void;
 }) {
   const cities = useGameStore((s) => s.cities);
@@ -3320,8 +3322,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
                 playerSide={pSide}
                 actionMode={dioSelectedId ? { kind: dioMode } : { kind: 'none' }}
                 selectedId={dioSelectedId}
-                hovered={null}
-                setHovered={() => {}}
+                hovered={dioHover}
+                setHovered={onDioHover}
                 onTileClick={onDioramaTile}
                 attackArcs={dioArcs}
                 stratagemFx={[]}
@@ -3535,6 +3537,10 @@ export function StrategicMap3D() {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const [dioPick, setDioPick] = useState<{ bid: string; uid: string } | null>(null);
   const [dioMode, setDioMode] = useState<'move' | 'attack'>('move');
+  const [dioHover, setDioHoverRaw] = useState<HexCoord | null>(null);
+  const setDioHover = (c: HexCoord | null) => {
+    setDioHoverRaw((prev) => (prev?.col === c?.col && prev?.row === c?.row ? prev : c));
+  };
   const [dioArcs, setDioArcs] = useState<Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>>([]);
   const dioSelectedId = worldBattle && dioPick && dioPick.bid === worldBattle.id
     && worldBattle.units.some((u) => u.id === dioPick.uid) ? dioPick.uid : null;
@@ -3691,6 +3697,8 @@ export function StrategicMap3D() {
             dioSelectedId={worldBattleMinimized ? dioSelectedId : null}
             dioMode={dioMode}
             dioArcs={dioArcs}
+            dioHover={worldBattleMinimized ? dioHover : null}
+            onDioHover={setDioHover}
             onDioramaTile={handleDioramaTile}
           />
           <OrbitControls
@@ -3719,6 +3727,9 @@ export function StrategicMap3D() {
       {worldBattle && worldBattleMinimized && (() => {
         const sel = dioSelectedId ? worldBattle.units.find((u) => u.id === dioSelectedId) : null;
         const off = sel ? officersAll[sel.officerId] : null;
+        const hovUnit = dioHover ? unitAt(worldBattle, dioHover) : null;
+        const hovOff = hovUnit ? officersAll[hovUnit.officerId] : null;
+        const hovIsOwn = hovUnit && worldPlayerSide && hovUnit.side === worldPlayerSide;
         const modeBtn = (mode: 'move' | 'attack', zh: string, en: string) => (
           <button
             onClick={() => setDioMode(mode)}
@@ -3755,6 +3766,14 @@ export function StrategicMap3D() {
             ) : (
               <span style={{ color: '#8a7050', fontSize: '0.74rem' }}>
                 {t('點選棋盤上我方部隊下令', 'Tap one of your units on the board')}
+              </span>
+            )}
+            {hovUnit && hovOff && hovUnit.id !== dioSelectedId && (
+              <span style={{
+                color: hovIsOwn ? '#9ec9f0' : '#f0a0a0', fontSize: '0.74rem',
+                borderLeft: '1px solid #4a3520', paddingLeft: '0.55rem',
+              }}>
+                {hovIsOwn ? '' : '敵 '}{hovOff.name.zh} · {hovUnit.troops.toLocaleString()}{t('兵', '')} · AP {hovUnit.ap}/{hovUnit.maxAp}
               </span>
             )}
             <button
