@@ -1718,8 +1718,11 @@ export function BattleScene({
         );
       })}
 
-      {/* Damage popups floating up from hexes */}
-      {(battle.damagePopups ?? []).map((p) => (
+      {/* Damage popups floating up from hexes. Age-filtered at render — the
+          array itself only ever grows between endTurn prunes, and a popup
+          past its float animation would otherwise sit invisible (fullscreen)
+          or frozen mid-air (embedded Text) forever. */}
+      {(battle.damagePopups ?? []).filter((p) => Date.now() - p.spawnedAt < 1400).map((p) => (
         <DamagePopup3D
           key={p.id}
           coord={p.coord}

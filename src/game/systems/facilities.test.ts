@@ -146,6 +146,16 @@ describe('planAIFortAssaults — the AI razes player works', () => {
     expect(out.forts['pf'].hp).toBe(600);
     expect(out.entries).toHaveLength(0);
   });
+
+  it('never touches permanent historical forts, even player-held ones', () => {
+    const ctx = base(600);
+    ctx.forts = {
+      pf: { ...ctx.forts['pf'], subtype: 'fort' as const, seasonsRemaining: undefined },
+    };
+    const out = planAIFortAssaults({ ...ctx, rng: () => 0.01 });
+    expect(out.forts['pf'].hp).toBe(600);
+    expect(out.entries).toHaveLength(0);
+  });
 });
 
 describe('陣 (camp → barracks-out) rallies defenders in battle', () => {

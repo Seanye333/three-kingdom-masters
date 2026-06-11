@@ -620,6 +620,19 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
         }
       : u);
     log.push({ turn: 1, text: '決堤！洪水灌城，城牆崩毀數段 — 守軍溺損，軍心動搖。', kind: 'event' });
+  } else if (p.siegeWorks === 'flood') {
+    // Scripted (named) battlefields have no procedural enclosure to wash out —
+    // but the attacker still PAID for breaking the dikes, so the drowning
+    // debuff lands regardless (the famous fields are riverside cities anyway).
+    workedUnits = workedUnits.map((u) => u.side === 'defender'
+      ? {
+          ...u,
+          troops: Math.max(1, Math.floor(u.troops * 0.88)),
+          maxTroops: Math.max(1, Math.floor(u.maxTroops * 0.88)),
+          morale: Math.max(30, u.morale - 20),
+        }
+      : u);
+    log.push({ turn: 1, text: '決堤！洪水漫野 — 守軍溺損，軍心動搖。', kind: 'event' });
   }
 
   // 防壁參戰 — a strategic barricade in range throws a short destructible
@@ -1770,6 +1783,11 @@ function finalize(
 // ─── Turn end ────────────────────────────────────────────────────────
 
 export function endTurn(b: TacticalBattle): TacticalBattle {
+  // Prune expired damage popups — every battle event appends to the array and
+  // nothing ever removed them, so a long battle accumulated hundreds of dead
+  // popup nodes (and the embedded diorama showed them frozen mid-air).
+  const now = Date.now();
+  b = { ...b, damagePopups: (b.damagePopups ?? []).filter((p) => now - p.spawnedAt < 2000) };
   // Eight-trigrams aura: friendly units in formation regen 4% per turn.
   const inFormation = (side: 'attacker' | 'defender') =>
     (side === 'attacker' ? b.attackerFormation : b.defenderFormation) === 'eight-trigrams';

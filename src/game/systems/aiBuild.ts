@@ -210,7 +210,12 @@ export function planAIFortAssaults(ctx: AIFacilityContext): AIFortAssaultOutput 
   const entries: ReportEntry[] = [];
   if (!ctx.playerForceId) return { cities, forts, entries };
 
-  const playerForts = Object.values(forts).filter((f) => f.ownerForceId === ctx.playerForceId);
+  // Only player-BUILT works (stockades & facilities) are assault targets —
+  // permanent historical forts (街亭/定軍山…) are landmarks and must never be
+  // deleted from the map, even when player-held.
+  const playerForts = Object.values(forts).filter(
+    (f) => f.ownerForceId === ctx.playerForceId && f.subtype === 'stockade',
+  );
   if (playerForts.length === 0) return { cities, forts, entries };
 
   for (const force of Object.values(ctx.forces)) {
