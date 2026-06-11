@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls, Instances, Instance } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -1239,6 +1239,29 @@ function CityBanner({ color, baseY, isCapital }: {
 
 /** City pillar group: walled city / pagoda / pass / hamlet by tier, with
  *  a force-colored base disk, banner, name label and selection ring. */
+/* ─── 標籤分級 — when the camera is pulled far out, the ~120 city name+bar
+   labels turn into noise (and DOM cost). A tiny in-canvas tracker quantizes
+   camera distance into near/far; far hides labels of ordinary cities, keeping
+   capitals and the selection readable. */
+const ZoomLODCtx = createContext<'near' | 'far'>('near');
+const LOD_FAR_DIST = 30;
+function ZoomLODTracker({ onChange }: { onChange: (lod: 'near' | 'far') => void }) {
+  const { camera } = useThree();
+  const last = useRef<'near' | 'far'>('near');
+  useFrame(() => {
+    // Hysteresis band so the labels don't flicker right on the threshold.
+    const d = camera.position.length();
+    const next = last.current === 'far'
+      ? (d < LOD_FAR_DIST - 3 ? 'near' : 'far')
+      : (d > LOD_FAR_DIST + 3 ? 'far' : 'near');
+    if (next !== last.current) {
+      last.current = next;
+      onChange(next);
+    }
+  });
+  return null;
+}
+
 function City3D({
   city, forceColor, isCapital, isSelected, terrainY, overlay, onClick,
 }: {
@@ -1252,6 +1275,7 @@ function City3D({
 }) {
   const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
   const [x, z] = pxToWorld(px, py);
+  const zoomLod = useContext(ZoomLODCtx);
   // Scale by city size (population or troops) — bigger cities, taller towers.
   const sizeScore = Math.max(1, Math.min(4, city.population / 60000 + city.troops / 30000));
   const height = 0.18 + sizeScore * 0.12;
@@ -1322,25 +1346,28 @@ function City3D({
       )}
       {/* HTML label — Chinese name + strength bars. drei scales Html by
        *  ~distanceFactor/distance, so a smaller distanceFactor keeps the
-       *  label from ballooning when the camera zooms in close. */}
-      <Html position={[0, height + 0.6, 0]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div style={{
-          fontFamily: 'Songti SC, serif',
-          textAlign: 'center',
-          width: 80,
-        }}>
+       *  label from ballooning when the camera zooms in close. Zoomed far,
+       *  ordinary cities drop their labels (capitals/selection stay). */}
+      {(zoomLod === 'near' || isCapital || isSelected) && (
+        <Html position={[0, height + 0.6, 0]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
           <div style={{
-            fontSize: '13px',
-            color: '#1a1410',
-            fontWeight: 'bold',
-            textShadow: '0 0 4px #f0e0b0, 1px 1px 0 #f0e0b0, -1px -1px 0 #f0e0b0',
-            whiteSpace: 'nowrap',
-            marginBottom: 2,
-          }}>{city.name.zh}</div>
-          {/* Strength bars — troops (red), gold (gold), loyalty (blue) */}
-          <CityStrengthBars city={city} />
-        </div>
-      </Html>
+            fontFamily: 'Songti SC, serif',
+            textAlign: 'center',
+            width: 80,
+          }}>
+            <div style={{
+              fontSize: '13px',
+              color: '#1a1410',
+              fontWeight: 'bold',
+              textShadow: '0 0 4px #f0e0b0, 1px 1px 0 #f0e0b0, -1px -1px 0 #f0e0b0',
+              whiteSpace: 'nowrap',
+              marginBottom: 2,
+            }}>{city.name.zh}</div>
+            {/* Strength bars — troops (red), gold (gold), loyalty (blue) */}
+            <CityStrengthBars city={city} />
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
@@ -3563,6 +3590,8 @@ export function StrategicMap3D() {
   const [orbitTarget, setOrbitTarget] = useState<[number, number, number]>([0, 0, 0]);
   // While a battle diorama is on the map, let the camera dive much closer.
   const battleActive = useGameStore((s) => !!s.tacticalBattle);
+  // 標籤分級 — quantized camera distance, provided to City3D labels.
+  const [zoomLod, setZoomLod] = useState<'near' | 'far'>('near');
   // ⬡ 棋盤世界 experiment — hex-tile world terrain; the painted scroll map
   // stays the default and is always one tap away (backup).
   const [mapStyle, setMapStyle] = useState<'classic' | 'hex'>(
@@ -3794,6 +3823,8 @@ export function StrategicMap3D() {
         gl={{ antialias: !IS_MOBILE }}
       >
         <Suspense fallback={null}>
+          <ZoomLODTracker onChange={setZoomLod} />
+          <ZoomLODCtx.Provider value={zoomLod}>
           <MapScene
             overlayMode={overlayMode}
             mapStyle={mapStyle}
@@ -3808,6 +3839,7 @@ export function StrategicMap3D() {
             onDioHover={setDioHover}
             onDioramaTile={handleDioramaTile}
           />
+          </ZoomLODCtx.Provider>
           <OrbitControls
             ref={controlsRef as React.Ref<never>}
             target={orbitTarget}
