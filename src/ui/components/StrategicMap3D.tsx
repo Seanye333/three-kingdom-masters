@@ -1,10 +1,10 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Html, OrbitControls } from '@react-three/drei';
+import { Html, OrbitControls, Instances, Instance } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
 import { positionAlongRoute, marchDestCoords, terrainRoute } from '../../game/data/territories';
-import { snapToHexCenter, geoToPixel } from '../../game/data/geography';
+import { snapToHexCenter, geoToPixel, battleGroundAt } from '../../game/data/geography';
 import { cityPixel, cityPos } from '../../game/data/cityGeo';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
 import * as THREE from 'three';
@@ -2810,8 +2810,104 @@ function DriftingClouds() {
   );
 }
 
-function MapScene({ overlayMode, onPortClick, onFortClick }: {
+/* ─── ⬡ 棋盤世界 — experimental hex-tile world terrain ──────────────────
+   The whole strategic map rendered as the same hex-prism quilt the battle
+   board and city hinterland use — one visual language from world to battle.
+   Each hex samples the REAL geography (battleGroundAt) for its kind and the
+   SAME height function the entities already stand on (sampleTerrainHeight),
+   so cities/armies/forts sit perfectly without touching any of them. Sea
+   hexes are skipped — the animated Ocean shows through. Toggleable; the
+   painted scroll map stays as the default/backup. */
+
+type HexWorldTile = { x: number; z: number; topY: number; kind: string };
+
+const HEXW_R = IS_MOBILE ? 0.34 : 0.26;       // hex radius (world units)
+const HEXW_COL = 1.5 * HEXW_R;
+const HEXW_ROW = Math.sqrt(3) * HEXW_R;
+const HEXWORLD_COLOR: Record<string, string> = {
+  river: '#2c5882', lake: '#27607f', riverbank: '#8a8a5e',
+  mountain: '#6f5e4d', hill: '#7c7250', plain: '#5f7a42',
+};
+// Generated once per session — ~5k geography samples are too slow per render.
+let HEXWORLD_CACHE: HexWorldTile[] | null = null;
+function buildHexWorldTiles(): HexWorldTile[] {
+  if (HEXWORLD_CACHE) return HEXWORLD_CACHE;
+  const out: HexWorldTile[] = [];
+  for (let c = 0; ; c++) {
+    const x = -MAP_W / 2 + HEXW_R + c * HEXW_COL;
+    if (x > MAP_W / 2) break;
+    for (let r = 0; ; r++) {
+      const z = -MAP_D / 2 + HEXW_ROW / 2 + r * HEXW_ROW + (c & 1 ? HEXW_ROW / 2 : 0);
+      if (z > MAP_D / 2) break;
+      const px = (x + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (z + MAP_D / 2) / PIXEL_TO_WORLD;
+      const kind = battleGroundAt(px, py);
+      if (kind === 'sea') continue; // let the living ocean show through
+      const water = kind === 'river' || kind === 'lake';
+      const topY = water ? 0.012 : Math.max(0.05, sampleTerrainHeight(x, z));
+      out.push({ x, z, topY, kind });
+    }
+  }
+  HEXWORLD_CACHE = out;
+  return out;
+}
+
+function HexWorldTerrain({ winter, onGroundClick }: {
+  winter: boolean;
+  onGroundClick?: (px: number, py: number) => void;
+}) {
+  const tiles = useMemo(() => buildHexWorldTiles(), []);
+  // Per-tile colour — seasonal: snow-dusted land in winter, iced rivers.
+  const colors = useMemo(() => tiles.map((t) => {
+    const water = t.kind === 'river' || t.kind === 'lake';
+    if (winter) return water ? '#bcd2dc' : t.kind === 'mountain' ? '#cfd4d8' : '#c9cfc3';
+    const c = HEXWORLD_COLOR[t.kind] ?? HEXWORLD_COLOR.plain;
+    // Cheap deterministic tint so the plains read as a quilt, not a slab.
+    if (t.kind === 'plain' || t.kind === 'hill') {
+      const h = Math.abs(Math.sin(t.x * 12.9898 + t.z * 78.233)) * 0.12;
+      const col = new THREE.Color(c);
+      col.offsetHSL(0, 0, h - 0.06);
+      return `#${col.getHexString()}`;
+    }
+    return c;
+  }), [tiles, winter]);
+
+  return (
+    <group>
+      {/* Invisible click-catcher — same contract as the painted MapTerrain. */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0, 0]}
+        onClick={(e) => {
+          if (!onGroundClick) return;
+          e.stopPropagation();
+          const px = (e.point.x + MAP_W / 2) / PIXEL_TO_WORLD;
+          const py = (e.point.z + MAP_D / 2) / PIXEL_TO_WORLD;
+          onGroundClick(px, py);
+        }}
+      >
+        <planeGeometry args={[MAP_W, MAP_D]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      <Instances limit={Math.max(1, tiles.length)} receiveShadow frustumCulled={false}>
+        <cylinderGeometry args={[1, 1, 1, 6]} />
+        <meshStandardMaterial roughness={0.93} metalness={0.02} />
+        {tiles.map((t, i) => (
+          <Instance
+            key={i}
+            position={[t.x, (t.topY - 0.3) / 2, t.z]}
+            scale={[HEXW_R * 0.99, t.topY + 0.3, HEXW_R * 0.99]}
+            color={colors[i]}
+          />
+        ))}
+      </Instances>
+    </group>
+  );
+}
+
+function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle }: {
   overlayMode: OverlayMode;
+  mapStyle: 'classic' | 'hex';
   onPortClick: (portId: string) => void;
   onFortClick: (fortId: string) => void;
 }) {
@@ -2916,26 +3012,41 @@ function MapScene({ overlayMode, onPortClick, onFortClick }: {
       {weatherPreset.particles === 'rain' && <RainParticles bounds={particleBounds} />}
       {weatherPreset.particles === 'snow' && <SnowParticles bounds={particleBounds} />}
 
-      <Suspense fallback={null}>
-        <MapTerrain onGroundClick={(px, py) => {
-          // With an army selected, clicking open land marches it to that
-          // cell and digs in — coords are geo-pixels, the same space the
-          // whole simulation runs in (the old 2D path fed painted-map
-          // coords here, a cross-space bug retired with it).
-          if (selectedArmyId3D && isLandPx(px, py) && moveArmyToCell(selectedArmyId3D, px, py)) {
-            selectArmy(null);
-          }
-        }} />
-        <TerritoryGroundLayer cities={cities} forces={forces} territoryOwnership={territoryOwnership} />
-      </Suspense>
+      {mapStyle === 'hex' ? (
+        // ⬡ 棋盤世界 — hex-prism quilt; rivers/lakes are blue hexes, the sea
+        // is the living Ocean below. Same ground-click contract as the scroll.
+        <HexWorldTerrain
+          winter={season === 'winter'}
+          onGroundClick={(px, py) => {
+            if (selectedArmyId3D && isLandPx(px, py) && moveArmyToCell(selectedArmyId3D, px, py)) {
+              selectArmy(null);
+            }
+          }}
+        />
+      ) : (
+        <Suspense fallback={null}>
+          <MapTerrain onGroundClick={(px, py) => {
+            // With an army selected, clicking open land marches it to that
+            // cell and digs in — coords are geo-pixels, the same space the
+            // whole simulation runs in (the old 2D path fed painted-map
+            // coords here, a cross-space bug retired with it).
+            if (selectedArmyId3D && isLandPx(px, py) && moveArmyToCell(selectedArmyId3D, px, py)) {
+              selectArmy(null);
+            }
+          }} />
+          <TerritoryGroundLayer cities={cities} forces={forces} territoryOwnership={territoryOwnership} />
+        </Suspense>
+      )}
       <Ocean />
-      <Lakes3D />
-      <RiverRibbons frozen={season === 'winter'} />
-      {season === 'winter' && <SnowBlanket />}
-      <Forest3D />
+      {mapStyle === 'classic' && <Lakes3D />}
+      {mapStyle === 'classic' && <RiverRibbons frozen={season === 'winter'} />}
+      {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
+      {mapStyle === 'classic' && <Forest3D />}
       <GreatWall3D />
       <DriftingClouds />
-      <ProvinceBorders3D cities={cities} />
+      {/* Province borders are flat ground decals — they'd sink into the
+          raised hex prisms, so the quilt view goes without them. */}
+      {mapStyle === 'classic' && <ProvinceBorders3D cities={cities} />}
       <ProvinceLabels3D />
       {marchPreview && (
         <MarchPreviewLine fromId={marchPreview.fromId} toId={marchPreview.toId} cities={cities} />
@@ -3131,6 +3242,16 @@ export function StrategicMap3D() {
   const [orbitTarget, setOrbitTarget] = useState<[number, number, number]>([0, 0, 0]);
   // While a battle diorama is on the map, let the camera dive much closer.
   const battleActive = useGameStore((s) => !!s.tacticalBattle);
+  // ⬡ 棋盤世界 experiment — hex-tile world terrain; the painted scroll map
+  // stays the default and is always one tap away (backup).
+  const [mapStyle, setMapStyle] = useState<'classic' | 'hex'>(
+    () => (localStorage.getItem('tkm-map-style') === 'hex' ? 'hex' : 'classic'),
+  );
+  const toggleMapStyle = () => {
+    const next = mapStyle === 'hex' ? 'classic' : 'hex';
+    setMapStyle(next);
+    localStorage.setItem('tkm-map-style', next);
+  };
   const weather = useGameStore((s) => s.weather);
   const season = useGameStore((s) => s.date.season) as Season;
   const t = useT();
@@ -3212,6 +3333,20 @@ export function StrategicMap3D() {
           }}
           title={t('築壘寨 / 箭樓 / 投石臺 — 施設可轟擊路過敵軍', 'Build stockade / arrow tower / catapult — facilities shell passing enemies')}
         >{t('築堡施設', 'Build')}</button>
+        <button
+          onClick={toggleMapStyle}
+          style={{
+            marginLeft: 8,
+            background: mapStyle === 'hex' ? 'rgba(212, 168, 74, 0.18)' : '#1a2415',
+            color: mapStyle === 'hex' ? '#d4a84a' : '#9ab87a',
+            border: `1px solid ${mapStyle === 'hex' ? '#d4a84a' : '#4a5a3a'}`,
+            padding: '0.3rem 0.55rem',
+            cursor: 'pointer',
+            fontFamily: 'Songti SC, serif',
+            fontSize: '0.78rem',
+          }}
+          title={t('切換地圖風格 — 棋盤六角地塊 / 畫卷地圖(實驗)', 'Toggle map style — hex-tile board / painted scroll (experimental)')}
+        >{mapStyle === 'hex' ? t('🗺 畫卷地圖', 'Scroll Map') : t('⬡ 棋盤地圖', 'Hex Map')}</button>
       </div>
 
       <Canvas
@@ -3223,6 +3358,7 @@ export function StrategicMap3D() {
         <Suspense fallback={null}>
           <MapScene
             overlayMode={overlayMode}
+            mapStyle={mapStyle}
             onPortClick={setSelectedPortId}
             onFortClick={setSelectedFortId}
           />
