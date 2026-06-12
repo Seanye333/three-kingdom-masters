@@ -208,6 +208,9 @@ export interface GameState {
   /** 軍團都督 — player legions: a marshal, a city cluster, a directive.
    *  Their orders auto-issue at the start of every tick. */
   legions: import('../systems/legion').Legion[];
+  /** 奉迎天子 — the city the Han emperor currently resides in. Owner of
+   *  that city is his custodian (挾天子以令諸侯). */
+  emperorCityId: EntityId | null;
   /** Saved command templates the player can re-apply each season. */
   commandTemplates: Array<{
     id: EntityId;
@@ -351,6 +354,7 @@ export const EMPTY_STATE: GameState = {
   espionageReveals: {},
   cityDelegations: {},
   legions: [],
+  emperorCityId: 'luoyang',
   commandTemplates: [],
   autoBuildQueues: {},
   pendingDialogue: null,
@@ -520,6 +524,7 @@ export function loadScenario(
     espionageReveals: {},
     cityDelegations: {},
     legions: [],
+    emperorCityId: 'luoyang',
     edictHistory: [],
     edictCooldowns: {},
     tribeState: createInitialTribeState(),

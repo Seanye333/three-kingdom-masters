@@ -56,6 +56,7 @@ import { planMassMuster } from '../systems/muster';
 import { planGovernorCommand } from '../systems/governor';
 import { planLegionOrders, type Legion } from '../systems/legion';
 import { buyQuote, sellQuote } from '../systems/market';
+import { EDICT_DISCOUNT, EMPEROR_HOME, MANDATE_PER_SEASON, RESENTMENT_PER_SEASON, canWelcomeEmperor, emperorCustodian } from '../systems/emperor';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -203,6 +204,8 @@ interface GameStore extends GameState {
     troops: number,
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
+  /** 奉迎天子 — move the emperor from a held city into your capital. */
+  welcomeEmperor: () => { ok: boolean; reason?: string };
   /** 市易 — convert gold↔food at the city's current market rate. */
   tradeFood: (cityId: EntityId, kind: 'buy' | 'sell', amount: number) => { ok: boolean; got: number };
   /** 委任太守 — set (or clear with null) a city's standing governor. */
@@ -949,6 +952,25 @@ export const useGameStore = create<GameStore>()(
               y: cityPos(source).y,
               progress: 0,
               totalSeasons: dur,
+            },
+          },
+        });
+        return { ok: true };
+      },
+
+      welcomeEmperor: () => {
+        const state = get();
+        const force = state.playerForceId ? state.forces[state.playerForceId] : null;
+        if (!force || !state.playerForceId) return { ok: false, reason: 'no force' };
+        if (!canWelcomeEmperor(state.cities, state.emperorCityId ?? EMPEROR_HOME, state.playerForceId, force.capitalCityId))
+          return { ok: false, reason: 'not the custodian (or already at your capital)' };
+        set({
+          emperorCityId: force.capitalCityId,
+          mandate: {
+            ...state.mandate,
+            byForce: {
+              ...state.mandate.byForce,
+              [state.playerForceId]: Math.min(100, (state.mandate.byForce[state.playerForceId] ?? 50) + 10),
             },
           },
         });
@@ -2898,7 +2920,22 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             seasonsPlayed: (state.campaignStats.seasonsPlayed ?? 0) + 1,
           },
           lostItems: result.lostItems,
-          diplomacy: coalitionResult.diplomacy,
+          diplomacy: (() => {
+            // 奉迎天子 — the realm resents whoever speaks with the
+            // emperor's voice: -1/season with every other living force.
+            if (!seasonBoundary) return coalitionResult.diplomacy;
+            const custodian = emperorCustodian(postCities, state.emperorCityId ?? null);
+            if (!custodian) return coalitionResult.diplomacy;
+            const living = new Set(Object.values(postCities).map((c) => c.ownerForceId).filter(Boolean) as EntityId[]);
+            const relations = { ...coalitionResult.diplomacy.relations };
+            for (const fid of living) {
+              if (fid === custodian) continue;
+              const key = pairKey(custodian, fid);
+              const rel = relations[key] ?? { forceA: custodian < fid ? custodian : fid, forceB: custodian < fid ? fid : custodian, score: 0, status: 'neutral' as const };
+              relations[key] = { ...rel, score: Math.max(-100, rel.score + RESENTMENT_PER_SEASON) };
+            }
+            return { ...coalitionResult.diplomacy, relations };
+          })(),
           autoBuildQueues: auto.queues,
           pendingDialogue: dlg ?? state.pendingDialogue,
           dialogueFollowups: nextFollowups,
@@ -2950,7 +2987,18 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             }
             return log;
           })(),
-          mandate: nextMandate,
+          mandate: (() => {
+            if (!seasonBoundary) return nextMandate;
+            const custodian = emperorCustodian(postCities, state.emperorCityId ?? null);
+            if (!custodian) return nextMandate;
+            return {
+              ...nextMandate,
+              byForce: {
+                ...nextMandate.byForce,
+                [custodian]: Math.min(100, (nextMandate.byForce[custodian] ?? 50) + MANDATE_PER_SEASON),
+              },
+            };
+          })(),
           pendingDelayedEffects: remainingDelayed,
           appointments: prunedAppointments,
           appointmentHistory: [
@@ -4452,6 +4500,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const state = get();
         const def = EDICTS_BY_KIND[kind];
         if (!def) return { ok: false, reason: 'invalid edict' };
+        // 奉迎天子 — the custodian of the Son of Heaven issues edicts at a
+        // 30% discount: the seal is the emperor's, the cost is optics.
+        const holdsEmperor = emperorCustodian(get().cities, get().emperorCityId) === get().playerForceId;
+        const edictCost = Math.round(def.goldCost * (holdsEmperor ? EDICT_DISCOUNT : 1));
         if (!state.playerForceId) return { ok: false, reason: 'no player force' };
 
         const force = state.forces[state.playerForceId];
@@ -4472,8 +4524,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         }
 
         const capital = state.cities[force.capitalCityId];
-        if (!capital || capital.gold < def.goldCost)
-          return { ok: false, reason: `need ${def.goldCost}g at capital` };
+        if (!capital || capital.gold < edictCost)
+          return { ok: false, reason: `need ${edictCost}g at capital` };
 
         const updates: Partial<typeof state> = {};
         let message: string | undefined;
@@ -4485,12 +4537,12 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               cities[c.id] = { ...c, loyalty: Math.min(100, c.loyalty + 10) };
             }
           }
-          cities[capital.id] = { ...cities[capital.id], gold: cities[capital.id].gold - def.goldCost };
+          cities[capital.id] = { ...cities[capital.id], gold: cities[capital.id].gold - edictCost };
           updates.cities = cities;
           message = 'Grand amnesty proclaimed. Loyalty +10 across the realm.';
         } else if (kind === 'denounce' && targetForceId) {
           const cities = { ...state.cities };
-          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          cities[capital.id] = { ...capital, gold: capital.gold - edictCost };
           const officers = { ...state.officers };
           for (const o of Object.values(officers)) {
             if (o.forceId === targetForceId) {
@@ -4519,14 +4571,14 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               cities[c.id] = { ...c, loyalty: Math.min(100, c.loyalty + 5) };
             }
           }
-          cities[capital.id] = { ...cities[capital.id], gold: cities[capital.id].gold - def.goldCost };
+          cities[capital.id] = { ...cities[capital.id], gold: cities[capital.id].gold - edictCost };
           updates.cities = cities;
           updates.edictCooldowns = {}; // wipe all cooldowns
           message = 'A new era is proclaimed. Loyalty +5; all edict cooldowns reset.';
         } else if (kind === 'reward-merit') {
           // 賞功：选武功榜分最高的本国武将，+15 忠诚 + 一个特殊 deed-title
           const cities = { ...state.cities };
-          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          cities[capital.id] = { ...capital, gold: capital.gold - edictCost };
           updates.cities = cities;
           let bestId: EntityId | null = null;
           let bestScore = 0;
@@ -4556,7 +4608,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         } else if (kind === 'call-for-talent') {
           // 求贤令：下一季 recruit ×1.5
           const cities = { ...state.cities };
-          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          cities[capital.id] = { ...capital, gold: capital.gold - edictCost };
           updates.cities = cities;
           updates.recruitBonusSeasons = {
             ...state.recruitBonusSeasons,
@@ -4597,7 +4649,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             const tribute = Math.min(vCap.gold, 800);
             if (vCap && tribute > 0) {
               cities[targetForce.capitalCityId] = { ...vCap, gold: vCap.gold - tribute };
-              cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost + tribute };
+              cities[capital.id] = { ...capital, gold: capital.gold - edictCost + tribute };
               updates.cities = cities;
               message = `Levied ${tribute}g tribute from ${targetForce.name.en}.`;
             } else {
@@ -4621,7 +4673,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             }
           }
           const cities = { ...state.cities };
-          cities[capital.id] = { ...capital, gold: capital.gold - def.goldCost };
+          cities[capital.id] = { ...capital, gold: capital.gold - edictCost };
           updates.forces = forces;
           updates.officers = officers;
           updates.cities = cities;
@@ -5732,6 +5784,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         espionageReveals: state.espionageReveals,
         cityDelegations: state.cityDelegations,
         legions: state.legions,
+        emperorCityId: state.emperorCityId,
         commandTemplates: state.commandTemplates,
         autoBuildQueues: state.autoBuildQueues,
         dialogueFollowups: state.dialogueFollowups,

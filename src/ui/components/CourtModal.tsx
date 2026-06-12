@@ -5,6 +5,7 @@ import type { EdictKind, EntityId } from '../../game/types';
 import styles from './CourtModal.module.css';
 import { useLanguage, useDesc } from '../i18n';
 import { canPromoteToRank, nextImperialRank } from '../../game/systems/imperialEffects';
+import { canWelcomeEmperor, emperorCustodian } from '../../game/systems/emperor';
 import { deriveCourtFactions, FACTION_LABEL } from '../../game/systems/courtFactions';
 
 interface Props {
@@ -24,6 +25,8 @@ export function CourtModal({ onClose }: Props) {
   const allOfficers = useGameStore((s) => s.officers);
   const eventFlags = useGameStore((s) => s.eventFlags);
   const mandate = useGameStore((s) => s.mandate);
+  const emperorCityId = useGameStore((s) => s.emperorCityId);
+  const welcomeEmperor = useGameStore((s) => s.welcomeEmperor);
   const lang = useLanguage();
   const desc = useDesc();
 
@@ -67,6 +70,44 @@ export function CourtModal({ onClose }: Props) {
           </div>
           <button className={styles.closeButton} onClick={onClose}>×</button>
         </header>
+
+        {/* 奉迎天子 — where the Son of Heaven sits, and who holds him. */}
+        {emperorCityId && (() => {
+          const custodian = emperorCustodian(allCities, emperorCityId);
+          const custodianForce = custodian ? forces[custodian] : null;
+          const canWelcome = !!playerForceId && !!playerForce
+            && canWelcomeEmperor(allCities, emperorCityId, playerForceId, playerForce.capitalCityId);
+          return (
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+              background: 'rgba(212, 168, 74, 0.08)', border: '1px solid #6a5530',
+              padding: '0.5rem 0.8rem', margin: '0 0 0.6rem', fontSize: '0.82rem',
+            }}>
+              <span>
+                👑 {lang === 'en' ? 'The Emperor resides at ' : '天子駐蹕'}
+                <strong style={{ color: '#f0d98a' }}>{allCities[emperorCityId]?.name.zh ?? emperorCityId}</strong>
+                {custodianForce
+                  ? <span style={{ color: custodianForce.color }}>(
+                      {custodian === playerForceId
+                        ? (lang === 'en' ? 'in your custody — edicts cost 30% less, the Mandate drifts your way, the realm resents you' : '在你奉戴之下 — 詔書七折,天命日聚,而諸侯側目')
+                        : `${custodianForce.name.zh}${lang === 'en' ? ' holds him' : '挾之'}`})
+                    </span>
+                  : <span style={{ color: '#8a7050' }}>{lang === 'en' ? '(masterless city)' : '(無主之城)'}</span>}
+              </span>
+              {canWelcome && (
+                <button
+                  onClick={() => welcomeEmperor()}
+                  style={{
+                    background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #d4a84a',
+                    color: '#f0d98a', padding: '0.3rem 0.8rem', cursor: 'pointer',
+                    fontFamily: 'inherit', letterSpacing: '0.15rem', whiteSpace: 'nowrap',
+                  }}
+                  title={lang === 'en' ? 'Move the emperor into your capital (+10 Mandate)' : '奉迎天子入都 — 天命 +10,自此國都即帝都'}
+                >奉迎天子</button>
+              )}
+            </div>
+          );
+        })()}
 
         <div className={styles.rankSummary}>
           <div>
