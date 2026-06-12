@@ -6,6 +6,7 @@ import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
 import { positionAlongRoute, marchDestCoords, terrainRoute, generateTerritories } from '../../game/data/territories';
 import { snapToHexCenter, geoToPixel, battleGroundAt } from '../../game/data/geography';
 import { cityPixel, cityPos } from '../../game/data/cityGeo';
+import { marchDurationFor } from '../../game/data/cities';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
 import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
@@ -3486,6 +3487,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
   // 晝夜隨旬 — 上旬 plays in daylight, 下旬 sinks into a warm dusk, so time
   // visibly passes as the half-month ticks resolve.
   const dusk = useGameStore((s) => (s.date.phase ?? 'upper') === 'lower');
+  // 行程測距 — with a city selected, hovering another shows the march time.
+  const [hoverCityId, setHoverCityId] = useState<string | null>(null);
 
   // Bounds for particle effects
   const particleBounds = useMemo(() => ({ x: MAP_W, z: MAP_D }), []);
@@ -3674,7 +3677,11 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
         const [wx, wz] = pxToWorld(px, py);
         const terrainY = cityElevation(wx, wz);
         return (
-          <group key={city.id}>
+          <group
+            key={city.id}
+            onPointerOver={(e) => { e.stopPropagation(); setHoverCityId(city.id); }}
+            onPointerOut={() => setHoverCityId((cur) => (cur === city.id ? null : cur))}
+          >
             <City3D
               city={city}
               forceColor={color}
@@ -3697,6 +3704,29 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
           </group>
         );
       })}
+
+      {/* 行程測距 — selected → hovered march time, in the same 旬 the end-turn
+          button counts in. */}
+      {selectedCityId && hoverCityId && hoverCityId !== selectedCityId
+        && cities[selectedCityId] && cities[hoverCityId] && (() => {
+        const from = cities[selectedCityId]!;
+        const to = cities[hoverCityId]!;
+        const ticks = marchDurationFor(from, to, season);
+        const [px, py] = cityPixel(to.id, to.coords.x, to.coords.y);
+        const [wx, wz] = pxToWorld(px, py);
+        const y = cityElevation(wx, wz);
+        return (
+          <Html position={[wx, y + 1.35, wz]} center distanceFactor={9} zIndexRange={[42, 32]} style={{ pointerEvents: 'none' }}>
+            <div style={{
+              background: 'rgba(20,14,8,0.9)', border: '1px solid #d4a84a', borderRadius: 3,
+              padding: '2px 8px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+              color: '#f0d98a', whiteSpace: 'nowrap', letterSpacing: '1px',
+            }}>
+              {from.name.zh} → {to.name.zh} · 行軍約 {ticks} 旬
+            </div>
+          </Html>
+        );
+      })()}
     </>
   );
 }
