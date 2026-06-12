@@ -3864,6 +3864,17 @@ export function StrategicMap3D() {
   // 迷你導航 — camera view window for the corner minimap + click-to-jump.
   const [navView, setNavView] = useState<{ cx: number; cy: number; span: number } | null>(null);
   const [navJump, setNavJump] = useState<{ px: number; py: number; seq: number } | null>(null);
+  // 天下大勢 snapshot — grab the WebGL canvas as a PNG.
+  const mapRootRef = useRef<HTMLDivElement>(null);
+  const snapYear = useGameStore((s) => s.date.year);
+  const exportSnapshot = () => {
+    const canvas = mapRootRef.current?.querySelector('canvas');
+    if (!canvas) return;
+    const a = document.createElement('a');
+    a.href = (canvas as HTMLCanvasElement).toDataURL('image/png');
+    a.download = `天下大勢-${snapYear}年.png`;
+    a.click();
+  };
   // 烽火示警 — hostile columns marching on player cities (chip top-left).
   const beaconCities = useGameStore((s) => s.cities);
   const beaconArmies = useGameStore((s) => s.armies);
@@ -4005,7 +4016,7 @@ export function StrategicMap3D() {
   const t = useT();
 
   return (
-    <div style={{
+    <div ref={mapRootRef} style={{
       position: 'absolute', inset: 0,
       background: duskBg ? 'linear-gradient(180deg, #6a5a78 0%, #d89060 100%)' : 'linear-gradient(180deg, #88a0c0 0%, #c8b890 100%)',
     }}>
@@ -4096,13 +4107,23 @@ export function StrategicMap3D() {
           }}
           title={t('切換地圖風格 — 棋盤六角地塊 / 畫卷地圖(實驗)', 'Toggle map style — hex-tile board / painted scroll (experimental)')}
         >{mapStyle === 'hex' ? t('🗺 畫卷地圖', 'Scroll Map') : t('⬡ 棋盤地圖', 'Hex Map')}</button>
+        <button
+          onClick={exportSnapshot}
+          style={{
+            marginLeft: 8, background: '#241c12', color: '#c0a878',
+            border: '1px solid #5a4530', padding: '0.3rem 0.55rem',
+            cursor: 'pointer', fontFamily: 'Songti SC, serif', fontSize: '0.78rem',
+          }}
+          title={t('把當前天下大勢存成 PNG', 'Save the current realm view as a PNG')}
+        >📷 {t('大勢', 'Snap')}</button>
       </div>
 
       <Canvas
         shadows
         dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
         camera={{ position: [0, MAP_D * 0.9, MAP_D * 0.7], fov: 45 }}
-        gl={{ antialias: !IS_MOBILE }}
+        // preserveDrawingBuffer lets the 📷 button read the frame back.
+        gl={{ antialias: !IS_MOBILE, preserveDrawingBuffer: true }}
       >
         <Suspense fallback={null}>
           <ZoomLODTracker onChange={setZoomLod} />
