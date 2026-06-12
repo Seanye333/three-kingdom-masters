@@ -3148,6 +3148,73 @@ function DriftingClouds() {
   );
 }
 
+/* ─── 入暮燈火 — at dusk every settlement lights its lamps ─────────────
+   Pairs with 晝夜隨旬: the lower half-month's warm twilight gets answered
+   by window-lights scattered around each city token, more of them the
+   bigger the city. One InstancedMesh of over-bright quads so the desktop
+   bloom pass gives every lamp a halo; positions are deterministic per
+   city, so the same windows light up every evening. */
+const LAMPS_BY_TIER: Record<string, number> = {
+  hamlet: 3, town: 5, city: 8, large: 12, capital: 16,
+};
+
+function DuskCityLights({ cities }: { cities: Record<string, City> }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const lamps = useMemo(() => {
+    const out: Array<{ x: number; y: number; z: number; s: number }> = [];
+    for (const city of Object.values(cities)) {
+      const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
+      const [wx, wz] = pxToWorld(px, py);
+      const baseY = cityElevation(wx, wz);
+      const n = LAMPS_BY_TIER[citySize(city).id] ?? 4;
+      for (let i = 0; i < n; i++) {
+        // Deterministic scatter — same hash trick the quilt tint uses.
+        const h1 = Math.abs(Math.sin(px * 12.9898 + i * 78.233));
+        const h2 = Math.abs(Math.sin(py * 39.346 + i * 11.135));
+        const ang = h1 * Math.PI * 2;
+        const rad = 0.12 + h2 * 0.4;
+        out.push({
+          x: wx + Math.cos(ang) * rad,
+          y: baseY + 0.08 + h1 * 0.22,
+          z: wz + Math.sin(ang) * rad,
+          s: 0.022 + h2 * 0.02,
+        });
+      }
+    }
+    return out;
+  }, [cities]);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const pos = new THREE.Vector3();
+    const scl = new THREE.Vector3();
+    lamps.forEach((l, i) => {
+      pos.set(l.x, l.y, l.z);
+      scl.setScalar(l.s);
+      mesh.setMatrixAt(i, m.compose(pos, q, scl));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [lamps]);
+
+  // A slow communal flicker — oil lamps, not LEDs.
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  useFrame(({ clock }) => {
+    if (matRef.current) matRef.current.opacity = 0.82 + Math.sin(clock.elapsedTime * 2.3) * 0.08;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, Math.max(1, lamps.length)]} frustumCulled={false}>
+      <sphereGeometry args={[1, 6, 5]} />
+      {/* Over-bright so the bloom pass halos each lamp. */}
+      <meshBasicMaterial ref={matRef} color={new THREE.Color(2.2, 1.5, 0.65)} transparent opacity={0.85} toneMapped={false} />
+    </instancedMesh>
+  );
+}
+
 /* ─── 商隊 — trade carts trundling the busiest roads of the realm ──────
    Ambient life: ox-carts ping-pong along the REAL march routes between
    adjacent same-owner cities (internal trade), the busiest first — pair
@@ -3743,6 +3810,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       <GreatWall3D />
       <DriftingClouds />
       <Caravans3D cities={cities} />
+      {dusk && <DuskCityLights cities={cities} />}
       {/* Province borders are flat ground decals — they'd sink into the
           raised hex prisms, so the quilt view goes without them. */}
       {mapStyle === 'classic' && <ProvinceBorders3D cities={cities} />}
