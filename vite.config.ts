@@ -4,6 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // GitHub Pages serves from /<repo>/ — set only by the deploy workflow so
+  // local dev, preview and the E2E webServer keep plain '/'.
+  base: process.env.GHPAGES ? '/three-kingdom-masters/' : '/',
   plugins: [
     react(),
     // PWA — installable on phone home screens (fullscreen, offline-capable)
