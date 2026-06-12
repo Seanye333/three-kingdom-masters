@@ -1766,6 +1766,41 @@ export function TacticalBattleScreen3D() {
   // 戰前準備 — bar visibility + last refusal reason.
   const [prepDismissed, setPrepDismissed] = useState(false);
   const [prepMsg, setPrepMsg] = useState<string | null>(null);
+  // 🎬 戰鬥錄影 — MediaRecorder over the battle canvas; one button
+  // toggles, stop downloads the clip. Recorder dies with the screen.
+  const screenRootRef = useRef<HTMLDivElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const [recording, setRecording] = useState(false);
+  const toggleRecording = () => {
+    if (recorderRef.current) {
+      recorderRef.current.stop();
+      return;
+    }
+    const canvas = screenRootRef.current?.querySelector('canvas');
+    if (!canvas || !('captureStream' in canvas) || typeof MediaRecorder === 'undefined') return;
+    const stream = (canvas as HTMLCanvasElement).captureStream(30);
+    const mime = ['video/webm;codecs=vp9', 'video/webm', 'video/mp4']
+      .find((m) => MediaRecorder.isTypeSupported(m));
+    if (!mime) return;
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+    const chunks: BlobPart[] = [];
+    rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+    rec.onstop = () => {
+      recorderRef.current = null;
+      setRecording(false);
+      if (chunks.length === 0) return;
+      const blob = new Blob(chunks, { type: mime });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `戰役錄影-${new Date().toISOString().slice(0, 16).replace(':', '')}.${mime.includes('mp4') ? 'mp4' : 'webm'}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+    rec.start(1000);
+    recorderRef.current = rec;
+    setRecording(true);
+  };
+  useEffect(() => () => { recorderRef.current?.stop(); }, []);
   const applyResolution = useGameStore((s) => s.applyTacticalResolution);
   const cancelBattle = useGameStore((s) => s.cancelTacticalBattle);
   const setBattleViewMinimized = useGameStore((s) => s.setBattleViewMinimized);
@@ -2048,7 +2083,7 @@ export function TacticalBattleScreen3D() {
   };
 
   return (
-    <div style={{
+    <div ref={screenRootRef} style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       background: `linear-gradient(180deg, ${lighting.sky[0]} 0%, ${lighting.sky[1]} 100%)`,
       display: 'flex', flexDirection: 'column',
@@ -2082,6 +2117,16 @@ export function TacticalBattleScreen3D() {
           fontSize: '0.72rem', padding: '2px 7px',
           background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530', color: '#a89070',
         }}>{TOD_LABEL[battle.timeOfDay]}</span>
+        <button
+          onClick={toggleRecording}
+          title={recording ? t('停止並下載錄影', 'Stop & download') : t('錄製戰鬥畫面(WebM)', 'Record the battle (WebM)')}
+          style={{
+            fontSize: '0.72rem', padding: '2px 8px', cursor: 'pointer',
+            background: recording ? 'rgba(184, 68, 46, 0.35)' : 'rgba(40, 28, 18, 0.7)',
+            border: `1px solid ${recording ? '#ff6a50' : '#5a4530'}`,
+            color: recording ? '#ffb0a0' : '#a89070', fontFamily: 'inherit',
+          }}
+        >{recording ? '⏹ 錄影中' : '🎬 錄影'}</button>
         {/* 戰前準備 — one card, played before your first move. */}
         {myTurn && battle.turn === 1 && playerSide && !battle.prepUsed?.[playerSide] && !prepDismissed && (
           <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
