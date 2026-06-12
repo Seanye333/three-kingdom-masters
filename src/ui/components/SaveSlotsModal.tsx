@@ -129,6 +129,22 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                   borderLeft: `4px solid ${s.forceColor ?? '#5a4530'}`,
                   paddingLeft: 10,
                 }}>
+                  {/* 縮略圖 — the realm as it stood when this save was cut. */}
+                  {s.mapDots && s.mapDots.length > 0 && (
+                    <svg
+                      width={86}
+                      height={62}
+                      viewBox="0 0 1000 720"
+                      style={{
+                        flexShrink: 0, marginRight: 10, borderRadius: 3,
+                        background: '#10202e', border: '1px solid #3a2d20',
+                      }}
+                    >
+                      {s.mapDots.map(([x, y, color], i) => (
+                        <circle key={i} cx={x} cy={y} r={11} fill={color} opacity={0.9} />
+                      ))}
+                    </svg>
+                  )}
                   <div className={styles.slotInfo}>
                     {isRenaming ? (
                       <input

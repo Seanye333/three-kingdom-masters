@@ -39,6 +39,9 @@ export interface SlotMeta {
   cityCount?: number;
   /** Total troops across player cities at save time. */
   troopTotal?: number;
+  /** 縮略圖 — every city as [x, y, ownerColor] in 1000×720 strategic px;
+   *  the slot list renders these as a tiny realm snapshot. */
+  mapDots?: Array<[number, number, string]>;
 }
 
 function readIndex(): SlotMeta[] {
@@ -83,6 +86,11 @@ export function saveToSlot(
     forceColor: force?.color,
     cityCount: playerCities.length,
     troopTotal: playerCities.reduce((sum, c) => sum + c.troops, 0),
+    mapDots: Object.values(state.cities).map((c) => [
+      Math.round(c.coords.x),
+      Math.round(c.coords.y),
+      (c.ownerForceId ? state.forces[c.ownerForceId]?.color : null) ?? '#555',
+    ]),
   };
   // Strip the per-turn replay trails + the live snapshot buffer before
   // writing — they're session conveniences, and three rolling autosaves of
