@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
-import { RECRUIT_COST } from '../../game/systems/officerFate';
+import { recruitCostFor, type PersuasionApproach } from '../../game/systems/officerFate';
 import { playSfx } from '../../game/systems/sound';
 import type { EntityId } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
@@ -14,6 +14,7 @@ export function CaptivesSection({ cityId }: Props) {
   const officersMap = useGameStore((s) => s.officers);
   const cityGold = useGameStore((s) => s.cities[cityId]?.gold ?? 0);
   const recruitOfficer = useGameStore((s) => s.recruitOfficer);
+  const estimatePersuasion = useGameStore((s) => s.estimatePersuasion);
   const executeOfficer = useGameStore((s) => s.executeOfficer);
   const releaseOfficer = useGameStore((s) => s.releaseOfficer);
   const [feedback, setFeedback] = useState<{
@@ -32,11 +33,20 @@ export function CaptivesSection({ cityId }: Props) {
 
   if (captives.length === 0) return null;
 
-  const handleRecruit = (officerId: EntityId) => {
-    const result = recruitOfficer(officerId, cityId);
+  const handleRecruit = (officerId: EntityId, approach?: PersuasionApproach) => {
+    const result = recruitOfficer(officerId, cityId, approach);
     setFeedback({ officerId, text: result.message, ok: result.ok });
     playSfx(result.ok ? 'bell' : 'defeat');
   };
+
+  /* 勸降三策 — each approach shows its live odds so the choice means
+     something: principle for the loyal, gold for the venal, friendship
+     when an old comrade waits in your camp. */
+  const APPROACHES: Array<{ id: PersuasionApproach; zh: string; tip: string }> = [
+    { id: 'righteous', zh: '曉以大義', tip: '以大義折其節 — 忠義之士唯此可動' },
+    { id: 'riches', zh: '許以重利', tip: '重金開路(費用加倍)— 貪者聞金而心動,廉者倍怒' },
+    { id: 'feeling', zh: '以情動人', tip: '故舊之情 — 你麾下與其交情越深越有效,鄉土加成加倍' },
+  ];
 
   return (
     <section className={styles.root}>
@@ -62,18 +72,21 @@ export function CaptivesSection({ cityId }: Props) {
               </div>
             )}
             <div className={styles.actions}>
-              <button
-                className={styles.recruitBtn}
-                onClick={() => handleRecruit(o.id)}
-                disabled={cityGold < RECRUIT_COST}
-                title={
-                  cityGold < RECRUIT_COST
-                    ? `Need ${RECRUIT_COST} gold`
-                    : `Persuade ${o.name.en} to join (${RECRUIT_COST}g)`
-                }
-              >
-                招降 Recruit ({RECRUIT_COST}g)
-              </button>
+              {APPROACHES.map((a) => {
+                const cost = recruitCostFor(a.id);
+                const odds = Math.round(estimatePersuasion(o.id, cityId, a.id) * 100);
+                return (
+                  <button
+                    key={a.id}
+                    className={styles.recruitBtn}
+                    onClick={() => handleRecruit(o.id, a.id)}
+                    disabled={cityGold < cost}
+                    title={`${a.tip}(${cost}g)`}
+                  >
+                    {a.zh} {odds}%
+                  </button>
+                );
+              })}
               <button
                 className={styles.releaseBtn}
                 onClick={() => releaseOfficer(o.id)}

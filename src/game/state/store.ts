@@ -70,13 +70,27 @@ import {
 } from '../systems/diplomacy';
 import {
   FREE_AGENT_COST,
-  RECRUIT_COST,
   applyExecute,
   applyRelease,
   attemptFreeAgentRecruit,
   attemptRecruit,
+  estimateRecruitChance,
+  recruitCostFor,
 } from '../systems/officerFate';
 import { resolveSeason } from '../systems/resolution';
+
+/** Highest rapport between an officer and anyone serving the player —
+ *  the 以情動人 lever (old friends across the lines). */
+function bestRapportWith(state: { officers: Record<string, Officer>; rapport: Record<string, number>; playerForceId: string | null }, officerId: string): number {
+  if (!state.playerForceId) return 0;
+  let best = 0;
+  for (const o of Object.values(state.officers)) {
+    if (o.forceId !== state.playerForceId || o.id === officerId) continue;
+    const r = getRapport(state.rapport, o.id, officerId);
+    if (r > best) best = r;
+  }
+  return best;
+}
 import { setupTacticalBattle, inferUnitType, planSiegeRelief, rollTimeOfDay } from '../systems/tactical';
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
 import { DEFENSE_BUILDINGS } from '../data/defenseBuildings';
@@ -228,7 +242,14 @@ interface GameStore extends GameState {
   recruitOfficer: (
     officerId: EntityId,
     cityId: EntityId,
+    approach?: import('../systems/officerFate').PersuasionApproach,
   ) => { ok: boolean; message: string };
+  /** 勸降三策 — the odds each approach would roll against, for the UI. */
+  estimatePersuasion: (
+    officerId: EntityId,
+    cityId: EntityId,
+    approach?: import('../systems/officerFate').PersuasionApproach,
+  ) => number;
   recruitFreeAgent: (
     officerId: EntityId,
     cityId: EntityId,
@@ -2936,7 +2957,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         set({ pendingBattleTheaters: rest });
       },
 
-      recruitOfficer: (officerId, cityId) => {
+      recruitOfficer: (officerId, cityId, approach) => {
         const state = get();
         const officer = state.officers[officerId];
         const city = state.cities[cityId];
@@ -2956,12 +2977,14 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           recruiterForce: force,
           recruiterRuler: ruler,
           recruiterReputation: { citiesOwned },
+          approach,
+          bestRapportWithCaptors: bestRapportWith(state, officerId),
         });
 
         const updates: Partial<GameState> = {
           cities: {
             ...state.cities,
-            [cityId]: { ...city, gold: city.gold - RECRUIT_COST },
+            [cityId]: { ...city, gold: city.gold - recruitCostFor(approach) },
           },
         };
         if (result.ok && result.recruitedOfficer) {
@@ -2986,6 +3009,27 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         }
         set(updates);
         return { ok: result.ok, message: result.message };
+      },
+
+      estimatePersuasion: (officerId, cityId, approach) => {
+        const state = get();
+        const officer = state.officers[officerId];
+        const city = state.cities[cityId];
+        const force = state.playerForceId ? state.forces[state.playerForceId] : null;
+        const ruler = force ? state.officers[force.rulerOfficerId] : null;
+        if (!officer || !city || !force || !ruler) return 0;
+        const citiesOwned = Object.values(state.cities).filter(
+          (c) => c.ownerForceId === state.playerForceId,
+        ).length;
+        return estimateRecruitChance({
+          officer,
+          city,
+          recruiterForce: force,
+          recruiterRuler: ruler,
+          recruiterReputation: { citiesOwned },
+          approach,
+          bestRapportWithCaptors: bestRapportWith(state, officerId),
+        });
       },
 
       recruitFreeAgent: (officerId, cityId) => {

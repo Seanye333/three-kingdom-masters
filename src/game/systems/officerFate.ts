@@ -7,6 +7,18 @@ import { effectivePrestige } from '../data/prestige';
 export const RECRUIT_COST = 200;
 export const FREE_AGENT_COST = 100;
 
+/** 勸降三策 — how the persuader leans on the prisoner.
+ *  - righteous 曉以大義: halves the resistance of the principled (loyal,
+ *    noble, patriotic…) but forfeits every venal opening; lifts the
+ *    noble hard-cap. The approach for men of honor.
+ *  - riches 許以重利: a fat purse — costs double, adds a flat sweetener,
+ *    and works wonders on the greedy; the incorruptible despise it twice
+ *    as hard.
+ *  - feeling 以情動人: leans on friendship — the captive's best rapport
+ *    with anyone in YOUR camp converts to odds; home soil counts double.
+ *  Omitted = the classic blended attempt (back-compat). */
+export type PersuasionApproach = 'righteous' | 'riches' | 'feeling';
+
 export interface RecruitInput {
   officer: Officer;
   city: City;
@@ -15,6 +27,10 @@ export interface RecruitInput {
   /** Optional force-wide reputation snapshot (count of cities owned).
    *  Bigger forces persuade more easily; can be supplied by the store. */
   recruiterReputation?: { citiesOwned: number };
+  approach?: PersuasionApproach;
+  /** Highest rapport between the captive and any officer of the
+   *  recruiting force — fuels the 以情動人 approach. */
+  bestRapportWithCaptors?: number;
   rng?: () => number;
 }
 
@@ -68,10 +84,22 @@ const TRAIT_MOD: Partial<Record<string, number>> = {
   paranoid:         -0.10,
 };
 
-function traitBonus(traits: string[] | undefined): number {
+const ANTI_GOLD_TRAITS = new Set(['incorruptible', 'ascetic', 'jade-heart', 'noble', 'honor-bound']);
+
+function traitBonus(traits: string[] | undefined, approach?: PersuasionApproach): number {
   if (!traits) return 0;
   let sum = 0;
-  for (const t of traits) sum += TRAIT_MOD[t] ?? 0;
+  for (const t of traits) {
+    let v = TRAIT_MOD[t] ?? 0;
+    if (approach === 'righteous') {
+      // Appealing to principle: venal openings don't apply, and the
+      // principled resist only half as hard.
+      v = v > 0 ? 0 : v * 0.5;
+    } else if (approach === 'riches' && v < 0 && ANTI_GOLD_TRAITS.has(t)) {
+      v *= 2; // waving gold at the incorruptible is an insult
+    }
+    sum += v;
+  }
   return sum;
 }
 
@@ -96,30 +124,47 @@ export function prestigeRecruitBonus(recruiterRuler: Officer): number {
   return TOP_PRESTIGE.has(title.id) ? 0.08 : 0.04;
 }
 
+/** The cost of one attempt under a given approach (利 pays double). */
+export function recruitCostFor(approach?: PersuasionApproach): number {
+  return approach === 'riches' ? RECRUIT_COST * 2 : RECRUIT_COST;
+}
+
+/** The success odds an attempt would roll against — surfaced to the UI
+ *  so the three approaches can be compared before spending the gold. */
+export function estimateRecruitChance(input: Omit<RecruitInput, 'rng'>): number {
+  const { officer, city, recruiterRuler, recruiterReputation, approach } = input;
+  const persuasion = recruiterRuler.stats.charisma;
+  const resistance = officer.loyalty;
+  let chance = (persuasion - resistance + 50) / 100;
+  if (approach === 'righteous') chance -= 0.05; // principle starts colder
+  if (approach === 'riches') chance += 0.18;    // gold opens doors…
+  chance += traitBonus(officer.traits as string[] | undefined, approach);
+  const home = hometownBonus(officer, city);
+  chance += approach === 'feeling' ? home * 2 : home;
+  if (approach === 'feeling') chance += (input.bestRapportWithCaptors ?? 0) / 180;
+  chance += reputationBonus(recruiterReputation);
+  chance += prestigeRecruitBonus(recruiterRuler);
+  // 'noble' caps gold-flavored persuasion; an appeal to principle can
+  // still reach them.
+  if ((officer.traits ?? []).includes('noble')) {
+    chance = Math.min(chance, approach === 'righteous' ? 0.35 : 0.15);
+  }
+  return clamp01(chance);
+}
+
 export function attemptRecruit(input: RecruitInput): RecruitOutput {
   const rng = input.rng ?? Math.random;
-  const { officer, city, recruiterForce, recruiterRuler, recruiterReputation } = input;
+  const { officer, city, recruiterForce, recruiterRuler } = input;
 
   if (officer.status !== 'imprisoned') {
     return { ok: false, message: 'Officer is not a captive.' };
   }
-  if (city.gold < RECRUIT_COST) {
+  if (city.gold < recruitCostFor(input.approach)) {
     return { ok: false, message: 'Not enough gold to attempt recruitment.' };
   }
 
-  // Base: ruler's charisma vs prisoner's loyalty.
   const persuasion = recruiterRuler.stats.charisma;
-  const resistance = officer.loyalty;
-  let chance = (persuasion - resistance + 50) / 100;
-  chance += traitBonus(officer.traits as string[] | undefined);
-  chance += hometownBonus(officer, city);
-  chance += reputationBonus(recruiterReputation);
-  chance += prestigeRecruitBonus(recruiterRuler);
-  // 'noble' trait makes gold-based recruitment impossible.
-  if ((officer.traits ?? []).includes('noble')) {
-    chance = Math.min(chance, 0.15);
-  }
-  chance = clamp01(chance);
+  const chance = estimateRecruitChance(input);
 
   const roll = rng();
   if (roll < chance) {
@@ -142,7 +187,7 @@ export function attemptRecruit(input: RecruitInput): RecruitOutput {
   return {
     ok: false,
     chance,
-    message: `${officer.name.en} refused. ${RECRUIT_COST} gold spent.`,
+    message: `${officer.name.en} refused. ${recruitCostFor(input.approach)} gold spent.`,
   };
 }
 
