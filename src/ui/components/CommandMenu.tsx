@@ -6,6 +6,7 @@ import type { EntityId, InternalAffairsType } from '../../game/types';
 import { MarchPicker } from './MarchPicker';
 import { TrainingPicker } from './TrainingPicker';
 import { cityHasAcademy, cityHasMentors } from '../../game/systems/training';
+import { foodRate } from '../../game/systems/market';
 import { OfficerPicker } from './OfficerPicker';
 import styles from './CommandMenu.module.css';
 import { useT, useLanguage, useDesc } from '../i18n';
@@ -38,7 +39,8 @@ type ModalState =
   | { kind: 'internal'; type: InternalAffairsType }
   | { kind: 'march' }
   | { kind: 'training' }
-  | { kind: 'drill' };
+  | { kind: 'drill' }
+  | { kind: 'market' };
 
 export function CommandMenu({ cityId }: Props) {
   const [modal, setModal] = useState<ModalState>({ kind: 'closed' });
@@ -206,6 +208,16 @@ export function CommandMenu({ cityId }: Props) {
         </button>
         <button
           className={styles.cmdButton}
+          onClick={() => setModal({ kind: 'market' })}
+          title={t('市易 — 金糧互市,秋賤冬貴,缺糧之城價高', 'Grain market — gold↔food; cheap after harvest, dear in winter and in want')}
+          style={{ borderColor: '#c8a258' }}
+        >
+          <span className={styles.cmdLabelZh}>{t('市易', 'Market')}</span>
+          {lang === 'both' && <span className={styles.cmdLabelEn}>Market</span>}
+          <span className={styles.cmdCost}>{t('糧', 'food')}</span>
+        </button>
+        <button
+          className={styles.cmdButton}
           onClick={() => setModal({ kind: 'drill' })}
           disabled={garrisonCount === 0}
           title={
@@ -262,6 +274,12 @@ export function CommandMenu({ cityId }: Props) {
       )}
       {modal.kind === 'drill' && (
         <DrillPicker
+          cityId={cityId}
+          onClose={() => setModal({ kind: 'closed' })}
+        />
+      )}
+      {modal.kind === 'market' && (
+        <MarketPanel
           cityId={cityId}
           onClose={() => setModal({ kind: 'closed' })}
         />
@@ -362,6 +380,69 @@ function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
             }}
           >{t('取消', 'Cancel')}</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+/** 市易 — the grain market: live quotes both ways, quick lot sizes. */
+function MarketPanel({ cityId, onClose }: { cityId: EntityId; onClose: () => void }) {
+  const city = useGameStore((s) => s.cities[cityId]);
+  const season = useGameStore((s) => s.date.season);
+  const tradeFood = useGameStore((s) => s.tradeFood);
+  const t = useT();
+  const [last, setLast] = useState<string | null>(null);
+  if (!city) return null;
+  const rate = foodRate(city, season);
+  const buyLots = [200, 500, 1000];
+  const sellLots = [2000, 5000, 10000];
+  const row: React.CSSProperties = { display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' };
+  const btn: React.CSSProperties = {
+    background: '#241c12', border: '1px solid #5a4530', color: '#e8d9b0',
+    padding: '0.35rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem',
+  };
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 240 }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: '#1a1410', border: '1px solid #c8a258', padding: '1rem 1.2rem',
+          minWidth: 320, maxWidth: 420, fontFamily: 'Songti SC, serif', color: '#e8d9b0',
+        }}
+      >
+        <div style={{ color: '#e8c478', letterSpacing: '0.25rem', marginBottom: '0.2rem' }}>🪙 {t('市易', 'Grain Market')}</div>
+        <div style={{ fontSize: '0.72rem', color: '#8a7050', marginBottom: '0.7rem' }}>
+          {t(`時價:1金 ≈ ${rate.toFixed(1)}糧(市稅一成)· 庫:${city.gold}金 / ${city.food.toLocaleString()}糧`,
+             `Rate: 1g ≈ ${rate.toFixed(1)} food (10% spread) · ${city.gold}g / ${city.food.toLocaleString()} food`)}
+        </div>
+        <div style={{ fontSize: '0.78rem', color: '#c0a878', marginBottom: 4 }}>{t('買糧', 'Buy food')}</div>
+        <div style={row}>
+          {buyLots.map((g) => (
+            <button key={g} style={btn} disabled={city.gold < g}
+              onClick={() => {
+                const r = tradeFood(cityId, 'buy', g);
+                setLast(r.ok ? t(`購入 ${r.got.toLocaleString()} 糧`, `Bought ${r.got.toLocaleString()} food`) : t('金錢不足', 'Not enough gold'));
+              }}
+            >{g}金 → ~{Math.floor(g * rate * 0.9).toLocaleString()}糧</button>
+          ))}
+        </div>
+        <div style={{ fontSize: '0.78rem', color: '#c0a878', marginBottom: 4 }}>{t('賣糧', 'Sell food')}</div>
+        <div style={row}>
+          {sellLots.map((f) => (
+            <button key={f} style={btn} disabled={city.food < f}
+              onClick={() => {
+                const r = tradeFood(cityId, 'sell', f);
+                setLast(r.ok ? t(`售得 ${r.got.toLocaleString()} 金`, `Sold for ${r.got.toLocaleString()}g`) : t('存糧不足', 'Not enough food'));
+              }}
+            >{f.toLocaleString()}糧 → ~{Math.floor((f / rate) * 0.9).toLocaleString()}金</button>
+          ))}
+        </div>
+        {last && <div style={{ fontSize: '0.75rem', color: '#9ed68a', marginBottom: 6 }}>{last}</div>}
+        <button onClick={onClose} style={{ ...btn, width: '100%', textAlign: 'center' }}>{t('關閉', 'Close')}</button>
       </div>
     </div>
   );

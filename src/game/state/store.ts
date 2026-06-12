@@ -55,6 +55,7 @@ import { COMMAND_DEFS } from '../systems/commands';
 import { planMassMuster } from '../systems/muster';
 import { planGovernorCommand } from '../systems/governor';
 import { planLegionOrders, type Legion } from '../systems/legion';
+import { buyQuote, sellQuote } from '../systems/market';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -202,6 +203,8 @@ interface GameStore extends GameState {
     troops: number,
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
+  /** 市易 — convert gold↔food at the city's current market rate. */
+  tradeFood: (cityId: EntityId, kind: 'buy' | 'sell', amount: number) => { ok: boolean; got: number };
   /** 委任太守 — set (or clear with null) a city's standing governor. */
   delegateCity: (cityId: EntityId, officerId: EntityId | null) => void;
   /** 軍團都督 — form a legion (id auto-assigned). */
@@ -950,6 +953,23 @@ export const useGameStore = create<GameStore>()(
           },
         });
         return { ok: true };
+      },
+
+      tradeFood: (cityId, kind, amount) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city || city.ownerForceId !== state.playerForceId || amount <= 0) return { ok: false, got: 0 };
+        const season = state.date.season;
+        if (kind === 'buy') {
+          if (city.gold < amount) return { ok: false, got: 0 };
+          const food = buyQuote(city, season, amount);
+          set({ cities: { ...state.cities, [cityId]: { ...city, gold: city.gold - amount, food: city.food + food } } });
+          return { ok: true, got: food };
+        }
+        if (city.food < amount) return { ok: false, got: 0 };
+        const gold = sellQuote(city, season, amount);
+        set({ cities: { ...state.cities, [cityId]: { ...city, food: city.food - amount, gold: city.gold + gold } } });
+        return { ok: true, got: gold };
       },
 
       createLegion: (legion) => {
