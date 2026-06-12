@@ -3148,6 +3148,71 @@ function DriftingClouds() {
   );
 }
 
+/* ─── 事件地標 — the season's calamities and windfalls, on the map ─────
+   The report scrolls past once; the land remembers. Each city the tick
+   touched (饑荒/瘟疫/豐收/民變/襲擾) wears a single-character chip until
+   the next tick replaces the marks. Tap a chip to select the city. */
+const EVENT_MARK_STYLE: Record<string, { ch: string; color: string; border: string }> = {
+  harvest:     { ch: '豐', color: '#f0d98a', border: '#d4a84a' },
+  famine:      { ch: '饑', color: '#e0b890', border: '#a07040' },
+  plague:      { ch: '疫', color: '#d8a8e8', border: '#9060a8' },
+  rebellion:   { ch: '亂', color: '#ff9080', border: '#b8584a' },
+  'tribe-raid': { ch: '襲', color: '#ffb070', border: '#c87838' },
+};
+
+function EventMarks3D({ cities, hidePx, onPick }: {
+  cities: Record<string, City>;
+  hidePx: { x: number; y: number } | null;
+  onPick: (cityId: string) => void;
+}) {
+  const marks = useGameStore((s) => s.cityEventMarks ?? EMPTY_EVENT_MARKS);
+  const byCity = useMemo(() => {
+    const m = new Map<string, Array<{ kind: string; text: string }>>();
+    for (const mk of marks) {
+      if (!m.has(mk.cityId)) m.set(mk.cityId, []);
+      m.get(mk.cityId)!.push(mk);
+    }
+    return m;
+  }, [marks]);
+  return (
+    <group>
+      {[...byCity.entries()].map(([cityId, list]) => {
+        const city = cities[cityId];
+        if (!city) return null;
+        const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
+        if (hidePx && Math.hypot(px - hidePx.x, py - hidePx.y) < 50) return null;
+        const [wx, wz] = pxToWorld(px, py);
+        const y = cityElevation(wx, wz);
+        return (
+          <Html key={cityId} position={[wx + 0.45, y + 0.62, wz]} center distanceFactor={9} zIndexRange={[36, 26]}>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {list.map((mk, i) => {
+                const st = EVENT_MARK_STYLE[mk.kind];
+                if (!st) return null;
+                return (
+                  <div
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); onPick(cityId); }}
+                    title={mk.text}
+                    style={{
+                      width: 20, height: 20, borderRadius: '50%', cursor: 'pointer',
+                      background: 'rgba(20,14,8,0.92)', border: `1px solid ${st.border}`,
+                      color: st.color, fontFamily: 'Songti SC, serif', fontSize: 12,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 1px 5px rgba(0,0,0,0.5)',
+                    }}
+                  >{st.ch}</div>
+                );
+              })}
+            </div>
+          </Html>
+        );
+      })}
+    </group>
+  );
+}
+const EMPTY_EVENT_MARKS: Array<{ cityId: string; kind: string; text: string }> = [];
+
 /* ─── 入暮燈火 — at dusk every settlement lights its lamps ─────────────
    Pairs with 晝夜隨旬: the lower half-month's warm twilight gets answered
    by window-lights scattered around each city token, more of them the
@@ -3827,6 +3892,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       <QueuedBattles3D />
       <BeaconAlerts3D />
       <BurningCities3D />
+      <EventMarks3D cities={cities} hidePx={battleSitePx} onPick={(id) => selectCity(id)} />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
 

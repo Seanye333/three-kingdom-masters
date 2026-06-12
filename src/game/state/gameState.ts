@@ -80,6 +80,10 @@ export interface GameState {
    *  and on completion adds a new policy to the officer. */
   pendingTrainings: Array<import('../systems/training').PendingTraining>;
   lastReport: SeasonReport | null;
+  /** 事件地標 — this tick's per-city calamities/windfalls (famine, plague,
+   *  harvest, rebellion, tribe raid), kept for map markers after the season
+   *  report is dismissed. Replaced wholesale each tick. */
+  cityEventMarks: Array<{ cityId: EntityId; kind: import('../types').ReportEntryKind; text: string }>;
   victoryStatus: VictoryStatus;
   difficulty: Difficulty;
   /** Active Hero Mode challenge id (英雄模式), or null in free play. When set,
@@ -282,6 +286,7 @@ export const EMPTY_STATE: GameState = {
   pendingCommands: {},
   pendingTrainings: [],
   lastReport: null,
+  cityEventMarks: [],
   victoryStatus: 'playing',
   difficulty: 'normal',
   activeChallenge: null,
@@ -476,6 +481,7 @@ export function loadScenario(
     pendingCommands: {},
     pendingTrainings: [],
     lastReport: null,
+  cityEventMarks: [],
     victoryStatus: 'playing',
     activeChallenge: null,
     // Challenge records are meta-progression — carry across games.

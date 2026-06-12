@@ -14,6 +14,7 @@ import type {
   MilitaryRankId,
   Officer,
   ProvinceId,
+  ReportEntryKind,
   Scenario,
   ShipClass,
   TacticalBattle,
@@ -2696,6 +2697,21 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           pendingCommands: carriedCommands,
           pendingTrainings: nextTrainings,
           lastReport: result.report,
+          // 事件地標 — settle the season's per-city calamities/windfalls into
+          // map marks that outlive the dismissed report (replaced each tick).
+          cityEventMarks: (() => {
+            const kinds = new Set(['famine', 'plague', 'harvest', 'rebellion', 'tribe-raid']);
+            const seen = new Set<string>();
+            const marks: Array<{ cityId: EntityId; kind: ReportEntryKind; text: string }> = [];
+            for (const e of result.report.entries) {
+              if (!e.cityId || !kinds.has(e.kind)) continue;
+              const key = `${e.cityId}:${e.kind}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              marks.push({ cityId: e.cityId, kind: e.kind, text: e.textZh ?? e.text });
+            }
+            return marks.slice(0, 40);
+          })(),
           deeds: nextDeeds,
           recentDeedTitles: [...state.recentDeedTitles, ...titleGrant.grants],
           recentPrestige: [...state.recentPrestige, ...newPrestige],
@@ -5474,6 +5490,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         pendingCommands: state.pendingCommands,
         pendingTrainings: state.pendingTrainings,
         lastReport: state.lastReport,
+        cityEventMarks: state.cityEventMarks,
         victoryStatus: state.victoryStatus,
         difficulty: state.difficulty,
         activeChallenge: state.activeChallenge,
