@@ -1368,7 +1368,7 @@ function City3D({
             <circleGeometry args={[radius + 0.32, 16]} />
             <meshBasicMaterial color={overlay.color} transparent opacity={0.6} side={THREE.DoubleSide} />
           </mesh>
-          <Html position={[0, height + 0.32, 0]} center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+          <Html position={[0, height + 0.32, 0]} center distanceFactor={IS_MOBILE ? 9 : 6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
             <div style={{
               fontFamily: 'ui-monospace, monospace',
               fontSize: '11px',
@@ -4157,7 +4157,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       {/* Province borders are flat ground decals — they'd sink into the
           raised hex prisms, so the quilt view goes without them. */}
       {mapStyle === 'classic' && <ProvinceBorders3D cities={cities} />}
-      <ProvinceLabels3D />
+      {overlayMode === 'province' && <ProvinceLabels3D />}
       {marchPreview && (
         <MarchPreviewLine fromId={marchPreview.fromId} toId={marchPreview.toId} cities={cities} />
       )}
@@ -4473,10 +4473,16 @@ function CityQuickRing({ own, onEnter, onMarch, onRecruit, onMuster }: {
    against zh names and the pinyin-ish en names; Enter takes the first
    match, click takes any. Jumping reuses the locator's camera path and
    selects the city so its panel opens on arrival. */
-function CitySearchBox({ onJump }: { onJump: (cityId: string, px: number, py: number) => void }) {
+function CitySearchBox({ onJump, compact }: {
+  onJump: (cityId: string, px: number, py: number) => void;
+  /** 手機 — collapse to a 🔍 button; the input only exists while open, so
+   *  it can't sit on top of the map chrome. */
+  compact?: boolean;
+}) {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const [q, setQ] = useState('');
+  const [open, setOpen] = useState(false);
   const t = useT();
   const matches = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -4489,10 +4495,35 @@ function CitySearchBox({ onJump }: { onJump: (cityId: string, px: number, py: nu
     const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
     onJump(c.id, px, py);
     setQ('');
+    setOpen(false);
   };
+  if (compact && !open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        style={{
+          width: 34, height: 34, borderRadius: '50%',
+          background: 'rgba(20, 14, 8, 0.88)', color: '#c0a878',
+          border: '1px solid #5a4530', cursor: 'pointer', fontSize: 15,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+        title={t('尋城', 'Find city')}
+      >🔍</button>
+    );
+  }
   return (
-    <div style={{ position: 'relative', fontFamily: 'Songti SC, serif' }}>
+    <div style={{ position: 'relative', fontFamily: 'Songti SC, serif', display: 'flex', gap: 4 }}>
+      {compact && (
+        <button
+          onClick={() => { setOpen(false); setQ(''); }}
+          style={{
+            width: 30, background: 'rgba(20, 14, 8, 0.88)', color: '#c0a878',
+            border: '1px solid #5a4530', cursor: 'pointer', fontSize: 13, order: 2,
+          }}
+        >✕</button>
+      )}
       <input
+        autoFocus={compact}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onKeyDown={(e) => {
@@ -4502,7 +4533,8 @@ function CitySearchBox({ onJump }: { onJump: (cityId: string, px: number, py: nu
         }}
         placeholder={t('🔍 尋城(漢字/拼音)', '🔍 Find city')}
         style={{
-          width: 138, background: 'rgba(20, 14, 8, 0.88)', color: '#e8d9b0',
+          width: compact ? 'min(56vw, 210px)' : 138,
+          background: 'rgba(20, 14, 8, 0.88)', color: '#e8d9b0',
           border: '1px solid #5a4530', padding: '0.3rem 0.5rem', outline: 'none',
           fontFamily: 'inherit', fontSize: '0.75rem',
         }}
@@ -4701,8 +4733,8 @@ export function StrategicMap3D() {
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key >= '1' && e.key <= '9') {
-        const opt = OVERLAY_OPTIONS[Number(e.key) - 1];
-        if (opt) setOverlayMode(opt.id);
+        const opt = OVERLAY_OPTIONS.filter((o) => o.id !== 'none')[Number(e.key) - 1];
+        if (opt) setOverlayMode((cur) => (cur === opt.id ? 'none' : opt.id));
       } else if (e.key === 'Tab') {
         e.preventDefault();
         const s = useGameStore.getState();
@@ -4919,27 +4951,33 @@ export function StrategicMap3D() {
         ? t('拖曳 = 旋轉 · 雙指 = 縮放 · 點擊城池檢視', 'drag = rotate · pinch = zoom · tap city to inspect')
         : t('拖曳旋轉 · 滾輪縮放 · 1-9 圖層 · Tab 巡城 · 空格過旬 · Esc 取消', 'drag rotate · scroll zoom · 1-9 overlays · Tab cycle cities · Space end turn · Esc cancel')}</div>
 
-      {/* 尋城 — search-and-fly, tucked under the controls hint */}
-      <div style={{ position: 'absolute', top: IS_MOBILE ? 12 : 46, right: IS_MOBILE ? 150 : 12, zIndex: 11 }}>
-        <CitySearchBox onJump={(cityId, px, py) => {
+      {/* 尋城 — search-and-fly. Desktop: input under the controls hint.
+          Phones: a 🔍 button that expands on tap, below the hint chip so
+          nothing sits over the season/weather strip. */}
+      <div style={{ position: 'absolute', top: IS_MOBILE ? 52 : 46, right: 12, zIndex: 11 }}>
+        <CitySearchBox compact={IS_MOBILE} onJump={(cityId, px, py) => {
           setNavJump({ px, py, seq: Date.now() });
           selectCityOuter(cityId);
         }} />
       </div>
 
-      {/* Overlay mode buttons — bottom-left */}
+      {/* Overlay mode buttons — bottom-left. Real toggles: tapping the
+          active one switches it off. Wraps on phones instead of bleeding
+          off the right edge. */}
       <div style={{
         position: 'absolute', bottom: 12, left: 12, zIndex: 10,
         display: 'flex', gap: 4,
+        flexWrap: 'wrap',
+        maxWidth: 'calc(100vw - 24px)',
         background: 'rgba(20, 14, 8, 0.88)',
         border: '1px solid #5a4530',
         padding: 4,
         boxShadow: '0 0 8px rgba(0,0,0,0.6)',
       }}>
-        {OVERLAY_OPTIONS.map((opt) => (
+        {OVERLAY_OPTIONS.filter((o) => o.id !== 'none').map((opt) => (
           <button
             key={opt.id}
-            onClick={() => setOverlayMode(opt.id)}
+            onClick={() => setOverlayMode((cur) => (cur === opt.id ? 'none' : opt.id))}
             style={{
               background: overlayMode === opt.id ? '#d4a84a' : 'transparent',
               color: overlayMode === opt.id ? '#1a1410' : '#a89070',
