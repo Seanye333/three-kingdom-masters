@@ -25,6 +25,7 @@ import { DuelGameModal } from './DuelGameModal';
 import { MarchPicker } from './MarchPicker';
 import { OfficerPicker } from './OfficerPicker';
 import { playSfx, startMapAmbience, setMapAmbienceMode, stopMapAmbience } from '../../game/systems/sound';
+import { computeFog } from '../../game/systems/fogOfWar';
 import { STRATAGEMS } from '../../game/data';
 import type { Officer, StratagemId } from '../../game/types';
 import type { WeatherKind } from '../../game/systems/weather';
@@ -3278,20 +3279,23 @@ const EVENT_MARK_STYLE: Record<string, { ch: string; color: string; border: stri
   'tribe-raid': { ch: '襲', color: '#ffb070', border: '#c87838' },
 };
 
-function EventMarks3D({ cities, hidePx, onPick }: {
+function EventMarks3D({ cities, hidePx, visibleCityIds, onPick }: {
   cities: Record<string, City>;
   hidePx: { x: number; y: number } | null;
+  /** 戰爭迷霧 — when set, only marks on in-view cities show. */
+  visibleCityIds?: Set<string> | null;
   onPick: (cityId: string) => void;
 }) {
   const marks = useGameStore((s) => s.cityEventMarks ?? EMPTY_EVENT_MARKS);
   const byCity = useMemo(() => {
     const m = new Map<string, Array<{ kind: string; text: string }>>();
     for (const mk of marks) {
+      if (visibleCityIds && !visibleCityIds.has(mk.cityId)) continue;
       if (!m.has(mk.cityId)) m.set(mk.cityId, []);
       m.get(mk.cityId)!.push(mk);
     }
     return m;
-  }, [marks]);
+  }, [marks, visibleCityIds]);
   return (
     <group>
       {[...byCity.entries()].map(([cityId, list]) => {
@@ -3331,6 +3335,7 @@ function EventMarks3D({ cities, hidePx, onPick }: {
 }
 const EMPTY_EVENT_MARKS: Array<{ cityId: string; kind: string; text: string }> = [];
 const EMPTY_THREATS: Record<string, { color: string; label: string }> = {};
+const FOG_OVERLAY = { color: '#4a4a48', label: '?' };
 
 /* ─── 漕運商船 — junks plying the busiest sea and river lanes ──────────
    The naval counterpart of the ox-cart caravans: each port-to-port lane
@@ -3696,11 +3701,13 @@ function HexQuilt({ tiles, colors }: { tiles: HexWorldTile[]; colors: string[] }
   );
 }
 
-function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundClick }: {
+function HexWorldTerrain({ winter, cities, forces, territoryOwnership, fogCityIds, onGroundClick }: {
   winter: boolean;
   cities: Record<string, City>;
   forces: Record<string, Force>;
   territoryOwnership: Record<string, string | null>;
+  /** 戰爭迷霧 — when set, tiles seeded by an out-of-view city dim. */
+  fogCityIds?: Set<string> | null;
   onGroundClick?: (px: number, py: number) => void;
 }) {
   const tiles = useMemo(() => buildHexWorldTiles(), []);
@@ -3752,30 +3759,34 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
   // 領土歸屬 — each land hex takes its nearest territory centroid's owner
   // (override ?? parent city's lord), the SAME resolution the painted
   // territory layer uses, so both map styles always agree on borders.
-  const { tileOwner, tileProvince } = useMemo(() => {
+  const { tileOwner, tileProvince, tileCity } = useMemo(() => {
     const seeds = generateTerritories(Object.values(cities)).map((t) => ({
       x: t.coords.x,
       y: t.coords.y,
       owner: territoryOwnership[t.id] ?? cities[t.parentCityId]?.ownerForceId ?? null,
       province: PROVINCE_BY_CITY[t.parentCityId] ?? null,
+      city: t.parentCityId,
     }));
     const owners: Array<string | null> = [];
     const provinces: Array<string | null> = [];
+    const citySeeds: Array<string | null> = [];
     for (const t of tiles) {
-      if (t.kind === 'river' || t.kind === 'lake') { owners.push(null); provinces.push(null); continue; }
+      if (t.kind === 'river' || t.kind === 'lake') { owners.push(null); provinces.push(null); citySeeds.push(null); continue; }
       const px = (t.x + MAP_W / 2) / PIXEL_TO_WORLD;
       const py = (t.z + MAP_D / 2) / PIXEL_TO_WORLD;
       let best: string | null = null;
       let bestProv: string | null = null;
+      let bestCity: string | null = null;
       let bestD = Infinity;
       for (const s of seeds) {
         const d = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py);
-        if (d < bestD) { bestD = d; best = s.owner; bestProv = s.province; }
+        if (d < bestD) { bestD = d; best = s.owner; bestProv = s.province; bestCity = s.city; }
       }
       owners.push(best);
       provinces.push(bestProv);
+      citySeeds.push(bestCity);
     }
-    return { tileOwner: owners, tileProvince: provinces };
+    return { tileOwner: owners, tileProvince: provinces, tileCity: citySeeds };
   }, [tiles, cities, territoryOwnership]);
 
   // 州界 — province seams (decals sink into the prisms, so the quilt carves
@@ -3853,8 +3864,10 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
     // Province seam — subtle, and only where a realm border isn't already
     // doing the talking.
     if (!water && !border && tileProvBorder[i]) col.offsetHSL(0, 0, -0.07);
+    // 戰爭迷霧 — ground seeded by a city you can't see fades toward dusk.
+    if (fogCityIds && !water && tileCity[i] && !fogCityIds.has(tileCity[i]!)) col.offsetHSL(0, -0.12, -0.13);
     return `#${col.getHexString()}`;
-  }), [tiles, winter, tileOwner, tileBorder, tileProvBorder, roadTiles, forces]);
+  }), [tiles, winter, tileOwner, tileBorder, tileProvBorder, roadTiles, forces, fogCityIds, tileCity]);
 
   // 地塊資訊 — hover (desktop) names the tile: terrain, road, owning realm.
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -4050,6 +4063,26 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
     return out;
   }, [overlayMode, cities, armiesState, diplomacyScene, playerForceId]);
 
+  // 戰爭迷霧 — optional intel limit: what your cities and columns can see.
+  // View-layer only (the AI plays the same); beacons stay live regardless.
+  const fogOfWarOn = useGameStore((s) => s.fogOfWar);
+  const fog = useMemo(
+    () => (fogOfWarOn && playerForceId ? computeFog(cities, armiesState, playerForceId) : null),
+    [fogOfWarOn, cities, armiesState, playerForceId],
+  );
+  // Hostile columns out of sight simply don't render — filter the command
+  // map MarchingArmies feeds on (the army layer mirrors it 1:1 by officer).
+  const visibleCommands = useMemo(() => {
+    if (!fog) return pendingCommands;
+    const out: typeof pendingCommands = {};
+    for (const [k, cmd] of Object.entries(pendingCommands)) {
+      const a = armiesState[cmd.officerId ?? k];
+      if (a && a.forceId !== playerForceId && !fog.isVisiblePx(a.x, a.y)) continue;
+      out[k] = cmd;
+    }
+    return out;
+  }, [fog, pendingCommands, armiesState, playerForceId]);
+
   return (
     <>
       {/* Distance fog — color follows season; far value pushed past max
@@ -4088,6 +4121,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
           cities={cities}
           forces={forces}
           territoryOwnership={territoryOwnership}
+          fogCityIds={fog ? fog.visibleCityIds : null}
           onGroundClick={(px, py) => {
             if (selectedArmyId3D && isLandPx(px, py) && moveArmyToCell(selectedArmyId3D, px, py)) {
               selectArmy(null);
@@ -4130,14 +4164,14 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
 
       {/* In hex mode the road network is paved into the quilt itself. */}
       {mapStyle === 'classic' && <Roads cities={cities} />}
-      <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
+      <MarchingArmies cities={cities} pendingCommands={visibleCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       {overlayMode === 'supply' && <SupplyLines3D />}
       {overlayMode === 'diplomacy' && <DiplomacyLines3D cities={cities} forces={forces} />}
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <QueuedBattles3D />
       <BeaconAlerts3D />
       <BurningCities3D />
-      <EventMarks3D cities={cities} hidePx={battleSitePx} onPick={(id) => selectCity(id)} />
+      <EventMarks3D cities={cities} hidePx={battleSitePx} visibleCityIds={fog?.visibleCityIds ?? null} onPick={(id) => selectCity(id)} />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
 
@@ -4229,7 +4263,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
               isCapital={capitalCityIds.has(city.id)}
               isSelected={selectedCityId === city.id}
               terrainY={terrainY}
-              overlay={overlayMode === 'threat' ? (threatOverlays[city.id] ?? null) : overlayForCity(city, overlayMode, maxes)}
+              overlay={fog && city.ownerForceId !== playerForceId && !fog.visibleCityIds.has(city.id)
+                ? (overlayMode === 'none' ? null : FOG_OVERLAY)
+                : overlayMode === 'threat' ? (threatOverlays[city.id] ?? null) : overlayForCity(city, overlayMode, maxes)}
               onClick={() => {
                 // RTS-style: with an army selected, clicking a city re-routes
                 // the column there (the 2D map used to own this interaction).
@@ -4654,6 +4690,8 @@ export function StrategicMap3D() {
   const [navView, setNavView] = useState<{ cx: number; cy: number; span: number } | null>(null);
   const [navJump, setNavJump] = useState<{ px: number; py: number; seq: number } | null>(null);
   const selectCityOuter = useGameStore((s) => s.selectCity);
+  const fogOfWar = useGameStore((s) => s.fogOfWar);
+  const setFogOfWar = useGameStore((s) => s.setFogOfWar);
 
   // 鍵盤快捷鍵 — 1..9 switch overlays, Tab cycles own cities (camera in
   // tow), Esc backs out of selections. Typing in any input is exempt.
@@ -4942,6 +4980,20 @@ export function StrategicMap3D() {
           }}
           title={t('切換地圖風格 — 棋盤六角地塊 / 畫卷地圖(實驗)', 'Toggle map style — hex-tile board / painted scroll (experimental)')}
         >{mapStyle === 'hex' ? t('🗺 畫卷地圖', 'Scroll Map') : t('⬡ 棋盤地圖', 'Hex Map')}</button>
+        <button
+          onClick={() => setFogOfWar(!fogOfWar)}
+          style={{
+            marginLeft: 8,
+            background: fogOfWar ? 'rgba(120, 130, 150, 0.22)' : '#241c12',
+            color: fogOfWar ? '#b8c4d8' : '#a89070',
+            border: `1px solid ${fogOfWar ? '#8a96ac' : '#5a4530'}`,
+            padding: '0.3rem 0.55rem',
+            cursor: 'pointer',
+            fontFamily: 'Songti SC, serif',
+            fontSize: '0.78rem',
+          }}
+          title={t('戰爭迷霧 — 只看得見自己城池與行軍縱隊周邊的敵情;烽火台照常預警', 'Fog of war — intel limited to what your cities and columns can see; beacons still warn')}
+        >🌫 {fogOfWar ? t('迷霧:開', 'Fog ON') : t('迷霧:關', 'Fog OFF')}</button>
         <button
           onClick={exportSnapshot}
           style={{

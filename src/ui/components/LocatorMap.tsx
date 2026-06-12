@@ -4,8 +4,10 @@
 // real bearing — so you always know where on the strategic map you are and
 // which way is north. Driven entirely by the unified ViewWindow model.
 
+import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { MAP_W, MAP_H } from '../../game/data/geography';
+import { computeFog } from '../../game/systems/fogOfWar';
 import type { ViewWindow } from '../viewWindow';
 import { useT } from '../i18n';
 
@@ -22,7 +24,15 @@ export function LocatorMap({
   const forces = useGameStore((s) => s.forces);
   const armies = useGameStore((s) => s.armies);
   const playerForceId = useGameStore((s) => s.playerForceId);
+  const fogOfWar = useGameStore((s) => s.fogOfWar);
   const t = useT();
+
+  const visibleArmies = useMemo(() => {
+    const all = Object.values(armies);
+    if (!fogOfWar || !playerForceId) return all;
+    const fog = computeFog(cities, armies, playerForceId);
+    return all.filter((a) => a.forceId === playerForceId || fog.isVisiblePx(a.x, a.y));
+  }, [armies, cities, fogOfWar, playerForceId]);
 
   const height = width * (MAP_H / MAP_W);
   const sx = width / MAP_W;
@@ -70,8 +80,9 @@ export function LocatorMap({
         })}
 
         {/* Marching columns — diamonds so they read apart from city dots;
-            hostile columns get a red ring (the thing you scan for). */}
-        {Object.values(armies).map((a) => {
+            hostile columns get a red ring (the thing you scan for).
+            Under fog of war, unseen hostile columns stay off this map too. */}
+        {visibleArmies.map((a) => {
           const force = forces[a.forceId];
           const hostile = a.forceId !== playerForceId;
           const x = a.x * sx;
