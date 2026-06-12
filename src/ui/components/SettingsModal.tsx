@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { exportAllSaves, importAllSaves } from '../../game/state/saveTransfer';
+import { installMod, loadMods, parseModBundle, removeMod } from '../../game/systems/mods';
 import { useT } from '../i18n';
 
 interface Props {
@@ -136,6 +137,10 @@ export function SettingsModal({ onClose }: Props) {
             <SaveTransferRows />
           </Section>
 
+          <Section title={t('Mod 數據包', 'Mod packs')}>
+            <ModRows />
+          </Section>
+
           <Section title={t('戰鬥', 'Combat')}>
             <Row label={t('戰鬥速度', 'Battle speed')}>
               <div style={{ display: 'flex', gap: 4 }}>
@@ -222,6 +227,68 @@ function SaveTransferRows() {
         />
       </div>
     </Row>
+  );
+}
+
+/** Mod 數據包 — install/remove JSON content bundles (officers + events).
+ *  Applied on every NEW game; existing campaigns are untouched. */
+function ModRows() {
+  const t = useT();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [mods, setMods] = useState(() => loadMods());
+  const [status, setStatus] = useState<string | null>(null);
+
+  const doImport = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const res = parseModBundle(String(reader.result ?? ''));
+      if (res.ok) {
+        installMod(res.bundle);
+        setMods(loadMods());
+        setStatus(t(
+          `已安裝「${res.bundle.name}」:${res.bundle.officers?.length ?? 0} 武將 / ${res.bundle.events?.length ?? 0} 事件(開新局生效)`,
+          `Installed "${res.bundle.name}" — applies on new games`,
+        ));
+      } else {
+        setStatus(t('安裝失敗:不是有效的數據包', 'Import failed: not a valid mod bundle'));
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const btn: React.CSSProperties = {
+    background: '#2a1f15', border: '1px solid #5a4530', color: '#d4a84a',
+    padding: '0.3rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.82rem',
+  };
+
+  return (
+    <>
+      <Row
+        label={t('安裝數據包', 'Install bundle')}
+        hint={status ?? t('JSON 格式:{kind:"tkm-mod", name, officers[], events[]} — 自製武將與事件,開新局時注入', 'JSON: {kind:"tkm-mod", name, officers[], events[]} — applied to new games')}
+      >
+        <button style={btn} onClick={() => fileRef.current?.click()}>⬆ {t('導入', 'Import')}</button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json,.json"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) doImport(f);
+            e.target.value = '';
+          }}
+        />
+      </Row>
+      {mods.map((m) => (
+        <Row key={m.name} label={`📦 ${m.name}`} hint={t(`${m.officers?.length ?? 0} 武將 · ${m.events?.length ?? 0} 事件`, `${m.officers?.length ?? 0} officers · ${m.events?.length ?? 0} events`)}>
+          <button
+            style={{ ...btn, borderColor: '#b8442e', color: '#e8a890' }}
+            onClick={() => { removeMod(m.name); setMods(loadMods()); }}
+          >{t('移除', 'Remove')}</button>
+        </Row>
+      ))}
+    </>
   );
 }
 

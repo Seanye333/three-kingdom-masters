@@ -38,6 +38,7 @@ import { buildInitialPorts } from '../data/ports';
 import { buildInitialForts } from '../data/forts';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { buildHistoricalOfficers } from '../data/officers';
+import { loadMods, modEventsForStart, modOfficersForStart } from '../systems/mods';
 import { bestPrestige } from '../data/prestige';
 import type { Dynasty } from '../data/dynasties';
 
@@ -442,6 +443,18 @@ export function loadScenario(
           : o,
       )
     : baseOfficers;
+  // Mod 數據包 — installed bundles contribute officers on every new game.
+  {
+    const mods = loadMods();
+    if (mods.length > 0) {
+      const validForces = new Set(scenario.forces.map((f) => f.id));
+      const existing = new Set(officers.map((o) => o.id));
+      const extras = modOfficersForStart(mods, scenario.startDate.year, validForces)
+        .filter((o) => !existing.has(o.id));
+      if (extras.length > 0) officers = [...officers, ...extras];
+    }
+  }
+
   if (customOfficer) {
     // Place custom officer either in their chosen force's capital, or in a
     // random owned city as a free agent.
@@ -520,7 +533,12 @@ export function loadScenario(
     firedEventIds: [],
     // Authored events carry across scenarios (firedEventIds resets, so they
     // can fire again in the new game).
-    customEvents: state.customEvents ?? [],
+    customEvents: (() => {
+      // Mod 數據包 — mod events ride the customEvents pipeline; de-dupe by id.
+      const base = state.customEvents ?? [];
+      const have = new Set(base.map((e) => e.id));
+      return [...base, ...modEventsForStart(loadMods()).filter((e) => !have.has(e.id))];
+    })(),
     pendingEvent: null,
     tacticalBattle: null,
     pendingEspionage: [],
