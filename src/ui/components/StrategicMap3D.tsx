@@ -4724,6 +4724,9 @@ export function StrategicMap3D() {
   const selectCityOuter = useGameStore((s) => s.selectCity);
   const fogOfWar = useGameStore((s) => s.fogOfWar);
   const setFogOfWar = useGameStore((s) => s.setFogOfWar);
+  // 手機收納 — objective card and the map-tools tray fold away by default.
+  const [objOpen, setObjOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
 
   // 鍵盤快捷鍵 — 1..9 switch overlays, Tab cycles own cities (camera in
   // tow), Esc backs out of selections. Typing in any input is exempt.
@@ -4915,9 +4918,33 @@ export function StrategicMap3D() {
       position: 'absolute', inset: 0,
       background: duskBg ? 'linear-gradient(180deg, #6a5a78 0%, #d89060 100%)' : 'linear-gradient(180deg, #88a0c0 0%, #c8b890 100%)',
     }}>
-      {/* Objective tracker — top-left */}
+      {/* Objective tracker — top-left. Phones fold it into a chip; the
+          full card is a tap away instead of owning a third of the screen. */}
       <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, pointerEvents: 'none' }}>
-        <ObjectivePanel />
+        {IS_MOBILE && !objOpen ? (
+          <button
+            onClick={() => setObjOpen(true)}
+            style={{
+              pointerEvents: 'auto', background: 'rgba(20, 14, 8, 0.88)', color: '#d4a84a',
+              border: '1px solid #5a4530', padding: '0.3rem 0.55rem', cursor: 'pointer',
+              fontFamily: 'Songti SC, serif', fontSize: '0.75rem',
+            }}
+          >🎯 {t('目標', 'Goal')}</button>
+        ) : (
+          <div style={{ position: 'relative' }}>
+            {IS_MOBILE && (
+              <button
+                onClick={() => setObjOpen(false)}
+                style={{
+                  pointerEvents: 'auto', position: 'absolute', top: 2, right: 2, zIndex: 1,
+                  background: 'transparent', color: '#8a7050', border: 'none',
+                  fontSize: '0.85rem', cursor: 'pointer',
+                }}
+              >✕</button>
+            )}
+            <ObjectivePanel />
+          </div>
+        )}
       </div>
 
       {/* Season + weather chip */}
@@ -4939,33 +4966,48 @@ export function StrategicMap3D() {
         }}>{WEATHER_ZH[weather.kind]}{weather.windPower >= 2 ? ` ${weather.windPower}` : ''}</span>
       </div>
 
-      {/* Controls hint */}
-      <div style={{
-        position: 'absolute', top: 12, right: 12, zIndex: 10,
-        background: 'rgba(20, 14, 8, 0.85)', color: '#a89070',
-        border: '1px solid #5a4530',
-        padding: '0.3rem 0.6rem',
-        fontFamily: 'Songti SC, serif', fontSize: '0.72rem',
-        pointerEvents: 'none',
-      }}>{IS_MOBILE
-        ? t('拖曳 = 旋轉 · 雙指 = 縮放 · 點擊城池檢視', 'drag = rotate · pinch = zoom · tap city to inspect')
-        : t('拖曳旋轉 · 滾輪縮放 · 1-9 圖層 · Tab 巡城 · 空格過旬 · Esc 取消', 'drag rotate · scroll zoom · 1-9 overlays · Tab cycle cities · Space end turn · Esc cancel')}</div>
+      {/* Controls hint — desktop only; on touch it was just noise. */}
+      {!IS_MOBILE && (
+        <div style={{
+          position: 'absolute', top: 12, right: 12, zIndex: 10,
+          background: 'rgba(20, 14, 8, 0.85)', color: '#a89070',
+          border: '1px solid #5a4530',
+          padding: '0.3rem 0.6rem',
+          fontFamily: 'Songti SC, serif', fontSize: '0.72rem',
+          pointerEvents: 'none',
+        }}>{t('拖曳旋轉 · 滾輪縮放 · 1-9 圖層 · Tab 巡城 · 空格過旬 · Esc 取消', 'drag rotate · scroll zoom · 1-9 overlays · Tab cycle cities · Space end turn · Esc cancel')}</div>
+      )}
 
       {/* 尋城 — search-and-fly. Desktop: input under the controls hint.
           Phones: a 🔍 button that expands on tap, below the hint chip so
           nothing sits over the season/weather strip. */}
-      <div style={{ position: 'absolute', top: IS_MOBILE ? 52 : 46, right: 12, zIndex: 11 }}>
+      <div style={{ position: 'absolute', top: IS_MOBILE ? 12 : 46, right: 12, zIndex: 11 }}>
         <CitySearchBox compact={IS_MOBILE} onJump={(cityId, px, py) => {
           setNavJump({ px, py, seq: Date.now() });
           selectCityOuter(cityId);
         }} />
       </div>
 
-      {/* Overlay mode buttons — bottom-left. Real toggles: tapping the
-          active one switches it off. Wraps on phones instead of bleeding
-          off the right edge. */}
+      {/* Map tools — bottom-left. Desktop: the full row. Phones: folded
+          behind one 🗺 button so the map stays clean; the tray opens above
+          it. Buttons are real toggles either way. */}
+      {IS_MOBILE && (
+        <button
+          onClick={() => setToolsOpen((v) => !v)}
+          style={{
+            position: 'absolute', bottom: 12, left: 12, zIndex: 11,
+            width: 40, height: 40, borderRadius: '50%',
+            background: toolsOpen ? '#d4a84a' : 'rgba(20, 14, 8, 0.92)',
+            color: toolsOpen ? '#1a1410' : '#c0a878',
+            border: '1px solid ' + (toolsOpen ? '#d4a84a' : '#5a4530'),
+            cursor: 'pointer', fontSize: 17,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.55)',
+          }}
+        >🗺</button>
+      )}
+      {(!IS_MOBILE || toolsOpen) && (
       <div style={{
-        position: 'absolute', bottom: 12, left: 12, zIndex: 10,
+        position: 'absolute', bottom: IS_MOBILE ? 60 : 12, left: 12, zIndex: 10,
         display: 'flex', gap: 4,
         flexWrap: 'wrap',
         maxWidth: 'calc(100vw - 24px)',
@@ -5042,6 +5084,7 @@ export function StrategicMap3D() {
           title={t('把當前天下大勢存成 PNG', 'Save the current realm view as a PNG')}
         >📷 {t('大勢', 'Snap')}</button>
       </div>
+      )}
 
       <Canvas
         shadows
@@ -5247,7 +5290,7 @@ export function StrategicMap3D() {
         <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 11 }}>
           <LocatorMap
             window={{ cx: navView.cx, cy: navView.cy, spanX: navView.span * 1.6, spanY: navView.span, rotation: 0, kind: 'world' }}
-            width={138}
+            width={IS_MOBILE ? 108 : 138}
             onPickPx={(px, py) => setNavJump({ px, py, seq: Date.now() })}
           />
         </div>

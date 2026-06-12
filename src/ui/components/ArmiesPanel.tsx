@@ -1,4 +1,8 @@
+import { useState } from 'react';
 import { useGameStore } from '../../game/state/store';
+
+const IS_MOBILE = typeof window !== 'undefined'
+  && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
 
 /**
  * In-transit forces overview — lists the player's marching armies (the
@@ -16,8 +20,25 @@ export function ArmiesPanel() {
   const holdArmy = useGameStore((s) => s.holdArmy);
   const splitArmy = useGameStore((s) => s.splitArmy);
 
+  // 手機收納 — folded to a chip by default; the list is a tap away.
+  const [open, setOpen] = useState(!IS_MOBILE);
+
   const mine = Object.values(armies).filter((a) => a.forceId === playerForceId);
   if (mine.length === 0) return null;
+
+  if (IS_MOBILE && !open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        style={{
+          background: 'rgba(20, 14, 9, 0.88)', border: '1px solid #6a5536',
+          color: '#e8d9b0', padding: '0.3rem 0.55rem', cursor: 'pointer',
+          fontFamily: '"Songti SC", serif', fontSize: '0.72rem',
+          pointerEvents: 'auto',
+        }}
+      >⚔ 在途 {mine.length}</button>
+    );
+  }
 
   return (
     <div style={{
@@ -32,8 +53,14 @@ export function ArmiesPanel() {
       boxShadow: '0 0 10px rgba(0,0,0,0.6)',
       pointerEvents: 'auto',
     }}>
-      <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: 3 }}>
-        在途部隊 · Armies
+      <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: 3, display: 'flex', justifyContent: 'space-between' }}>
+        <span>在途部隊 · Armies</span>
+        {IS_MOBILE && (
+          <button
+            onClick={() => setOpen(false)}
+            style={{ background: 'transparent', border: 'none', color: '#8a7050', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}
+          >✕</button>
+        )}
       </div>
       {selectedArmyId && armies[selectedArmyId] && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, marginBottom: 3 }}>
