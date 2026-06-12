@@ -1998,7 +1998,7 @@ export function TacticalBattleScreen3D() {
       return;
     }
     if (actionMode.kind === 'stratagem') {
-      const r = applyStratagem(battle, selectedUnit.id, actionMode.id, c, officers);
+      const r = applyStratagem(battle, selectedUnit.id, actionMode.id, c, officers, actionMode.tacticId);
       if (r.ok) {
         // Spawn FX at the target hex.
         const fxKind = stratagemFxKind(actionMode.id);
@@ -2067,6 +2067,14 @@ export function TacticalBattleScreen3D() {
           fontSize: '0.72rem', padding: '2px 7px',
           background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530', color: '#a89070',
         }}>{WEATHER_LABEL[battle.weather]}</span>
+        {battle.windDirection && battle.windDirection !== 'calm' && (
+          <span style={{
+            fontSize: '0.72rem', padding: '2px 7px',
+            background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #6a88a8', color: '#a8c4e0',
+          }} title={t('風向 — 火勢順風蔓延', 'Wind — fire spreads downwind')}>
+            {battle.windDirection === 'east' ? '🌬→ 東風' : battle.windDirection === 'west' ? '🌬← 西風' : battle.windDirection === 'south' ? '🌬↓ 南風' : '🌬↑ 北風'}
+          </span>
+        )}
         <span style={{
           fontSize: '0.72rem', padding: '2px 7px',
           background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530', color: '#a89070',

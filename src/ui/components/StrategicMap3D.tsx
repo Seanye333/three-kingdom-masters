@@ -4853,7 +4853,7 @@ export function StrategicMap3D() {
     if (dioCast) {
       const sel0 = dioSelectedId ? b.units.find((x) => x.id === dioSelectedId) : null;
       if (!sel0) { setDioCast(null); return; }
-      const r = applyStratagem(b, sel0.id, dioCast.id, c, useGameStore.getState().officers);
+      const r = applyStratagem(b, sel0.id, dioCast.id, c, useGameStore.getState().officers, dioCast.tacticId);
       if (r.ok) {
         const fxKind = stratagemFxKind(dioCast.id);
         if (fxKind) {

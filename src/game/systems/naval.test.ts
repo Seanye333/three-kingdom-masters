@@ -160,3 +160,25 @@ describe('hull strength feeds melee damage', () => {
     expect(hit('flagship')).toBeGreaterThan(hit('zou-ge'));
   });
 });
+
+describe('借東風 — borrow-wind turns the sky', () => {
+  it('sets weather to wind blowing from the caster toward the enemy', () => {
+    const caster = mkUnit({ id: 'me', side: 'attacker', coord: { col: 1, row: 3 }, officerId: 'zhuge' });
+    const foe = mkUnit({ id: 'them', side: 'defender', coord: { col: 4, row: 3 }, officerId: 'cao' });
+    const b = mkBattle({ units: [caster, foe], naval: true, width: 8, height: 6 });
+    const officers = officerMap([caster, foe], [mkOfficer({ id: 'zhuge', stats: { intelligence: 100 } })]);
+    const r = applyStratagem(b, 'me', 'fire-attack', { col: 4, row: 3 }, officers, 'borrow-wind');
+    expect(r.ok).toBe(true);
+    expect(r.battle.weather).toBe('wind');
+    expect(r.battle.windDirection).toBe('east'); // enemy sits east of the caster
+  });
+
+  it('a plain fire-attack leaves the sky alone', () => {
+    const caster = mkUnit({ id: 'me', side: 'attacker', coord: { col: 1, row: 3 }, officerId: 'zhuge' });
+    const foe = mkUnit({ id: 'them', side: 'defender', coord: { col: 4, row: 3 }, officerId: 'cao' });
+    const b = mkBattle({ units: [caster, foe], naval: true, width: 8, height: 6 });
+    const officers = officerMap([caster, foe], [mkOfficer({ id: 'zhuge', stats: { intelligence: 100 } })]);
+    const r = applyStratagem(b, 'me', 'fire-attack', { col: 4, row: 3 }, officers);
+    expect(r.battle.windDirection).toBe('calm');
+  });
+});

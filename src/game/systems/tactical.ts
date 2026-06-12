@@ -1326,9 +1326,36 @@ export function applyStratagem(
   stratagem: StratagemId,
   targetCoord: HexCoord,
   officers: Record<EntityId, Officer>,
+  /** Signature tactic riding this cast — 借東風 literally turns the sky. */
+  tacticId?: string,
 ): { battle: TacticalBattle; ok: boolean; reason?: string } {
   const unit = b.units.find((u) => u.id === unitId);
   if (!unit) return { battle: b, ok: false, reason: 'no unit' };
+  // 借東風 — before the fire lands, the wind answers the ritual: weather
+  // turns to wind and blows from the caster toward the enemy line, so the
+  // burn that follows spreads INTO their fleet. The Red Cliffs button.
+  if (tacticId === 'borrow-wind') {
+    const foes = b.units.filter((u) => u.side !== unit.side && u.troops > 0);
+    if (foes.length > 0) {
+      const avgCol = foes.reduce((sum, u) => sum + u.coord.col, 0) / foes.length;
+      const avgRow = foes.reduce((sum, u) => sum + u.coord.row, 0) / foes.length;
+      const dCol = avgCol - unit.coord.col;
+      const dRow = avgRow - unit.coord.row;
+      const dir: WindDirection = Math.abs(dCol) >= Math.abs(dRow)
+        ? (dCol >= 0 ? 'east' : 'west')
+        : (dRow >= 0 ? 'south' : 'north');
+      b = {
+        ...b,
+        weather: 'wind',
+        windDirection: dir,
+        log: [...(b.log ?? []), {
+          turn: b.turn,
+          text: `🌬 ${officers[unit.officerId]?.name.zh ?? ''}祭風祈禳,風雲突變 — ${dir === 'east' ? '東' : dir === 'west' ? '西' : dir === 'south' ? '南' : '北'}風大作!`,
+          kind: 'event' as const,
+        }],
+      };
+    }
+  }
   const cooldownKey = `${unitId}-${stratagem}`;
   const onCd = (b.stratagemCooldowns[cooldownKey] ?? 0) > b.turn;
   if (onCd) return { battle: b, ok: false, reason: 'on cooldown' };
@@ -2275,6 +2302,17 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
   else if (b.weather === 'rain' && wroll < 0.18) nextWeather = 'clear';
   else if (b.weather === 'wind' && wroll < 0.12) nextWeather = 'clear';
   else if (b.weather === 'fog' && wroll < 0.15) nextWeather = 'clear';
+  // 水戰 — at sea the wind is a player too: each full round it may veer,
+  // and a fire set downwind can find itself upwind a turn later.
+  let nextWind = b.windDirection ?? 'calm';
+  if (b.naval && Math.random() < 0.15) {
+    const dirs: WindDirection[] = ['north', 'south', 'east', 'west'];
+    const turned = dirs.filter((d) => d !== nextWind);
+    nextWind = turned[Math.floor(Math.random() * turned.length)];
+  }
+  const windLog: NonNullable<TacticalBattle['log']> = nextWind !== (b.windDirection ?? 'calm')
+    ? [{ turn: b.turn, text: `風向轉${nextWind === 'east' ? '東' : nextWind === 'west' ? '西' : nextWind === 'south' ? '南' : '北'},艨艟調帆!`, kind: 'event' }]
+    : [];
   const weatherLog: NonNullable<TacticalBattle['log']> = nextWeather !== b.weather
     ? [{ turn: b.turn, text: nextWeather === 'rain' ? '驟雨傾盆，火攻難繼！' : nextWeather === 'wind' ? '狂風驟起，火借風勢！' : '雲開天霽。', kind: 'event' }]
     : [];
@@ -2284,6 +2322,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     units: finalUnits,
     tiles: nextTiles,
     weather: nextWeather,
+    windDirection: nextWind,
     groundFires: nextGroundFires.length > 0 ? nextGroundFires : undefined,
     turn: b.turn + 1,
     activeSide: b.activeSide === 'attacker' ? 'defender' : 'attacker',
@@ -2295,7 +2334,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     defenderObjective: defenderObj,
     reinforcements: remaining,
     casualties,
-    log: [...(b.log ?? []), ...fireLog, ...weatherLog, ...arrivalLog, ...structureLog],
+    log: [...(b.log ?? []), ...fireLog, ...weatherLog, ...windLog, ...arrivalLog, ...structureLog],
     damagePopups: structurePopups, // visible briefly on turn flip
     cityStructures: updatedStructures,
   };
