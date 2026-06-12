@@ -3,7 +3,7 @@
  * The newest entry drives the in-game「本次更新」popup: bump
  * GAME_VERSION when a batch ships and the next launch shows it once.
  */
-export const GAME_VERSION = '1.0.0';
+export const GAME_VERSION = '1.1.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -13,6 +13,21 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.1.0',
+    date: '2026-06-12',
+    title: '軍師與史官 — 內容與傳播雙修',
+    items: [
+      '🧠 軍師錦囊:最聰明的武將每旬讀盤獻三策,一鍵照辦',
+      '📜 事件鏈補戲:連環計、許攸獻烏巢、白衣渡江、空城計',
+      '📖 終局史書《本朝本紀》:大事記+十大戰役+功臣列傳,可導出',
+      '⚰ 諡號:名將得史諡(關羽壯繆侯),餘者依諡法成名',
+      '🎬 戰鬥錄影:一鍵錄下戰場畫面導出 WebM',
+      '🗺 存檔縮略圖:每個存檔槽帶當時版圖小快照',
+      '📅 挑戰日曆:近七日可補打,連勝計火 🔥',
+      '📲 手機安裝引導橫幅 + 遊戲內「本次更新」彈窗',
+    ],
+  },
   {
     version: '1.0.0',
     date: '2026-06-12',
