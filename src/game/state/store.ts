@@ -53,6 +53,7 @@ import { appointmentBonusFor, pruneStaleAppointments, traitRefusal, isOnCooldown
 import { canPromoteToRank } from '../systems/imperialEffects';
 import { COMMAND_DEFS } from '../systems/commands';
 import { planMassMuster } from '../systems/muster';
+import { planGovernorCommand } from '../systems/governor';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -186,6 +187,8 @@ interface GameStore extends GameState {
     troops: number,
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
+  /** 委任太守 — set (or clear with null) a city's standing governor. */
+  delegateCity: (cityId: EntityId, officerId: EntityId | null) => void;
   /** 全軍集結令 — every player city that can spare a column marches ~70%
    *  of its garrison toward the target under its best idle officer
    *  (adjacent cities directly, the hinterland one hop along an in-realm
@@ -922,6 +925,13 @@ export const useGameStore = create<GameStore>()(
         return { ok: true };
       },
 
+      delegateCity: (cityId, officerId) => {
+        const next = { ...get().cityDelegations };
+        if (officerId) next[cityId] = officerId;
+        else delete next[cityId];
+        set({ cityDelegations: next });
+      },
+
       massMuster: (targetCityId) => {
         const state = get();
         if (!state.playerForceId) return 0;
@@ -1189,6 +1199,21 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       },
 
       endSeason: () => {
+        // 委任太守 — delegated cities file their governor's order first,
+        // through the ordinary command pipeline (costs, report and all).
+        {
+          const s0 = get();
+          if (s0.victoryStatus !== 'playing' && s0.victoryStatus !== 'observing') return;
+          for (const [cid, govId] of Object.entries(s0.cityDelegations ?? {})) {
+            const c = get().cities[cid];
+            const gov = get().officers[govId];
+            if (!c || !gov || c.ownerForceId !== s0.playerForceId) continue;
+            if (gov.locationCityId !== cid || gov.task || get().pendingCommands[govId]) continue;
+            if (s0.pendingTrainings.some((t) => t.officerId === govId)) continue;
+            const type = planGovernorCommand(c, gov);
+            if (type) get().issueCommand(cid, type, govId);
+          }
+        }
         const state = get();
         if (state.victoryStatus !== 'playing' && state.victoryStatus !== 'observing')
           return;
@@ -5553,6 +5578,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         deeds: state.deeds,
         fogOfWar: state.fogOfWar,
         espionageReveals: state.espionageReveals,
+        cityDelegations: state.cityDelegations,
         commandTemplates: state.commandTemplates,
         autoBuildQueues: state.autoBuildQueues,
         dialogueFollowups: state.dialogueFollowups,

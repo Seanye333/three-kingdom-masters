@@ -199,6 +199,9 @@ export interface GameState {
   /** 細作開眼 — cities lit by successful espionage, ticks of intel left.
    *  Decremented each half-month; consumed by the fog-of-war view. */
   espionageReveals: Record<EntityId, number>;
+  /** 委任太守 — cityId → governor officerId. A delegated city auto-issues
+   *  its governor's internal command at the start of every tick. */
+  cityDelegations: Record<EntityId, EntityId>;
   /** Saved command templates the player can re-apply each season. */
   commandTemplates: Array<{
     id: EntityId;
@@ -340,6 +343,7 @@ export const EMPTY_STATE: GameState = {
   deeds: {},
   fogOfWar: false,
   espionageReveals: {},
+  cityDelegations: {},
   commandTemplates: [],
   autoBuildQueues: {},
   pendingDialogue: null,
@@ -507,6 +511,7 @@ export function loadScenario(
     tacticalBattle: null,
     pendingEspionage: [],
     espionageReveals: {},
+    cityDelegations: {},
     edictHistory: [],
     edictCooldowns: {},
     tribeState: createInitialTribeState(),

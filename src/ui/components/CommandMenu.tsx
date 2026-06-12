@@ -14,6 +14,8 @@ interface Props {
   cityId: EntityId;
 }
 
+const EMPTY_DELEGATIONS: Record<string, string> = {};
+
 const INTERNAL_ORDER: InternalAffairsType[] = [
   // ── Basic (always available) ──
   'develop-agriculture',
@@ -52,6 +54,8 @@ export function CommandMenu({ cityId }: Props) {
   const citiesMap = useGameStore((s) => s.cities);
   const cancelCommand = useGameStore((s) => s.cancelCommand);
   const buildings = useGameStore((s) => s.buildings);
+  const delegations = useGameStore((s) => s.cityDelegations ?? EMPTY_DELEGATIONS);
+  const delegateCity = useGameStore((s) => s.delegateCity);
   const pendingTrainings = useGameStore((s) => s.pendingTrainings);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const t = useT();
@@ -72,8 +76,48 @@ export function CommandMenu({ cityId }: Props) {
   const marchDef = COMMAND_DEFS['march'];
   const canMarch = city.gold >= marchDef.goldCost && city.troops > 0;
 
+  const stationed = Object.values(officersMap).filter(
+    (o) => o.locationCityId === cityId && o.forceId === playerForceId
+      && o.status !== 'dead' && o.status !== 'unsearched' && o.status !== 'imprisoned',
+  );
+  const governorId = delegations[cityId];
+  const governor = governorId ? officersMap[governorId] : null;
+
   return (
     <>
+      {/* 委任太守 — hand the city to a governor; every tick they file one
+          internal command for you through the normal pipeline. */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+        background: governor ? 'rgba(126, 214, 138, 0.08)' : 'rgba(20, 14, 8, 0.5)',
+        border: `1px solid ${governor ? '#5a8a50' : '#3a2d20'}`,
+        padding: '0.35rem 0.6rem', marginBottom: '0.5rem',
+        fontFamily: 'Songti SC, serif', fontSize: '0.78rem', color: '#c0a878',
+      }}>
+        <span>
+          {t('太守', 'Governor')}{governor ? `:${lang === 'en' ? governor.name.en : governor.name.zh}` : ''}
+          <span style={{ display: 'block', fontSize: '0.6rem', color: '#8a7050' }}>
+            {governor
+              ? t('已委任 — 每旬自動施政', 'Delegated — auto-governs each tick')
+              : t('委任後此城自動內政', 'Delegate to auto-run internal affairs')}
+          </span>
+        </span>
+        <select
+          value={governorId ?? ''}
+          onChange={(e) => delegateCity(cityId, e.target.value || null)}
+          style={{
+            background: '#0a0805', border: '1px solid #4a3520', color: '#d4a84a',
+            padding: '0.2rem', fontFamily: 'inherit', fontSize: '0.72rem', maxWidth: 130,
+          }}
+        >
+          <option value="">{t('親自治理', 'Rule directly')}</option>
+          {stationed.map((o) => (
+            <option key={o.id} value={o.id}>
+              {lang === 'en' ? o.name.en : o.name.zh}({t('政', 'P')}{o.stats.politics})
+            </option>
+          ))}
+        </select>
+      </div>
       {/* Currently pending commands in this city — one per assigned officer */}
       {pendingInCity.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '0.5rem' }}>
