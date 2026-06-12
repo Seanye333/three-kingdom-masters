@@ -36,7 +36,7 @@ import { useT } from '../i18n';
 const IS_MOBILE = typeof window !== 'undefined'
   && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
 
-type OverlayMode = 'none' | 'gold' | 'food' | 'troops' | 'loyalty' | 'province';
+type OverlayMode = 'none' | 'gold' | 'food' | 'troops' | 'loyalty' | 'province' | 'supply';
 
 const PROVINCE_COLOR: Record<string, string> = {
   sili: '#d4a84a', yu: '#c19a3b', ji: '#3a5a8a', qing: '#5a8a8a',
@@ -1779,6 +1779,79 @@ function BattlePulseRing3D({ wx, y, wz, color, phase }: {
   );
 }
 
+/* ─── 糧道 — the supply web ──────────────────────────────────────────────
+   Overlay mode 糧道: gold supply lines trace every adjacent pair of player
+   cities CONNECTED to the capital (BFS over owned adjacency); an owned city
+   that cannot reach the capital through friendly territory is cut off —
+   marked with a pulsing red ring and a ⚠斷補 chip. Information layer only
+   (no gameplay penalty yet), but it answers "can my front be fed?" at a
+   glance before a campaign.*/
+function SupplyLines3D() {
+  const cities = useGameStore((s) => s.cities);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const forces = useGameStore((s) => s.forces);
+  const net = useMemo(() => {
+    if (!playerForceId) return null;
+    const capitalId = forces[playerForceId]?.capitalCityId;
+    const owned = new Set(Object.values(cities).filter((c) => c.ownerForceId === playerForceId).map((c) => c.id));
+    if (!capitalId || !owned.has(capitalId)) return { connected: new Set<string>(), owned, edges: [] as Array<[string, string]>, cut: [...owned] };
+    const connected = new Set<string>([capitalId]);
+    const queue = [capitalId];
+    while (queue.length) {
+      const id = queue.pop()!;
+      for (const adj of cities[id]?.adjacentCityIds ?? []) {
+        if (owned.has(adj) && !connected.has(adj)) { connected.add(adj); queue.push(adj); }
+      }
+    }
+    const edges: Array<[string, string]> = [];
+    for (const id of connected) {
+      for (const adj of cities[id]?.adjacentCityIds ?? []) {
+        if (connected.has(adj) && id < adj) edges.push([id, adj]);
+      }
+    }
+    const cut = [...owned].filter((id) => !connected.has(id));
+    return { connected, owned, edges, cut };
+  }, [cities, forces, playerForceId]);
+  if (!net) return null;
+  return (
+    <group>
+      {net.edges.map(([a, b]) => {
+        const ca = cities[a], cb = cities[b];
+        if (!ca || !cb) return null;
+        const [ax, az] = pxToWorld(...cityPixel(ca.id, ca.coords.x, ca.coords.y));
+        const [bx, bz] = pxToWorld(...cityPixel(cb.id, cb.coords.x, cb.coords.y));
+        const mx = (ax + bx) / 2, mz = (az + bz) / 2;
+        const len = Math.hypot(bx - ax, bz - az);
+        const y = Math.max(sampleTerrainHeight(ax, az), sampleTerrainHeight(bx, bz), sampleTerrainHeight(mx, mz)) + 0.16;
+        return (
+          <mesh key={`${a}-${b}`} position={[mx, y, mz]} rotation={[0, Math.atan2(-(bz - az), bx - ax), 0]}>
+            <boxGeometry args={[len, 0.025, 0.06]} />
+            <meshBasicMaterial color="#e8c060" transparent opacity={0.75} depthWrite={false} />
+          </mesh>
+        );
+      })}
+      {net.cut.map((id) => {
+        const c = cities[id];
+        if (!c) return null;
+        const [wx, wz] = pxToWorld(...cityPixel(c.id, c.coords.x, c.coords.y));
+        const y = cityElevation(wx, wz);
+        return (
+          <group key={`cut-${id}`}>
+            <BattlePulseRing3D wx={wx} y={y + 0.05} wz={wz} color="#e0552a" phase={0.2} />
+            <Html position={[wx, y + 1.0, wz]} center distanceFactor={9} zIndexRange={[40, 30]} style={{ pointerEvents: 'none' }}>
+              <div style={{
+                background: 'rgba(40,14,8,0.9)', border: '1px solid #e0552a', borderRadius: 3,
+                padding: '1px 7px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+                color: '#f0b0a0', whiteSpace: 'nowrap', letterSpacing: '1px',
+              }}>⚠ 斷補 — 不通都城</div>
+            </Html>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 /* ─── 焚城 — burningCities has been tracked in state since forever but never
    drawn: a sacked/burning city now shows licking flames and a leaning smoke
    column for as long as the fire lasts. */
@@ -2141,7 +2214,7 @@ function overlayForCity(
   mode: OverlayMode,
   maxes: { gold: number; food: number; troops: number },
 ): { color: string; label: string } | null {
-  if (mode === 'none') return null;
+  if (mode === 'none' || mode === 'supply') return null; // supply draws its own lines
   if (mode === 'province') {
     const pid = PROVINCE_BY_CITY[city.id];
     const color = pid ? (PROVINCE_COLOR[pid] ?? '#5a4530') : '#5a4530';
@@ -3481,6 +3554,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
       {/* In hex mode the road network is paved into the quilt itself. */}
       {mapStyle === 'classic' && <Roads cities={cities} />}
       <MarchingArmies cities={cities} pendingCommands={pendingCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
+      {overlayMode === 'supply' && <SupplyLines3D />}
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <QueuedBattles3D />
       <BeaconAlerts3D />
@@ -3600,6 +3674,7 @@ const OVERLAY_OPTIONS: Array<{ id: OverlayMode; zh: string; en: string }> = [
   { id: 'troops',   zh: '兵力', en: 'TROOPS' },
   { id: 'loyalty',  zh: '民忠', en: 'LOYALTY' },
   { id: 'province', zh: '州郡', en: 'PROVINCE' },
+  { id: 'supply',   zh: '糧道', en: 'SUPPLY' },
 ];
 
 const WEATHER_ZH: Record<WeatherKind, string> = {
