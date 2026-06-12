@@ -58,6 +58,7 @@ import { planLegionOrders, type Legion } from '../systems/legion';
 import { buyQuote, sellQuote } from '../systems/market';
 import { EDICT_DISCOUNT, EMPEROR_HOME, MANDATE_PER_SEASON, RESENTMENT_PER_SEASON, canWelcomeEmperor, emperorCustodian } from '../systems/emperor';
 import { COMMONER_ARRIVAL_CHANCE, commonerArrivalCity, generateCommonerOfficer } from '../systems/commonerTalent';
+import { codexMarkRecruited, codexMarkRecruitedMany, codexMarkSeen, codexMarkSlain } from '../systems/codex';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -2850,6 +2851,16 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           }
         }
 
+        // 圖鑑 — everyone on the stage this season is "seen"; your own
+        // roster counts as having carried your colors (cross-campaign album).
+        if (seasonBoundary) {
+          const staged = Object.values(officersWithMarchTask).filter((o) => o.forceId && o.status !== 'dead');
+          codexMarkSeen(staged.map((o) => o.id));
+          if (state.playerForceId) {
+            codexMarkRecruitedMany(staged.filter((o) => o.forceId === state.playerForceId).map((o) => o.id));
+          }
+        }
+
         // 求賢令出寒門 — while a force's call rings, commoners answer:
         // a generated officer of humble birth may join one of its cities.
         if (seasonBoundary) {
@@ -3114,6 +3125,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           },
         };
         if (result.ok && result.recruitedOfficer) {
+          codexMarkRecruited(officerId);
           updates.officers = {
             ...state.officers,
             [officerId]: result.recruitedOfficer,
@@ -3189,6 +3201,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           },
         };
         if (result.ok && result.recruitedOfficer) {
+          codexMarkRecruited(officerId);
           updates.officers = {
             ...state.officers,
             [officerId]: result.recruitedOfficer,
@@ -3199,6 +3212,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       },
 
       executeOfficer: (officerId) => {
+        codexMarkSlain(officerId);
         const state = get();
         const officer = state.officers[officerId];
         if (!officer || officer.status !== 'imprisoned') return;

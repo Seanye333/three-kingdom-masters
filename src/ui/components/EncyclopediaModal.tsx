@@ -8,13 +8,14 @@ import {
   getBiography,
 } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
+import { CODEX_SETS, codexSetProgress, loadCodex } from '../../game/systems/codex';
 import { useDesc } from '../i18n';
 
 interface Props {
   onClose: () => void;
 }
 
-type Section = 'officers' | 'items' | 'skills' | 'traits' | 'events' | 'provinces';
+type Section = 'officers' | 'codex' | 'items' | 'skills' | 'traits' | 'events' | 'provinces';
 
 export function EncyclopediaModal({ onClose }: Props) {
   const officers = useGameStore((s) => s.officers);
@@ -97,7 +98,7 @@ export function EncyclopediaModal({ onClose }: Props) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
         <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1.5rem', borderBottom: '1px solid #4a3520' }}>
-          {(['officers', 'items', 'skills', 'traits', 'events', 'provinces'] as Section[]).map((s) => (
+          {(['officers', 'codex', 'items', 'skills', 'traits', 'events', 'provinces'] as Section[]).map((s) => (
             <button
               key={s}
               onClick={() => setSection(s)}
@@ -112,6 +113,7 @@ export function EncyclopediaModal({ onClose }: Props) {
               }}
             >
               {s === 'officers' ? '武将' :
+                s === 'codex' ? '圖鑑' :
                 s === 'items' ? '名品' :
                 s === 'skills' ? '特技' :
                 s === 'traits' ? '性格' :
@@ -144,6 +146,62 @@ export function EncyclopediaModal({ onClose }: Props) {
               </div>
             );
           })}
+          {section === 'codex' && (() => {
+            /* 圖鑑 — the cross-campaign album: 灰 never met, 銅 seen on the
+               stage, 金 carried your colors, ☠ died at your order. */
+            const codex = loadCodex();
+            const seen = new Set(codex.seen);
+            const recruited = new Set(codex.recruited);
+            const slain = new Set(codex.slain);
+            const roster = Object.values(officers).filter((o) => !o.id.startsWith('commoner-') && !o.id.startsWith('custom-'));
+            const q = search.trim();
+            const shown = roster.filter((o) => !q || o.name.zh.includes(q) || o.name.en.toLowerCase().includes(q.toLowerCase()));
+            return (
+              <>
+                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: '0.8rem' }}>
+                  {CODEX_SETS.map((set) => {
+                    const p = codexSetProgress(codex, set.id);
+                    const done = p.have === p.total;
+                    return (
+                      <div key={set.id} style={{
+                        border: `1px solid ${done ? '#d4a84a' : '#4a3520'}`,
+                        background: done ? 'rgba(212,168,74,0.12)' : 'transparent',
+                        padding: '0.3rem 0.7rem', fontSize: '0.78rem',
+                        color: done ? '#f0d98a' : '#8a7050',
+                      }}>
+                        {done ? '✦ ' : ''}{set.zh} {p.have}/{p.total}
+                      </div>
+                    );
+                  })}
+                  <div style={{ fontSize: '0.72rem', color: '#8a7050', alignSelf: 'center' }}>
+                    遇 {codex.seen.length} · 仕 {codex.recruited.length} · 斬 {codex.slain.length}(跨戰役累積)
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 6 }}>
+                  {shown.map((o) => {
+                    const isRec = recruited.has(o.id);
+                    const isSeen = seen.has(o.id);
+                    const isSlain = slain.has(o.id);
+                    return (
+                      <div key={o.id} style={{
+                        border: `1px solid ${isRec ? '#d4a84a' : isSeen ? '#7a6244' : '#2a2014'}`,
+                        background: isRec ? 'rgba(212,168,74,0.10)' : '#15100a',
+                        padding: '0.35rem 0.4rem', textAlign: 'center',
+                        opacity: isSeen ? 1 : 0.45,
+                      }}>
+                        <div style={{ fontSize: '0.85rem', color: isRec ? '#f0d98a' : isSeen ? '#c0a878' : '#5a4a38' }}>
+                          {isSeen ? o.name.zh : '???'}{isSlain ? ' ☠' : ''}
+                        </div>
+                        <div style={{ fontSize: '0.6rem', color: '#6a5a45' }}>
+                          {isRec ? '仕' : isSeen ? '遇' : '未遇'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
           {section === 'items' && (matches as typeof ITEMS).map((it) => (
             <div key={it.id} style={card()}>
               <div style={{ fontSize: '1rem', color: '#d4a84a' }}>
