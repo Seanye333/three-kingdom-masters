@@ -54,6 +54,7 @@ import { canPromoteToRank } from '../systems/imperialEffects';
 import { COMMAND_DEFS } from '../systems/commands';
 import { planMassMuster } from '../systems/muster';
 import { planGovernorCommand } from '../systems/governor';
+import { planLegionOrders, type Legion } from '../systems/legion';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -203,6 +204,9 @@ interface GameStore extends GameState {
   ) => { ok: boolean; reason?: string };
   /** 委任太守 — set (or clear with null) a city's standing governor. */
   delegateCity: (cityId: EntityId, officerId: EntityId | null) => void;
+  /** 軍團都督 — form a legion (id auto-assigned). */
+  createLegion: (legion: Omit<Legion, 'id'>) => void;
+  disbandLegion: (legionId: string) => void;
   /** 全軍集結令 — every player city that can spare a column marches ~70%
    *  of its garrison toward the target under its best idle officer
    *  (adjacent cities directly, the hinterland one hop along an in-realm
@@ -948,6 +952,15 @@ export const useGameStore = create<GameStore>()(
         return { ok: true };
       },
 
+      createLegion: (legion) => {
+        const id = `legion-${(get().legions ?? []).reduce((m, l) => Math.max(m, Number(l.id.split('-')[1] ?? 0)), 0) + 1}`;
+        set({ legions: [...(get().legions ?? []), { ...legion, id }] });
+      },
+
+      disbandLegion: (legionId) => {
+        set({ legions: (get().legions ?? []).filter((l) => l.id !== legionId) });
+      },
+
       delegateCity: (cityId, officerId) => {
         const next = { ...get().cityDelegations };
         if (officerId) next[cityId] = officerId;
@@ -1235,6 +1248,25 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             if (s0.pendingTrainings.some((t) => t.officerId === govId)) continue;
             const type = planGovernorCommand(c, gov);
             if (type) get().issueCommand(cid, type, govId);
+          }
+          // 軍團都督 — each legion files its marshal's orders the same way.
+          for (const legion of s0.legions ?? []) {
+            const cur = get();
+            const busy = new Set<EntityId>([
+              ...Object.keys(cur.pendingCommands),
+              ...cur.pendingTrainings.map((t) => t.officerId),
+            ]);
+            const orders = planLegionOrders({
+              cities: cur.cities,
+              officers: cur.officers,
+              busyOfficerIds: busy,
+              playerForceId: s0.playerForceId ?? '',
+              legion,
+            });
+            for (const o of orders) {
+              if (o.kind === 'march') get().issueMarch(o.cityId, o.toCityId, o.officerId, o.troops);
+              else get().issueCommand(o.cityId, 'recruit-troops', o.officerId);
+            }
           }
         }
         const state = get();
@@ -5678,6 +5710,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         fogOfWar: state.fogOfWar,
         espionageReveals: state.espionageReveals,
         cityDelegations: state.cityDelegations,
+        legions: state.legions,
         commandTemplates: state.commandTemplates,
         autoBuildQueues: state.autoBuildQueues,
         dialogueFollowups: state.dialogueFollowups,

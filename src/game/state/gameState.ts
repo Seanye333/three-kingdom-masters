@@ -205,6 +205,9 @@ export interface GameState {
   /** 委任太守 — cityId → governor officerId. A delegated city auto-issues
    *  its governor's internal command at the start of every tick. */
   cityDelegations: Record<EntityId, EntityId>;
+  /** 軍團都督 — player legions: a marshal, a city cluster, a directive.
+   *  Their orders auto-issue at the start of every tick. */
+  legions: import('../systems/legion').Legion[];
   /** Saved command templates the player can re-apply each season. */
   commandTemplates: Array<{
     id: EntityId;
@@ -347,6 +350,7 @@ export const EMPTY_STATE: GameState = {
   fogOfWar: false,
   espionageReveals: {},
   cityDelegations: {},
+  legions: [],
   commandTemplates: [],
   autoBuildQueues: {},
   pendingDialogue: null,
@@ -515,6 +519,7 @@ export function loadScenario(
     pendingEspionage: [],
     espionageReveals: {},
     cityDelegations: {},
+    legions: [],
     edictHistory: [],
     edictCooldowns: {},
     tribeState: createInitialTribeState(),
