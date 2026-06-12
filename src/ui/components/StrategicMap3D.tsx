@@ -1,6 +1,6 @@
 import { Suspense, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Html, OrbitControls, Instances, Instance } from '@react-three/drei';
+import { Html, OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
 import { positionAlongRoute, marchDestCoords, terrainRoute, generateTerritories } from '../../game/data/territories';
@@ -3204,6 +3204,52 @@ function buildHexWorldTiles(): HexWorldTile[] {
   return HEXWORLD_CACHE!;
 }
 
+/** The hex quilt as one InstancedMesh — matrices are written once (tiles never
+ *  move), and ownership/season changes only rewrite the instanceColor buffer,
+ *  so a conquest recolours ~22k prisms without touching the scene graph. */
+function HexQuilt({ tiles, colors }: { tiles: HexWorldTile[]; colors: string[] }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const pos = new THREE.Vector3();
+    const scl = new THREE.Vector3();
+    tiles.forEach((t, i) => {
+      pos.set(t.x, (t.topY - 0.3) / 2, t.z);
+      scl.set(HEXW_R * 0.995, t.topY + 0.3, HEXW_R * 0.995);
+      mesh.setMatrixAt(i, m.compose(pos, q, scl));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [tiles]);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const c = new THREE.Color();
+    for (let i = 0; i < colors.length; i++) mesh.setColorAt(i, c.set(colors[i]));
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [colors]);
+
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[undefined, undefined, Math.max(1, tiles.length)]}
+      receiveShadow
+      frustumCulled={false}
+    >
+      {/* thetaStart π/6 points the hex vertices along ±x — the flat-top
+          orientation our 1.5R/√3R column layout tessellates with. Without
+          it the hexes sit 30° off and leave diagonal gaps. */}
+      <cylinderGeometry args={[1, 1, 1, 6, 1, false, Math.PI / 6]} />
+      <meshStandardMaterial roughness={0.93} metalness={0.02} />
+    </instancedMesh>
+  );
+}
+
 function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundClick }: {
   winter: boolean;
   cities: Record<string, City>;
@@ -3364,26 +3410,6 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
     return `#${col.getHexString()}`;
   }), [tiles, winter, tileOwner, tileBorder, tileProvBorder, roadTiles, forces]);
 
-  // ~22k <Instance> children are expensive to re-create — keep the JSX in a
-  // memo so hover-state changes below never touch it.
-  const instanced = useMemo(() => (
-    <Instances limit={Math.max(1, tiles.length)} receiveShadow frustumCulled={false}>
-      {/* thetaStart π/6 points the hex vertices along ±x — the flat-top
-          orientation our 1.5R/√3R column layout tessellates with. Without
-          it the hexes sit 30° off and leave diagonal gaps. */}
-      <cylinderGeometry args={[1, 1, 1, 6, 1, false, Math.PI / 6]} />
-      <meshStandardMaterial roughness={0.93} metalness={0.02} />
-      {tiles.map((t, i) => (
-        <Instance
-          key={i}
-          position={[t.x, (t.topY - 0.3) / 2, t.z]}
-          scale={[HEXW_R * 0.995, t.topY + 0.3, HEXW_R * 0.995]}
-          color={colors[i]}
-        />
-      ))}
-    </Instances>
-  ), [tiles, colors]);
-
   // 地塊資訊 — hover (desktop) names the tile: terrain, road, owning realm.
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const hoverTile = hoverIdx != null ? tiles[hoverIdx] : null;
@@ -3426,7 +3452,7 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
         <planeGeometry args={[MAP_W, MAP_D]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      {instanced}
+      <HexQuilt tiles={tiles} colors={colors} />
       {hoverTile && (() => {
         const ownerId = tileOwner[hoverIdx!];
         const ownerName = ownerId ? forces[ownerId]?.name.zh : null;
