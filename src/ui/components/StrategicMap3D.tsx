@@ -22,6 +22,8 @@ import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStrata
 import { canDuel } from '../../game/systems/duel';
 import { personalTacticsForUnit } from '../../game/systems/personalTactics';
 import { DuelGameModal } from './DuelGameModal';
+import { MarchPicker } from './MarchPicker';
+import { OfficerPicker } from './OfficerPicker';
 import { playSfx } from '../../game/systems/sound';
 import { STRATAGEMS } from '../../game/data';
 import type { Officer, StratagemId } from '../../game/types';
@@ -3574,11 +3576,14 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
   );
 }
 
-function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
+function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
   onPortClick: (portId: string) => void;
   onFortClick: (fortId: string) => void;
+  /** 快捷輪盤 — open the march/recruit picker for a city (DOM modals live
+   *  in the outer shell, outside the Canvas). */
+  onQuickAction: (kind: 'march' | 'recruit', cityId: string) => void;
   /** 原地指揮 — in-place battle commanding state, owned by the outer shell. */
   dioSelectedId: string | null;
   dioMode: 'move' | 'attack';
@@ -3596,6 +3601,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
   const selectedCityId = useGameStore((s) => s.selectedCityId);
   const selectCity = useGameStore((s) => s.selectCity);
   const openCityMap = useGameStore((s) => s.openCityMap);
+  const massMuster = useGameStore((s) => s.massMuster);
   const pendingCommands = useGameStore((s) => s.pendingCommands);
   const selectedArmyId3D = useGameStore((s) => s.selectedArmyId);
   const selectArmy = useGameStore((s) => s.selectArmy);
@@ -3861,6 +3867,27 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
         );
       })}
 
+      {/* 城市快捷輪盤 — quick actions fanned around the selected city. */}
+      {selectedCityId && cities[selectedCityId] && (() => {
+        const c = cities[selectedCityId]!;
+        const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
+        if (battleSitePx && Math.hypot(px - battleSitePx.x, py - battleSitePx.y) < 50) return null;
+        const [wx, wz] = pxToWorld(px, py);
+        const y = cityElevation(wx, wz);
+        return (
+          <Html position={[wx, y + 0.55, wz]} center distanceFactor={9} zIndexRange={[44, 34]}>
+            <CityQuickRing
+              key={c.id}
+              own={c.ownerForceId === playerForceId}
+              onEnter={() => openCityMap()}
+              onMarch={() => onQuickAction('march', c.id)}
+              onRecruit={() => onQuickAction('recruit', c.id)}
+              onMuster={() => massMuster(c.id)}
+            />
+          </Html>
+        );
+      })()}
+
       {/* 行程測距 — selected → hovered march time, in the same 旬 the end-turn
           button counts in. */}
       {selectedCityId && hoverCityId && hoverCityId !== selectedCityId
@@ -3884,6 +3911,88 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
         );
       })()}
     </>
+  );
+}
+
+/* ─── 城市快捷輪盤 — radial quick actions on the selected city ──────────
+   Own city: 進城 / 出陣 / 徵兵 fan out around the token — the three things
+   you actually do every turn, one tap instead of a trip through the city
+   screen. Hostile city: a single 全軍集結 button (armed by a first tap so
+   a stray click can't commit the whole realm to war). */
+function CityQuickRing({ own, onEnter, onMarch, onRecruit, onMuster }: {
+  own: boolean;
+  onEnter: () => void;
+  onMarch: () => void;
+  onRecruit: () => void;
+  onMuster: () => number;
+}) {
+  const [armed, setArmed] = useState(false);
+  const [sent, setSent] = useState<number | null>(null);
+  const t = useT();
+
+  const radial = (emoji: string, zh: string, en: string, deg: number, onClick: () => void) => {
+    const rad = (deg * Math.PI) / 180;
+    const R = 54;
+    return (
+      <button
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        style={{
+          position: 'absolute',
+          left: Math.cos(rad) * R - 23,
+          top: -Math.sin(rad) * R - 23,
+          width: 46, height: 46, borderRadius: '50%',
+          background: 'rgba(20,14,8,0.92)', border: '1px solid #d4a84a',
+          color: '#f0e0b0', cursor: 'pointer', fontFamily: 'Songti SC, serif',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 1, padding: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.55)',
+        }}
+        title={t(zh, en)}
+      >
+        <span style={{ fontSize: 15, lineHeight: 1 }}>{emoji}</span>
+        <span style={{ fontSize: 9, letterSpacing: 1 }}>{t(zh, en)}</span>
+      </button>
+    );
+  };
+
+  if (!own) {
+    return (
+      <div style={{ position: 'relative', width: 0, height: 0 }}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (sent != null) return;
+            if (!armed) {
+              setArmed(true);
+              window.setTimeout(() => setArmed(false), 2600);
+              return;
+            }
+            setArmed(false);
+            setSent(onMuster());
+            window.setTimeout(() => setSent(null), 2600);
+          }}
+          style={{
+            position: 'absolute', left: -62, top: -76, width: 124,
+            background: armed ? 'rgba(120,30,20,0.94)' : 'rgba(20,14,8,0.92)',
+            border: `1px solid ${armed ? '#ff6a50' : '#b8584a'}`,
+            color: armed ? '#ffd0c0' : '#e8b0a0', cursor: 'pointer',
+            fontFamily: 'Songti SC, serif', fontSize: 12, letterSpacing: 2,
+            padding: '0.32rem 0', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.55)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {sent != null
+            ? (sent > 0 ? t(`🚩 ${sent} 路兵馬已發`, `🚩 ${sent} columns marching`) : t('無兵可發', 'No troops to send'))
+            : armed ? t('確定集結?', 'Confirm muster?') : t('🚩 全軍集結', '🚩 Mass muster')}
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div style={{ position: 'relative', width: 0, height: 0 }}>
+      {radial('⛩', '進城', 'Enter', 150, onEnter)}
+      {radial('⚔', '出陣', 'March', 90, onMarch)}
+      {radial('👥', '徵兵', 'Recruit', 30, onRecruit)}
+    </div>
   );
 }
 
@@ -4074,6 +4183,8 @@ export function StrategicMap3D() {
   // runs in the same DuelGameModal the fullscreen uses.
   const [dioDuelArm, setDioDuelArm] = useState(false);
   const [worldDuel, setWorldDuel] = useState<{ me: Officer; foe: Officer } | null>(null);
+  // 快捷輪盤 — which DOM picker (march/recruit) the ring asked for.
+  const [quickPick, setQuickPick] = useState<{ kind: 'march' | 'recruit'; cityId: string } | null>(null);
   const [dioArcs, setDioArcs] = useState<Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>>([]);
   const dioSelectedId = worldBattle && dioPick && dioPick.bid === worldBattle.id
     && worldBattle.units.some((u) => u.id === dioPick.uid) ? dioPick.uid : null;
@@ -4289,6 +4400,7 @@ export function StrategicMap3D() {
             mapStyle={mapStyle}
             onPortClick={setSelectedPortId}
             onFortClick={setSelectedFortId}
+            onQuickAction={(kind, cityId) => setQuickPick({ kind, cityId })}
             dioSelectedId={worldBattleMinimized ? dioSelectedId : null}
             dioMode={dioMode}
             dioCast={worldBattleMinimized ? dioCast : null}
@@ -4319,6 +4431,15 @@ export function StrategicMap3D() {
           )}
         </Suspense>
       </Canvas>
+
+      {/* 快捷輪盤的 DOM 端 — the pickers the ring opens (ordinary modals,
+          they live outside the Canvas). */}
+      {quickPick?.kind === 'march' && (
+        <MarchPicker cityId={quickPick.cityId} onClose={() => setQuickPick(null)} />
+      )}
+      {quickPick?.kind === 'recruit' && (
+        <OfficerPicker cityId={quickPick.cityId} commandType="recruit-troops" onClose={() => setQuickPick(null)} />
+      )}
 
       {/* 原地指揮 — command the minimized battle right on the map: select,
           move, attack, end turn. Deep actions (stratagems/duels) are one ⤢
