@@ -214,6 +214,8 @@ export interface GameState {
   emperorCityId: EntityId | null;
   /** 每日挑戰 — the seed date of the run in progress (null outside one). */
   dailyChallengeDate: string | null;
+  /** 勢力消長 — one power snapshot per season, capped, for the graph. */
+  powerHistory: import('../systems/powerHistory').PowerSnapshot[];
   /** Saved command templates the player can re-apply each season. */
   commandTemplates: Array<{
     id: EntityId;
@@ -359,6 +361,7 @@ export const EMPTY_STATE: GameState = {
   legions: [],
   emperorCityId: 'luoyang',
   dailyChallengeDate: null,
+  powerHistory: [],
   commandTemplates: [],
   autoBuildQueues: {},
   pendingDialogue: null,
@@ -547,6 +550,7 @@ export function loadScenario(
     legions: [],
     emperorCityId: 'luoyang',
     dailyChallengeDate: null,
+    powerHistory: [],
     edictHistory: [],
     edictCooldowns: {},
     tribeState: createInitialTribeState(),

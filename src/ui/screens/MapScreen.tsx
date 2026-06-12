@@ -52,6 +52,7 @@ const LegionsModal = lazy(() => import('../components/LegionsModal').then(m => (
 const AdvisorModal = lazy(() => import('../components/AdvisorModal').then(m => ({ default: m.AdvisorModal })));
 const HistoryBookModal = lazy(() => import('../components/HistoryBookModal').then(m => ({ default: m.HistoryBookModal })));
 const SchemesModal = lazy(() => import('../components/SchemesModal').then(m => ({ default: m.SchemesModal })));
+const PowerGraphModal = lazy(() => import('../components/PowerGraphModal').then(m => ({ default: m.PowerGraphModal })));
 const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
 const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
 const DiplomacyGraphModal = lazy(() => import('../components/DiplomacyGraphModal').then(m => ({ default: m.DiplomacyGraphModal })));
@@ -99,6 +100,7 @@ export function MapScreen() {
   const [showAdvisor, setShowAdvisor] = useState(false);
   const [showHistoryBook, setShowHistoryBook] = useState(false);
   const [showSchemes, setShowSchemes] = useState(false);
+  const [showPowerGraph, setShowPowerGraph] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
@@ -349,6 +351,7 @@ export function MapScreen() {
           title={t('記錄 — 勳功、戰記', 'Records — achievements & stats')}
           items={[
             { label: t('史書', 'Annals'),    onClick: () => setShowHistoryBook(true) },
+            { label: t('大勢', 'Powers'),    onClick: () => setShowPowerGraph(true) },
             { label: t('勳功', 'Achievements'), onClick: () => setShowAch(true) },
             { label: t('戰記', 'Stats'),        onClick: () => setShowCampaignStats(true) },
             { label: t('📜 國史', '📜 Chronicle'), onClick: () => setShowChronicle(true) },
@@ -456,6 +459,7 @@ export function MapScreen() {
         {showAdvisor && <AdvisorModal onClose={() => setShowAdvisor(false)} />}
         {showHistoryBook && <HistoryBookModal onClose={() => setShowHistoryBook(false)} />}
         {showSchemes && <SchemesModal onClose={() => setShowSchemes(false)} />}
+        {showPowerGraph && <PowerGraphModal onClose={() => setShowPowerGraph(false)} />}
       </Suspense>
       {/* Achievement toast — bottom-right when something just unlocked */}
       {recentAchievementUnlocks.length > 0 && (

@@ -61,6 +61,7 @@ import { COMMONER_ARRIVAL_CHANCE, commonerArrivalCity, generateCommonerOfficer }
 import { codexMarkRecruited, codexMarkRecruitedMany, codexMarkSeen, codexMarkSlain } from '../systems/codex';
 import { recordDailyResult } from '../systems/dailyChallenge';
 import { SCHEME_DEFS, schemeOdds, validateScheme, type SchemeId } from '../systems/schemes';
+import { appendPowerHistory, takePowerSnapshot } from '../systems/powerHistory';
 import { pickAdvisor } from '../systems/advisor';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
@@ -3096,6 +3097,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             }
             return log;
           })(),
+          // 勢力消長 — chart point per season.
+          powerHistory: seasonBoundary
+            ? appendPowerHistory(state.powerHistory ?? [], takePowerSnapshot(postCities, result.date.year, result.date.season))
+            : (state.powerHistory ?? []),
           mandate: (() => {
             if (!seasonBoundary) return nextMandate;
             const custodian = emperorCustodian(postCities, state.emperorCityId ?? null);
@@ -5918,6 +5923,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         legions: state.legions,
         emperorCityId: state.emperorCityId,
         dailyChallengeDate: state.dailyChallengeDate,
+        powerHistory: state.powerHistory,
         commandTemplates: state.commandTemplates,
         autoBuildQueues: state.autoBuildQueues,
         dialogueFollowups: state.dialogueFollowups,
