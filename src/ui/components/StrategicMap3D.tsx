@@ -4130,6 +4130,78 @@ function CityQuickRing({ own, onEnter, onMarch, onRecruit, onMuster }: {
   );
 }
 
+/* ─── 城市搜索 — type a name (漢字或拼音), fly there ───────────────────
+   Ninety-odd cities is too many to hunt by eye in the late game. Matches
+   against zh names and the pinyin-ish en names; Enter takes the first
+   match, click takes any. Jumping reuses the locator's camera path and
+   selects the city so its panel opens on arrival. */
+function CitySearchBox({ onJump }: { onJump: (cityId: string, px: number, py: number) => void }) {
+  const cities = useGameStore((s) => s.cities);
+  const forces = useGameStore((s) => s.forces);
+  const [q, setQ] = useState('');
+  const t = useT();
+  const matches = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return [];
+    return Object.values(cities)
+      .filter((c) => c.name.zh.includes(q.trim()) || c.name.en.toLowerCase().includes(needle))
+      .slice(0, 8);
+  }, [cities, q]);
+  const jump = (c: City) => {
+    const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
+    onJump(c.id, px, py);
+    setQ('');
+  };
+  return (
+    <div style={{ position: 'relative', fontFamily: 'Songti SC, serif' }}>
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && matches[0]) jump(matches[0]);
+          if (e.key === 'Escape') setQ('');
+          e.stopPropagation(); // keep typing out of the map hotkeys
+        }}
+        placeholder={t('🔍 尋城(漢字/拼音)', '🔍 Find city')}
+        style={{
+          width: 138, background: 'rgba(20, 14, 8, 0.88)', color: '#e8d9b0',
+          border: '1px solid #5a4530', padding: '0.3rem 0.5rem', outline: 'none',
+          fontFamily: 'inherit', fontSize: '0.75rem',
+        }}
+      />
+      {matches.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, marginTop: 2, minWidth: 170,
+          background: 'rgba(20, 14, 8, 0.96)', border: '1px solid #5a4530',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.6)', zIndex: 30,
+        }}>
+          {matches.map((c) => {
+            const owner = c.ownerForceId ? forces[c.ownerForceId] : null;
+            return (
+              <div
+                key={c.id}
+                onClick={() => jump(c)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', gap: 10, cursor: 'pointer',
+                  padding: '0.3rem 0.55rem', fontSize: '0.78rem', color: '#e8d9b0',
+                  borderBottom: '1px solid #2a2014',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(212,168,74,0.14)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
+              >
+                <span>{c.name.zh} <span style={{ color: '#8a7050', fontSize: '0.68rem' }}>{c.name.en}</span></span>
+                <span style={{ color: owner?.color ?? '#6a6050', fontSize: '0.7rem' }}>
+                  {owner ? owner.name.zh : t('無主', 'free')}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Top-level component ─────────────────────────────────── */
 const OVERLAY_OPTIONS: Array<{ id: OverlayMode; zh: string; en: string }> = [
   { id: 'none',     zh: '關閉', en: 'OFF' },
@@ -4263,6 +4335,7 @@ export function StrategicMap3D() {
   // 迷你導航 — camera view window for the corner minimap + click-to-jump.
   const [navView, setNavView] = useState<{ cx: number; cy: number; span: number } | null>(null);
   const [navJump, setNavJump] = useState<{ px: number; py: number; seq: number } | null>(null);
+  const selectCityOuter = useGameStore((s) => s.selectCity);
   // 天下大勢 snapshot — grab the WebGL canvas as a PNG.
   const mapRootRef = useRef<HTMLDivElement>(null);
   const snapYear = useGameStore((s) => s.date.year);
@@ -4454,6 +4527,14 @@ export function StrategicMap3D() {
         fontFamily: 'Songti SC, serif', fontSize: '0.72rem',
         pointerEvents: 'none',
       }}>{t('拖曳 = 旋轉 · 滾輪 = 縮放 · 右鍵拖曳 = 平移 · 點擊城池檢視', 'drag = rotate · scroll = zoom · right-drag = pan · click city to inspect')}</div>
+
+      {/* 尋城 — search-and-fly, tucked under the controls hint */}
+      <div style={{ position: 'absolute', top: IS_MOBILE ? 12 : 46, right: IS_MOBILE ? 150 : 12, zIndex: 11 }}>
+        <CitySearchBox onJump={(cityId, px, py) => {
+          setNavJump({ px, py, seq: Date.now() });
+          selectCityOuter(cityId);
+        }} />
+      </div>
 
       {/* Overlay mode buttons — bottom-left */}
       <div style={{
