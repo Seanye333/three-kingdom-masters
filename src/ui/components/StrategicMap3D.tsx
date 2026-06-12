@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
 import { citySize } from '../../game/systems/citySize';
-import type { City, Force, HexCoord, Season } from '../../game/types';
+import type { City, Force, HexCoord, Port, Season } from '../../game/types';
 import { FACILITY_DEFS, isHostilePermitted } from '../../game/types';
 // The battle diorama reuses the real battle scene (embedded mode) + its hex
 // coordinate helper, so the fight on the world map IS the fight.
@@ -3313,6 +3313,99 @@ function EventMarks3D({ cities, hidePx, onPick }: {
 const EMPTY_EVENT_MARKS: Array<{ cityId: string; kind: string; text: string }> = [];
 const EMPTY_THREATS: Record<string, { color: string; label: string }> = {};
 
+/* ─── 漕運商船 — junks plying the busiest sea and river lanes ──────────
+   The naval counterpart of the ox-cart caravans: each port-to-port lane
+   (the same straight edges naval marches sail) gets a trade junk if it's
+   among the realm's busiest, ranked by the linked cities' commerce. The
+   junks ping-pong, bob and heel a little; downed ports lose their trade. */
+const SHIP_COUNT = IS_MOBILE ? 3 : 7;
+
+function TradeShips3D({ ports, cities }: {
+  ports: Record<string, Port>;
+  cities: Record<string, City>;
+}) {
+  const routes = useMemo(() => {
+    const seen = new Set<string>();
+    const pairs: Array<{ a: Port; b: Port; score: number }> = [];
+    for (const p of Object.values(ports)) {
+      if (p.hp <= 0) continue;
+      for (const qid of p.connectedPortIds) {
+        const q = ports[qid];
+        if (!q || q.hp <= 0) continue;
+        const key = p.id < qid ? p.id + qid : qid + p.id;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        pairs.push({
+          a: p, b: q,
+          score: (cities[p.linkedCityId]?.commerce ?? 0) + (cities[q.linkedCityId]?.commerce ?? 0),
+        });
+      }
+    }
+    pairs.sort((x, y) => y.score - x.score);
+    const out: Array<{ ax: number; az: number; bx: number; bz: number; total: number; speed: number; phase: number }> = [];
+    for (const { a, b } of pairs.slice(0, SHIP_COUNT)) {
+      const [ax, az] = pxToWorld(...geoToPixel(a.coords.lon, a.coords.lat));
+      const [bx, bz] = pxToWorld(...geoToPixel(b.coords.lon, b.coords.lat));
+      const total = Math.hypot(bx - ax, bz - az);
+      if (total < 0.8) continue;
+      out.push({
+        ax, az, bx, bz, total,
+        speed: 0.18 + ((out.length * 29) % 10) * 0.012,
+        phase: ((out.length * 113) % 100) / 100,
+      });
+    }
+    return out;
+  }, [ports, cities]);
+
+  const refs = useRef<Array<THREE.Group | null>>([]);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    routes.forEach((r, i) => {
+      const g = refs.current[i];
+      if (!g) return;
+      const d2 = ((t * r.speed) / r.total + r.phase) % 2;
+      const back = d2 > 1;
+      const f = back ? 2 - d2 : d2;
+      g.position.set(
+        r.ax + (r.bx - r.ax) * f,
+        0.045 + Math.sin(t * 1.7 + i * 2.1) * 0.012,
+        r.az + (r.bz - r.az) * f,
+      );
+      g.rotation.y = Math.atan2((r.bx - r.ax) * (back ? -1 : 1), (r.bz - r.az) * (back ? -1 : 1));
+      g.rotation.z = Math.sin(t * 1.1 + i) * 0.05; // gentle heel
+    });
+  });
+
+  return (
+    <group>
+      {routes.map((_, i) => (
+        <group key={i} ref={(el) => { refs.current[i] = el; }}>
+          {/* 船身 */}
+          <mesh position={[0, 0.025, 0]} castShadow>
+            <boxGeometry args={[0.11, 0.05, 0.3]} />
+            <meshStandardMaterial color="#6a4a2c" roughness={0.85} />
+          </mesh>
+          {/* 艉樓 */}
+          <mesh position={[0, 0.062, -0.1]}>
+            <boxGeometry args={[0.08, 0.035, 0.08]} />
+            <meshStandardMaterial color="#7d5a36" roughness={0.85} />
+          </mesh>
+          {/* 桅杆 */}
+          <mesh position={[0, 0.14, 0.02]}>
+            <cylinderGeometry args={[0.006, 0.008, 0.2, 6]} />
+            <meshStandardMaterial color="#4a3520" roughness={0.9} />
+          </mesh>
+          {/* 帆 */}
+          <mesh position={[0, 0.15, 0.02]}>
+            <planeGeometry args={[0.15, 0.16]} />
+            <meshStandardMaterial color="#d8c9a0" roughness={0.95} side={THREE.DoubleSide} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 /* ─── 入暮燈火 — at dusk every settlement lights its lamps ─────────────
    Pairs with 晝夜隨旬: the lower half-month's warm twilight gets answered
    by window-lights scattered around each city token, more of them the
@@ -4006,6 +4099,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       <GreatWall3D />
       <DriftingClouds />
       <Caravans3D cities={cities} />
+      <TradeShips3D ports={portsForMarch} cities={cities} />
       {dusk && <DuskCityLights cities={cities} />}
       {/* Province borders are flat ground decals — they'd sink into the
           raised hex prisms, so the quilt view goes without them. */}
