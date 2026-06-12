@@ -51,6 +51,7 @@ import { rollAIWishFlavor } from '../systems/aiWishesFlavor';
 import { appointmentBonusFor, pruneStaleAppointments, traitRefusal, isOnCooldown } from '../systems/appointmentEffects';
 import { canPromoteToRank } from '../systems/imperialEffects';
 import { COMMAND_DEFS } from '../systems/commands';
+import { planMassMuster } from '../systems/muster';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -184,6 +185,11 @@ interface GameStore extends GameState {
     troops: number,
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
+  /** 全軍集結令 — every player city that can spare a column marches ~70%
+   *  of its garrison toward the target under its best idle officer
+   *  (adjacent cities directly, the hinterland one hop along an in-realm
+   *  path). Returns how many columns were dispatched. */
+  massMuster: (targetCityId: EntityId) => number;
   cancelCommand: (cityId: EntityId) => void;
   /** Start training an officer in a new policy. If `mentorOfficerId` is
    *  provided, runs in mentor mode (no academy needed, 0 gold, +1 season).
@@ -913,6 +919,26 @@ export const useGameStore = create<GameStore>()(
           },
         });
         return { ok: true };
+      },
+
+      massMuster: (targetCityId) => {
+        const state = get();
+        if (!state.playerForceId) return 0;
+        const orders = planMassMuster({
+          cities: state.cities,
+          officers: state.officers,
+          pendingCommandOfficerIds: new Set(Object.keys(state.pendingCommands)),
+          trainingOfficerIds: new Set(state.pendingTrainings.map((t) => t.officerId)),
+          playerForceId: state.playerForceId,
+          targetCityId,
+        });
+        // Execute through the ordinary march so every validation (diplomacy,
+        // gold, naval reach) still applies; a refused column just stays home.
+        let dispatched = 0;
+        for (const o of orders) {
+          if (get().issueMarch(o.cityId, o.marchTo, o.officerId, o.troops).ok) dispatched++;
+        }
+        return dispatched;
       },
 
       cancelCommand: (idOrOfficerId) => {
