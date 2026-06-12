@@ -3336,6 +3336,7 @@ function EventMarks3D({ cities, hidePx, visibleCityIds, onPick }: {
 const EMPTY_EVENT_MARKS: Array<{ cityId: string; kind: string; text: string }> = [];
 const EMPTY_THREATS: Record<string, { color: string; label: string }> = {};
 const FOG_OVERLAY = { color: '#4a4a48', label: '?' };
+const EMPTY_REVEALS: Record<string, number> = {};
 
 /* ─── 漕運商船 — junks plying the busiest sea and river lanes ──────────
    The naval counterpart of the ox-cart caravans: each port-to-port lane
@@ -4066,9 +4067,12 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
   // 戰爭迷霧 — optional intel limit: what your cities and columns can see.
   // View-layer only (the AI plays the same); beacons stay live regardless.
   const fogOfWarOn = useGameStore((s) => s.fogOfWar);
+  const espReveals = useGameStore((s) => s.espionageReveals ?? EMPTY_REVEALS);
   const fog = useMemo(
-    () => (fogOfWarOn && playerForceId ? computeFog(cities, armiesState, playerForceId) : null),
-    [fogOfWarOn, cities, armiesState, playerForceId],
+    () => (fogOfWarOn && playerForceId
+      ? computeFog(cities, armiesState, playerForceId, Object.keys(espReveals))
+      : null),
+    [fogOfWarOn, cities, armiesState, playerForceId, espReveals],
   );
   // Hostile columns out of sight simply don't render — filter the command
   // map MarchingArmies feeds on (the army layer mirrors it 1:1 by officer).

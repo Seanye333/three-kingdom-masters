@@ -25,14 +25,15 @@ export function LocatorMap({
   const armies = useGameStore((s) => s.armies);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const fogOfWar = useGameStore((s) => s.fogOfWar);
+  const espionageReveals = useGameStore((s) => s.espionageReveals);
   const t = useT();
 
   const visibleArmies = useMemo(() => {
     const all = Object.values(armies);
     if (!fogOfWar || !playerForceId) return all;
-    const fog = computeFog(cities, armies, playerForceId);
+    const fog = computeFog(cities, armies, playerForceId, Object.keys(espionageReveals ?? {}));
     return all.filter((a) => a.forceId === playerForceId || fog.isVisiblePx(a.x, a.y));
-  }, [armies, cities, fogOfWar, playerForceId]);
+  }, [armies, cities, fogOfWar, playerForceId, espionageReveals]);
 
   const height = width * (MAP_H / MAP_W);
   const sx = width / MAP_W;

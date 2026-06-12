@@ -196,6 +196,9 @@ export interface GameState {
   deeds: Record<EntityId, import('../types').HeroicDeeds>;
   /** Fog of war on (player-only flag, cosmetic). */
   fogOfWar: boolean;
+  /** 細作開眼 — cities lit by successful espionage, ticks of intel left.
+   *  Decremented each half-month; consumed by the fog-of-war view. */
+  espionageReveals: Record<EntityId, number>;
   /** Saved command templates the player can re-apply each season. */
   commandTemplates: Array<{
     id: EntityId;
@@ -336,6 +339,7 @@ export const EMPTY_STATE: GameState = {
   currentBattleSnapshots: [],
   deeds: {},
   fogOfWar: false,
+  espionageReveals: {},
   commandTemplates: [],
   autoBuildQueues: {},
   pendingDialogue: null,
@@ -502,6 +506,7 @@ export function loadScenario(
     pendingEvent: null,
     tacticalBattle: null,
     pendingEspionage: [],
+    espionageReveals: {},
     edictHistory: [],
     edictCooldowns: {},
     tribeState: createInitialTribeState(),

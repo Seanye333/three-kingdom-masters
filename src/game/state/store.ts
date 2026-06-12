@@ -1401,6 +1401,19 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           .filter((r) => r.success)
           .map((r) => r.op.agentOfficerId);
 
+        // 細作開眼 — each successful op lights its target city for a season
+        // of half-month ticks; older intel fades one tick at a time.
+        const espionageRevealsNext: Record<EntityId, number> = {};
+        for (const [cid, ticks] of Object.entries(state.espionageReveals ?? {})) {
+          if (ticks > 1) espionageRevealsNext[cid] = ticks - 1;
+        }
+        for (const r of espResult.results) {
+          if (!r.success) continue;
+          const cid = r.op.targetCityId
+            ?? (r.op.targetOfficerId ? espResult.officers[r.op.targetOfficerId]?.locationCityId : null);
+          if (cid) espionageRevealsNext[cid] = 6;
+        }
+
         // Resolve tribe raids.
         const tribeResult = resolveTribeRaids({
           state: state.tribeState,
@@ -2697,6 +2710,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           pendingCommands: carriedCommands,
           pendingTrainings: nextTrainings,
           lastReport: result.report,
+          espionageReveals: espionageRevealsNext,
           // 事件地標 — settle the season's per-city calamities/windfalls into
           // map marks that outlive the dismissed report (replaced each tick).
           cityEventMarks: (() => {
@@ -5538,6 +5552,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         battleReplays: state.battleReplays.map((r) => ({ ...r, snapshots: [] })),
         deeds: state.deeds,
         fogOfWar: state.fogOfWar,
+        espionageReveals: state.espionageReveals,
         commandTemplates: state.commandTemplates,
         autoBuildQueues: state.autoBuildQueues,
         dialogueFollowups: state.dialogueFollowups,

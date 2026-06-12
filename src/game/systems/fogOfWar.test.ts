@@ -61,6 +61,12 @@ describe('computeFog', () => {
     expect(fog.isVisiblePx(880 + FOG_ARMY_RADIUS - 5, 640)).toBe(true);
   });
 
+  it('細作開眼 — an espionage reveal lights the city and its surroundings', () => {
+    const fog = computeFog(world(), {}, 'wei', ['faraway']);
+    expect(fog.visibleCityIds.has('faraway')).toBe(true);
+    expect(fog.isVisiblePx(900 + FOG_CITY_RADIUS - 5, 650)).toBe(true);
+  });
+
   it("enemy columns don't scout for you", () => {
     const armies = {
       theirs: mkArmy({ id: 'theirs', forceId: 'wu', x: 880, y: 640 }),

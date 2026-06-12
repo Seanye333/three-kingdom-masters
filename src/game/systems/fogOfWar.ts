@@ -34,6 +34,9 @@ export function computeFog(
   cities: Record<EntityId, City>,
   armies: Record<EntityId, Army>,
   playerForceId: EntityId,
+  /** 細作開眼 — cities your agents have lit up (espionage reveals);
+   *  they see like an own city while the intel stays fresh. */
+  revealedCityIds?: Iterable<EntityId>,
 ): FogView {
   const ownCities = Object.values(cities).filter((c) => c.ownerForceId === playerForceId);
   const ownArmies = Object.values(armies).filter((a) => a.forceId === playerForceId);
@@ -43,6 +46,12 @@ export function computeFog(
   for (const c of ownCities) {
     visibleCityIds.add(c.id);
     for (const adj of c.adjacentCityIds ?? []) visibleCityIds.add(adj);
+  }
+  for (const cid of revealedCityIds ?? []) {
+    const c = cities[cid];
+    if (!c) continue;
+    visibleCityIds.add(cid);
+    ownCityPts.push(cityPos(c)); // the spy ring watches the surroundings too
   }
   for (const c of Object.values(cities)) {
     if (visibleCityIds.has(c.id)) continue;
