@@ -5,6 +5,7 @@ import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
 import { CustomOfficerCreator } from '../components/CustomOfficerCreator';
+import { InstallPrompt } from '../components/InstallPrompt';
 import { ItemsBrowser } from '../components/ItemsBrowser';
 import { TacticsModal } from '../components/TacticsModal';
 import { PoliciesModal } from '../components/PoliciesModal';
@@ -194,6 +195,7 @@ export function TitleScreen() {
 
   return (
     <div className={styles.root}>
+      <InstallPrompt />
       <header className={styles.header}>
         <h1 className={styles.title}>
           {lang !== 'en' && <span className={styles.titleZh}>三國志</span>}
