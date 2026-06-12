@@ -13,7 +13,7 @@ import { useGameStore } from '../../game/state/store';
 import { PROVINCE_BY_CITY } from '../../game/data';
 import { citySize } from '../../game/systems/citySize';
 import type { City, Force, HexCoord, Season } from '../../game/types';
-import { FACILITY_DEFS } from '../../game/types';
+import { FACILITY_DEFS, isHostilePermitted } from '../../game/types';
 // The battle diorama reuses the real battle scene (embedded mode) + its hex
 // coordinate helper, so the fight on the world map IS the fight.
 import { BattleScene, hexWorld as battleHexWorld, stratagemFxKind, FX_DURATION, SIGNATURE_FLAVOR } from '../screens/TacticalBattleScreen3D';
@@ -40,7 +40,7 @@ import { useT } from '../i18n';
 const IS_MOBILE = typeof window !== 'undefined'
   && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
 
-type OverlayMode = 'none' | 'gold' | 'food' | 'troops' | 'loyalty' | 'province' | 'supply' | 'diplomacy';
+type OverlayMode = 'none' | 'gold' | 'food' | 'troops' | 'loyalty' | 'province' | 'supply' | 'diplomacy' | 'threat';
 
 const PROVINCE_COLOR: Record<string, string> = {
   sili: '#d4a84a', yu: '#c19a3b', ji: '#3a5a8a', qing: '#5a8a8a',
@@ -2249,7 +2249,7 @@ function overlayForCity(
   mode: OverlayMode,
   maxes: { gold: number; food: number; troops: number },
 ): { color: string; label: string } | null {
-  if (mode === 'none' || mode === 'supply' || mode === 'diplomacy') return null; // these draw their own lines
+  if (mode === 'none' || mode === 'supply' || mode === 'diplomacy' || mode === 'threat') return null; // these draw their own
   if (mode === 'province') {
     const pid = PROVINCE_BY_CITY[city.id];
     const color = pid ? (PROVINCE_COLOR[pid] ?? '#5a4530') : '#5a4530';
@@ -3311,6 +3311,7 @@ function EventMarks3D({ cities, hidePx, onPick }: {
   );
 }
 const EMPTY_EVENT_MARKS: Array<{ cityId: string; kind: string; text: string }> = [];
+const EMPTY_THREATS: Record<string, { color: string; label: string }> = {};
 
 /* ─── 入暮燈火 — at dusk every settlement lights its lamps ─────────────
    Pairs with 晝夜隨旬: the lower half-month's warm twilight gets answered
@@ -3906,6 +3907,37 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
     };
   }, [cities]);
 
+  // 威脅熱度 — per player city: hostile columns already marching at it
+  // (full weight, scarier the closer) + hostile garrisons next door (they
+  // could). Coloured by threat-to-garrison ratio: green can hold, red
+  // cannot. Allies and pact partners don't count — they may not attack.
+  const diplomacyScene = useGameStore((s) => s.diplomacy);
+  const threatOverlays = useMemo(() => {
+    if (overlayMode !== 'threat' || !playerForceId) return EMPTY_THREATS;
+    const hostileForce = (fid: string | null | undefined) =>
+      !!fid && fid !== playerForceId && isHostilePermitted(diplomacyScene, fid, playerForceId);
+    const out: Record<string, { color: string; label: string }> = {};
+    for (const city of Object.values(cities)) {
+      if (city.ownerForceId !== playerForceId) continue;
+      let inbound = 0;
+      for (const a of Object.values(armiesState)) {
+        if (!hostileForce(a.forceId)) continue;
+        if (a.targetCityId === city.id && !a.holding) inbound += a.troops * (0.7 + 0.3 * a.progress);
+      }
+      for (const adjId of city.adjacentCityIds ?? []) {
+        const nb = cities[adjId];
+        if (nb && hostileForce(nb.ownerForceId)) inbound += nb.troops * 0.45;
+      }
+      const ratio = Math.min(1, inbound / Math.max(1, city.troops));
+      const col = new THREE.Color('#3f9a4d').lerp(new THREE.Color('#cc2a1e'), ratio);
+      out[city.id] = {
+        color: `#${col.getHexString()}`,
+        label: inbound >= 1000 ? `${Math.round(inbound / 1000)}k` : inbound > 0 ? `${Math.round(inbound)}` : '安',
+      };
+    }
+    return out;
+  }, [overlayMode, cities, armiesState, diplomacyScene, playerForceId]);
+
   return (
     <>
       {/* Distance fog — color follows season; far value pushed past max
@@ -4084,7 +4116,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
               isCapital={capitalCityIds.has(city.id)}
               isSelected={selectedCityId === city.id}
               terrainY={terrainY}
-              overlay={overlayForCity(city, overlayMode, maxes)}
+              overlay={overlayMode === 'threat' ? (threatOverlays[city.id] ?? null) : overlayForCity(city, overlayMode, maxes)}
               onClick={() => {
                 // RTS-style: with an army selected, clicking a city re-routes
                 // the column there (the 2D map used to own this interaction).
@@ -4312,6 +4344,7 @@ const OVERLAY_OPTIONS: Array<{ id: OverlayMode; zh: string; en: string }> = [
   { id: 'province', zh: '州郡', en: 'PROVINCE' },
   { id: 'supply',   zh: '糧道', en: 'SUPPLY' },
   { id: 'diplomacy', zh: '邦交', en: 'TIES' },
+  { id: 'threat',   zh: '威脅', en: 'THREAT' },
 ];
 
 const WEATHER_ZH: Record<WeatherKind, string> = {
