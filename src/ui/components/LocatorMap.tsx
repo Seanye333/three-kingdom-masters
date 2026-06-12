@@ -20,6 +20,7 @@ export function LocatorMap({
 }) {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
+  const armies = useGameStore((s) => s.armies);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const t = useT();
 
@@ -64,6 +65,28 @@ export function LocatorMap({
               r={mine ? 1.8 : 1.3}
               fill={owner?.color ?? '#6a6050'}
               opacity={mine ? 1 : 0.6}
+            />
+          );
+        })}
+
+        {/* Marching columns — diamonds so they read apart from city dots;
+            hostile columns get a red ring (the thing you scan for). */}
+        {Object.values(armies).map((a) => {
+          const force = forces[a.forceId];
+          const hostile = a.forceId !== playerForceId;
+          const x = a.x * sx;
+          const y = a.y * sy;
+          return (
+            <rect
+              key={`army-${a.id}`}
+              x={x - 1.4}
+              y={y - 1.4}
+              width={2.8}
+              height={2.8}
+              transform={`rotate(45, ${x}, ${y})`}
+              fill={force?.color ?? '#9a8a6a'}
+              stroke={hostile ? '#ff5040' : '#f0e0b0'}
+              strokeWidth={0.7}
             />
           );
         })}
