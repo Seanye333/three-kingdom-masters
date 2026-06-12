@@ -3260,25 +3260,51 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
   // 領土歸屬 — each land hex takes its nearest territory centroid's owner
   // (override ?? parent city's lord), the SAME resolution the painted
   // territory layer uses, so both map styles always agree on borders.
-  const tileOwner = useMemo(() => {
+  const { tileOwner, tileProvince } = useMemo(() => {
     const seeds = generateTerritories(Object.values(cities)).map((t) => ({
       x: t.coords.x,
       y: t.coords.y,
       owner: territoryOwnership[t.id] ?? cities[t.parentCityId]?.ownerForceId ?? null,
+      province: PROVINCE_BY_CITY[t.parentCityId] ?? null,
     }));
-    return tiles.map((t) => {
-      if (t.kind === 'river' || t.kind === 'lake') return null; // water stays water
+    const owners: Array<string | null> = [];
+    const provinces: Array<string | null> = [];
+    for (const t of tiles) {
+      if (t.kind === 'river' || t.kind === 'lake') { owners.push(null); provinces.push(null); continue; }
       const px = (t.x + MAP_W / 2) / PIXEL_TO_WORLD;
       const py = (t.z + MAP_D / 2) / PIXEL_TO_WORLD;
       let best: string | null = null;
+      let bestProv: string | null = null;
       let bestD = Infinity;
       for (const s of seeds) {
         const d = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py);
-        if (d < bestD) { bestD = d; best = s.owner; }
+        if (d < bestD) { bestD = d; best = s.owner; bestProv = s.province; }
       }
-      return best;
-    });
+      owners.push(best);
+      provinces.push(bestProv);
+    }
+    return { tileOwner: owners, tileProvince: provinces };
   }, [tiles, cities, territoryOwnership]);
+
+  // 州界 — province seams (decals sink into the prisms, so the quilt carves
+  // its own): a land tile whose neighbour belongs to a different province
+  // takes a subtle charcoal seam (realm borders win when both apply).
+  const tileProvBorder = useMemo(() => {
+    const isWater = (k: string) => k === 'river' || k === 'lake';
+    return tiles.map((t, i) => {
+      if (isWater(t.kind) || !tileProvince[i]) return false;
+      const nbs = t.c & 1
+        ? [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, 1], [1, 1]]
+        : [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1]];
+      for (const [dc, dr] of nbs) {
+        const j = tileIndex.get(`${t.c + dc},${t.r + dr}`);
+        if (j === undefined) continue;
+        if (isWater(tiles[j].kind)) continue;
+        if (tileProvince[j] && tileProvince[j] !== tileProvince[i]) return true;
+      }
+      return false;
+    });
+  }, [tiles, tileIndex, tileProvince]);
 
   // 國界 — an owned hex bordering a DIFFERENT owner (or unowned wilderness)
   // is a frontier tile: it gets a deeper, more saturated realm colour so the
@@ -3332,8 +3358,11 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, onGroundC
       col.lerp(new THREE.Color(owner), road ? 0.18 : border ? 0.68 : 0.38);
       if (border && !road) col.offsetHSL(0, 0.05, -0.08);
     }
+    // Province seam — subtle, and only where a realm border isn't already
+    // doing the talking.
+    if (!water && !border && tileProvBorder[i]) col.offsetHSL(0, 0, -0.07);
     return `#${col.getHexString()}`;
-  }), [tiles, winter, tileOwner, tileBorder, roadTiles, forces]);
+  }), [tiles, winter, tileOwner, tileBorder, tileProvBorder, roadTiles, forces]);
 
   // ~22k <Instance> children are expensive to re-create — keep the JSX in a
   // memo so hover-state changes below never touch it.
