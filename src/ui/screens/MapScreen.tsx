@@ -176,6 +176,33 @@ export function MapScreen() {
   const mandate = useGameStore((s) =>
     s.playerForceId ? s.mandate.byForce[s.playerForceId] ?? 50 : 50,
   );
+  // 空格過旬 — the same path as the advance button (hot-seat cycling and
+  // all), but only when nothing modal owns the keyboard: no report up, not
+  // inside a city, no battle running.
+  const advanceTurn = () => {
+    playSfx('horn');
+    if (hotSeatPlayers.length > 1) {
+      if (hotSeatActiveIndex === hotSeatPlayers.length - 1) endSeason();
+      cycleHotSeat();
+    } else {
+      endSeason();
+    }
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON' || el.isContentEditable)) return;
+      const s = useGameStore.getState();
+      if (s.lastReport || s.cityMapOpen || s.tacticalBattle || s.victoryStatus !== 'playing') return;
+      e.preventDefault();
+      advanceTurn();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hotSeatPlayers.length, hotSeatActiveIndex]);
+
   const season = SEASON_LABEL[date.season];
   const monthNum = date.month ?? firstMonthOfSeason(date.season);
   const phaseInfo = MONTH_PHASE_LABEL[date.phase ?? 'upper'];
@@ -352,19 +379,7 @@ export function MapScreen() {
         />
         <button
           className={styles.advanceButton}
-          onClick={() => {
-            playSfx('horn');
-            if (hotSeatPlayers.length > 1) {
-              // Cycle to next player; advance season only when we wrap.
-              const lastIdx = hotSeatPlayers.length - 1;
-              if (hotSeatActiveIndex === lastIdx) {
-                endSeason();
-              }
-              cycleHotSeat();
-            } else {
-              endSeason();
-            }
-          }}
+          onClick={advanceTurn}
         >
           {hotSeatPlayers.length > 1
             ? t(`結束 ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? '回合'} →`,

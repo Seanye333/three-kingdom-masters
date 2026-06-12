@@ -4336,6 +4336,39 @@ export function StrategicMap3D() {
   const [navView, setNavView] = useState<{ cx: number; cy: number; span: number } | null>(null);
   const [navJump, setNavJump] = useState<{ px: number; py: number; seq: number } | null>(null);
   const selectCityOuter = useGameStore((s) => s.selectCity);
+
+  // 鍵盤快捷鍵 — 1..9 switch overlays, Tab cycles own cities (camera in
+  // tow), Esc backs out of selections. Typing in any input is exempt.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key >= '1' && e.key <= '9') {
+        const opt = OVERLAY_OPTIONS[Number(e.key) - 1];
+        if (opt) setOverlayMode(opt.id);
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = useGameStore.getState();
+        const own = Object.values(s.cities)
+          .filter((c) => c.ownerForceId === s.playerForceId)
+          .sort((a, b) => a.name.zh.localeCompare(b.name.zh));
+        if (own.length === 0) return;
+        const idx = own.findIndex((c) => c.id === s.selectedCityId);
+        const next = own[(idx + 1) % own.length];
+        s.selectCity(next.id);
+        const [px, py] = cityPixel(next.id, next.coords.x, next.coords.y);
+        setNavJump({ px, py, seq: Date.now() });
+      } else if (e.key === 'Escape') {
+        const s = useGameStore.getState();
+        if (s.selectedArmyId) s.selectArmy(null);
+        else if (s.selectedCityId) s.selectCity(null);
+        setQuickPick(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   // 天下大勢 snapshot — grab the WebGL canvas as a PNG.
   const mapRootRef = useRef<HTMLDivElement>(null);
   const snapYear = useGameStore((s) => s.date.year);
@@ -4526,7 +4559,9 @@ export function StrategicMap3D() {
         padding: '0.3rem 0.6rem',
         fontFamily: 'Songti SC, serif', fontSize: '0.72rem',
         pointerEvents: 'none',
-      }}>{t('拖曳 = 旋轉 · 滾輪 = 縮放 · 右鍵拖曳 = 平移 · 點擊城池檢視', 'drag = rotate · scroll = zoom · right-drag = pan · click city to inspect')}</div>
+      }}>{IS_MOBILE
+        ? t('拖曳 = 旋轉 · 雙指 = 縮放 · 點擊城池檢視', 'drag = rotate · pinch = zoom · tap city to inspect')
+        : t('拖曳旋轉 · 滾輪縮放 · 1-9 圖層 · Tab 巡城 · 空格過旬 · Esc 取消', 'drag rotate · scroll zoom · 1-9 overlays · Tab cycle cities · Space end turn · Esc cancel')}</div>
 
       {/* 尋城 — search-and-fly, tucked under the controls hint */}
       <div style={{ position: 'absolute', top: IS_MOBILE ? 12 : 46, right: IS_MOBILE ? 150 : 12, zIndex: 11 }}>
