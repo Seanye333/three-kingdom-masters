@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
+import { composeBiography } from '../../game/systems/biography';
 import { durationBreakdown, isParentMentor } from '../../game/systems/training';
 import { effectiveStats, traitMechanicalEffects } from '../../game/systems/traitEffects';
 import { FAMILY_LINEAGE } from '../../game/data/familyLineage';
@@ -771,6 +772,7 @@ export function OfficerDetail({
         <section className={styles.statsSection}>
           <h3 className={styles.sectionTitle}>{t('列傳', 'Biography')}</h3>
           <BiographyBlock officer={officer} />
+          <CampaignChronicleBlock officer={officer} />
         </section>
 
         {officer.deathYear && (
@@ -986,6 +988,41 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
         />
       )}
     </section>
+  );
+}
+
+/** 本朝實錄 — the biography THIS campaign wrote: composed live from the
+ *  officer's deeds, epithets and battle history. The static lore above is
+ *  who they were; this is who they're becoming in your game. */
+function CampaignChronicleBlock({ officer }: { officer: Officer }) {
+  const deeds = useGameStore((s) => s.deeds[officer.id] ?? null);
+  const battleHistory = useGameStore((s) => s.battleHistory);
+  const forces = useGameStore((s) => s.forces);
+  const cities = useGameStore((s) => s.cities);
+  const lang = useLanguage();
+  const t = useT();
+  const paragraphs = useMemo(() => composeBiography({
+    officer,
+    deeds,
+    battleHistory,
+    forceNameZh: officer.forceId ? forces[officer.forceId]?.name.zh ?? null : null,
+    cityNameZhById: Object.fromEntries(Object.values(cities).map((c) => [c.id, c.name.zh])),
+  }), [officer, deeds, battleHistory, forces, cities]);
+  return (
+    <div style={{ marginTop: '0.6rem', borderTop: '1px dashed #3a2d20', paddingTop: '0.5rem' }}>
+      <div style={{
+        fontSize: '0.66rem', color: '#c19a3b', letterSpacing: '0.25rem',
+        textTransform: 'uppercase', fontFamily: 'ui-monospace, monospace', marginBottom: 4,
+      }}>{t('本朝實錄', 'This campaign')}</div>
+      {paragraphs.map((p, i) => (
+        <p key={i} style={{
+          margin: '0 0 0.35rem', fontSize: '0.8rem', lineHeight: 1.7,
+          color: '#cdb88f', fontFamily: '"Songti SC", serif',
+        }}>
+          {lang === 'en' ? p.en : lang === 'both' ? `${p.zh} — ${p.en}` : p.zh}
+        </p>
+      ))}
+    </div>
   );
 }
 
