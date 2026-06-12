@@ -51,6 +51,7 @@ const RelationsModal = lazy(() => import('../components/RelationsModal').then(m 
 const LegionsModal = lazy(() => import('../components/LegionsModal').then(m => ({ default: m.LegionsModal })));
 const AdvisorModal = lazy(() => import('../components/AdvisorModal').then(m => ({ default: m.AdvisorModal })));
 const HistoryBookModal = lazy(() => import('../components/HistoryBookModal').then(m => ({ default: m.HistoryBookModal })));
+const SchemesModal = lazy(() => import('../components/SchemesModal').then(m => ({ default: m.SchemesModal })));
 const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
 const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
 const DiplomacyGraphModal = lazy(() => import('../components/DiplomacyGraphModal').then(m => ({ default: m.DiplomacyGraphModal })));
@@ -97,6 +98,7 @@ export function MapScreen() {
   const [showLegions, setShowLegions] = useState(false);
   const [showAdvisor, setShowAdvisor] = useState(false);
   const [showHistoryBook, setShowHistoryBook] = useState(false);
+  const [showSchemes, setShowSchemes] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
@@ -325,6 +327,7 @@ export function MapScreen() {
           title={t('軍務 — 戰史、密偵、陣形', 'Military — battles, espionage, formations')}
           items={[
             { label: t('錦囊', 'Advisor'),    onClick: () => setShowAdvisor(true) },
+            { label: t('計略', 'Schemes'),    onClick: () => setShowSchemes(true) },
             { label: t('軍團', 'Legions'),    onClick: () => setShowLegions(true) },
             { label: t('戰史', 'Battles'),    onClick: () => setShowHistory(true) },
             { label: t('戰錄', 'Replays'),    onClick: () => setShowReplays(true) },
@@ -452,6 +455,7 @@ export function MapScreen() {
         {showLegions && <LegionsModal onClose={() => setShowLegions(false)} />}
         {showAdvisor && <AdvisorModal onClose={() => setShowAdvisor(false)} />}
         {showHistoryBook && <HistoryBookModal onClose={() => setShowHistoryBook(false)} />}
+        {showSchemes && <SchemesModal onClose={() => setShowSchemes(false)} />}
       </Suspense>
       {/* Achievement toast — bottom-right when something just unlocked */}
       {recentAchievementUnlocks.length > 0 && (

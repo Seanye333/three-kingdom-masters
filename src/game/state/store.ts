@@ -60,6 +60,8 @@ import { EDICT_DISCOUNT, EMPEROR_HOME, MANDATE_PER_SEASON, RESENTMENT_PER_SEASON
 import { COMMONER_ARRIVAL_CHANCE, commonerArrivalCity, generateCommonerOfficer } from '../systems/commonerTalent';
 import { codexMarkRecruited, codexMarkRecruitedMany, codexMarkSeen, codexMarkSlain } from '../systems/codex';
 import { recordDailyResult } from '../systems/dailyChallenge';
+import { SCHEME_DEFS, schemeOdds, validateScheme, type SchemeId } from '../systems/schemes';
+import { pickAdvisor } from '../systems/advisor';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -207,6 +209,9 @@ interface GameStore extends GameState {
     troops: number,
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
+  /** 大局計略 — 驅虎吞狼 / 二虎競食 / 遠交近攻. */
+  executeScheme: (schemeId: SchemeId, targetA: EntityId, targetB?: EntityId)
+    => { ok: boolean; message: string };
   /** 每日挑戰 — mark the current run as today's challenge / apply the
    *  poverty handicap (half gold in every player city). */
   startDailyChallenge: (dateStr: string) => void;
@@ -966,6 +971,52 @@ export const useGameStore = create<GameStore>()(
           },
         });
         return { ok: true };
+      },
+
+      executeScheme: (schemeId, targetA, targetB) => {
+        const state = get();
+        const def = SCHEME_DEFS.find((d) => d.id === schemeId);
+        if (!def || !state.playerForceId) return { ok: false, message: 'invalid' };
+        const force = state.forces[state.playerForceId];
+        const capital = force ? state.cities[force.capitalCityId] : null;
+        if (!capital || capital.gold < def.goldCost)
+          return { ok: false, message: `國庫不足(需${def.goldCost}金於首都)` };
+        const bad = validateScheme(schemeId, state.cities, state.playerForceId, targetA, targetB);
+        if (bad) return { ok: false, message: bad };
+        const strategist = pickAdvisor(state.officers, state.playerForceId);
+        const odds = schemeOdds(schemeId, state.diplomacy, strategist, targetA, targetB);
+        // Pay either way — schemes spend silver before they spend luck.
+        const cities = { ...state.cities, [capital.id]: { ...capital, gold: capital.gold - def.goldCost } };
+        if (Math.random() >= odds) {
+          set({ cities });
+          return { ok: false, message: `計不售 — ${state.forces[targetA]?.name.zh ?? targetA}未為所動(耗${def.goldCost}金)` };
+        }
+        const relations = { ...state.diplomacy.relations };
+        const drop = (x: EntityId, y: EntityId, delta: number) => {
+          const key = pairKey(x, y);
+          const rel = relations[key] ?? { forceA: x < y ? x : y, forceB: x < y ? y : x, score: 0, status: 'neutral' as const };
+          relations[key] = { ...rel, score: Math.max(-100, Math.min(100, rel.score + delta)) };
+        };
+        const seasonNow = state.date.season as 'spring' | 'summer' | 'autumn' | 'winter';
+        const marks = [...(state.casusBelliMarks ?? [])];
+        let message = '';
+        if (schemeId === 'far-friend') {
+          drop(state.playerForceId, targetA, +25);
+          message = `遠交近攻得售 — 與${state.forces[targetA]?.name.zh ?? targetA}交好(+25)。`;
+        } else if (schemeId === 'tiger-wolf') {
+          drop(targetA, targetB!, -50);
+          marks.push({ byForceId: targetA, targetForceId: targetB!, expiresYear: state.date.year + 2, expiresSeason: seasonNow });
+          message = `驅虎吞狼得售 — ${state.forces[targetA]?.name.zh}與${state.forces[targetB!]?.name.zh}交惡,虎已出柙。`;
+        } else {
+          drop(targetA, targetB!, -30);
+          marks.push(
+            { byForceId: targetA, targetForceId: targetB!, expiresYear: state.date.year + 2, expiresSeason: seasonNow },
+            { byForceId: targetB!, targetForceId: targetA, expiresYear: state.date.year + 2, expiresSeason: seasonNow },
+          );
+          message = `二虎競食得售 — 兩虎相向,皆得討伐之名。`;
+        }
+        set({ cities, diplomacy: { ...state.diplomacy, relations }, casusBelliMarks: marks });
+        return { ok: true, message };
       },
 
       startDailyChallenge: (dateStr) => set({ dailyChallengeDate: dateStr }),
