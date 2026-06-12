@@ -4,6 +4,8 @@ import { recruitCostFor, type PersuasionApproach } from '../../game/systems/offi
 import { playSfx } from '../../game/systems/sound';
 import type { EntityId } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
+import { DebateModal } from './DebateModal';
+import { eloquence } from '../../game/systems/debate';
 import styles from './CaptivesSection.module.css';
 
 interface Props {
@@ -15,6 +17,18 @@ export function CaptivesSection({ cityId }: Props) {
   const cityGold = useGameStore((s) => s.cities[cityId]?.gold ?? 0);
   const recruitOfficer = useGameStore((s) => s.recruitOfficer);
   const estimatePersuasion = useGameStore((s) => s.estimatePersuasion);
+  const applyDebateCollapse = useGameStore((s) => s.applyDebateCollapse);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  // 舌戰 — the modal target + officers we've out-argued (one-shot edge).
+  const [debating, setDebating] = useState<EntityId | null>(null);
+  const [debateEdge, setDebateEdge] = useState<Set<EntityId>>(new Set());
+  const bestDebater = useMemo(
+    () => Object.values(officersMap)
+      .filter((o) => o.forceId === playerForceId && o.locationCityId === cityId
+        && o.status !== 'dead' && o.status !== 'imprisoned' && o.status !== 'unsearched')
+      .sort((a, b) => eloquence(b) - eloquence(a))[0] ?? null,
+    [officersMap, playerForceId, cityId],
+  );
   const executeOfficer = useGameStore((s) => s.executeOfficer);
   const releaseOfficer = useGameStore((s) => s.releaseOfficer);
   const [feedback, setFeedback] = useState<{
@@ -34,7 +48,8 @@ export function CaptivesSection({ cityId }: Props) {
   if (captives.length === 0) return null;
 
   const handleRecruit = (officerId: EntityId, approach?: PersuasionApproach) => {
-    const result = recruitOfficer(officerId, cityId, approach);
+    const result = recruitOfficer(officerId, cityId, approach, debateEdge.has(officerId));
+    if (debateEdge.has(officerId)) setDebateEdge((prev) => { const n = new Set(prev); n.delete(officerId); return n; });
     setFeedback({ officerId, text: result.message, ok: result.ok });
     playSfx(result.ok ? 'bell' : 'defeat');
   };
@@ -72,6 +87,16 @@ export function CaptivesSection({ cityId }: Props) {
               </div>
             )}
             <div className={styles.actions}>
+              {bestDebater && !debateEdge.has(o.id) && (
+                <button
+                  className={styles.recruitBtn}
+                  onClick={() => setDebating(o.id)}
+                  title={`遣${bestDebater.name.zh}與其舌戰 — 勝則勸降大增(一次),罵倒則其志氣再挫`}
+                >💬 舌戰</button>
+              )}
+              {debateEdge.has(o.id) && (
+                <span style={{ fontSize: '0.7rem', color: '#9ed68a', alignSelf: 'center' }}>舌戰得勝,趁勢勸降 ↑</span>
+              )}
               {APPROACHES.map((a) => {
                 const cost = recruitCostFor(a.id);
                 const odds = Math.round(estimatePersuasion(o.id, cityId, a.id) * 100);
@@ -103,6 +128,17 @@ export function CaptivesSection({ cityId }: Props) {
           </li>
         ))}
       </ul>
+      {debating && bestDebater && officersMap[debating] && (
+        <DebateModal
+          me={bestDebater}
+          foe={officersMap[debating]}
+          onDone={({ won, collapse }) => {
+            if (won) setDebateEdge((prev) => new Set(prev).add(debating));
+            if (collapse) applyDebateCollapse(debating);
+            setDebating(null);
+          }}
+        />
+      )}
     </section>
   );
 }

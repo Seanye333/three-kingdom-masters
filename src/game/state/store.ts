@@ -260,7 +260,10 @@ interface GameStore extends GameState {
     officerId: EntityId,
     cityId: EntityId,
     approach?: import('../systems/officerFate').PersuasionApproach,
+    debateWon?: boolean,
   ) => { ok: boolean; message: string };
+  /** 舌戰 — apply the aftermath: a collapse cracks the captive's resolve. */
+  applyDebateCollapse: (officerId: EntityId) => void;
   /** 勸降三策 — the odds each approach would roll against, for the UI. */
   estimatePersuasion: (
     officerId: EntityId,
@@ -3126,7 +3129,13 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         set({ pendingBattleTheaters: rest });
       },
 
-      recruitOfficer: (officerId, cityId, approach) => {
+      applyDebateCollapse: (officerId) => {
+        const o = get().officers[officerId];
+        if (!o) return;
+        set({ officers: { ...get().officers, [officerId]: { ...o, loyalty: Math.max(0, o.loyalty - 15) } } });
+      },
+
+      recruitOfficer: (officerId, cityId, approach, debateWon) => {
         const state = get();
         const officer = state.officers[officerId];
         const city = state.cities[cityId];
@@ -3148,6 +3157,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           recruiterReputation: { citiesOwned },
           approach,
           bestRapportWithCaptors: bestRapportWith(state, officerId),
+          debateWon,
         });
 
         const updates: Partial<GameState> = {

@@ -31,6 +31,8 @@ export interface RecruitInput {
   /** Highest rapport between the captive and any officer of the
    *  recruiting force — fuels the 以情動人 approach. */
   bestRapportWithCaptors?: number;
+  /** 舌戰得勝 — a won war of words opens doors gold cannot (one shot). */
+  debateWon?: boolean;
   rng?: () => number;
 }
 
@@ -149,6 +151,8 @@ export function estimateRecruitChance(input: Omit<RecruitInput, 'rng'>): number 
   if ((officer.traits ?? []).includes('noble')) {
     chance = Math.min(chance, approach === 'righteous' ? 0.35 : 0.15);
   }
+  // A won debate pierces even principle — they argued, and lost.
+  if (input.debateWon) chance = Math.min(0.95, chance + 0.28);
   return clamp01(chance);
 }
 
