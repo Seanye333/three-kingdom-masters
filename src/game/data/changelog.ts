@@ -1,0 +1,57 @@
+/**
+ * 更新日誌 — the player-facing record of what each push brought.
+ * The newest entry drives the in-game「本次更新」popup: bump
+ * GAME_VERSION when a batch ships and the next launch shows it once.
+ */
+export const GAME_VERSION = '1.0.0';
+
+export interface ChangelogEntry {
+  version: string;
+  date: string;
+  title: string;
+  items: string[];
+}
+
+export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.0.0',
+    date: '2026-06-12',
+    title: '正式上線 — 天下英雄,入吾彀中',
+    items: [
+      '🌐 正式部署上線,手機可安裝為 App(全屏離線)',
+      '⚔ 軍團都督:劃城設督授方略,一個方向交給一個人',
+      '👑 奉迎天子:挾天子以令諸侯 — 詔書七折、天命日聚、諸侯側目',
+      '🔥 水戰補完:借東風真的換風,連環+火船+東風=赤壁成局',
+      '🗡 戰前準備:設伏/夜襲/地道,開戰前先落一子',
+      '📜 歷史事件鏈:三顧茅廬要真去三次;衣帶詔簽不簽你說了算',
+      '🤝 勸降三策:曉以大義/許以重利/以情動人,成功率全透明',
+      '🏛 委任太守自動施政、市易金糧互市、義倉醫館堤防防災',
+      '🕵 細作開眼:用間成功,敵城在迷霧裡亮一季',
+      '📖 武將列傳本朝實錄、跨戰役武將圖鑑、每日挑戰全網同題',
+      '💾 存檔跨設備互傳、Mod 數據包(JSON 加武將加事件)',
+    ],
+  },
+  {
+    version: '0.9.0',
+    date: '2026-06-11',
+    title: '大地圖風雲 — 看得見的天下',
+    items: [
+      '🌫 戰爭迷霧(可開關)、威脅熱度圖、邦交關係線',
+      '🔥 烽火台預警、糧道補給網、焚城可視化',
+      '🚚 商隊牛車、漕運商船、入暮燈火、春華秋實',
+      '🎯 城市快捷輪盤、全軍集結令、行軍測距、城市搜索',
+      '⌨ 鍵盤快捷鍵、迷你導航圖點擊跳轉、天下大勢截圖',
+    ],
+  },
+  {
+    version: '0.8.0',
+    date: '2026-06-10',
+    title: '一世界三鏡頭 — 三圖合一',
+    items: [
+      '🗺 大地圖/城內/戰場合為一個世界,戰鬥原地立體微縮',
+      '🏰 城防設施全生命週期:箭樓投石臺陣防壁,三圖同步',
+      '⚔ 14 張史實名戰場復活,圍困/水攻攻城戰法',
+      '📱 PWA 化、真代碼分割、自動存檔、戰役回放',
+    ],
+  },
+];

@@ -6,6 +6,8 @@ import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
 import { CustomOfficerCreator } from '../components/CustomOfficerCreator';
 import { InstallPrompt } from '../components/InstallPrompt';
+import { WhatsNewModal } from '../components/WhatsNewModal';
+import { GAME_VERSION } from '../../game/data/changelog';
 import { ItemsBrowser } from '../components/ItemsBrowser';
 import { TacticsModal } from '../components/TacticsModal';
 import { PoliciesModal } from '../components/PoliciesModal';
@@ -196,6 +198,11 @@ export function TitleScreen() {
   return (
     <div className={styles.root}>
       <InstallPrompt />
+      <WhatsNewModal />
+      {/* 版本號 — bottom corner, quiet */}
+      <div style={{ position: 'fixed', right: 10, bottom: 6, zIndex: 5, fontSize: '0.62rem', color: '#6a5a45', fontFamily: 'ui-monospace, monospace' }}>
+        v{GAME_VERSION}
+      </div>
       <header className={styles.header}>
         <h1 className={styles.title}>
           {lang !== 'en' && <span className={styles.titleZh}>三國志</span>}
