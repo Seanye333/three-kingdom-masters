@@ -3451,6 +3451,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
   const weatherPreset = WEATHER_PRESETS[weather.kind];
   const season = useGameStore((s) => s.date.season) as Season;
   const seasonPreset = SEASON_PRESETS[season];
+  // 晝夜隨旬 — 上旬 plays in daylight, 下旬 sinks into a warm dusk, so time
+  // visibly passes as the half-month ticks resolve.
+  const dusk = useGameStore((s) => (s.date.phase ?? 'upper') === 'lower');
 
   // Bounds for particle effects
   const particleBounds = useMemo(() => ({ x: MAP_W, z: MAP_D }), []);
@@ -3480,14 +3483,14 @@ function MapScene({ overlayMode, onPortClick, onFortClick, mapStyle, dioSelected
     <>
       {/* Distance fog — color follows season; far value pushed past max
        *  camera zoom (100) so the world stays visible when fully zoomed out. */}
-      <fog attach="fog" args={[seasonPreset.fogColor, 60, 250]} />
+      <fog attach="fog" args={[dusk ? '#caa37e' : seasonPreset.fogColor, 60, 250]} />
 
       {/* Per-season lighting */}
-      <ambientLight intensity={seasonPreset.ambient} color={seasonPreset.ambientColor} />
+      <ambientLight intensity={seasonPreset.ambient * (dusk ? 0.72 : 1)} color={dusk ? '#d8b890' : seasonPreset.ambientColor} />
       <directionalLight
-        position={[8, 16, 6]}
-        intensity={seasonPreset.sun.intensity}
-        color={seasonPreset.sun.color}
+        position={dusk ? [12, 7, 10] : [8, 16, 6]}
+        intensity={seasonPreset.sun.intensity * (dusk ? 0.8 : 1)}
+        color={dusk ? '#ffb070' : seasonPreset.sun.color}
         castShadow
         // 2048 halves shadow VRAM/fill on weak GPUs; at map scale the
         // difference is invisible.
@@ -3795,6 +3798,7 @@ export function StrategicMap3D() {
   const battleActive = useGameStore((s) => !!s.tacticalBattle);
   // 標籤分級 — quantized camera distance, provided to City3D labels.
   const [zoomLod, setZoomLod] = useState<'near' | 'far'>('near');
+  const duskBg = useGameStore((s) => (s.date.phase ?? 'upper') === 'lower');
   // 烽火示警 — hostile columns marching on player cities (chip top-left).
   const beaconCities = useGameStore((s) => s.cities);
   const beaconArmies = useGameStore((s) => s.armies);
@@ -3938,7 +3942,7 @@ export function StrategicMap3D() {
   return (
     <div style={{
       position: 'absolute', inset: 0,
-      background: 'linear-gradient(180deg, #88a0c0 0%, #c8b890 100%)',
+      background: duskBg ? 'linear-gradient(180deg, #6a5a78 0%, #d89060 100%)' : 'linear-gradient(180deg, #88a0c0 0%, #c8b890 100%)',
     }}>
       {/* Objective tracker — top-left */}
       <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, pointerEvents: 'none' }}>
