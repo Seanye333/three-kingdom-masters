@@ -211,6 +211,8 @@ export interface GameState {
   /** 奉迎天子 — the city the Han emperor currently resides in. Owner of
    *  that city is his custodian (挾天子以令諸侯). */
   emperorCityId: EntityId | null;
+  /** 每日挑戰 — the seed date of the run in progress (null outside one). */
+  dailyChallengeDate: string | null;
   /** Saved command templates the player can re-apply each season. */
   commandTemplates: Array<{
     id: EntityId;
@@ -355,6 +357,7 @@ export const EMPTY_STATE: GameState = {
   cityDelegations: {},
   legions: [],
   emperorCityId: 'luoyang',
+  dailyChallengeDate: null,
   commandTemplates: [],
   autoBuildQueues: {},
   pendingDialogue: null,
@@ -525,6 +528,7 @@ export function loadScenario(
     cityDelegations: {},
     legions: [],
     emperorCityId: 'luoyang',
+    dailyChallengeDate: null,
     edictHistory: [],
     edictCooldowns: {},
     tribeState: createInitialTribeState(),

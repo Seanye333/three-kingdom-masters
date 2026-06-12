@@ -59,6 +59,7 @@ import { buyQuote, sellQuote } from '../systems/market';
 import { EDICT_DISCOUNT, EMPEROR_HOME, MANDATE_PER_SEASON, RESENTMENT_PER_SEASON, canWelcomeEmperor, emperorCustodian } from '../systems/emperor';
 import { COMMONER_ARRIVAL_CHANCE, commonerArrivalCity, generateCommonerOfficer } from '../systems/commonerTalent';
 import { codexMarkRecruited, codexMarkRecruitedMany, codexMarkSeen, codexMarkSlain } from '../systems/codex';
+import { recordDailyResult } from '../systems/dailyChallenge';
 import { canTrain, trainingCost, tickTrainings, trainingDurationSeasons, sweepStaleTrainings, mentorDurationSeasons, isParentMentor, canTrainTactic, tacticTrainingCost, tacticDurationSeasons, tacticMentorDurationSeasons } from '../systems/training';
 import { loyaltyDriftPerSeason, rollFlavorEvent, defectionChance, sharedBondableTrait, maritalCompatibility, itemResonanceCandidate, policyResonanceCandidate, rollMarriageAssimilation, itemTacticCandidate } from '../systems/traitEffects';
 import { loyaltyFloor, rollMentorPolicyTransfer, mentorsOf } from '../systems/relationshipEffects';
@@ -206,6 +207,10 @@ interface GameStore extends GameState {
     troops: number,
     additionalOfficerIds?: EntityId[],
   ) => { ok: boolean; reason?: string };
+  /** 每日挑戰 — mark the current run as today's challenge / apply the
+   *  poverty handicap (half gold in every player city). */
+  startDailyChallenge: (dateStr: string) => void;
+  applyPovertyHandicap: () => void;
   /** 奉迎天子 — move the emperor from a held city into your capital. */
   welcomeEmperor: () => { ok: boolean; reason?: string };
   /** 市易 — convert gold↔food at the city's current market rate. */
@@ -958,6 +963,20 @@ export const useGameStore = create<GameStore>()(
           },
         });
         return { ok: true };
+      },
+
+      startDailyChallenge: (dateStr) => set({ dailyChallengeDate: dateStr }),
+
+      applyPovertyHandicap: () => {
+        const state = get();
+        if (!state.playerForceId) return;
+        const cities = { ...state.cities };
+        for (const c of Object.values(cities)) {
+          if (c.ownerForceId === state.playerForceId) {
+            cities[c.id] = { ...c, gold: Math.floor(c.gold / 2) };
+          }
+        }
+        set({ cities });
       },
 
       welcomeEmperor: () => {
@@ -3068,6 +3087,19 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // autosave slots, so a bad turn (or a crash) costs at most a season.
         if (seasonBoundary) {
           try {
+            // 每日挑戰 — the day's run settles the moment the realm is won
+            // or lost; only the best result of the day is kept.
+            {
+              const after = get();
+              if (after.dailyChallengeDate
+                && (after.victoryStatus === 'victory' || after.victoryStatus === 'defeat')) {
+                recordDailyResult(after.dailyChallengeDate, {
+                  victory: after.victoryStatus === 'victory',
+                  seasons: after.campaignStats.seasonsPlayed ?? 0,
+                });
+                set({ dailyChallengeDate: null });
+              }
+            }
             const cursorKey = 'tkm-autosave-cursor';
             const n = ((parseInt(localStorage.getItem(cursorKey) ?? '0', 10) || 0) % 3) + 1;
             localStorage.setItem(cursorKey, String(n));
@@ -5824,6 +5856,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         cityDelegations: state.cityDelegations,
         legions: state.legions,
         emperorCityId: state.emperorCityId,
+        dailyChallengeDate: state.dailyChallengeDate,
         commandTemplates: state.commandTemplates,
         autoBuildQueues: state.autoBuildQueues,
         dialogueFollowups: state.dialogueFollowups,

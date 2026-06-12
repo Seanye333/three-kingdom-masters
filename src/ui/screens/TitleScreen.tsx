@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { SCENARIOS } from '../../game/data';
+import { dailySeedString, dailyShareString, loadDailyResults, rollDailyChallenge } from '../../game/systems/dailyChallenge';
 import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
@@ -244,8 +245,59 @@ export function TitleScreen() {
 
       <main className={styles.main} style={{ flexDirection: 'column', alignItems: 'center' }}>
         {/* ───────────────── STEP 1 — Scenario ───────────────── */}
-        {step === 'scenario' && (
+        {step === 'scenario' && (() => {
+          /* 每日挑戰 — same date, same seed, same start for everyone. */
+          const todayStr = dailySeedString();
+          const daily = rollDailyChallenge(todayStr, SCENARIOS);
+          const dailyScenario = daily ? SCENARIOS.find((sc) => sc.id === daily.scenarioId) : null;
+          const dailyForce = dailyScenario?.forces.find((f) => f.id === daily?.forceId);
+          const dailyResult = loadDailyResults()[todayStr];
+          const launchDaily = () => {
+            if (!daily || !dailyScenario || !dailyForce) return;
+            const st = useGameStore.getState();
+            if (daily.modifiers.some((m) => m.id === 'romance')) st.setRomanceMode(true);
+            loadScenario(dailyScenario, dailyForce.id, 'hard');
+            const st2 = useGameStore.getState();
+            st2.setFogOfWar(true);
+            if (daily.modifiers.some((m) => m.id === 'poverty')) st2.applyPovertyHandicap();
+            st2.startDailyChallenge(todayStr);
+          };
+          return (
           <section className={styles.scenarioCard} style={{ width: 'min(1060px, 96vw)', maxWidth: 'none' }}>
+            {/* 每日挑戰橫幅 */}
+            {daily && dailyScenario && dailyForce && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                border: '1px solid #b8584a', background: 'rgba(184, 88, 74, 0.08)',
+                padding: '0.45rem 0.8rem', marginBottom: '0.7rem', fontSize: '0.82rem',
+              }}>
+                <span style={{ color: '#ff9080', letterSpacing: '0.15rem' }}>🔥 {t('每日挑戰', 'Daily')} {todayStr}</span>
+                <span style={{ color: '#e8d9b0' }}>
+                  {lang === 'en' ? dailyScenario.name.en : dailyScenario.name.zh} · {lang === 'en' ? dailyForce.name.en : dailyForce.name.zh}
+                </span>
+                <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>
+                  {daily.modifiers.map((m) => (lang === 'en' ? m.en : m.zh)).join(' / ')}
+                </span>
+                {dailyResult && (
+                  <button
+                    onClick={() => navigator.clipboard?.writeText(dailyShareString(daily, dailyForce.name.zh, dailyResult)).catch(() => undefined)}
+                    style={{
+                      background: 'transparent', border: '1px solid #5a4530', color: '#c0a878',
+                      padding: '0.2rem 0.6rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem',
+                    }}
+                    title={t('複製戰績', 'Copy result')}
+                  >{dailyResult.victory ? `🏆 ${dailyResult.seasons}旬` : '☠'} {t('複製', 'Copy')}</button>
+                )}
+                <button
+                  onClick={launchDaily}
+                  style={{
+                    marginLeft: 'auto', background: 'linear-gradient(180deg,#4a2418,#321810)',
+                    border: '1px solid #ff7050', color: '#ffb0a0', padding: '0.3rem 1rem',
+                    cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem',
+                  }}
+                >{dailyResult ? t('再戰', 'Again') : t('應戰', 'Accept')}</button>
+              </div>
+            )}
             {/* Era tabs */}
             <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.7rem', flexWrap: 'wrap' }}>
               {ERAS.map((e) => {
@@ -346,7 +398,8 @@ export function TitleScreen() {
               <button className={styles.officersButton} onClick={() => setShowEventEditor(true)}>{t('事件編輯器', 'Event Editor')}</button>
             </div>
           </section>
-        )}
+          );
+        })()}
 
         {/* ───────────────── STEP 2 — Force ───────────────── */}
         {step === 'force' && (
