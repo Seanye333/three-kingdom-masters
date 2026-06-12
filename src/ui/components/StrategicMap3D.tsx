@@ -25,6 +25,7 @@ import { playSfx } from '../../game/systems/sound';
 import { STRATAGEMS } from '../../game/data';
 import type { Officer, StratagemId } from '../../game/types';
 import type { WeatherKind } from '../../game/systems/weather';
+import { LocatorMap } from './LocatorMap';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
 import { FortPanel } from './FortPanel';
@@ -1258,6 +1259,37 @@ function ZoomLODTracker({ onChange }: { onChange: (lod: 'near' | 'far') => void 
       last.current = next;
       onChange(next);
     }
+  });
+  return null;
+}
+
+/** 迷你導航 — tracks the camera's view window for the corner minimap, and
+ *  executes click-to-jump requests (camera keeps its current offset). */
+function MiniNavRig({ controlsRef, onView, jump }: {
+  controlsRef: React.RefObject<{ target: THREE.Vector3; update: () => void } | null>;
+  onView: (v: { cx: number; cy: number; span: number }) => void;
+  jump: { px: number; py: number; seq: number } | null;
+}) {
+  const { camera } = useThree();
+  const lastReport = useRef(0);
+  const lastSeq = useRef(0);
+  useFrame(({ clock }) => {
+    const ctrl = controlsRef.current;
+    if (jump && jump.seq !== lastSeq.current && ctrl) {
+      lastSeq.current = jump.seq;
+      const [wx, wz] = pxToWorld(jump.px, jump.py);
+      const offset = camera.position.clone().sub(ctrl.target);
+      ctrl.target.set(wx, sampleTerrainHeight(wx, wz), wz);
+      camera.position.copy(ctrl.target).add(offset);
+      ctrl.update();
+    }
+    if (clock.elapsedTime - lastReport.current < 0.25) return;
+    lastReport.current = clock.elapsedTime;
+    const tgt = ctrl?.target ?? new THREE.Vector3();
+    const cx = (tgt.x + MAP_W / 2) / PIXEL_TO_WORLD;
+    const cy = (tgt.z + MAP_D / 2) / PIXEL_TO_WORLD;
+    const span = camera.position.distanceTo(tgt) * 0.9 / PIXEL_TO_WORLD;
+    onView({ cx: Math.round(cx), cy: Math.round(cy), span: Math.round(span) });
   });
   return null;
 }
@@ -3799,6 +3831,9 @@ export function StrategicMap3D() {
   // 標籤分級 — quantized camera distance, provided to City3D labels.
   const [zoomLod, setZoomLod] = useState<'near' | 'far'>('near');
   const duskBg = useGameStore((s) => (s.date.phase ?? 'upper') === 'lower');
+  // 迷你導航 — camera view window for the corner minimap + click-to-jump.
+  const [navView, setNavView] = useState<{ cx: number; cy: number; span: number } | null>(null);
+  const [navJump, setNavJump] = useState<{ px: number; py: number; seq: number } | null>(null);
   // 烽火示警 — hostile columns marching on player cities (chip top-left).
   const beaconCities = useGameStore((s) => s.cities);
   const beaconArmies = useGameStore((s) => s.armies);
@@ -4068,6 +4103,7 @@ export function StrategicMap3D() {
           />
           {/* Fly to a battle the moment it ignites — before its screen mounts. */}
           <BattleFocusFly controlsRef={controlsRef} onSettled={setOrbitTarget} />
+          <MiniNavRig controlsRef={controlsRef} onView={setNavView} jump={navJump} />
           {/* Gentle bloom — beacons, fires and water shimmer get a halo. */}
           {!IS_MOBILE && (
             <EffectComposer>
@@ -4219,6 +4255,17 @@ export function StrategicMap3D() {
           </div>
         );
       })()}
+
+      {/* 迷你導航 — the realm at a glance; click to jump the camera there. */}
+      {navView && (
+        <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 11 }}>
+          <LocatorMap
+            window={{ cx: navView.cx, cy: navView.cy, spanX: navView.span * 1.6, spanY: navView.span, rotation: 0, kind: 'world' }}
+            width={138}
+            onPickPx={(px, py) => setNavJump({ px, py, seq: Date.now() })}
+          />
+        </div>
+      )}
 
       {/* 烽火示警 — who is marching on us, one tap to look. */}
       {beaconAlerts.threatened.size > 0 && (

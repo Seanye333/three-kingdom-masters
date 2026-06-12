@@ -10,11 +10,13 @@ import type { ViewWindow } from '../viewWindow';
 import { useT } from '../i18n';
 
 export function LocatorMap({
-  window: win, focusCityId, width = 150,
+  window: win, focusCityId, width = 150, onPickPx,
 }: {
   window: ViewWindow | null;
   focusCityId?: string;
   width?: number;
+  /** Click-to-jump: strategic-pixel coords of the clicked point. */
+  onPickPx?: (px: number, py: number) => void;
 }) {
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
@@ -38,7 +40,15 @@ export function LocatorMap({
       padding: '4px 5px 2px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
     }}>
-      <svg width={width} height={height} style={{ display: 'block' }}>
+      <svg
+        width={width}
+        height={height}
+        style={{ display: 'block', cursor: onPickPx ? 'pointer' : undefined }}
+        onClick={onPickPx ? (e) => {
+          const rect = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+          onPickPx(((e.clientX - rect.left) / rect.width) * MAP_W, ((e.clientY - rect.top) / rect.height) * MAP_H);
+        } : undefined}
+      >
         {/* Sea backdrop */}
         <rect x={0} y={0} width={width} height={height} fill="#10202e" rx={2} />
 
@@ -110,7 +120,9 @@ export function LocatorMap({
       }}>
         {win?.kind === 'battle'
           ? t('戰場位置', 'Battlefield location')
-          : t('城邑位置', 'City location')}
+          : win?.kind === 'world'
+            ? t('天下輿圖 — 點擊跳轉', 'The realm — tap to jump')
+            : t('城邑位置', 'City location')}
       </div>
     </div>
   );
