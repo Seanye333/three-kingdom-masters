@@ -7,7 +7,7 @@ import { useGameStore } from '../../game/state/store';
 import { playSfx, startBattleAmbience, stopBattleAmbience } from '../../game/systems/sound';
 import type { EntityId, HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
 import type { DefenseBuildingId } from '../../game/data/defenseBuildings';
-import {
+import { applyBattlePrep,
   aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
   moveUnit, resolveBattleEnd, unitAt,
 } from '../../game/systems/tactical';
@@ -1763,6 +1763,9 @@ export function TacticalBattleScreen3D() {
   const officers = useGameStore((s) => s.officers);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const start = useGameStore((s) => s.startTacticalBattle);
+  // 戰前準備 — bar visibility + last refusal reason.
+  const [prepDismissed, setPrepDismissed] = useState(false);
+  const [prepMsg, setPrepMsg] = useState<string | null>(null);
   const applyResolution = useGameStore((s) => s.applyTacticalResolution);
   const cancelBattle = useGameStore((s) => s.cancelTacticalBattle);
   const setBattleViewMinimized = useGameStore((s) => s.setBattleViewMinimized);
@@ -2079,6 +2082,36 @@ export function TacticalBattleScreen3D() {
           fontSize: '0.72rem', padding: '2px 7px',
           background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530', color: '#a89070',
         }}>{TOD_LABEL[battle.timeOfDay]}</span>
+        {/* 戰前準備 — one card, played before your first move. */}
+        {myTurn && battle.turn === 1 && playerSide && !battle.prepUsed?.[playerSide] && !prepDismissed && (
+          <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+            <span style={{ fontSize: '0.7rem', color: '#d4a84a' }}>{t('戰前部署:', 'Prep:')}</span>
+            {([
+              { kind: 'ambush' as const, zh: '⚔ 伏兵', tip: '最強一軍潛伏 — 敵近不見,首擊帶伏擊加成' },
+              { kind: 'night' as const, zh: '🌙 夜襲', tip: '入夜開戰 — 弓弩射程縮短,伏兵傷害更狠' },
+              { kind: 'tunnel' as const, zh: '⛏ 地道', tip: '攻城方限定 — 最弱一軍自地道潛入牆內' },
+            ]).map((p) => (
+              <button
+                key={p.kind}
+                title={p.tip}
+                onClick={() => {
+                  const r = applyBattlePrep(battle, playerSide, p.kind);
+                  if (r.ok) { start(r.battle); playSfx('shout'); }
+                  else setPrepMsg(r.reason ?? null);
+                }}
+                style={{
+                  background: 'rgba(58, 45, 24, 0.8)', border: '1px solid #d4a84a', color: '#f0d98a',
+                  fontSize: '0.7rem', padding: '2px 7px', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >{p.zh}</button>
+            ))}
+            <button
+              onClick={() => setPrepDismissed(true)}
+              style={{ background: 'transparent', border: '1px solid #5a4530', color: '#8a7050', fontSize: '0.7rem', padding: '2px 6px', cursor: 'pointer', fontFamily: 'inherit' }}
+            >{t('不備', 'Skip')}</button>
+            {prepMsg && <span style={{ fontSize: '0.65rem', color: '#ff9080' }}>{prepMsg}</span>}
+          </span>
+        )}
         {battle.attackerFormation && battle.attackerFormation !== 'none' && (
           <span style={{
             fontSize: '0.72rem', padding: '2px 7px',

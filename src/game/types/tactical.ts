@@ -285,6 +285,8 @@ export interface TacticalBattle {
   /** Weather & time of day. */
   weather: Weather;
   timeOfDay: TimeOfDay;
+  /** 戰前準備 — one preparation per side, spent before the first move. */
+  prepUsed?: Partial<Record<'attacker' | 'defender', import('../systems/tactical').BattlePrepKind>>;
   /** Wind direction (snapshot of strategic weather). Biases fire spread. */
   windDirection?: 'north' | 'south' | 'east' | 'west' | 'calm';
   /** Scripted reinforcements (consumed when they arrive). */

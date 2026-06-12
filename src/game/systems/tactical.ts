@@ -1320,6 +1320,72 @@ function weatherDamageMul(w: Weather, unitType: UnitType): number {
 
 // ─── Stratagems ──────────────────────────────────────────────────────
 
+/* ─── 戰前準備 — one preparation per side, before the first move ────────
+   伏兵 ambush: your strongest non-commander contingent slips into
+     concealment (the existing hidden mechanics: revealed by adjacency or
+     its own first strike, which lands at the ambush bonus — ×1.5 at night).
+   夜襲 night raid: the battle opens under darkness — ranged eyes shorten,
+     ambushes bite harder, every line fights at night odds.
+   地道 tunnel: siege attackers only — sappers carry your weakest
+     contingent under the wall line; it surfaces inside the city. */
+export type BattlePrepKind = 'ambush' | 'night' | 'tunnel';
+
+export function applyBattlePrep(
+  b: TacticalBattle,
+  side: 'attacker' | 'defender',
+  kind: BattlePrepKind,
+): { battle: TacticalBattle; ok: boolean; reason?: string } {
+  if (b.turn !== 1) return { battle: b, ok: false, reason: 'the battle is already joined' };
+  if (b.prepUsed?.[side]) return { battle: b, ok: false, reason: 'already prepared' };
+  const mark = (nb: TacticalBattle, text: string): TacticalBattle => ({
+    ...nb,
+    prepUsed: { ...b.prepUsed, [side]: kind },
+    log: [...(nb.log ?? []), { turn: 1, text, kind: 'event' as const }],
+  });
+
+  if (kind === 'night') {
+    return { battle: mark({ ...b, timeOfDay: 'night' }, '🌙 夜襲!兩軍於暗夜中接戰,弓弩難及,伏兵愈利。'), ok: true };
+  }
+
+  if (kind === 'ambush') {
+    const candidates = b.units
+      .filter((u) => u.side === side && !u.isCommander && u.troops > 0 && !u.hidden)
+      .sort((a, z) => z.troops - a.troops);
+    if (candidates.length === 0) return { battle: b, ok: false, reason: 'no contingent to conceal' };
+    const chosen = candidates[0];
+    return {
+      battle: mark(
+        { ...b, units: b.units.map((u) => (u.id === chosen.id ? { ...u, hidden: true } : u)) },
+        '⚔ 伏兵已設 — 一軍銜枚潛行,候敵自投。',
+      ),
+      ok: true,
+    };
+  }
+
+  // tunnel
+  if (side !== 'attacker') return { battle: b, ok: false, reason: 'defenders dig no tunnels' };
+  const wallCols = b.tiles.filter((t) => t.terrain === 'wall' || t.terrain === 'gate').map((t) => t.coord.col);
+  if (wallCols.length === 0) return { battle: b, ok: false, reason: 'no walls to tunnel under' };
+  const wallCol = Math.max(...wallCols);
+  const movers = b.units
+    .filter((u) => u.side === 'attacker' && !u.isCommander && u.troops > 0 && u.coord.col <= wallCol)
+    .sort((a, z) => a.troops - z.troops);
+  if (movers.length === 0) return { battle: b, ok: false, reason: 'no contingent to send below' };
+  const occupied = new Set(b.units.filter((u) => u.troops > 0).map((u) => `${u.coord.col},${u.coord.row}`));
+  const exit = b.tiles.find((t) =>
+    t.coord.col === wallCol + 1
+    && !occupied.has(`${t.coord.col},${t.coord.row}`)
+    && !['wall', 'gate', 'river', 'deep-water'].includes(t.terrain));
+  if (!exit) return { battle: b, ok: false, reason: 'no ground inside the walls' };
+  return {
+    battle: mark(
+      { ...b, units: b.units.map((u) => (u.id === movers[0].id ? { ...u, coord: exit.coord } : u)) },
+      '⛏ 地道既成 — 一軍自城下湧出,已在牆內!',
+    ),
+    ok: true,
+  };
+}
+
 export function applyStratagem(
   b: TacticalBattle,
   unitId: EntityId,
