@@ -5070,6 +5070,69 @@ function WildSites3D({ onSiteClick }: { onSiteClick: (siteId: string) => void })
   );
 }
 
+/* ─── 細作 — your spies steal across the map toward their targets ─────────
+   For each pending espionage op, a hooded courier slips along the road from
+   the agent's city toward the target — the abstract op given a body on the
+   map (RTK/TW agents). Player ops only; enemy spies stay unseen. */
+function EspionageAgents3D({ cities }: { cities: Record<string, City> }) {
+  const ops = useGameStore((s) => s.pendingEspionage);
+  const officers = useGameStore((s) => s.officers);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const routes = useMemo(() => {
+    const out: Array<{ pts: THREE.Vector3[]; cum: number[]; total: number; phase: number; label: string }> = [];
+    for (const op of ops) {
+      const agent = officers[op.agentOfficerId];
+      if (!agent || agent.forceId !== playerForceId || !agent.locationCityId || !op.targetCityId) continue;
+      const src = cities[agent.locationCityId]; const dst = cities[op.targetCityId];
+      if (!src || !dst) continue;
+      const sp = cityPos(src); const dp = cityPos(dst);
+      const route = terrainRoute(sp.x, sp.y, dp.x, dp.y);
+      const pts = route.map((p) => { const [wx, wz] = pxToWorld(p.x, p.y); return new THREE.Vector3(wx, sampleTerrainHeight(wx, wz) + 0.05, wz); });
+      if (pts.length < 2) continue;
+      const cum = [0];
+      for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + pts[k].distanceTo(pts[k - 1]));
+      const total = cum[cum.length - 1];
+      if (total < 0.5) continue;
+      out.push({ pts, cum, total, phase: (out.length * 0.37) % 1, label: agent.name.zh });
+    }
+    return out;
+  }, [ops, officers, cities, playerForceId]);
+
+  const refs = useRef<Array<THREE.Group | null>>([]);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    routes.forEach((r, i) => {
+      const g = refs.current[i];
+      if (!g) return;
+      const d2 = ((t * 0.18) / r.total + r.phase) % 2;     // ping-pong: infiltrate & return
+      const back = d2 > 1;
+      const s = (back ? 2 - d2 : d2) * r.total;
+      let k = 1; while (k < r.cum.length - 1 && r.cum[k] < s) k++;
+      const seg = r.cum[k] - r.cum[k - 1] || 1;
+      const f = (s - r.cum[k - 1]) / seg;
+      g.position.lerpVectors(r.pts[k - 1], r.pts[k], f);
+    });
+  });
+
+  return (
+    <group>
+      {routes.map((r, i) => (
+        <group key={i} ref={(el) => { refs.current[i] = el; }} scale={0.85}>
+          {/* hooded courier — dark cloak cone + head */}
+          <mesh position={[0, 0.07, 0]} castShadow><coneGeometry args={[0.05, 0.16, 6]} /><meshStandardMaterial color="#2a2a30" roughness={0.9} /></mesh>
+          <mesh position={[0, 0.17, 0]}><sphereGeometry args={[0.03, 6, 5]} /><meshStandardMaterial color="#1c1c22" roughness={0.85} /></mesh>
+          <Html position={[0, 0.3, 0]} center distanceFactor={10} zIndexRange={[7, 0]} style={{ pointerEvents: 'none' }}>
+            <div style={{
+              background: 'rgba(20,12,28,0.82)', border: '1px solid #7a5a9a', borderRadius: 3,
+              padding: '0 5px', color: '#c8a8e0', fontFamily: '"Songti SC", serif', fontSize: 9.5, whiteSpace: 'nowrap',
+            }}>諜 {r.label}</div>
+          </Html>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 /* ─── 地名 — named ranges, rivers and seas drawn on the map (RTK/TW style) ── */
 const GEO_LABEL_STYLE: Record<string, { color: string; glyph: string; y: number }> = {
   mountain: { color: '#cdbb96', glyph: '⛰', y: 0.55 },
@@ -5424,6 +5487,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <ScenicSites3D onScenicClick={onScenicClick} />
       {mapStyle === 'classic' && <TradeRouteLines3D cities={cities} />}
       {mapStyle === 'classic' && <GeoLabels3D />}
+      <EspionageAgents3D cities={cities} />
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
           over (same scene component, same state; rotated to its true bearing,
