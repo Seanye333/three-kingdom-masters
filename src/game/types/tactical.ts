@@ -128,6 +128,7 @@ export type TerrainKind =
   | 'ice'         // 冰面 — frozen northern river: crossable but slow/slippery
   | 'hill'        // 高地 — archers gain +1 range, melee gains charge bonus
   | 'marsh'       // 沼澤 — movement halved, cavalry suffers
+  | 'desert'      // 沙磧 — open sand/gobi (河西/塞北): no cover, slows infantry
   | 'chokepoint'  // 隘口 — only 1 unit can pass; defenders +30% defense
   | 'bridge'      // 橋樑 — river-crossing bridge; allows non-navy over rivers
   | 'gate'        // 城門 — siege-only; tougher than wall but a bottleneck

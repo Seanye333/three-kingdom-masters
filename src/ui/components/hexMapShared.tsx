@@ -144,6 +144,7 @@ export const TERRAIN_FILL_URL: Record<TerrainKind, string> = {
   road:     'url(#tkmRoadGrad)',
   hill:       'url(#tkmHillGrad)',
   marsh:      'url(#tkmMarshGrad)',
+  desert:     'url(#tkmHillGrad)',   // tawny ≈ sand on the 2D map (3D uses a sand colour)
   chokepoint: 'url(#tkmChokepointGrad)',
   bridge:     'url(#tkmBridgeGrad)',
   gate:       'url(#tkmGateGrad)',

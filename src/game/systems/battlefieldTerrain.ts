@@ -15,7 +15,7 @@
  */
 import type { TerrainKind, TacticalTile } from '../types';
 import type { Terrain } from '../data/cities';
-import { battleGroundAt, isFrozenWater, forestDensityAt, WORLD_SCALE } from '../data/geography';
+import { battleGroundAt, isFrozenWater, forestDensityAt, aridityAt, WORLD_SCALE } from '../data/geography';
 
 /**
  * Real-geography placement of a battle on the strategic map — when
@@ -162,6 +162,10 @@ function generateRealTerrain(
       else if (g === 'riverbank') terrain = rng() < 0.45 ? 'marsh' : 'plain';
       else if (g === 'mountain') terrain = 'mountain';
       else if (g === 'hill') terrain = rng() < 0.7 ? 'hill' : 'mountain';
+      else if (aridityAt(mx, my) > 0.35) {
+        // Arid NW (河西/塞北/漠南) — open sand & gobi, occasional rocky rise.
+        terrain = rng() < 0.18 ? 'hill' : 'desert';
+      }
       else {
         // Open ground — forest density follows the REAL region (lush in
         // 江南/楚/蜀, sparse on the northern plains), plus a few light hills.
@@ -183,7 +187,7 @@ function generateRealTerrain(
     // crossings become fightable chokepoints instead of a wall of water.
     if (row === midRow) {
       if (t.terrain === 'river') t.terrain = 'bridge';
-      else if (t.terrain === 'mountain' || t.terrain === 'hill' || t.terrain === 'plain') t.terrain = 'road';
+      else if (t.terrain === 'mountain' || t.terrain === 'hill' || t.terrain === 'plain' || t.terrain === 'desert') t.terrain = 'road';
       // ice stays ice — in winter the frozen river itself is the road.
     }
     // Both armies muster on dry, open ground — entry columns can't be

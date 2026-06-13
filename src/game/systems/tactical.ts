@@ -753,6 +753,7 @@ const TERRAIN_MOVE_COST: Record<TerrainKind, number> = {
   river: 3,
   hill: 2,
   marsh: 3,       // boggy ground
+  desert: 2,      // 沙磧 — loose sand drags on foot
   chokepoint: 1,  // narrow but flat
   bridge: 1,      // crosses river cheaply
   gate: 99,       // impassable until siege breaks it (handled elsewhere)

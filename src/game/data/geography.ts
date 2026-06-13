@@ -287,6 +287,25 @@ export function forestDensityAt(x: number, y: number): number {
   return Math.max(0, best);
 }
 
+/** Arid regions (河西走廊 / 河套塞北 / 漠南戈壁 / 西域東緣) — geo-anchored so a
+ *  battlefield in the NW reads as sand & gobi, not green plain. 0 … 1. */
+const ARID_REGIONS: Array<{ lon: number; lat: number; rLon: number; rLat: number }> = [
+  { lon: 100, lat: 39, rLon: 6.0, rLat: 2.5 },    // 河西走廊(武威-酒泉-敦煌)
+  { lon: 108, lat: 40.6, rLon: 5.0, rLat: 2.0 },  // 河套/塞北(朔方-五原-雲中)
+  { lon: 112, lat: 41.6, rLon: 5.0, rLat: 2.5 },  // 漠南戈壁
+  { lon: 96.5, lat: 39.5, rLon: 2.0, rLat: 2.0 }, // 西域東緣
+];
+export function aridityAt(x: number, y: number): number {
+  let best = 0;
+  for (const a of ARID_REGIONS) {
+    const [cx, cy] = geoToPixel(a.lon, a.lat);
+    const dx = (x - cx) / (a.rLon * DEG_TO_PX);
+    const dy = (y - cy) / (a.rLat * DEG_LAT_TO_PX);
+    best = Math.max(best, 1 - Math.hypot(dx, dy));
+  }
+  return Math.max(0, best);
+}
+
 /**
  * Is this map point close enough to a river (or lake) for water-works —
  * gates the 水攻 (dike-breaking flood) siege option: you can only drown
