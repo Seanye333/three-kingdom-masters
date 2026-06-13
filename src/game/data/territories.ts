@@ -9,7 +9,7 @@
  */
 
 import type { City } from '../types';
-import { isLand, terrainMarchCost } from './geography';
+import { isLand, terrainMarchCost, WORLD_SCALE, MAP_W, MAP_H } from './geography';
 import { cityPos } from './cityGeo';
 
 // ── Terrain-weighted march pathfinding (A*) ───────────────────────
@@ -18,8 +18,8 @@ import { cityPos } from './cityGeo';
 // passes instead of cutting straight through. Cached per route — cities
 // don't move, so each (from,to) is solved once per session.
 const NAV = 24;
-const NAV_COLS = Math.ceil(1000 / NAV) + 1;
-const NAV_ROWS = Math.ceil(720 / NAV) + 1;
+const NAV_COLS = Math.ceil(MAP_W / NAV) + 1;   // spans the full (scaled) map
+const NAV_ROWS = Math.ceil(MAP_H / NAV) + 1;
 let navCost: Float32Array | null = null;
 let navLand: Uint8Array | null = null;
 function ensureNav() {
@@ -149,7 +149,7 @@ function hash(s: string): number {
 }
 
 const TERRITORIES_PER_CITY = 3;
-const SATELLITE_RADIUS = 34;   // ring radius scaled with the geo layout (×1.21)
+const SATELLITE_RADIUS = 34 * WORLD_SCALE;   // ring radius scaled with the geo layout (×1.21), then ×WORLD_SCALE
 
 /**
  * Build the full territory list from the current city catalog. Returns
@@ -198,7 +198,7 @@ export function computeMarchRoute(
   if (segLen < 1) return [fp, tp];
 
   const ux = dx / segLen, uy = dy / segLen;
-  const CORRIDOR = 22;   // scaled ×1.21 with the geo layout
+  const CORRIDOR = 22 * WORLD_SCALE;   // scaled ×1.21 with the geo layout, then ×WORLD_SCALE
 
   // Project every territory onto the segment, keep those near the line
   // and between the endpoints.

@@ -13,7 +13,7 @@ import type {
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
 import { FACILITY_DEFS, isHostilePermitted } from '../types';
 import { CITY_GEO_OVERRIDES, cityPos } from '../data/cityGeo';
-import { geoToPixel } from '../data/geography';
+import { geoToPixel, WORLD_SCALE } from '../data/geography';
 
 /**
  * AI building priorities per ruler personality. The list is consulted top-down;
@@ -189,7 +189,7 @@ export function planAIFacilities(ctx: AIFacilityContext): AIFacilityOutput {
 }
 
 // ─── AI 拔點 — assaulting the player's forts & facilities ────────────────
-const ASSAULT_RANGE = 50;       // strategic px from an AI city to a target fort
+const ASSAULT_RANGE = 50 * WORLD_SCALE;   // strategic px (scaled with the world) from an AI city to a target fort
 const ASSAULT_CHANCE = 0.22;    // per hostile force per season
 
 export interface AIFortAssaultOutput {

@@ -17,7 +17,7 @@ import type { Difficulty } from '../state/gameState';
 import { OATH_BONDS, type OathBond } from '../data/bonds';
 import { COMMAND_DEFS } from './commands';
 import { marchDurationFor } from '../data/cities';
-import { isLand, terrainMarchCost } from '../data/geography';
+import { isLand, terrainMarchCost, WORLD_SCALE } from '../data/geography';
 import { cityPos } from '../data/cityGeo';
 import {
   NAP_PROPOSAL_COST,
@@ -590,7 +590,7 @@ export function planAITurn(input: AIPlanInput): AIPlanOutput {
     let bx = cx, by = cy, bestCover = -1;
     for (let k = 0; k < 8; k++) {
       const ang = (k / 8) * Math.PI * 2;
-      const tx = cx + Math.cos(ang) * 44, ty = cy + Math.sin(ang) * 44;   // scaled ×1.21
+      const tx = cx + Math.cos(ang) * 44 * WORLD_SCALE, ty = cy + Math.sin(ang) * 44 * WORLD_SCALE;   // scaled ×1.21, then ×WORLD_SCALE
       if (!isLand(tx, ty, 2)) continue;
       const cover = terrainMarchCost(tx, ty);
       if (cover > bestCover) { bestCover = cover; bx = tx; by = ty; }
@@ -813,10 +813,10 @@ function decideCommand(
     // response is underway — let it play out instead of stacking interceptors.
     const ownColumnNearby = armyList.some(
       (a) => a.forceId === forceId && !a.holding &&
-        Math.hypot(a.x - cityPos(city).x, a.y - cityPos(city).y) < 157,   // scaled ×1.21
+        Math.hypot(a.x - cityPos(city).x, a.y - cityPos(city).y) < 157 * WORLD_SCALE,   // scaled ×1.21, then ×WORLD_SCALE
     );
     if (!ownColumnNearby) {
-      const THREAT_DIST = 255;   // how close a hostile column must be to react (geo scale)
+      const THREAT_DIST = 255 * WORLD_SCALE;   // how close a hostile column must be to react (scales with world)
       let threat: import('../types').Army | null = null;
       let threatScore = Infinity;
       for (const a of armyList) {
@@ -834,7 +834,7 @@ function decideCommand(
       // Someone already engaging this threat? Then don't double up.
       const alreadyEngaged = threat && armyList.some(
         (a) => a.forceId === forceId &&
-          Math.hypot(a.x - threat!.x, a.y - threat!.y) < 60,   // scaled ×1.21
+          Math.hypot(a.x - threat!.x, a.y - threat!.y) < 60 * WORLD_SCALE,   // scaled ×1.21, then ×WORLD_SCALE
       );
       if (threat && !alreadyEngaged) {
         const marchPool = officersHere.filter((c) => !isCombatLiability(c));

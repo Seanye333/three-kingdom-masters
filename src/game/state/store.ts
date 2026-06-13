@@ -32,7 +32,7 @@ import { ITEMS_BY_ID } from '../data/items';
 import { marchDurationFor } from '../data/cities';
 import { terrainRoute, positionAlongRoute, marchDestCoords } from '../data/territories';
 import { cityPos, CITY_GEO_OVERRIDES } from '../data/cityGeo';
-import { terrainTypeAt, isRiverside } from '../data/geography';
+import { terrainTypeAt, isRiverside, WORLD_SCALE } from '../data/geography';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
 import {
@@ -727,7 +727,7 @@ export const useGameStore = create<GameStore>()(
         };
         const ps = armyPos(srcCmd, srcArmy);
         const pd = armyPos(dstCmd, dstArmy);
-        const MERGE_RANGE = 145; // a few cells — scaled ×1.21 for the geo layout
+        const MERGE_RANGE = 145 * WORLD_SCALE; // a few cells — scaled ×1.21, then ×WORLD_SCALE
         if (Math.hypot(ps.x - pd.x, ps.y - pd.y) > MERGE_RANGE) return false;
 
         // Fold source troops + officers into the destination column. The

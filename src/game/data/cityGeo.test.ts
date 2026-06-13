@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { CITY_GEO_OVERRIDES, cityPixel, cityPos } from './cityGeo';
 import { buildInitialCities, marchDurationFor } from './cities';
-import { isLand } from './geography';
+import { isLand, MAP_W, MAP_H, WORLD_SCALE } from './geography';
 
 const cities = buildInitialCities({});
 const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
@@ -12,15 +12,15 @@ describe('unified geo distance system', () => {
     expect(missing).toEqual([]);
   });
 
-  it('cityPixel projects every city inside the 1000×720 map, on land', () => {
+  it('cityPixel projects every city inside the map, on land', () => {
     for (const c of cities) {
       const [x, y] = cityPixel(c.id, c.coords.x, c.coords.y);
       expect(x, c.id).toBeGreaterThanOrEqual(0);
-      expect(x, c.id).toBeLessThanOrEqual(1000);
+      expect(x, c.id).toBeLessThanOrEqual(MAP_W);
       expect(y, c.id).toBeGreaterThanOrEqual(0);
-      expect(y, c.id).toBeLessThanOrEqual(720);
-      // margin −2: coastal cities may brush the shoreline by a pixel
-      expect(isLand(x, y, -2), `${c.id} at ${x.toFixed(0)},${y.toFixed(0)} should be on land`).toBe(true);
+      expect(y, c.id).toBeLessThanOrEqual(MAP_H);
+      // margin scales with the world: coastal cities may brush the shoreline
+      expect(isLand(x, y, -2 * WORLD_SCALE), `${c.id} at ${x.toFixed(0)},${y.toFixed(0)} should be on land`).toBe(true);
     }
   });
 

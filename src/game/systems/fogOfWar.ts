@@ -17,11 +17,12 @@
  */
 import type { Army, City, EntityId } from '../types';
 import { cityPos } from '../data/cityGeo';
+import { WORLD_SCALE } from '../data/geography';
 
-/** Sight radius around an owned city, in strategic pixels. */
-export const FOG_CITY_RADIUS = 130;
+/** Sight radius around an owned city, in strategic pixels (scales with world). */
+export const FOG_CITY_RADIUS = 130 * WORLD_SCALE;
 /** Sight radius around an owned marching column. */
-export const FOG_ARMY_RADIUS = 110;
+export const FOG_ARMY_RADIUS = 110 * WORLD_SCALE;
 
 export interface FogView {
   /** Cities whose details (and event marks etc.) are in view. */

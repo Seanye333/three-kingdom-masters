@@ -11,8 +11,15 @@
  * past/short of the rendered coast; adjust here to match.)
  */
 
-export const MAP_W = 1000;
-export const MAP_H = 720;
+/** World-scale dial — stretches the strategic map's coordinate space so
+ *  cities sit farther apart (more hex cells between them → room for field
+ *  battles, no "instantly at the gates"). Balance is preserved: every
+ *  downstream distance threshold (march duration, interception, sally,
+ *  merge, territory, AI) multiplies by the SAME factor, and the renderer
+ *  derives its size from MAP_W/MAP_H. Set to 1 to restore the old layout. */
+export const WORLD_SCALE = 1.5;
+export const MAP_W = 1000 * WORLD_SCALE;
+export const MAP_H = 720 * WORLD_SCALE;
 
 const GEO_LON_MIN = 96, GEO_LON_MAX = 125;
 const GEO_LAT_MIN = 17, GEO_LAT_MAX = 43;
@@ -60,9 +67,15 @@ const ISLANDS: ReadonlyArray<{ cx: number; cy: number; hw: number; hh: number }>
   { cx: 502, cy: 640, hw: 18, hh: 18 }, // Hainan — thin strait off the Leizhou coast
 ];
 function islandSDF(x: number, y: number): number {
+  // ISLANDS are authored in the base 1000×720 space; scale them with the
+  // world so cities sitting on them (樂浪/帶方 on "Korea", 朱崖 on Hainan)
+  // stay on land at any WORLD_SCALE.
   let best = -Infinity;
   for (const i of ISLANDS) {
-    best = Math.max(best, Math.min(i.hw - Math.abs(x - i.cx), i.hh - Math.abs(y - i.cy)));
+    best = Math.max(best, Math.min(
+      i.hw * WORLD_SCALE - Math.abs(x - i.cx * WORLD_SCALE),
+      i.hh * WORLD_SCALE - Math.abs(y - i.cy * WORLD_SCALE),
+    ));
   }
   return best;
 }

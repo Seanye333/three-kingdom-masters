@@ -12,7 +12,7 @@ import type {
 import { OATH_BONDS, type OathBond } from '../data/bonds';
 import { isHostilePermitted } from '../types';
 import { generateTerritories, terrainRoute, positionAlongRoute, marchDestCoords, type Territory } from '../data/territories';
-import { terrainMarchCost, describeBattleSite, geoToPixel } from '../data/geography';
+import { terrainMarchCost, describeBattleSite, geoToPixel, WORLD_SCALE } from '../data/geography';
 import { cityPos } from '../data/cityGeo';
 import { FACILITY_DEFS, type Fort } from '../types/fort';
 import { advanceSeason } from '../state/gameState';
@@ -194,7 +194,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // after the report; these officers are skipped by the abstract passes.
   const deferredOfficers = new Set<EntityId>();
   const pendingFieldBattles: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId; x: number; y: number }> = [];
-  const INTERCEPT_DIST = 55;   // scaled ×1.21 for the geo layout
+  const INTERCEPT_DIST = 55 * WORLD_SCALE;   // scaled ×1.21, then ×WORLD_SCALE
   for (let i = 0; i < allMarches.length; i++) {
     for (let j = i + 1; j < allMarches.length; j++) {
       const a = allMarches[i];
@@ -367,7 +367,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // garrison of a defended city it passes near (not its own target). The
   // city sallies part of its garrison under its best warrior for a field
   // battle, so you can't waltz an army past a defended stronghold.
-  const SALLY_DIST = 67;   // scaled ×1.21 for the geo layout
+  const SALLY_DIST = 67 * WORLD_SCALE;   // scaled ×1.21, then ×WORLD_SCALE
   const SALLY_MIN_GARRISON = 4000;
   for (const a of allMarches) {
     if (cancelledMarchOfficers.has(a.officerId) || deferredOfficers.has(a.officerId)) continue;
@@ -456,7 +456,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       if (!mo?.forceId || mo.forceId !== input.playerForceId) continue;
       const mp = armyPosition(m);
       if (!mp) continue;
-      const scoutRange = 60 + Math.min(72, Math.max(0, armyMaxIntel(m) - 50) * 1.45);   // scaled ×1.21
+      const scoutRange = (60 + Math.min(72, Math.max(0, armyMaxIntel(m) - 50) * 1.45)) * WORLD_SCALE;   // scaled ×1.21, then ×WORLD_SCALE
       let best: Extract<Command, { type: 'march' }> | null = null;
       let bestD = Infinity;
       for (const camp of enemyCamps) {
@@ -617,7 +617,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // Kept TIGHT (≈ one cell) so multi-column operations stay multi-column —
   // at the old 29 two pincer columns a city-gap apart would silently fuse;
   // now only armies truly stacked on the same spot consolidate.
-  const MERGE_DIST = 15;
+  const MERGE_DIST = 15 * WORLD_SCALE;
   const heldPos = heldRaw.map((c) =>
     armyPosition(c) ?? marchDestCoords(c, cities) ?? { x: 0, y: 0 },
   );
@@ -759,7 +759,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         }
         acc += sl;
       }
-      if (bestArc < 0 || bestPerp > 27) continue;   // corridor scaled ×1.21
+      if (bestArc < 0 || bestPerp > 27 * WORLD_SCALE) continue;   // corridor scaled ×1.21, then ×WORLD_SCALE
       if (bestArc < sliceStart || bestArc > sliceEnd) continue;
       territoryOwnership[ter.id] = cmdr.forceId;
     }
@@ -790,7 +790,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     const seizeTerr = generateTerritories(Object.values(cities));
     for (const seizure of campSeizures) {
       for (const ter of seizeTerr) {
-        if (Math.hypot(ter.coords.x - seizure.x, ter.coords.y - seizure.y) <= 32) {   // scaled ×1.21
+        if (Math.hypot(ter.coords.x - seizure.x, ter.coords.y - seizure.y) <= 32 * WORLD_SCALE) {   // scaled ×1.21, then ×WORLD_SCALE
           territoryOwnership[ter.id] = seizure.forceId;
         }
       }

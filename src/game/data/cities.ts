@@ -1,5 +1,5 @@
 import type { City } from '../types';
-import { terrainMarchCost } from './geography';
+import { terrainMarchCost, WORLD_SCALE } from './geography';
 import { cityPos } from './cityGeo';
 
 /** RTK14-style terrain category for each city. Pure-display today. */
@@ -1035,7 +1035,7 @@ export function buildInitialCities(
   // (劍閣/街亭/潼關/白馬…) belong to the power whose heartland surrounds
   // them, instead of standing as ahistorical neutral gaps. Anything farther
   // than the cap stays neutral, preserving deliberately unclaimed regions.
-  const FILL_RANGE = 60;
+  const FILL_RANGE = 60 * WORLD_SCALE;
   const listed = CITY_TEMPLATES
     .filter((t) => ownership[t.id] != null)
     .map((t) => ({ id: t.id, owner: ownership[t.id]!, pos: cityPos({ id: t.id, coords: t.coords }) }));
@@ -1099,9 +1099,9 @@ export function marchDurationFor(from: City, to: City, season?: 'spring' | 'summ
   // Thresholds re-tuned for the geo layout (median neighbour ≈56px vs the
   // painted map's ≈46px) — picked by grid search to keep the duration of
   // existing adjacent-pair marches as close to the old values as possible.
-  if (effDist < 100) return 1;
-  if (effDist < 195) return 2;
-  if (effDist < 275) return 3;
+  if (effDist < 100 * WORLD_SCALE) return 1;
+  if (effDist < 195 * WORLD_SCALE) return 2;
+  if (effDist < 275 * WORLD_SCALE) return 3;
   return 4;
 }
 

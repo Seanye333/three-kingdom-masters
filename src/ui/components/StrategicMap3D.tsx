@@ -4,7 +4,7 @@ import { Html, Line, OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { getTerritoryCanvas, getTerritorySignature } from './territoryOverlay';
 import { positionAlongRoute, marchDestCoords, terrainRoute, generateTerritories } from '../../game/data/territories';
-import { snapToHexCenter, geoToPixel, battleGroundAt } from '../../game/data/geography';
+import { snapToHexCenter, geoToPixel, battleGroundAt, MAP_W as PX_W, MAP_H as PX_H, WORLD_SCALE } from '../../game/data/geography';
 import { cityPixel, cityPos } from '../../game/data/cityGeo';
 import { marchDurationFor } from '../../game/data/cities';
 import { deriveWeaponType, type WeaponType } from '../../game/data/weaponTypes';
@@ -65,9 +65,9 @@ function hashStr(s: string): number {
  * We scale that to a world that's ~20 units wide × 14.4 deep.
  * X grows east (right), Z grows south (down) — same orientation as the
  * 2D map. Y is height. */
-const PIXEL_TO_WORLD = 1 / 24;          // bigger world → more room between cities
-const MAP_W = 1000 * PIXEL_TO_WORLD;   // 41.67
-const MAP_D = 720  * PIXEL_TO_WORLD;   // 30
+const PIXEL_TO_WORLD = 1 / 24;          // pixel-space → 3D world units
+const MAP_W = PX_W * PIXEL_TO_WORLD;   // 3D width — auto-scales with WORLD_SCALE
+const MAP_D = PX_H * PIXEL_TO_WORLD;   // 3D depth — auto-scales with WORLD_SCALE
 /** Stable fallback for selectors that may return undefined on old saves. */
 const EMPTY_TERRITORY_OWNERSHIP: Record<string, string | null> = {};
 function pxToWorld(x: number, y: number): [number, number] {
@@ -92,7 +92,7 @@ const GEO_LON_SPAN = GEO_LON_MAX - GEO_LON_MIN;   // 29°
 const GEO_LAT_SPAN = GEO_LAT_MAX - GEO_LAT_MIN;   // 26°
 /** Average px per degree (using lon since pixel map is wider in pixel terms
  *  than lat span, lon scale fits naturally). 1° ≈ 34.5 px. */
-const DEG_TO_PX = 1000 / GEO_LON_SPAN;
+const DEG_TO_PX = PX_W / GEO_LON_SPAN;
 function geoRidgeToPx(ridge: ReadonlyArray<readonly [number, number]>): [number, number][] {
   return ridge.map(([lon, lat]) => geoToPixel(lon, lat));
 }
@@ -144,7 +144,7 @@ function coastLonAt(lat: number): number {
 /** Pixel-space `coastXAt(py)` — derived from coastLonAt(lat). */
 function coastXAt(y: number): number {
   // py → lat via inverse of geoToPixel: lat = GEO_LAT_MAX - (py/720)*GEO_LAT_SPAN
-  const lat = GEO_LAT_MAX - (y / 720) * GEO_LAT_SPAN;
+  const lat = GEO_LAT_MAX - (y / PX_H) * GEO_LAT_SPAN;
   const lon = coastLonAt(lat);
   const [px] = geoToPixel(lon, lat);
   return px;
@@ -166,7 +166,7 @@ function isLandPx(px: number, py: number): boolean {
 function landSDF(x: number, y: number): number {
   const eastBoundary  = coastXAt(y);
   const distEast      = eastBoundary - x;
-  const distSouth     = 720 - y;
+  const distSouth     = PX_H - y;
   let sdf = Math.min(distEast, distSouth);
   for (const i of ISLANDS_3D) {
     sdf = Math.max(sdf, Math.min(i.hw - Math.abs(x - i.cx), i.hh - Math.abs(y - i.cy)));
@@ -490,9 +490,9 @@ function terrainFillFor(budgetMs: number): boolean {
   const end = TEX_H;
   for (let y = job.row; y < end; y++) {
     if (performance.now() > deadline) { job.row = y; return false; }
-    const py = (y / TEX_H) * 720;
+    const py = (y / TEX_H) * PX_H;
     for (let x = 0; x < TEX_W; x++) {
-      const px = (x / TEX_W) * 1000;
+      const px = (x / TEX_W) * PX_W;
       const { color } = sampleTerrain(px, py);
       // High-freq pixel grain so grass and dirt look textured, not flat
       const grain = (
@@ -541,9 +541,9 @@ function normalFillFor(budgetMs: number): boolean {
   const end = NM_H;
   for (let y = normalJob.row; y < end; y++) {
     if (performance.now() > deadline) { normalJob.row = y; return false; }
-    const py = (y / NM_H) * 720;
+    const py = (y / NM_H) * PX_H;
     for (let x = 0; x < NM_W; x++) {
-      normalJob.heights[y * NM_W + x] = sampleTerrain((x / NM_W) * 1000, py).h;
+      normalJob.heights[y * NM_W + x] = sampleTerrain((x / NM_W) * PX_W, py).h;
     }
   }
   normalJob.row = end;
@@ -618,7 +618,7 @@ export function warmStrategicAssets(): boolean {
 let waterMaskCache: THREE.Texture | null = null;
 function buildWaterAlphaMask(): THREE.Texture {
   if (waterMaskCache) return waterMaskCache;
-  const W = 1000, H = 720;
+  const W = PX_W, H = PX_H;
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
@@ -3464,8 +3464,8 @@ function buildSnowMask(): THREE.Texture {
   const d = img.data;
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      const px = (x / W) * 1000, py = (y / H) * 720;
-      const lat = GEO_LAT_MAX - (py / 720) * GEO_LAT_SPAN;
+      const px = (x / W) * PX_W, py = (y / H) * PX_H;
+      const lat = GEO_LAT_MAX - (py / PX_H) * GEO_LAT_SPAN;
       let alpha = Math.max(0, Math.min(1, (lat - 31) / 6)) * 0.62;   // deep north whitens
       const { h } = sampleTerrain(px, py);
       if (h < 0) alpha = 0;                                          // no snow on water
@@ -5575,7 +5575,7 @@ export function StrategicMap3D() {
             target={orbitTarget}
             maxPolarAngle={Math.PI / 2.1}
             minDistance={battleActive ? 0.9 : 3}
-            maxDistance={100}
+            maxDistance={100 * WORLD_SCALE}
             enableDamping
             dampingFactor={0.1}
           />

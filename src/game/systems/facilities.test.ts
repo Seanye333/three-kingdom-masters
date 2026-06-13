@@ -12,7 +12,7 @@ import { setupTacticalBattle, endTurn } from './tactical';
 import { mkOfficer, mkUnit, mkBattle, mkTiles } from '../../test/factories';
 import { NAMED_BATTLE_MAPS, NAMED_MAPS_BY_CITY, NAMED_MAPS_BY_ID } from '../data/namedMaps';
 import { CITY_IDS } from '../data/cities';
-import { geoToPixel } from '../data/geography';
+import { geoToPixel, MAP_W, MAP_H } from '../data/geography';
 
 const NO_DIPLO = { relations: {} } as DiplomaticState; // neutral = hostilities permitted
 
@@ -40,9 +40,9 @@ const mkForce = (over: Partial<Force> & { id: string }): Force =>
 
 // A fort at given strategic-pixel coords (inverse of geoToPixel for lon/lat).
 const fortAtPx = (over: Partial<Fort> & { id: string; px: number; py: number }): Fort => {
-  // geoToPixel: px = (lon-96)/29*1000, py = (1-(lat-17)/26)*720
-  const lon = 96 + (over.px / 1000) * 29;
-  const lat = 43 - (over.py / 720) * 26;
+  // Inverse of the CURRENT (scaled) geoToPixel so a fort lands at over.px/py.
+  const lon = 96 + (over.px / MAP_W) * 29;
+  const lat = 43 - (over.py / MAP_H) * 26;
   const { px: _px, py: _py, ...rest } = over;
   return {
     name: { zh: over.id, en: over.id },
