@@ -13,6 +13,9 @@ import { previewBattlefield } from '../../game/systems/tactical';
 import { battleGroundAt, geoToPixel } from '../../game/data/geography';
 import { FACILITY_DEFS, type FacilityKind } from '../../game/types';
 import { citySize } from '../../game/systems/citySize';
+import { COMMAND_DEFS, meetsMinSize } from '../../game/systems/commands';
+import type { InternalAffairsType } from '../../game/types';
+import { OfficerPicker } from '../components/OfficerPicker';
 import { LocatorMap } from '../components/LocatorMap';
 import { IntroDive } from '../components/IntroDive';
 import { cityViewWindow } from '../viewWindow';
@@ -498,7 +501,7 @@ const SeasonCtx = createContext<SeasonKey>('spring');
 type CityStats = { fCommerce: number; fAgri: number; fLoyalty: number; fPop: number };
 
 // Tapping a landmark reports a little "what is this" card up to the screen.
-type InspectInfo = { title: string; body: string; color: string };
+type InspectInfo = { title: string; body: string; color: string; commands?: InternalAffairsType[] };
 const InspectCtx = createContext<(info: InspectInfo) => void>(() => {});
 
 /** Multiply an #rrggbb colour by a factor (>1 lightens, <1 darkens). Cheap
@@ -2011,7 +2014,7 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats, g
       {flowers.map((f) => <FlowerBed3D key={`fb-${f.key}`} x={f.x} z={f.z} seed={f.seed} />)}
       {houses.map((h) => <Dwelling key={`dw-${h.key}`} x={h.x} z={h.z} seed={h.seed} />)}
       {trees.map((tr) => <GardenTree3D key={`tr-${tr.key}`} x={tr.x} z={tr.z} seed={tr.seed} />)}
-      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '市集', body: `城中商市。摊肆多寡随商业荣枯而变(本城商业 ${Math.round(stats.fCommerce * 100)}%),贸易越盛越喧闹。`, color: '#d4a84a' }); }}>
+      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '市集 · 商坊', body: '城中商市,理一城之財貨。可於此勸課商賈。', color: '#d4a84a', commands: ['develop-commerce', 'major-commerce'] }); }}>
         {market.map((m) => <MarketStall3D key={`mk-${m.key}`} x={m.x} z={m.z} seed={m.seed} />)}
       </group>
       {villagers.map((v) => <Villager3D key={`vl-${v.key}`} x={v.x} z={v.z} seed={v.seed} />)}
@@ -2040,10 +2043,10 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats, g
       <group onClick={(e) => { e.stopPropagation(); inspect({ title: '園林', body: '官家园池。曲桥亭榭、莲叶垂柳,文士雅集、休憩之地。', color: '#9ac06a' }); }}>
         <Garden3D x={landmarks.garden.x} z={landmarks.garden.z} />
       </group>
-      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '屯田', body: `军民屯垦之田,城邑粮秣所出。农业越高,垄亩越茂(本城农业 ${Math.round(stats.fAgri * 100)}%)。`, color: '#bcd07a' }); }}>
+      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '屯田 · 田畝', body: '军民屯垦之田,城邑粮秣所出。可於此勸課農桑。', color: '#bcd07a', commands: ['develop-agriculture', 'major-agriculture'] }); }}>
         <Farmland3D x={landmarks.farm.x} z={landmarks.farm.z} lush={stats.fAgri} />
       </group>
-      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '府衙', body: '一城之治所。太守理政、聚将议事之地,门列石狮华表、前设影壁。', color: '#f0d98a' }); }}>
+      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '府衙 · 治所', body: '一城之治所,太守理政、聚將議事之地。徵兵、安民、訪賢、招撫、修城,皆決於此。', color: '#f0d98a', commands: ['recruit-troops', 'improve-loyalty', 'search', 'encourage-migration', 'build-defense', 'upgrade-wall'] }); }}>
         <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
       </group>
     </>
@@ -2878,6 +2881,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
   const [selectedPlot, setSelectedPlot] = useState<number | null>(null);
   const [buildMsg, setBuildMsg] = useState<string | null>(null);
   const [inspect, setInspect] = useState<InspectInfo | null>(null);
+  const [pickerCmd, setPickerCmd] = useState<InternalAffairsType | null>(null);
   const [hovered, setHovered] = useState<{ col: number; row: number } | null>(null);
   const [showOverlays, setShowOverlays] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -3602,7 +3606,56 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
               }}>×</button>
             </div>
             <div style={{ color: '#c0a878', fontSize: '0.78rem', lineHeight: 1.6, marginTop: 4 }}>{inspect.body}</div>
+            {/* 理政 — actionable commands tied to this building, with the
+                building's live stat shown right where you act on it. */}
+            {inspect.commands && isPlayer && (() => {
+              const sizeId = citySize(city).id;
+              // The metric this landmark governs, for the at-a-glance readout.
+              const cmds = inspect.commands;
+              const metric = cmds.includes('develop-agriculture') ? { zh: '農業', v: city.agriculture, max: cap }
+                : cmds.includes('develop-commerce') ? { zh: '商業', v: city.commerce, max: cap }
+                : { zh: '城防', v: city.defense, max: cap };
+              return (
+                <div style={{ marginTop: 8, borderTop: '1px solid #3a2d20', paddingTop: 6 }}>
+                  <div style={{ fontSize: '0.74rem', color: '#e8d9b0', marginBottom: 6 }}>
+                    {metric.zh} <strong style={{ color: inspect.color }}>{metric.v}</strong>
+                    <span style={{ color: '#8a7050' }}> / {metric.max}</span>
+                    {!cmds.includes('develop-agriculture') && !cmds.includes('develop-commerce') && (
+                      <span style={{ marginLeft: 10, color: '#8a7050' }}>兵 {city.troops.toLocaleString()} · 民忠 {city.loyalty}</span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    {cmds.map((ct) => {
+                      const def = COMMAND_DEFS[ct];
+                      const tierOk = meetsMinSize(sizeId, def.minSize);
+                      if (!tierOk) return null;
+                      const canAfford = city.gold >= def.goldCost;
+                      return (
+                        <button
+                          key={ct}
+                          onClick={() => { setPickerCmd(ct); setInspect(null); }}
+                          disabled={!canAfford}
+                          title={canAfford ? def.description : '金錢不足'}
+                          style={{
+                            background: canAfford ? '#2a1f14' : 'transparent',
+                            border: `1px solid ${canAfford ? inspect.color : '#3a2d20'}`,
+                            color: canAfford ? '#f0d98a' : '#5a4a35',
+                            padding: '0.3rem 0.6rem', cursor: canAfford ? 'pointer' : 'not-allowed',
+                            fontFamily: 'inherit', fontSize: '0.76rem',
+                          }}
+                        >{def.label.zh} <span style={{ color: '#8a7050' }}>{def.goldCost > 0 ? `${def.goldCost}g` : '免'}</span></button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
+        )}
+
+        {/* 府衙理政 — the multi-select officer picker, opened from a building. */}
+        {pickerCmd && isPlayer && (
+          <OfficerPicker cityId={cityId} commandType={pickerCmd} onClose={() => setPickerCmd(null)} />
         )}
 
         {/* Live readout — the scene mirrors these numbers */}
