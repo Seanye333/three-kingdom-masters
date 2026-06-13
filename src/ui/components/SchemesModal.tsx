@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { SCHEME_DEFS, schemeOdds, validateScheme, type SchemeId } from '../../game/systems/schemes';
 import { pickAdvisor } from '../../game/systems/advisor';
-import { useT } from '../i18n';
+import { useT, useLanguage } from '../i18n';
 
 /**
  * 計略 — the named force-level schemes, with the strategist's odds
@@ -10,6 +10,7 @@ import { useT } from '../i18n';
  */
 export function SchemesModal({ onClose }: { onClose: () => void }) {
   const t = useT();
+  const lang = useLanguage();
   const cities = useGameStore((s) => s.cities);
   const forces = useGameStore((s) => s.forces);
   const officers = useGameStore((s) => s.officers);
@@ -33,7 +34,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
   }, [cities, forces, playerForceId]);
 
   const problem = playerForceId
-    ? (targetA ? validateScheme(schemeId, cities, playerForceId, targetA, def.targets === 2 ? targetB || undefined : undefined) : '選定目標')
+    ? (targetA ? validateScheme(schemeId, cities, playerForceId, targetA, def.targets === 2 ? targetB || undefined : undefined) : t('選定目標', 'Pick a target'))
     : 'no force';
   const ready = !problem && targetA && (def.targets === 1 || targetB);
   const odds = ready ? schemeOdds(schemeId, diplomacy, strategist, targetA, targetB || undefined) : null;
@@ -71,7 +72,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
             <button
               key={d.id}
               onClick={() => { setSchemeId(d.id); setResult(null); }}
-              title={d.hintZh}
+              title={lang === 'en' ? d.hintEn : d.hintZh}
               style={{
                 flex: 1, padding: '0.4rem 0.3rem', cursor: 'pointer', fontFamily: 'inherit',
                 background: schemeId === d.id ? 'rgba(212,168,74,0.18)' : 'transparent',
@@ -82,7 +83,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        <div style={{ fontSize: '0.74rem', color: '#8a7050', marginBottom: 8 }}>{def.hintZh}</div>
+        <div style={{ fontSize: '0.74rem', color: '#8a7050', marginBottom: 8 }}>{lang === 'en' ? def.hintEn : def.hintZh}</div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
           <select value={targetA} onChange={(e) => { setTargetA(e.target.value); setResult(null); }} style={sel}>

@@ -18,7 +18,7 @@ describe('validateScheme', () => {
   it('驅虎吞狼 needs the two beasts to share a border', () => {
     expect(validateScheme('tiger-wolf', cities, 'wei', 'wu', 'shu')).toBeNull();
     expect(validateScheme('tiger-wolf', cities, 'wu', 'wei', 'shu')).toBe('兩家無接壤,驅之不動');
-    expect(validateScheme('tiger-wolf', cities, 'wei', 'wei', 'wu')).toBe('cannot target yourself');
+    expect(validateScheme('tiger-wolf', cities, 'wei', 'wei', 'wu')).toBe('不可以己方為目標');
   });
   it('遠交近攻 refuses neighbours', () => {
     expect(validateScheme('far-friend', cities, 'wei', 'shu')).toBeNull(); // wei↔shu not adjacent

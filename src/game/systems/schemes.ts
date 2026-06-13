@@ -23,15 +23,16 @@ export interface SchemeDef {
   zh: string;
   en: string;
   hintZh: string;
+  hintEn: string;
   goldCost: number;
   /** Two targets (A vs B) or one (the distant friend). */
   targets: 1 | 2;
 }
 
 export const SCHEME_DEFS: SchemeDef[] = [
-  { id: 'tiger-wolf', zh: '驅虎吞狼', en: 'Drive the Tiger', hintZh: '挑動甲勢力攻伐乙 — 兩家本有嫌隙則事半功倍', goldCost: 600, targets: 2 },
-  { id: 'two-tigers', zh: '二虎競食', en: 'Two Tigers, One Prey', hintZh: '使相鄰兩強互啄 — 雙方交惡並互相得討伐之名', goldCost: 800, targets: 2 },
-  { id: 'far-friend', zh: '遠交近攻', en: 'Befriend the Far', hintZh: '結好無接壤之國 — 遠人之好,近敵之憂', goldCost: 300, targets: 1 },
+  { id: 'tiger-wolf', zh: '驅虎吞狼', en: 'Drive the Tiger', hintZh: '挑動甲勢力攻伐乙 — 兩家本有嫌隙則事半功倍', hintEn: 'Goad force A into war with B — easiest when they already despise each other.', goldCost: 600, targets: 2 },
+  { id: 'two-tigers', zh: '二虎競食', en: 'Two Tigers, One Prey', hintZh: '使相鄰兩強互啄 — 雙方交惡並互相得討伐之名', hintEn: 'Set two bordering rivals at each other — both sour, both gain a casus belli.', goldCost: 800, targets: 2 },
+  { id: 'far-friend', zh: '遠交近攻', en: 'Befriend the Far', hintZh: '結好無接壤之國 — 遠人之好,近敵之憂', hintEn: 'Warm relations with a power that shares no border with you.', goldCost: 300, targets: 1 },
 ];
 
 /** Do two forces share a border (any adjacent city pair)? */
@@ -60,6 +61,13 @@ export function schemeOdds(
   return Math.max(0.05, Math.min(0.9, base + iq / 280 - rel / 180));
 }
 
+const ZH_EN = {
+  self: '不可以己方為目標',
+  adjacent: '遠交者不可接壤',
+  twoDistinct: '需選兩個不同目標',
+  notAdjacent: '兩家無接壤,驅之不動',
+};
+
 export function validateScheme(
   scheme: SchemeId,
   cities: Record<EntityId, City>,
@@ -67,12 +75,12 @@ export function validateScheme(
   a: EntityId,
   b?: EntityId,
 ): string | null {
-  if (a === playerForceId || b === playerForceId) return 'cannot target yourself';
+  if (a === playerForceId || b === playerForceId) return ZH_EN.self;
   if (scheme === 'far-friend') {
-    if (forcesAdjacent(cities, playerForceId, a)) return '遠交者不可接壤';
+    if (forcesAdjacent(cities, playerForceId, a)) return ZH_EN.adjacent;
     return null;
   }
-  if (!b || a === b) return 'need two distinct targets';
-  if (!forcesAdjacent(cities, a, b)) return '兩家無接壤,驅之不動';
+  if (!b || a === b) return ZH_EN.twoDistinct;
+  if (!forcesAdjacent(cities, a, b)) return ZH_EN.notAdjacent;
   return null;
 }
