@@ -34,6 +34,8 @@ import { LocatorMap } from './LocatorMap';
 import { ObjectivePanel } from './ObjectivePanel';
 import { PortPanel } from './PortPanel';
 import { FortPanel } from './FortPanel';
+import { TribePanel } from './TribePanel';
+import { TRIBES } from '../../game/data/tribes';
 import { BuildStockadePicker } from './BuildStockadePicker';
 import { useT } from '../i18n';
 
@@ -4801,11 +4803,86 @@ function UniqueLandmarks3D({ cities }: { cities: Record<string, City> }) {
   );
 }
 
-function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
+/* ─── 異族部落 — frontier tribe homelands ─────────────────────────────
+ * The Nanman jungles, Wuhuan steppe, Qiang highlands… each raid-source
+ * tribe now sits as a 部落寨 (tent cluster + totem) just beyond the cities
+ * it harries. Clicking opens the 征討/招撫 panel. */
+function Tribes3D({ onTribeClick }: { onTribeClick: (tribeId: string) => void }) {
+  const aggression = useGameStore((s) => s.tribeState.aggression);
+  const sites = useMemo(() => TRIBES.map((tb) => {
+    const [px, py] = geoToPixel(tb.homeland.lon, tb.homeland.lat);
+    const [wx, wz] = pxToWorld(px, py);
+    return { id: tb.id, zh: tb.name.zh, color: tb.color, wx, wz };
+  }), []);
+  const scale = PIXEL_TO_WORLD * 50 * 0.5 * MARKER_SCALE;
+  return (
+    <group>
+      {sites.map((s) => {
+        const y = sampleTerrainHeight(s.wx, s.wz);
+        const agg = aggression[s.id] ?? 0.15;
+        const restless = agg > 0.22;
+        return (
+          <group key={s.id} position={[s.wx, y, s.wz]} scale={scale}>
+            {/* Click target — a low ground disc */}
+            <mesh
+              position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}
+              onClick={(e) => { e.stopPropagation(); onTribeClick(s.id); }}
+              onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = 'pointer'; }}
+              onPointerOut={() => { document.body.style.cursor = ''; }}
+            >
+              <circleGeometry args={[0.55, 20]} />
+              <meshBasicMaterial color={s.color} transparent opacity={0.32} />
+            </mesh>
+            {/* Three hide tents */}
+            {([[-0.28, 0.1], [0.26, -0.04], [0.02, 0.3]] as const).map(([tx, tz], i) => (
+              <group key={i} position={[tx, 0, tz]}>
+                <mesh position={[0, 0.16, 0]} castShadow>
+                  <coneGeometry args={[0.17, 0.34, 7]} />
+                  <meshStandardMaterial color={i === 1 ? '#8a7256' : '#766350'} roughness={0.92} />
+                </mesh>
+                {/* Tent-pole tips poking through the top */}
+                <mesh position={[0, 0.35, 0]}>
+                  <coneGeometry args={[0.02, 0.08, 4]} />
+                  <meshStandardMaterial color="#4a3c2c" roughness={0.9} />
+                </mesh>
+              </group>
+            ))}
+            {/* Central totem / banner pole in the tribe colour */}
+            <mesh position={[0, 0.3, 0]} castShadow>
+              <cylinderGeometry args={[0.022, 0.022, 0.6, 6]} />
+              <meshStandardMaterial color="#3a2c1c" roughness={0.85} />
+            </mesh>
+            <mesh position={[0.09, 0.5, 0]} castShadow>
+              <boxGeometry args={[0.16, 0.12, 0.02]} />
+              <meshStandardMaterial color={s.color} side={THREE.DoubleSide} roughness={0.7} />
+            </mesh>
+            {/* Restless tribes smoulder a warning campfire glow */}
+            {restless && (
+              <mesh position={[0, 0.05, -0.3]}>
+                <sphereGeometry args={[0.07, 8, 6]} />
+                <meshBasicMaterial color="#e0662a" transparent opacity={0.7} />
+              </mesh>
+            )}
+            <Html position={[0, 0.78, 0]} center distanceFactor={12} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
+              <div style={{
+                background: 'rgba(28, 18, 10, 0.82)', border: `1px solid ${s.color}`, borderRadius: 3,
+                padding: '1px 6px', color: '#f0d8a8', fontFamily: '"Ma Shan Zheng", "Songti SC", serif',
+                fontSize: '11px', whiteSpace: 'nowrap',
+              }}>⛺ {s.zh}</div>
+            </Html>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onQuickAction, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
   onPortClick: (portId: string) => void;
   onFortClick: (fortId: string) => void;
+  onTribeClick: (tribeId: string) => void;
   /** 快捷輪盤 — open the march/recruit picker for a city (DOM modals live
    *  in the outer shell, outside the Canvas). */
   onQuickAction: (kind: 'march' | 'recruit', cityId: string) => void;
@@ -5053,6 +5130,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       <EventMarks3D cities={cities} hidePx={battleSitePx} visibleCityIds={fog?.visibleCityIds ?? null} onPick={(id) => selectCity(id)} />
       <Ports3D onPortClick={onPortClick} />
       <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
+      <Tribes3D onTribeClick={onTribeClick} />
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
           over (same scene component, same state; rotated to its true bearing,
@@ -5573,6 +5651,7 @@ export function StrategicMap3D() {
   const [overlayMode, setOverlayMode] = useState<OverlayMode>('none');
   const [selectedPortId, setSelectedPortId] = useState<string | null>(null);
   const [selectedFortId, setSelectedFortId] = useState<string | null>(null);
+  const [selectedTribeId, setSelectedTribeId] = useState<string | null>(null);
   const [showStockadeBuild, setShowStockadeBuild] = useState(false);
   // Orbit pivot — held as STATE (stable ref) so re-renders don't snap the
   // target back; BattleFocusFly animates it to a clash site, then locks it in.
@@ -5984,6 +6063,7 @@ export function StrategicMap3D() {
             mapStyle={mapStyle}
             onPortClick={setSelectedPortId}
             onFortClick={setSelectedFortId}
+            onTribeClick={setSelectedTribeId}
             onQuickAction={(kind, cityId) => setQuickPick({ kind, cityId })}
             dioSelectedId={worldBattleMinimized ? dioSelectedId : null}
             dioMode={dioMode}
@@ -6257,6 +6337,12 @@ export function StrategicMap3D() {
         <FortPanel
           fortId={selectedFortId}
           onClose={() => setSelectedFortId(null)}
+        />
+      )}
+      {selectedTribeId && (
+        <TribePanel
+          tribeId={selectedTribeId}
+          onClose={() => setSelectedTribeId(null)}
         />
       )}
       {showStockadeBuild && (

@@ -130,3 +130,71 @@ export function createInitialTribeState(): TribeState {
   for (const t of TRIBES) aggression[t.id] = t.baseAggression;
   return { aggression, lastRaidYear: {} };
 }
+
+/** Whether the player can mount a frontier campaign / embassy against a
+ *  tribe — needs to own or border one of its raidable cities. */
+export function canCampaignTribe(
+  tribe: Tribe,
+  cities: Record<EntityId, City>,
+  playerForceId: string,
+): { ok: boolean; reason?: string } {
+  for (const cid of tribe.raidableCityIds) {
+    const c = cities[cid];
+    if (!c) continue;
+    if (c.ownerForceId === playerForceId) return { ok: true };
+    for (const adjId of c.adjacentCityIds ?? []) {
+      if (cities[adjId]?.ownerForceId === playerForceId) return { ok: true };
+    }
+  }
+  return {
+    ok: false,
+    reason: `Need to own or border one of: ${tribe.raidableCityIds
+      .map((g) => cities[g]?.name.zh ?? g)
+      .join(', ')}.`,
+  };
+}
+
+/**
+ * 征討 — a punitive expedition. The officer leads troops out against the
+ * tribe; on victory aggression collapses (years of quiet) and grateful/
+ * cowed clans send tribute (gold) + a band of auxiliary cavalry. A bloody
+ * nose only dents their aggression. Pure math; the store applies it.
+ */
+export function resolveTribePunitive(args: {
+  tribe: Tribe;
+  aggression: number;
+  troops: number;
+  officerWar: number;
+  officerLeadership: number;
+  rng: () => number;
+}): {
+  win: boolean;
+  attackerLosses: number;
+  aggressionDelta: number;
+  tributeGold: number;
+  auxTroops: number;
+} {
+  const { tribe, troops, officerWar, officerLeadership, rng } = args;
+  // Leadership swells the effective host; a high-WAR general fights the
+  // tribes harder (Ma Chao against the Qiang, Zhuge Ke against the Shanyue).
+  const effective = troops * (1 + officerLeadership / 200) * (1 + (officerWar - 50) / 300);
+  // Tribe defenders scale with their strength multiplier.
+  const defense = 3000 * tribe.strengthMul * (0.85 + rng() * 0.4);
+  const ratio = effective / Math.max(1, defense);
+  const win = ratio > 1;
+  const attackerLosses = Math.floor(
+    troops * Math.min(0.85, (win ? 0.10 : 0.30) + (defense / 30000) + rng() * 0.08),
+  );
+  const aggressionDelta = win
+    ? -(0.12 + 0.06 * Math.min(2, ratio - 1))   // crushing wins quiet them for years
+    : -0.03;
+  const tributeGold = win ? Math.floor(300 + 500 * tribe.strengthMul + rng() * 400) : 0;
+  // 異族騎兵 — submitting clans furnish auxiliaries (horse tribes give more).
+  const auxTroops = win ? Math.floor((tribe.strengthMul >= 1.0 ? 800 : 400) * (0.7 + rng() * 0.6)) : 0;
+  return { win, attackerLosses, aggressionDelta, tributeGold, auxTroops };
+}
+
+/** 招撫 — buy a season's peace with gifts. Always works, costs gold,
+ *  and the calm is shallower & shorter-lived than a military victory. */
+export const TRIBE_PLACATE_COST = 400;
+export const TRIBE_PLACATE_AGGRESSION_DROP = 0.08;

@@ -15,6 +15,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['jianning', 'yongchang', 'yunnan', 'jiaozhi'],
     baseAggression: 0.18,
     strengthMul: 1.0,
+    homeland: { lon: 102.0, lat: 24.0 },   // 南中叢林,建寧之南
   },
   {
     id: 'wuhuan',
@@ -26,6 +27,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['liaodong', 'beiping', 'yuyang', 'liucheng', 'ji'],
     baseAggression: 0.22,
     strengthMul: 1.2,
+    homeland: { lon: 120.8, lat: 41.3 },   // 遼西草原,柳城外
   },
   {
     id: 'xianbei',
@@ -37,6 +39,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['shuofang', 'yunzhong', 'wuyuan', 'yanmen', 'taiyuan'],
     baseAggression: 0.20,
     strengthMul: 1.1,
+    homeland: { lon: 110.4, lat: 41.4 },   // 漠南,雲中之北
   },
   {
     id: 'qiang',
@@ -48,6 +51,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['jincheng', 'tianshui', 'anding', 'wuwei', 'longxi'],
     baseAggression: 0.25,
     strengthMul: 1.1,
+    homeland: { lon: 102.2, lat: 35.4 },   // 河湟高原,金城之西
   },
   {
     id: 'shanyue',
@@ -59,6 +63,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['jianye', 'wu', 'kuaiji', 'yuzhang', 'danyang'],
     baseAggression: 0.16,
     strengthMul: 0.85,
+    homeland: { lon: 117.7, lat: 28.4 },   // 江南山地,鄱陽群山
   },
 
   // ── D-set: 5 new frontier tribes ──
@@ -72,6 +77,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['wudu', 'hanzhong', 'longxi', 'tianshui', 'baishuiguan'],
     baseAggression: 0.18,
     strengthMul: 0.95,
+    homeland: { lon: 104.4, lat: 33.6 },   // 武都山地,白馬氐
   },
   {
     id: 'xiongnu',
@@ -83,6 +89,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['wuyuan', 'yunzhong', 'shuofang', 'yanmen', 'taiyuan'],
     baseAggression: 0.17,
     strengthMul: 1.05,
+    homeland: { lon: 109.6, lat: 40.9 },   // 河套,五原之北(南匈奴)
   },
   {
     id: 'goguryeo',
@@ -94,6 +101,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['lelang', 'daifang', 'xiangping', 'liaodong'],
     baseAggression: 0.14,
     strengthMul: 0.9,
+    homeland: { lon: 123.6, lat: 40.4 },   // 鴨綠江畔,樂浪之東
   },
   {
     id: 'buyeo',
@@ -105,6 +113,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['xiangping', 'liaodong', 'lelang'],
     baseAggression: 0.10,
     strengthMul: 0.8,
+    homeland: { lon: 122.9, lat: 41.7 },   // 滿洲,襄平之北
   },
   {
     id: 'linyi',
@@ -116,6 +125,7 @@ export const TRIBES: Tribe[] = [
     raidableCityIds: ['rinan', 'jiuzhen', 'jiaozhi'],
     baseAggression: 0.13,
     strengthMul: 0.75,
+    homeland: { lon: 108.2, lat: 17.7 },   // 日南海岸,占婆北境(map 南緣)
   },
 ];
 

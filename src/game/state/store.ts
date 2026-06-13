@@ -41,7 +41,14 @@ import {
   findFiringEventIn,
 } from '../systems/historicalEvents';
 import { resolveEspionage } from '../systems/espionage';
-import { resolveTribeRaids } from '../systems/tribes';
+import {
+  resolveTribeRaids,
+  canCampaignTribe,
+  resolveTribePunitive,
+  TRIBE_PLACATE_COST,
+  TRIBE_PLACATE_AGGRESSION_DROP,
+} from '../systems/tribes';
+import { TRIBES_BY_ID } from '../data/tribes';
 import { addRapport, mingleRapport, getRapport, growRapportFromProximity } from '../systems/rapport';
 import { pairKey } from '../types/diplomacy';
 import { OATH_BONDS } from '../data';
@@ -451,6 +458,17 @@ interface GameStore extends GameState {
   /** Upgrade an owned fort one level (max 3). Lv2: 500g, Lv3: 1200g.
    *  Each level adds +50% to maxHp. */
   upgradeFort: (fortId: EntityId) => { ok: boolean; message: string };
+  /** 征討異族 — punitive expedition against a frontier tribe. Officer leads
+   *  troops from a bordering city; victory collapses the tribe's aggression
+   *  and yields tribute gold + auxiliary cavalry. */
+  subjugateTribe: (
+    tribeId: string,
+    attackerOfficerId: EntityId,
+    troops: number,
+  ) => { ok: boolean; win?: boolean; message: string };
+  /** 招撫異族 — pay tribute/gifts (gold from capital) to cool a tribe's
+   *  aggression for a while. Always succeeds if gold available. */
+  placateTribe: (tribeId: string) => { ok: boolean; message: string };
   /** Officer-led attack on a port. Damage scales with attacker WAR + LED;
    *  attacker takes casualties proportional to defender officer's WAR.
    *  Captures the port if HP drops to 0. */
@@ -5487,6 +5505,85 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           message: captured
             ? `${attacker.name.zh} seizes ${fort.name.zh}! Lost ${attackerLosses} troops.`
             : `${attacker.name.zh} batters ${fort.name.zh}: −${fortDmg} HP. Lost ${attackerLosses} troops.`,
+        };
+      },
+
+      subjugateTribe: (tribeId, attackerOfficerId, troops) => {
+        const state = get();
+        const tribe = TRIBES_BY_ID[tribeId];
+        if (!tribe) return { ok: false, message: 'Tribe not found.' };
+        if (!state.playerForceId) return { ok: false, message: 'No player force.' };
+        const reach = canCampaignTribe(tribe, state.cities, state.playerForceId);
+        if (!reach.ok) return { ok: false, message: reach.reason ?? 'Cannot reach.' };
+        const attacker = state.officers[attackerOfficerId];
+        if (!attacker || attacker.forceId !== state.playerForceId)
+          return { ok: false, message: 'Attacker officer must be yours.' };
+        if (attacker.status !== 'idle' && attacker.status !== 'active')
+          return { ok: false, message: 'Officer is not available.' };
+        const sourceCity = attacker.locationCityId ? state.cities[attacker.locationCityId] : null;
+        if (!sourceCity || sourceCity.ownerForceId !== state.playerForceId)
+          return { ok: false, message: 'Attacker is not in your city.' };
+        if (troops <= 0 || sourceCity.troops < troops)
+          return { ok: false, message: `Need ${troops} troops in ${sourceCity.name.zh}.` };
+
+        const r = resolveTribePunitive({
+          tribe,
+          aggression: state.tribeState.aggression[tribe.id] ?? tribe.baseAggression,
+          troops,
+          officerWar: attacker.stats.war,
+          officerLeadership: attacker.stats.leadership,
+          rng: Math.random,
+        });
+        const prevAgg = state.tribeState.aggression[tribe.id] ?? tribe.baseAggression;
+        const nextAgg = Math.max(0, prevAgg + r.aggressionDelta);
+        const survivors = Math.max(0, troops - r.attackerLosses) + r.auxTroops;
+        set({
+          tribeState: {
+            ...state.tribeState,
+            aggression: { ...state.tribeState.aggression, [tribe.id]: nextAgg },
+          },
+          cities: {
+            ...state.cities,
+            [sourceCity.id]: {
+              ...sourceCity,
+              troops: sourceCity.troops - troops + survivors,
+              gold: sourceCity.gold + r.tributeGold,
+            },
+          },
+        });
+        return {
+          ok: true,
+          win: r.win,
+          message: r.win
+            ? `${attacker.name.zh}大破${tribe.name.zh}!獲貢金 ${r.tributeGold}、附庸騎兵 ${r.auxTroops},損兵 ${r.attackerLosses}。`
+            : `${attacker.name.zh}討${tribe.name.zh}不利,損兵 ${r.attackerLosses},其勢稍挫。`,
+        };
+      },
+
+      placateTribe: (tribeId) => {
+        const state = get();
+        const tribe = TRIBES_BY_ID[tribeId];
+        if (!tribe) return { ok: false, message: 'Tribe not found.' };
+        if (!state.playerForceId) return { ok: false, message: 'No player force.' };
+        const player = state.forces[state.playerForceId];
+        const capital = player ? state.cities[player.capitalCityId] : null;
+        if (!capital || capital.gold < TRIBE_PLACATE_COST)
+          return { ok: false, message: `Need ${TRIBE_PLACATE_COST}g in capital.` };
+        const prevAgg = state.tribeState.aggression[tribe.id] ?? tribe.baseAggression;
+        const nextAgg = Math.max(0, prevAgg - TRIBE_PLACATE_AGGRESSION_DROP);
+        set({
+          cities: {
+            ...state.cities,
+            [capital.id]: { ...capital, gold: capital.gold - TRIBE_PLACATE_COST },
+          },
+          tribeState: {
+            ...state.tribeState,
+            aggression: { ...state.tribeState.aggression, [tribe.id]: nextAgg },
+          },
+        });
+        return {
+          ok: true,
+          message: `賜物招撫${tribe.name.zh},邊釁暫息(−${TRIBE_PLACATE_COST}g)。`,
         };
       },
 

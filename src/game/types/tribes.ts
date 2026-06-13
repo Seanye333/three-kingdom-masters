@@ -32,6 +32,9 @@ export interface Tribe {
   baseAggression: number;
   /** Strength multiplier on raid troop counts. */
   strengthMul: number;
+  /** Real (lon, lat) of the tribe's homeland 部落 — a frontier site rendered
+   *  on the strategic map, just beyond the Han cities they raid. */
+  homeland: { lon: number; lat: number };
 }
 
 export interface TribeState {
