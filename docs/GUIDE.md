@@ -14,7 +14,7 @@
 | 2 | [武將・成長・家族](#第二章-武將成長家族) | officerFate, traitEffects, personality, biography, posthumous, aging, family, wishes, rapport, relationshipEffects, career, codex | ✅ |
 | 3 | [人才・招攬・舌戰](#第三章-人才招攬舌戰) | commands(search), officerFate, debate, wordWar, commonerTalent | ✅ |
 | 4 | [軍事指揮・委任](#第四章-軍事指揮委任) | muster, legion, governor, advisor | ✅ |
-| 5 | [戰術戰鬥](#第五章-戰術戰鬥) | tactical, combat, weather, battlefieldTerrain, personalTactics, damagePredict, battleRecap, fogOfWar | ✅ |
+| 5 | [戰術戰鬥](#第五章-戰術戰鬥) | tactical, combat, formations, stratagems, weather, battlefieldTerrain, personalTactics, weaponTypes, namedMaps, damagePredict, battleRecap, fogOfWar | ✅ |
 | 6 | [單挑](#第六章-單挑) | duel, gauntlet | ✅ |
 | 7 | [外交・謀略・天子](#第七章-外交謀略天子) | diplomacy, coalition, schemes, espionage, intrigue, emperor, imperialEffects, mandate, courtFactions, appointmentEffects | ✅ |
 | 8 | [事件・天命・異族・宗教](#第八章-事件天命異族宗教) | events, historicalEvents, customEvents, factionEvents, religion, tribes | ✅ |
@@ -308,6 +308,22 @@
 - **戰後復盤**(battleRecap):戰損比、最堅韌、中流砥柱、計謀次數。
 - **委託指揮**:小仗一鍵交戰術 AI 代打。
 - **戰鬥錄影**:🎬 導出 WebM。
+
+### 5.8 兵裝(weaponTypes.ts,10 類)
+
+每名武將有一個**兵裝類型**,由其裝備的主武器衍生(RTK14 風格;目前純展示,留有未來戰鬥加成鉤子):
+
+> 槍兵 / 戟兵 / 刀兵 / 劍士 / 弓兵 / 弩兵 / 騎兵 / 兵器 / 軍師 / 徒手(共 10 類)
+
+- **判定順序**:先取裝備中的主武器(丈八蛇矛→槍、青龍偃月刀→刀、羽扇→軍師…);無特定武器則按屬性推:智 ≥88 且武 <70 → 軍師;裝備有馬 → 騎兵;武 ≥80 → 槍、≥70 → 刀、≥60 → 弓;否則徒手。
+
+### 5.9 預設戰場(namedMaps.ts,18 張)
+
+對特定名城開打時,改用**手工設計的戰場**(地形 / 天氣 / 特殊格)覆蓋程序生成:
+
+> 赤壁、虎牢關、長坂橋、五丈原、官渡(烏巢糧倉)、麥城、樊城(漢水堰)、定軍山、街亭… 共 18 張。
+
+- 例:**赤壁**固定起風、黃昏,一條斜貫的長江把南北軍隔開,設橋與渡口 —— 只有南風能成全火攻,還原史實戰場的勝負手。
 
 ---
 
