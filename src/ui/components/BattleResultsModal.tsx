@@ -1,4 +1,5 @@
 import { resolveBattleEnd } from '../../game/systems/tactical';
+import { battleRecap } from '../../game/systems/battleRecap';
 import { useGameStore } from '../../game/state/store';
 import { pickVoiceLine } from '../../game/data/voiceLines';
 import { getDeathPoem } from '../../game/data/deathPoems';
@@ -107,6 +108,28 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
               </span>
             </div>
           </div>
+
+          {/* 復盤 — derived recap: exchange ratio, MVP, schemes thrown. */}
+          {(() => {
+            const recap = battleRecap(battle, officers);
+            const rows: Array<[string, string]> = [];
+            if (recap.exchangeRatio != null) rows.push(['戰損比 Exchange', `1 : ${recap.exchangeRatio}`]);
+            if (recap.toughest) rows.push(['最堅韌 Toughest', `${recap.toughest.name}(存 ${Math.round(recap.toughest.keptPct * 100)}%)`]);
+            if (recap.pillar) rows.push(['中流砥柱 Pillar', `${recap.pillar.name}(${recap.pillar.troops.toLocaleString()})`]);
+            if (recap.schemesCast > 0) rows.push(['計謀 Schemes', `${recap.schemesCast} 次`]);
+            if (rows.length === 0) return null;
+            return (
+              <div className={styles.section}>
+                <div className={styles.sectionLabel}>復盤 Recap</div>
+                {rows.map(([k, v]) => (
+                  <div key={k} className={styles.statRow}>
+                    <span className={styles.statSide}>{k}</span>
+                    <span className={styles.statValue} style={{ gridColumn: '2 / -1' }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {resolution.capturedOfficerIds.length > 0 && (
             <div className={styles.section}>
