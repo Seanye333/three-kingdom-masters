@@ -1426,9 +1426,22 @@ function City3D({
       />
       {/* Force banner — every owned city flies its colours so ownership
        *  reads from the buildings, not just the ground grid. Capitals get
-       *  a taller pole + larger flag. */}
-      {city.ownerForceId && (
+       *  a taller pole + larger flag. A razed city flies none. */}
+      {city.ownerForceId && !city.ruined && (
         <CityBanner color={forceColor} baseY={height} isCapital={isCapital} />
+      )}
+      {/* 焦土 — a charred rubble heap + drifting smoke marks a razed city. */}
+      {city.ruined && (
+        <group>
+          <mesh position={[0, 0.06, 0]} castShadow>
+            <coneGeometry args={[radius * 1.1, 0.16, 6]} />
+            <meshStandardMaterial color="#3a3128" roughness={1} />
+          </mesh>
+          <mesh position={[0, height * 0.6, 0]}>
+            <sphereGeometry args={[radius * 0.7, 8, 6]} />
+            <meshBasicMaterial color="#2a2a2a" transparent opacity={0.4} />
+          </mesh>
+        </group>
       )}
       {/* Port complex — pier, wharf, war junk + mast forest */}
       {/* Old in-city port docks removed — ports are now independent entities

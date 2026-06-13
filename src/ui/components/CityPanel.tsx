@@ -16,6 +16,7 @@ import { FreeAgentsSection } from './FreeAgentsSection';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import { TERRAIN_DEFS } from '../../game/data/cities';
 import { PROVINCE_BY_CITY, PROVINCES_BY_ID } from '../../game/data';
+import { rebuildCost } from '../../game/systems/cityRuin';
 import styles from './CityPanel.module.css';
 import { useT, useLanguage } from '../i18n';
 
@@ -146,6 +147,8 @@ export function CityPanel() {
       )}
 
       {isPlayerCity && <BuildingsPanel cityId={city.id} />}
+
+      {isPlayerCity && <RuinControls cityId={city.id} />}
 
       <FreeAgentsSection cityId={city.id} isPlayerCity={isPlayerCity} />
 
@@ -533,6 +536,84 @@ function PolicyEffectsSection({
         {cityOfficers.length} {t('武將在城 · 政策由其個人專業聚合而成', 'officers stationed · policies emerge from their personal specialties')}
         {locked.length > 0 && ` · ${locked.length} ${t('政策待解鎖', 'policies need prereqs')}`}
       </div>
+    </section>
+  );
+}
+
+/** 焦土／重建 — scorched-earth denial of an owned city, and reconstruction of
+ *  a ruined one. Razing is destructive + irreversible, so it asks twice. */
+function RuinControls({ cityId }: { cityId: EntityId }) {
+  const city = useGameStore((s) => s.cities[cityId]);
+  const isCapital = useGameStore((s) => {
+    const f = city?.ownerForceId ? s.forces[city.ownerForceId] : null;
+    return f?.capitalCityId === cityId;
+  });
+  const razeCity = useGameStore((s) => s.razeCity);
+  const rebuildCity = useGameStore((s) => s.rebuildCity);
+  const [confirming, setConfirming] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const t = useT();
+  if (!city) return null;
+
+  if (city.ruined) {
+    const cost = rebuildCost(city);
+    const afford = city.gold >= cost;
+    return (
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>{t('廢墟', 'Ruins')}</h3>
+        <div className={styles.muted} style={{ marginBottom: '0.4rem' }}>
+          {t('此城已成焦土,生產凋敝。重建可興復流民。', 'Razed to ruins — production gutted. Rebuild to recover.')}
+        </div>
+        <button
+          onClick={() => { const r = rebuildCity(cityId); setMsg(r.message); }}
+          disabled={!afford}
+          style={{
+            background: '#1a2a1a', color: afford ? '#7ed68a' : '#8a7050',
+            border: '1px solid ' + (afford ? '#5a7a3a' : '#3a2d20'),
+            padding: '0.4rem 0.8rem', cursor: afford ? 'pointer' : 'not-allowed',
+            fontFamily: 'inherit', fontSize: '0.82rem', opacity: afford ? 1 : 0.6,
+          }}
+        >{t('重建', 'Rebuild')} (−{cost}g)</button>
+        {msg && <div className={styles.muted} style={{ marginTop: '0.4rem', color: '#7ed68a' }}>{msg}</div>}
+      </section>
+    );
+  }
+
+  if (isCapital) return null; // never raze your own seat
+
+  return (
+    <section className={styles.section}>
+      <h3 className={styles.sectionTitle}>{t('焦土', 'Scorched Earth')}</h3>
+      {!confirming ? (
+        <button
+          onClick={() => setConfirming(true)}
+          style={{
+            background: '#2a1410', color: '#d98a6a', border: '1px solid #6a3520',
+            padding: '0.4rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.82rem',
+          }}
+        >{t('焚城焦土…', 'Raze to ruins…')}</button>
+      ) : (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ color: '#ff8060', fontSize: '0.78rem' }}>
+            {t('堅壁清野?不可逆!', 'Deny it to the enemy? Irreversible!')}
+          </span>
+          <button
+            onClick={() => { const r = razeCity(cityId); setMsg(r.message); setConfirming(false); }}
+            style={{
+              background: '#3a1a1a', color: '#ff8060', border: '1px solid #b8442e',
+              padding: '0.35rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem',
+            }}
+          >{t('確認焚城', 'Confirm')}</button>
+          <button
+            onClick={() => setConfirming(false)}
+            style={{
+              background: 'transparent', color: '#a89070', border: '1px solid #5a4530',
+              padding: '0.35rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem',
+            }}
+          >{t('取消', 'Cancel')}</button>
+        </div>
+      )}
+      {msg && <div className={styles.muted} style={{ marginTop: '0.4rem', color: '#d98a6a' }}>{msg}</div>}
     </section>
   );
 }

@@ -117,6 +117,7 @@ import { canPlayerAttackFort, migrateForts } from '../data/forts';
 import { canPlayerSeizeSite, migrateSites } from '../data/sites';
 import { tickWildSites } from '../systems/sites';
 import { SCENIC_BY_ID, canVisitScenic, rollHermitRecruit } from '../data/scenicSites';
+import { razedCity, rebuiltCity, rebuildCost } from '../systems/cityRuin';
 import { fortMaxHpForLevel, FACILITY_DEFS, type FacilityKind } from '../types';
 import { awardBattleXp } from '../systems/growth';
 import { tickBuildings } from '../systems/buildings';
@@ -487,6 +488,11 @@ interface GameStore extends GameState {
     siteId: string,
     envoyOfficerId: EntityId,
   ) => { ok: boolean; recruited?: boolean; message: string };
+  /** 焦土 — raze your own city to ruins, denying it to the enemy (gutted
+   *  population/production, garrison disbanded). Irreversible without 重建. */
+  razeCity: (cityId: EntityId) => { ok: boolean; message: string };
+  /** 重建 — rebuild an owned ruined city (gold from that city's coffers). */
+  rebuildCity: (cityId: EntityId) => { ok: boolean; message: string };
   /** Officer-led attack on a port. Damage scales with attacker WAR + LED;
    *  attacker takes casualties proportional to defender officer's WAR.
    *  Captures the port if HP drops to 0. */
@@ -5804,6 +5810,35 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         }
         set(updates);
         return { ok: true, recruited, message: `訪${site.name.zh}:${msgs.join(',')}。` };
+      },
+
+      razeCity: (cityId) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city) return { ok: false, message: 'City not found.' };
+        if (!state.playerForceId || city.ownerForceId !== state.playerForceId)
+          return { ok: false, message: 'Not your city.' };
+        if (city.ruined) return { ok: false, message: '此城已成廢墟。' };
+        const force = state.forces[state.playerForceId];
+        if (force && force.capitalCityId === cityId)
+          return { ok: false, message: '不可焚毀本軍治所。' };
+        set({ cities: { ...state.cities, [cityId]: razedCity(city) } });
+        return { ok: true, message: `${city.name.zh}已焚為焦土,堅壁清野,不予資敵。` };
+      },
+
+      rebuildCity: (cityId) => {
+        const state = get();
+        const city = state.cities[cityId];
+        if (!city) return { ok: false, message: 'City not found.' };
+        if (!state.playerForceId || city.ownerForceId !== state.playerForceId)
+          return { ok: false, message: 'Not your city.' };
+        if (!city.ruined) return { ok: false, message: '此城無須重建。' };
+        const cost = rebuildCost(city);
+        if (city.gold < cost)
+          return { ok: false, message: `重建需 ${cost} 金(城內不足)。` };
+        const rebuilt = { ...rebuiltCity(city), gold: city.gold - cost };
+        set({ cities: { ...state.cities, [cityId]: rebuilt } });
+        return { ok: true, message: `${city.name.zh}重建興復,流民歸附(−${cost}g)。` };
       },
 
       repairFort: (fortId) => {

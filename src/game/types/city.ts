@@ -33,6 +33,9 @@ export interface City {
   defense: number;
   loyalty: number;
 
+  /** Razed to ruins (焦土) — population/production gutted until 重建. A ruined
+   *  city flies no banner, builds nothing, and yields almost no income. */
+  ruined?: boolean;
   /** Terrain category — see TERRAIN_DEFS in cities.ts. */
   terrain?: import('../data/cities').Terrain;
   /** Has river/sea port — unlocks naval movement to other ports. */
