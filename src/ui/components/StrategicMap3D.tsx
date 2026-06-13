@@ -538,6 +538,12 @@ function terrainFillFor(budgetMs: number): boolean {
         }
         const d = grain + mottle + streak + veg + shade;
         r += d; g += d * 0.96; b += d * 0.86;   // detail reads a touch warm
+        // 大氣透視 — high ground takes a faint cool cast, the bluish haze of
+        // distant ranges (subtle; snowcaps already whiten the very tops).
+        if (h > 0.4) {
+          const cool = Math.min(0.12, (h - 0.4) * 0.22);
+          r -= cool; g -= cool * 0.3; b += cool * 0.5;
+        }
       }
       const i = (y * TEX_W + x) * 4;
       data[i]     = Math.max(0, Math.min(255, r * 255));
@@ -965,10 +971,11 @@ function RiverRibbons({ frozen = false }: { frozen?: boolean }) {
   }, []);
   const matRefs = useRef<Array<THREE.MeshStandardMaterial | null>>([]);
   useFrame(({ clock }) => {
-    // Living water — a slow specular shimmer travelling along the rivers.
-    for (const m of matRefs.current) {
-      if (m) m.emissiveIntensity = 0.18 + Math.sin(clock.elapsedTime * 1.2) * 0.08;
-    }
+    // Living water — a brighter specular shimmer travelling along the rivers.
+    const t = clock.elapsedTime;
+    matRefs.current.forEach((m, i) => {
+      if (m) m.emissiveIntensity = 0.24 + Math.sin(t * 1.3 + i * 1.7) * 0.16;
+    });
   });
   return (
     <group>
@@ -3941,6 +3948,150 @@ function DriftingClouds() {
   );
 }
 
+/* ─── 炊煙 — every inhabited city breathes a thread of hearth-smoke ──────
+ *  Instanced puffs rise, drift on the wind, swell and reset — the map reads
+ *  as lived-in rather than a diorama of empty walls. */
+function CitySmoke3D({ cities }: { cities: Record<string, City> }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const PUFFS = IS_MOBILE ? 1 : 2;
+  const cols = useMemo(() => {
+    const out: Array<{ x: number; y: number; z: number; phase: number; speed: number }> = [];
+    for (const city of Object.values(cities)) {
+      const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
+      const [wx, wz] = pxToWorld(px, py);
+      const baseY = cityElevation(wx, wz) + 0.35;
+      for (let i = 0; i < PUFFS; i++) {
+        const h = Math.abs(Math.sin(px * 7.7 + py * 3.1 + i * 91.7));
+        out.push({ x: wx + (h - 0.5) * 0.2, y: baseY, z: wz + (h - 0.5) * 0.2, phase: h, speed: 0.1 + h * 0.06 });
+      }
+    }
+    return out;
+  }, [cities, PUFFS]);
+  const RISE = 1.1;
+  useFrame(({ clock }) => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4(); const q = new THREE.Quaternion();
+    const pos = new THREE.Vector3(); const scl = new THREE.Vector3();
+    const t = clock.elapsedTime;
+    cols.forEach((c, i) => {
+      const prog = (t * c.speed + c.phase) % 1;
+      pos.set(c.x + prog * 0.35, c.y + prog * RISE, c.z + prog * 0.15);
+      const s = 0.06 + prog * 0.18;              // swells as it rises (fade proxy)
+      scl.set(s, s, s);
+      mesh.setMatrixAt(i, m.compose(pos, q, scl));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, Math.max(1, cols.length)]} frustumCulled={false}>
+      <sphereGeometry args={[1, 6, 5]} />
+      <meshBasicMaterial color="#c8c0b4" transparent opacity={0.16} depthWrite={false} />
+    </instancedMesh>
+  );
+}
+
+/* ─── 飛鳥 — a few skeins of birds drift the high air, wings beating ───── */
+function Birds3D() {
+  const flocks = useMemo(() => Array.from({ length: IS_MOBILE ? 2 : 4 }, (_, f) => ({
+    z: ((f * 53 + 17) % 100) / 100 * MAP_D - MAP_D / 2,
+    y: 7 + (f % 3) * 1.2,
+    v: 0.5 + (f % 4) * 0.12,
+    x0: ((f * 137) % 100) / 100 * MAP_W - MAP_W / 2,
+    birds: Array.from({ length: 5 }, (_, b) => ({ dx: (b - 2) * 0.9, dz: Math.abs(b - 2) * 0.7, ph: b * 0.7 })),
+  })), []);
+  const refs = useRef<Array<THREE.Group | null>>([]);
+  const wings = useRef<Array<THREE.Group | null>>([]);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    flocks.forEach((fl, i) => {
+      const g = refs.current[i];
+      if (g) {
+        const span = MAP_W + 12;
+        let x = fl.x0 + t * fl.v;
+        x = ((x + span / 2) % span) - span / 2;
+        g.position.set(x, fl.y + Math.sin(t * 0.5 + i) * 0.4, fl.z);
+      }
+    });
+    // Wing flap — shared phase per bird group.
+    wings.current.forEach((w, i) => {
+      if (w) w.rotation.z = Math.sin(t * 7 + i * 0.7) * 0.6;
+    });
+  });
+  let wi = 0;
+  return (
+    <group>
+      {flocks.map((fl, i) => (
+        <group key={i} ref={(el) => { refs.current[i] = el; }}>
+          {fl.birds.map((b, j) => (
+            <group key={j} position={[b.dx, 0, b.dz]} ref={(el) => { wings.current[wi++] = el; }}>
+              <mesh position={[0.07, 0, 0]} rotation={[0, 0, -0.3]}><boxGeometry args={[0.14, 0.012, 0.04]} /><meshBasicMaterial color="#22242a" /></mesh>
+              <mesh position={[-0.07, 0, 0]} rotation={[0, 0, 0.3]}><boxGeometry args={[0.14, 0.012, 0.04]} /><meshBasicMaterial color="#22242a" /></mesh>
+            </group>
+          ))}
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/* ─── 谷霧 — morning mist pooling in the low valleys and river bottoms ──── */
+let mistMaskCache: THREE.Texture | null = null;
+function buildMistMask(): THREE.Texture {
+  if (mistMaskCache) return mistMaskCache;
+  const W = 400, H = 288;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const px = (x / W) * PX_W, py = (y / H) * PX_H;
+      const { h } = sampleTerrain(px, py);
+      // Mist pools on low land (valleys, river flats); none on water or hills.
+      const alpha = h > 0 && h < 0.16 ? (1 - h / 0.16) * 0.9 : 0;
+      const i = (y * W + x) * 4;
+      d[i] = 226; d[i + 1] = 230; d[i + 2] = 236;
+      d[i + 3] = Math.round(alpha * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = true; tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+  mistMaskCache = tex;
+  return tex;
+}
+function ValleyMist() {
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  const geom = useMemo(() => {
+    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 160, 120);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i); const wy = pos.getY(i);
+      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
+      pos.setZ(i, sampleTerrain(px, py).h + 0.16);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  const texture = useMemo(() => buildMistMask(), []);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    if (matRef.current) matRef.current.opacity = 0.2 + Math.sin(t * 0.5) * 0.1;
+    // Slow drift so the mist creeps across the valley floors.
+    texture.offset.x = (t * 0.004) % 1;
+    texture.offset.y = (t * 0.0025) % 1;
+  });
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
+      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.25} depthWrite={false} />
+    </mesh>
+  );
+}
+
 /* ─── 邦交關係線 — the web of pacts and grudges, capital to capital ────
    The 邦交 overlay arcs every meaningful relation between living forces:
    gold solid = alliance, green dashed = non-aggression pact, red = open
@@ -4293,14 +4444,14 @@ function DuskCityLights({ cities }: { cities: Record<string, City> }) {
   // A slow communal flicker — oil lamps, not LEDs.
   const matRef = useRef<THREE.MeshBasicMaterial>(null);
   useFrame(({ clock }) => {
-    if (matRef.current) matRef.current.opacity = 0.82 + Math.sin(clock.elapsedTime * 2.3) * 0.08;
+    if (matRef.current) matRef.current.opacity = 0.86 + Math.sin(clock.elapsedTime * 2.3) * 0.1;
   });
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, Math.max(1, lamps.length)]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 5]} />
-      {/* Over-bright so the bloom pass halos each lamp. */}
-      <meshBasicMaterial ref={matRef} color={new THREE.Color(2.2, 1.5, 0.65)} transparent opacity={0.85} toneMapped={false} />
+      {/* Over-bright so the bloom pass halos each lamp — warm hearth-glow. */}
+      <meshBasicMaterial ref={matRef} color={new THREE.Color(3.0, 2.0, 0.85)} transparent opacity={0.9} toneMapped={false} />
     </instancedMesh>
   );
 }
@@ -5653,6 +5804,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <Villages3D />
       <GreatWall3D />
       <DriftingClouds />
+      {mapStyle === 'classic' && !dusk && <Birds3D />}
+      {mapStyle === 'classic' && <CitySmoke3D cities={cities} />}
+      {mapStyle === 'classic' && season !== 'winter' && <ValleyMist />}
       <Caravans3D cities={cities} />
       <TradeShips3D ports={portsForMarch} cities={cities} />
       {dusk && <DuskCityLights cities={cities} />}
