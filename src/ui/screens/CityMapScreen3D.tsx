@@ -56,6 +56,10 @@ const INSIDE_BUILDING_DEF: Record<BuildingId, { glyph: string; color: string; he
   granary:  { glyph: '倉', color: '#c8b478', height: 1.1, nameZh: '義倉' },
   infirmary:{ glyph: '醫', color: '#88c8a8', height: 1.2, nameZh: '醫館' },
   levee:    { glyph: '堤', color: '#6a98c0', height: 0.5, nameZh: '堤防' },
+  stable:   { glyph: '廄', color: '#8a6a48', height: 1.0, nameZh: '馬廄' },
+  workshop: { glyph: '工', color: '#7d7264', height: 1.3, nameZh: '工房' },
+  mint:     { glyph: '錢', color: '#c9a23c', height: 1.1, nameZh: '錢莊' },
+  arsenal:  { glyph: '庫', color: '#6b5f4a', height: 1.2, nameZh: '武庫' },
 };
 
 /* ─── Gentle ambient motion ──────────────────────────────────────────

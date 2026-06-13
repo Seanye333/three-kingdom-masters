@@ -21,14 +21,14 @@ import { geoToPixel, WORLD_SCALE } from '../data/geography';
  * afford) is started.
  */
 const BUILD_PRIORITIES: Record<RulerPersonality, BuildingId[]> = {
-  aggressive:   ['barracks', 'foundry', 'wall',     'farm',    'market', 'academy', 'temple'],
-  defensive:    ['wall',     'farm',    'temple',   'barracks','market', 'academy', 'foundry'],
-  opportunist:  ['market',   'barracks','farm',     'foundry', 'temple', 'academy', 'wall'],
-  hesitant:     ['market',   'farm',    'academy',  'temple',  'wall',   'barracks','foundry'],
-  tyrant:       ['barracks', 'foundry', 'wall',     'barracks','farm',   'market',  'temple'],
-  scholar:      ['academy',  'market',  'farm',     'temple',  'wall',   'barracks','foundry'],
-  expansionist: ['barracks', 'market',  'farm',     'foundry', 'temple', 'academy', 'wall'],
-  cautious:     ['wall',     'farm',    'market',   'temple',  'academy','barracks','foundry'],
+  aggressive:   ['barracks', 'stable',  'foundry',  'arsenal', 'wall',    'workshop', 'farm',    'market', 'mint',    'academy', 'temple'],
+  defensive:    ['wall',     'arsenal', 'farm',     'workshop','temple',  'barracks', 'market',  'mint',   'academy', 'foundry', 'stable'],
+  opportunist:  ['market',   'mint',    'barracks', 'farm',    'stable',  'foundry',  'workshop','temple', 'academy', 'wall',    'arsenal'],
+  hesitant:     ['market',   'mint',    'farm',     'academy', 'temple',  'wall',     'arsenal', 'barracks','foundry','workshop','stable'],
+  tyrant:       ['barracks', 'stable',  'foundry',  'arsenal', 'wall',    'workshop', 'farm',    'market',  'mint',   'academy', 'temple'],
+  scholar:      ['academy',  'market',  'mint',     'farm',    'temple',  'wall',     'arsenal', 'barracks','workshop','foundry','stable'],
+  expansionist: ['barracks', 'stable',  'market',   'mint',    'farm',    'foundry',  'workshop','arsenal', 'temple', 'academy', 'wall'],
+  cautious:     ['wall',     'arsenal', 'farm',     'market',  'mint',    'temple',   'workshop','academy', 'barracks','foundry','stable'],
 };
 
 export interface AIBuildContext {

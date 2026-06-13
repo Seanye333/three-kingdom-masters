@@ -15,7 +15,11 @@ export type BuildingId =
   | 'shipyard'   // 船渠 — required to build ships; only on river-adjacent cities
   | 'granary'    // 義倉 — famine insurance: rarer famines, smaller losses
   | 'infirmary'  // 醫館 — plague control: rarer outbreaks, fewer dead
-  | 'levee';     // 堤防 — flood works: a L3 levee stops the river cold
+  | 'levee'      // 堤防 — flood works: a L3 levee stops the river cold
+  | 'stable'     // 馬廄 — breeds warhorses: boosts recruit + troop cap (cavalry)
+  | 'workshop'   // 工房 — arms & siege works: city defense + slight recruit
+  | 'mint'       // 錢莊 — coin minting: strong commerce gold boost
+  | 'arsenal';   // 武庫 — armoury: city defense + troop cap
 
 export interface BuildingDef {
   id: BuildingId;

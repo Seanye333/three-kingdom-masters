@@ -62,6 +62,10 @@ const INSIDE_BUILDING_GLYPH: Record<BuildingId, { glyph: string; color: string }
   farm:     { glyph: '田', color: '#b8c87a' },
   wall:     { glyph: '壁', color: '#5a4530' },
   shipyard: { glyph: '渠', color: '#3a6a98' },
+  stable:   { glyph: '廄', color: '#8a6a48' },
+  workshop: { glyph: '工', color: '#7d7264' },
+  mint:     { glyph: '錢', color: '#c9a23c' },
+  arsenal:  { glyph: '庫', color: '#6b5f4a' },
 };
 
 

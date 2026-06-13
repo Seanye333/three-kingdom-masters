@@ -104,6 +104,21 @@ export function buildingBonuses(
       case 'shipyard':
         shipyardLevel = Math.max(shipyardLevel, l);
         break;
+      case 'stable':
+        recruitMul *= 1 + 0.08 * l;
+        troopCapMul *= 1 + 0.08 * l;
+        break;
+      case 'workshop':
+        defenseAdd += 6 * l;
+        recruitMul *= 1 + 0.04 * l;
+        break;
+      case 'mint':
+        commerceMul *= 1 + 0.15 * l;
+        break;
+      case 'arsenal':
+        defenseAdd += 8 * l;
+        troopCapMul *= 1 + 0.04 * l;
+        break;
     }
   }
   return {
