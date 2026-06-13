@@ -89,3 +89,39 @@ export const SHIP_CLASSES: ShipClassDef[] = [
 
 export const SHIP_CLASSES_BY_ID: Record<ShipClass, ShipClassDef> =
   Object.fromEntries(SHIP_CLASSES.map((s) => [s.id, s])) as Record<ShipClass, ShipClassDef>;
+
+/* ─── 水軍養成 — port (船塢) naval tier 1–3 ──────────────────────────────
+ * A bigger dockyard builds bigger ships faster. The minimum tier gates the
+ * heavy hulls — a fishing wharf can't lay down a 樓船, let alone a 大翼. */
+export const PORT_MAX_NAVAL_TIER = 3;
+
+/** Minimum 船塢 tier required to lay down each ship class. */
+export const SHIP_MIN_TIER: Record<ShipClass, 1 | 2 | 3> = {
+  transport: 1,
+  'zou-ge': 1,
+  'dou-jian': 1,
+  warship: 1,
+  'ge-chuan': 1,
+  'hai-hu': 2,
+  flagship: 2,   // 樓船 — needs a proper dockyard
+  'da-yi': 3,    // 大翼 — only a grand naval works
+};
+
+export function shipMeetsTier(shipClass: ShipClass, navalTier: number): boolean {
+  return navalTier >= (SHIP_MIN_TIER[shipClass] ?? 1);
+}
+
+/** Higher tiers shorten construction; never below one season. */
+export function shipBuildSeasons(def: ShipClassDef, navalTier: number): number {
+  return Math.max(1, def.seasonsToBuild - (navalTier - 1));
+}
+
+/** Cost to raise a port from `tier` to `tier+1` (capital pays). 0 if maxed. */
+export function portUpgradeCost(tier: number): number {
+  return tier >= PORT_MAX_NAVAL_TIER ? 0 : tier === 1 ? 600 : 1500;
+}
+
+/** A dockyard's hull capacity / maxHp grows with its tier. */
+export function portMaxHpForTier(baseMaxHp: number, tier: number): number {
+  return Math.round(baseMaxHp * (tier === 3 ? 1.8 : tier === 2 ? 1.4 : 1));
+}

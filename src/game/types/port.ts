@@ -30,4 +30,7 @@ export interface Port {
   dockedShips?: Partial<Record<ShipClass, number>>;
   /** Pending ship builds — each takes seasonsLeft to complete. */
   buildQueue?: Array<{ shipClass: ShipClass; seasonsLeft: number }>;
+  /** 船塢等級 1–3 (水軍養成) — higher tiers unlock heavy hulls (樓船/大翼),
+   *  build faster, and harden the port. Defaults to 1. */
+  navalTier?: 1 | 2 | 3;
 }

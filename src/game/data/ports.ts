@@ -1,4 +1,5 @@
 import type { Port } from '../types';
+import { portMaxHpForTier } from './ships';
 
 /**
  * Three Kingdoms-era ports modeled as RTK 14-style independent map
@@ -167,6 +168,7 @@ export function buildInitialPorts(
       maxHp: t.maxHp,
       connectedPortIds: t.connectedPortIds,
       linkedCityId: t.linkedCityId,
+      navalTier: 1,
     };
   }
   return out;
@@ -272,16 +274,21 @@ export function migratePorts(
     const saved = savedPorts?.[t.id];
     const fallbackOwner =
       cityOwnerByCityId[t.defaultOwnerHint ?? t.linkedCityId] ?? null;
+    const navalTier = saved?.navalTier ?? 1;
+    const effMaxHp = portMaxHpForTier(t.maxHp, navalTier);
     out[t.id] = {
       id: t.id,
       name: t.name,
       coords: t.coords,
       connectedPortIds: t.connectedPortIds,
       linkedCityId: t.linkedCityId,
-      maxHp: t.maxHp,
+      maxHp: effMaxHp,
+      navalTier,
+      buildQueue: saved?.buildQueue,
+      dockedShips: saved?.dockedShips,
       // Dynamic — preserve from save if present, else default
       ownerForceId: saved?.ownerForceId ?? fallbackOwner,
-      hp: saved?.hp != null ? Math.min(saved.hp, t.maxHp) : t.maxHp,
+      hp: saved?.hp != null ? Math.min(saved.hp, effMaxHp) : effMaxHp,
     };
   }
   return out;

@@ -3,7 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import type { EntityId } from '../../game/types';
 import { AttackPortPicker } from './AttackPortPicker';
 import { canPlayerAttackPort } from '../../game/data/ports';
-import { SHIP_CLASSES, SHIP_CLASSES_BY_ID } from '../../game/data/ships';
+import { SHIP_CLASSES, SHIP_CLASSES_BY_ID, shipMeetsTier, shipBuildSeasons, SHIP_MIN_TIER, portUpgradeCost, PORT_MAX_NAVAL_TIER } from '../../game/data/ships';
 import type { ShipClass } from '../../game/types';
 import { useT, useDesc } from '../i18n';
 
@@ -25,6 +25,7 @@ export function PortPanel({ portId, onClose }: Props) {
   });
   const attackPort = useGameStore((s) => s.attackPort);
   const repairPort = useGameStore((s) => s.repairPort);
+  const upgradePort = useGameStore((s) => s.upgradePort);
   const buildShipAtPort = useGameStore((s) => s.buildShipAtPort);
   const t = useT();
   const desc = useDesc();
@@ -38,9 +39,15 @@ export function PortPanel({ portId, onClose }: Props) {
   const linkedCity = cities[port.linkedCityId];
   const ownerColor = owner?.color ?? '#5a4530';
   const hpPct = Math.max(0, Math.min(1, port.hp / port.maxHp));
+  const tier = port.navalTier ?? 1;
+  const upgradeCost = portUpgradeCost(tier);
 
   const doRepair = () => {
     const r = repairPort(port.id);
+    setFeedback({ ok: r.ok, text: r.message });
+  };
+  const doUpgrade = () => {
+    const r = upgradePort(port.id);
     setFeedback({ ok: r.ok, text: r.message });
   };
   const doAttackCommit = (officerId: EntityId, troops: number) => {
@@ -106,6 +113,12 @@ export function PortPanel({ portId, onClose }: Props) {
             </span>
           </span>
 
+          <span style={{ color: '#8a7050' }}>{t('船塢', 'Dockyard')}</span>
+          <span style={{ color: '#88b7e8', fontWeight: 'bold' }}>
+            {'★'.repeat(tier)}<span style={{ color: '#3a5a7a' }}>{'★'.repeat(PORT_MAX_NAVAL_TIER - tier)}</span>
+            <span style={{ color: '#8a7050', fontSize: '0.72rem', marginLeft: 6 }}>{t(`${tier} 級`, `Tier ${tier}`)}</span>
+          </span>
+
           <span style={{ color: '#8a7050' }}>{t('關聯城', 'Linked city')}</span>
           <span>{linkedCity?.name.zh ?? '?'}</span>
 
@@ -151,11 +164,28 @@ export function PortPanel({ portId, onClose }: Props) {
                 ).join('')}
               </div>
             )}
+            {/* 擴建船塢 — naval tier upgrade */}
+            {isMine && tier < PORT_MAX_NAVAL_TIER && (
+              <button
+                onClick={doUpgrade}
+                disabled={playerCapitalGold < upgradeCost}
+                title={t('擴建船塢:解鎖更大戰船、造船更快、港防更固', 'Upgrade dockyard: unlock heavier hulls, faster builds, tougher port')}
+                style={{
+                  background: '#13243a', color: '#d4a84a', border: '1px solid #d4a84a',
+                  padding: '0.3rem 0.6rem', fontSize: '0.74rem', fontFamily: 'Songti SC, serif',
+                  cursor: playerCapitalGold >= upgradeCost ? 'pointer' : 'not-allowed',
+                  opacity: playerCapitalGold >= upgradeCost ? 1 : 0.5, marginBottom: '0.35rem',
+                }}
+              >{t('擴建船塢', 'Upgrade Dockyard')} → {tier + 1}{t(' 級', '')} ({upgradeCost}g)</button>
+            )}
             {/* Build buttons — own port only */}
             {isMine && (
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: '0.3rem' }}>
                 {SHIP_CLASSES.map((sc) => {
+                  const tierOk = shipMeetsTier(sc.id, tier);
                   const canAfford = playerCapitalGold >= sc.goldCost;
+                  const enabled = tierOk && canAfford;
+                  const seasons = shipBuildSeasons(sc, tier);
                   return (
                     <button
                       key={sc.id}
@@ -163,18 +193,21 @@ export function PortPanel({ portId, onClose }: Props) {
                         const r = buildShipAtPort(port.id, sc.id as ShipClass);
                         setFeedback({ ok: r.ok, text: r.message });
                       }}
-                      disabled={!canAfford}
-                      title={`${desc(sc)}\n${t('戰力', 'Strength')} ${sc.combatStrength} · ${t('載量', 'Capacity')} ${sc.capacity} · ${sc.seasonsToBuild} ${t('季', 'seasons')}`}
+                      disabled={!enabled}
+                      title={tierOk
+                        ? `${desc(sc)}\n${t('戰力', 'Strength')} ${sc.combatStrength} · ${t('載量', 'Capacity')} ${sc.capacity} · ${seasons} ${t('季', 'seasons')}`
+                        : t(`需 ${SHIP_MIN_TIER[sc.id]} 級船塢`, `Needs Tier ${SHIP_MIN_TIER[sc.id]} dockyard`)}
                       style={{
-                        background: canAfford ? '#1a2a3a' : '#1a1410',
-                        color: canAfford ? '#88b7e8' : '#5a6a78',
-                        border: '1px solid #3a5a7a',
+                        background: enabled ? '#1a2a3a' : '#1a1410',
+                        color: enabled ? '#88b7e8' : '#5a6a78',
+                        border: '1px solid ' + (tierOk ? '#3a5a7a' : '#3a2d20'),
                         padding: '0.25rem 0.5rem',
                         fontSize: '0.72rem',
                         fontFamily: 'Songti SC, serif',
-                        cursor: canAfford ? 'pointer' : 'not-allowed',
+                        cursor: enabled ? 'pointer' : 'not-allowed',
+                        opacity: tierOk ? 1 : 0.55,
                       }}
-                    >{t('造', 'Build')} {sc.name.zh} ({sc.goldCost}g)</button>
+                    >{t('造', 'Build')} {sc.name.zh}{!tierOk ? ` 🔒${SHIP_MIN_TIER[sc.id]}` : ''} ({sc.goldCost}g)</button>
                   );
                 })}
               </div>

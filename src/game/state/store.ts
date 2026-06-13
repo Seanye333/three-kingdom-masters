@@ -111,7 +111,7 @@ function bestRapportWith(state: { officers: Record<string, Officer>; rapport: Re
 import { setupTacticalBattle, inferUnitType, planSiegeRelief, rollTimeOfDay } from '../systems/tactical';
 import { BUILDING_DEFS_BY_ID } from '../data/buildings';
 import { DEFENSE_BUILDINGS } from '../data/defenseBuildings';
-import { SHIP_CLASSES_BY_ID } from '../data/ships';
+import { SHIP_CLASSES_BY_ID, shipMeetsTier, shipBuildSeasons, portUpgradeCost, SHIP_MIN_TIER, PORT_MAX_NAVAL_TIER } from '../data/ships';
 import { canPlayerAttackPort, migratePorts, navalReachableCityIds } from '../data/ports';
 import { canPlayerAttackFort, migrateForts } from '../data/forts';
 import { canPlayerSeizeSite, migrateSites } from '../data/sites';
@@ -513,6 +513,9 @@ interface GameStore extends GameState {
   };
   /** Spend gold from the player's capital to restore port HP. */
   repairPort: (portId: EntityId) => { ok: boolean; message: string };
+  /** 擴建船塢 (水軍養成) — raise a port's naval tier (max 3). Unlocks heavier
+   *  hulls (樓船/大翼), speeds builds, and hardens the port. */
+  upgradePort: (portId: EntityId) => { ok: boolean; message: string };
   saveSlot: (slotId: string, label: string) => void;
   loadSlot: (slotId: string) => boolean;
   deleteSlot: (slotId: string) => void;
@@ -5469,11 +5472,15 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           return { ok: false, message: 'You do not own this port.' };
         const def = SHIP_CLASSES_BY_ID[shipClass];
         if (!def) return { ok: false, message: 'Unknown ship class.' };
+        const tier = port.navalTier ?? 1;
+        if (!shipMeetsTier(shipClass, tier))
+          return { ok: false, message: `${def.name.zh}需 ${SHIP_MIN_TIER[shipClass]} 級船塢(此港 ${tier} 級)。` };
         const player = state.forces[state.playerForceId];
         const capital = player ? state.cities[player.capitalCityId] : null;
         if (!capital || capital.gold < def.goldCost)
           return { ok: false, message: `Need ${def.goldCost} gold in capital.` };
-        const queue = [...(port.buildQueue ?? []), { shipClass, seasonsLeft: def.seasonsToBuild }];
+        const seasons = shipBuildSeasons(def, tier);
+        const queue = [...(port.buildQueue ?? []), { shipClass, seasonsLeft: seasons }];
         set({
           cities: {
             ...state.cities,
@@ -5486,7 +5493,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         });
         return {
           ok: true,
-          message: `${def.name.zh} build started at ${port.name.zh} (${def.seasonsToBuild} seasons, −${def.goldCost}g).`,
+          message: `${def.name.zh} build started at ${port.name.zh} (${seasons} seasons, −${def.goldCost}g).`,
         };
       },
 
@@ -5517,6 +5524,40 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         return {
           ok: true,
           message: `${port.name.zh} repaired (+${newHp - port.hp} HP, −${REPAIR_COST}g).`,
+        };
+      },
+
+      upgradePort: (portId) => {
+        const state = get();
+        const port = state.ports[portId];
+        if (!port) return { ok: false, message: 'Port not found.' };
+        if (!state.playerForceId || port.ownerForceId !== state.playerForceId)
+          return { ok: false, message: 'You do not own this port.' };
+        const tier = port.navalTier ?? 1;
+        if (tier >= PORT_MAX_NAVAL_TIER)
+          return { ok: false, message: '船塢已達最高等級。' };
+        const cost = portUpgradeCost(tier);
+        const player = state.forces[state.playerForceId];
+        const capital = player ? state.cities[player.capitalCityId] : null;
+        if (!capital || capital.gold < cost)
+          return { ok: false, message: `擴建需 ${cost} 金(治所不足)。` };
+        const nextTier = (tier + 1) as 1 | 2 | 3;
+        // Scale the current maxHp by the ratio of tier multipliers (m: 1→1, 2→1.4, 3→1.8).
+        const mult = (tt: number) => (tt === 3 ? 1.8 : tt === 2 ? 1.4 : 1);
+        const newMaxHp = Math.round(port.maxHp * (mult(nextTier) / mult(tier)));
+        set({
+          cities: {
+            ...state.cities,
+            [capital.id]: { ...capital, gold: capital.gold - cost },
+          },
+          ports: {
+            ...state.ports,
+            [portId]: { ...port, navalTier: nextTier, maxHp: newMaxHp, hp: port.hp + (newMaxHp - port.maxHp) },
+          },
+        });
+        return {
+          ok: true,
+          message: `${port.name.zh}擴建為 ${nextTier} 級船塢,水軍益壯(−${cost}g)。`,
         };
       },
 
