@@ -15,7 +15,7 @@
  */
 import type { TerrainKind, TacticalTile } from '../types';
 import type { Terrain } from '../data/cities';
-import { battleGroundAt, isFrozenWater } from '../data/geography';
+import { battleGroundAt, isFrozenWater, WORLD_SCALE } from '../data/geography';
 
 /**
  * Real-geography placement of a battle on the strategic map — when
@@ -74,29 +74,30 @@ function biased(mix: TerrainMix, x?: number, y?: number): TerrainMix {
   let { mountain, forest, river, road } = mix;
   // ── Latitude (y) bias ──
   // Far north (y < 250): more mountain, slightly less forest
-  if (y < 230) {
+  // Thresholds are authored in the base 1000×720 space; scale with the world.
+  if (y < 230 * WORLD_SCALE) {
     mountain += 0.05;
     forest -= 0.05;
   }
   // Northern China (230-360): standard
   // Central plains (360-480): more road, less mountain
-  else if (y >= 360 && y < 480) {
+  else if (y >= 360 * WORLD_SCALE && y < 480 * WORLD_SCALE) {
     mountain -= 0.05;
     road += 0.10;
   }
   // Deep south (y >= 480): more forest + river (Jiangnan)
-  else if (y >= 480) {
+  else if (y >= 480 * WORLD_SCALE) {
     forest += 0.10;
     river += 0.05;
   }
   // ── Longitude (x) bias ──
   // Far west (x < 350): more mountain + desert tendency (already in terrain)
-  if (x < 350) {
+  if (x < 350 * WORLD_SCALE) {
     mountain += 0.05;
     forest -= 0.05;
   }
   // East coast (x > 800): more water tendency
-  if (x > 800) {
+  if (x > 800 * WORLD_SCALE) {
     river += 0.05;
   }
   // Clamp
@@ -125,7 +126,7 @@ function makeRng(cityId: string): () => number {
 /** Map px per battlefield tile — an 18-wide grid spans ~32px (~0.9°,
  *  ~100km): generous tactically, but wide enough that ridge bands and
  *  river lines from the strategic map appear as coherent features. */
-const TILE_PX = 1.8;
+const TILE_PX = 1.8 * WORLD_SCALE;   // world-px per battle tile — scales so a board covers the same geographic area at any WORLD_SCALE
 
 /**
  * Real-geography battlefield: lay the grid over the strategic map along
@@ -147,7 +148,7 @@ function generateRealTerrain(
   const vx = -uy, vy = ux;
   // Latitude-band forest probability (no real forest layer strategically):
   // sparse north, mild centre, lush 江南/岭南.
-  const forestP = (my: number) => (my < 250 ? 0.06 : my < 460 ? 0.10 : 0.18);
+  const forestP = (my: number) => (my < 250 * WORLD_SCALE ? 0.06 : my < 460 * WORLD_SCALE ? 0.10 : 0.18);
 
   const tiles: TacticalTile[] = [];
   for (let row = 0; row < height; row++) {

@@ -68,7 +68,7 @@ describe('unified geo distance system', () => {
     const wuxi = cityPos(byId['wuxi']);
     const wu = cityPos(byId['wu']);
     const yongan = cityPos(byId['yongan']);
-    expect(Math.hypot(wuxi.x - wu.x, wuxi.y - wu.y)).toBeLessThan(60);
-    expect(Math.hypot(wuxi.x - yongan.x, wuxi.y - yongan.y)).toBeGreaterThan(200);
+    expect(Math.hypot(wuxi.x - wu.x, wuxi.y - wu.y)).toBeLessThan(60 * WORLD_SCALE);
+    expect(Math.hypot(wuxi.x - yongan.x, wuxi.y - yongan.y)).toBeGreaterThan(200 * WORLD_SCALE);
   });
 });

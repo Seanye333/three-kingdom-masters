@@ -5,7 +5,7 @@ import { handleMarch } from './combat';
 import { resolveSeason } from './resolution';
 import { buildInitialCities, marchDurationFor } from '../data/cities';
 import { cityPos } from '../data/cityGeo';
-import { describeBattleSite, isRiverside, isFrozenWater } from '../data/geography';
+import { describeBattleSite, isRiverside, isFrozenWater, WORLD_SCALE } from '../data/geography';
 
 const cities = buildInitialCities({});
 const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
@@ -400,9 +400,9 @@ describe('real-geography battlefields (战斗地图写实)', () => {
     const winterDur = marchDurationFor(byId['baima'], byId['liyang'], 'winter');
     const summerDur = marchDurationFor(byId['baima'], byId['liyang'], 'summer');
     expect(winterDur).toBeLessThanOrEqual(summerDur);
-    expect(isFrozenWater(180, 'winter')).toBe(true);   // north
-    expect(isFrozenWater(400, 'winter')).toBe(false);  // south
-    expect(isFrozenWater(180, 'summer')).toBe(false);
+    expect(isFrozenWater(180 * WORLD_SCALE, 'winter')).toBe(true);   // north
+    expect(isFrozenWater(400 * WORLD_SCALE, 'winter')).toBe(false);  // south
+    expect(isFrozenWater(180 * WORLD_SCALE, 'summer')).toBe(false);
   });
 
   it('居高臨下 — striking downhill outdamages flat ground', async () => {
