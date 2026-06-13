@@ -5586,7 +5586,7 @@ export function StrategicMap3D() {
             target={orbitTarget}
             maxPolarAngle={Math.PI / 2.1}
             minDistance={battleActive ? 0.9 : 3}
-            maxDistance={200 * WORLD_SCALE}
+            maxDistance={45 * WORLD_SCALE}
             enableDamping
             dampingFactor={0.1}
           />
