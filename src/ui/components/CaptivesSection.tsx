@@ -5,6 +5,7 @@ import { playSfx } from '../../game/systems/sound';
 import type { EntityId } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import { DebateModal } from './DebateModal';
+import { RecruitSuccessModal } from './RecruitSuccessModal';
 import { eloquence } from '../../game/systems/debate';
 import styles from './CaptivesSection.module.css';
 
@@ -21,6 +22,7 @@ export function CaptivesSection({ cityId }: Props) {
   const playerForceId = useGameStore((s) => s.playerForceId);
   // 舌戰 — the modal target + officers we've out-argued (one-shot edge).
   const [debating, setDebating] = useState<EntityId | null>(null);
+  const [recruited, setRecruited] = useState<EntityId | null>(null);
   const [debateEdge, setDebateEdge] = useState<Set<EntityId>>(new Set());
   const bestDebater = useMemo(
     () => Object.values(officersMap)
@@ -50,6 +52,7 @@ export function CaptivesSection({ cityId }: Props) {
   const handleRecruit = (officerId: EntityId, approach?: PersuasionApproach) => {
     const result = recruitOfficer(officerId, cityId, approach, debateEdge.has(officerId));
     if (debateEdge.has(officerId)) setDebateEdge((prev) => { const n = new Set(prev); n.delete(officerId); return n; });
+    if (result.ok) setRecruited(officerId);
     setFeedback({ officerId, text: result.message, ok: result.ok });
     playSfx(result.ok ? 'bell' : 'defeat');
   };
@@ -138,6 +141,9 @@ export function CaptivesSection({ cityId }: Props) {
             setDebating(null);
           }}
         />
+      )}
+      {recruited && officersMap[recruited] && (
+        <RecruitSuccessModal officer={officersMap[recruited]} onClose={() => setRecruited(null)} />
       )}
     </section>
   );

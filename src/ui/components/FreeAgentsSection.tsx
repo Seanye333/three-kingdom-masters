@@ -5,6 +5,7 @@ import { eloquence } from '../../game/systems/debate';
 import type { EntityId } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import { DebateModal } from './DebateModal';
+import { RecruitSuccessModal } from './RecruitSuccessModal';
 import styles from './FreeAgentsSection.module.css';
 
 interface Props {
@@ -27,6 +28,7 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
 
   const [feedback, setFeedback] = useState<{ officerId: EntityId; text: string; ok: boolean } | null>(null);
   const [debating, setDebating] = useState<EntityId | null>(null);
+  const [recruited, setRecruited] = useState<EntityId | null>(null);
 
   const agents = useMemo(
     () => Object.values(officersMap).filter(
@@ -55,6 +57,7 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
     const r = recruitFreeAgent(id, cityId, opts);
     setFeedback({ officerId: id, text: r.message, ok: r.ok });
     playSfx(r.ok ? 'bell' : 'defeat');
+    if (r.ok) setRecruited(id);
   };
 
   return (
@@ -115,6 +118,9 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
         })}
       </ul>
 
+      {recruited && officersMap[recruited] && (
+        <RecruitSuccessModal officer={officersMap[recruited]} onClose={() => setRecruited(null)} />
+      )}
       {debating && orator && officersMap[debating] && (
         <DebateModal
           me={orator}
