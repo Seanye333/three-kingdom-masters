@@ -118,6 +118,7 @@ import { canPlayerSeizeSite, migrateSites } from '../data/sites';
 import { tickWildSites } from '../systems/sites';
 import { SCENIC_BY_ID, canVisitScenic, rollHermitRecruit } from '../data/scenicSites';
 import { razedCity, rebuiltCity, rebuildCost } from '../systems/cityRuin';
+import { buildSpecialtyTradeRoutes, tickSpecialtyTrade } from '../systems/tradeRoutes';
 import { fortMaxHpForLevel, FACILITY_DEFS, type FacilityKind } from '../types';
 import { awardBattleXp } from '../systems/growth';
 import { tickBuildings } from '../systems/buildings';
@@ -1688,6 +1689,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // 野外據點 — resource deposits pay their holders; still-hostile bandit
         // nests sack a neighbouring city. Once per season.
         let siteCities = tribeResult.cities;
+        // 名產商路 — regenerated each season from current ownership/adjacency.
+        let nextTradeRoutes = state.tradeRoutes;
         if (seasonBoundary) {
           const siteTick = tickWildSites({
             sites: state.sites,
@@ -1707,6 +1710,16 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           });
           siteCities = merc.cities;
           if (merc.entries.length > 0) result.report.entries.push(...merc.entries);
+
+          // 名產商路 — connect same-owner specialty cities and pay the margins.
+          nextTradeRoutes = buildSpecialtyTradeRoutes(siteCities);
+          const trade = tickSpecialtyTrade({
+            cities: siteCities,
+            routes: nextTradeRoutes,
+            playerForceId: state.playerForceId,
+          });
+          siteCities = trade.cities;
+          if (trade.entries.length > 0) result.report.entries.push(...trade.entries);
         }
 
         // Historical event check. Fires at most one event per season.
@@ -3123,6 +3136,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           ports: nextPorts,
           forts: nextForts,
           sites: nextSites,
+          tradeRoutes: nextTradeRoutes,
           territoryOwnership: result.territoryOwnership ?? state.territoryOwnership ?? {},
           armies: result.armies ?? {},
           endingsAchieved,

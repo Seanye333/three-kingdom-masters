@@ -3806,6 +3806,38 @@ function DiplomacyLines3D({ cities, forces }: {
   );
 }
 
+/* ─── 名產商路 — faint gold threads between the player's trading cities ─── */
+function TradeRouteLines3D({ cities }: { cities: Record<string, City> }) {
+  const tradeRoutes = useGameStore((s) => s.tradeRoutes);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const segs = useMemo(() => {
+    const out: THREE.Vector3[][] = [];
+    for (const r of tradeRoutes) {
+      const a = cities[r.cityAId]; const b = cities[r.cityBId];
+      if (!a || !b || a.ownerForceId == null) continue;
+      if (a.ownerForceId !== playerForceId || b.ownerForceId !== playerForceId) continue;
+      const [ax, az] = pxToWorld(...cityPixel(a.id, a.coords.x, a.coords.y));
+      const [bx, bz] = pxToWorld(...cityPixel(b.id, b.coords.x, b.coords.y));
+      const ay = cityElevation(ax, az) + 0.12;
+      const by = cityElevation(bx, bz) + 0.12;
+      const mid = new THREE.Vector3((ax + bx) / 2, Math.max(ay, by) + 0.35, (az + bz) / 2);
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(ax, ay, az), mid, new THREE.Vector3(bx, by, bz),
+      );
+      out.push(curve.getPoints(20));
+    }
+    return out;
+  }, [tradeRoutes, cities, playerForceId]);
+  if (segs.length === 0) return null;
+  return (
+    <group>
+      {segs.map((pts, i) => (
+        <Line key={i} points={pts} color="#e0c060" dashed dashSize={0.3} gapSize={0.18} lineWidth={1.3} transparent opacity={0.5} />
+      ))}
+    </group>
+  );
+}
+
 /* ─── 事件地標 — the season's calamities and windfalls, on the map ─────
    The report scrolls past once; the land remembers. Each city the tick
    touched (饑荒/瘟疫/豐收/民變/襲擾) wears a single-character chip until
@@ -5297,6 +5329,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <Tribes3D onTribeClick={onTribeClick} />
       <WildSites3D onSiteClick={onSiteClick} />
       <ScenicSites3D onScenicClick={onScenicClick} />
+      {mapStyle === 'classic' && <TradeRouteLines3D cities={cities} />}
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
           over (same scene component, same state; rotated to its true bearing,
