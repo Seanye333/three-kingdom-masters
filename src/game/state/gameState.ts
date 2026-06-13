@@ -147,6 +147,8 @@ export interface GameState {
   forts: Record<EntityId, Fort>;
   /** 野外據點 — bandit nests, river fords, resource deposits. */
   sites: Record<EntityId, import('../types').WildSite>;
+  /** 名所 loot claimed: scenic-site id → the force that took the treasure. */
+  scenicLooted: Record<string, EntityId>;
   /** Phase 3c — territory ownership keyed by territory id. Null/missing
    *  means the cell inherits from its parent city. Set explicitly when
    *  an army marches through it, regardless of march outcome. */
@@ -351,6 +353,7 @@ export const EMPTY_STATE: GameState = {
   ports: {},
   forts: {},
   sites: {},
+  scenicLooted: {},
   territoryOwnership: {},
   armies: {},
   family: [],
@@ -584,6 +587,7 @@ export function loadScenario(
       Object.fromEntries(scaledCities.map((c) => [c.id, c.ownerForceId])),
     ),
     sites: buildInitialSites(),
+    scenicLooted: {},
     territoryOwnership: {},
     armies: {},
     // Pre-populate canonical Three Kingdoms family lineages — filtered

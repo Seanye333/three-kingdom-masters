@@ -115,6 +115,7 @@ import { canPlayerAttackPort, migratePorts, navalReachableCityIds } from '../dat
 import { canPlayerAttackFort, migrateForts } from '../data/forts';
 import { canPlayerSeizeSite, migrateSites } from '../data/sites';
 import { tickWildSites } from '../systems/sites';
+import { SCENIC_BY_ID, canVisitScenic, rollHermitRecruit } from '../data/scenicSites';
 import { fortMaxHpForLevel, FACILITY_DEFS, type FacilityKind } from '../types';
 import { awardBattleXp } from '../systems/growth';
 import { tickBuildings } from '../systems/buildings';
@@ -479,6 +480,12 @@ interface GameStore extends GameState {
     attackerOfficerId: EntityId,
     troops: number,
   ) => { ok: boolean; captured?: boolean; message: string };
+  /** 訪賢尋寶 — send an envoy officer to a 名所. Loots its treasure once and
+   *  may coax a reclusive worthy (still a free agent) into your service. */
+  visitScenicSite: (
+    siteId: string,
+    envoyOfficerId: EntityId,
+  ) => { ok: boolean; recruited?: boolean; message: string };
   /** Officer-led attack on a port. Damage scales with attacker WAR + LED;
    *  attacker takes casualties proportional to defender officer's WAR.
    *  Captures the port if HP drops to 0. */
@@ -5693,6 +5700,80 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         };
       },
 
+      visitScenicSite: (siteId, envoyOfficerId) => {
+        const state = get();
+        const site = SCENIC_BY_ID[siteId];
+        if (!site) return { ok: false, message: 'Site not found.' };
+        if (!state.playerForceId) return { ok: false, message: 'No player force.' };
+        const reach = canVisitScenic(site, state.cities, state.playerForceId);
+        if (!reach.ok) return { ok: false, message: reach.reason ?? 'Cannot reach.' };
+        const envoy = state.officers[envoyOfficerId];
+        if (!envoy || envoy.forceId !== state.playerForceId)
+          return { ok: false, message: 'Envoy must be your officer.' };
+        if (envoy.status !== 'idle' && envoy.status !== 'active')
+          return { ok: false, message: 'Envoy is not available.' };
+        const envoyCity = envoy.locationCityId ? state.cities[envoy.locationCityId] : null;
+        if (!envoyCity || envoyCity.ownerForceId !== state.playerForceId)
+          return { ok: false, message: 'Envoy is not in your city.' };
+
+        const updates: Partial<GameState> = {};
+        const msgs: string[] = [];
+
+        // 尋寶 — loot the treasure + gold once per site (per game).
+        const alreadyLooted = !!state.scenicLooted[siteId];
+        if (!alreadyLooted) {
+          let cities = state.cities;
+          if (site.gold > 0) {
+            cities = { ...cities, [envoyCity.id]: { ...envoyCity, gold: envoyCity.gold + site.gold } };
+            msgs.push(`獲資 ${site.gold} 金`);
+          }
+          updates.cities = cities;
+          if (site.itemId) {
+            updates.lostItems = [...state.lostItems, { itemId: site.itemId, cityId: envoyCity.id }];
+            msgs.push(`得寶物入${envoyCity.name.zh}`);
+          }
+          updates.scenicLooted = { ...state.scenicLooted, [siteId]: state.playerForceId };
+        }
+
+        // 訪賢 — court the recluse if he's still a free agent.
+        let recruited = false;
+        if (site.hermitId) {
+          const hermit = state.officers[site.hermitId];
+          if (hermit && hermit.forceId === null && (hermit.status === 'idle' || hermit.status === 'unsearched')) {
+            const force = state.forces[state.playerForceId];
+            const ruler = force ? state.officers[force.rulerOfficerId] : null;
+            recruited = rollHermitRecruit({
+              envoyCharisma: envoy.stats.charisma,
+              rulerCharisma: ruler?.stats.charisma ?? 50,
+              hermitIntelligence: hermit.stats.intelligence,
+              rng: Math.random,
+            });
+            if (recruited) {
+              codexMarkRecruited(hermit.id);
+              updates.officers = {
+                ...state.officers,
+                [hermit.id]: {
+                  ...hermit,
+                  forceId: state.playerForceId,
+                  locationCityId: envoyCity.id,
+                  status: 'idle',
+                  loyalty: 75,
+                },
+              };
+              msgs.push(`${hermit.name.zh}感誠來投!`);
+            } else {
+              msgs.push(`${hermit.name.zh}避而不出 — 來日再訪`);
+            }
+          }
+        }
+
+        if (msgs.length === 0) {
+          return { ok: false, message: `${site.name.zh}已無所獲。` };
+        }
+        set(updates);
+        return { ok: true, recruited, message: `訪${site.name.zh}:${msgs.join(',')}。` };
+      },
+
       repairFort: (fortId) => {
         const REPAIR_COST = 150;
         const REPAIR_HP = 300;
@@ -6100,6 +6181,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             ),
           ),
           sites: migrateSites(loaded.sites),
+          scenicLooted: loaded.scenicLooted ?? {},
         };
         set(fresh);
         return true;
@@ -6157,6 +6239,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         ports: state.ports,
         forts: state.forts,
         sites: state.sites,
+        scenicLooted: state.scenicLooted,
         family: state.family,
         pendingHeirs: state.pendingHeirs,
         officerWishes: state.officerWishes,

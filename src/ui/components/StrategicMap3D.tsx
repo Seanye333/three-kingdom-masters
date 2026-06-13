@@ -37,6 +37,8 @@ import { FortPanel } from './FortPanel';
 import { TribePanel } from './TribePanel';
 import { TRIBES } from '../../game/data/tribes';
 import { SitePanel } from './SitePanel';
+import { ScenicPanel } from './ScenicPanel';
+import { SCENIC_SITES } from '../../game/data/scenicSites';
 import { BuildStockadePicker } from './BuildStockadePicker';
 import { useT } from '../i18n';
 
@@ -4972,13 +4974,66 @@ function WildSites3D({ onSiteClick }: { onSiteClick: (siteId: string) => void })
   );
 }
 
-function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteClick, onQuickAction, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
+/* ─── 名所 — legendary scenic sites (訪賢尋寶) ───────────────────────── */
+function ScenicSites3D({ onScenicClick }: { onScenicClick: (siteId: string) => void }) {
+  const scenicLooted = useGameStore((s) => s.scenicLooted);
+  const sites = useMemo(() => SCENIC_SITES.map((s) => {
+    const [px, py] = geoToPixel(s.coords.lon, s.coords.lat);
+    const [wx, wz] = pxToWorld(px, py);
+    return { id: s.id, zh: s.name.zh, wx, wz };
+  }), []);
+  const scale = PIXEL_TO_WORLD * 50 * 0.45 * MARKER_SCALE;
+  return (
+    <group>
+      {sites.map((s) => {
+        const y = sampleTerrainHeight(s.wx, s.wz);
+        const fresh = !scenicLooted[s.id];
+        return (
+          <group key={s.id} position={[s.wx, y, s.wz]} scale={scale}>
+            <mesh
+              position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}
+              onClick={(e) => { e.stopPropagation(); onScenicClick(s.id); }}
+              onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = 'pointer'; }}
+              onPointerOut={() => { document.body.style.cursor = ''; }}
+            >
+              <circleGeometry args={[0.5, 18]} />
+              <meshBasicMaterial color="#c9a23c" transparent opacity={0.3} />
+            </mesh>
+            {/* A thatched scholar's pavilion (草廬) */}
+            <mesh position={[0, 0.14, 0]} castShadow><boxGeometry args={[0.34, 0.22, 0.3]} /><meshStandardMaterial color="#caa878" roughness={0.9} /></mesh>
+            <mesh position={[0, 0.3, 0]} castShadow><coneGeometry args={[0.3, 0.18, 4]} /><meshStandardMaterial color="#9a7b4a" roughness={0.95} /></mesh>
+            {/* A 賢 banner — gold pole + flag */}
+            <mesh position={[0.22, 0.3, 0.16]} castShadow><cylinderGeometry args={[0.014, 0.014, 0.4, 6]} /><meshStandardMaterial color="#6a553a" roughness={0.85} /></mesh>
+            <mesh position={[0.3, 0.42, 0.16]} castShadow><boxGeometry args={[0.14, 0.1, 0.015]} /><meshStandardMaterial color="#c9a23c" side={THREE.DoubleSide} roughness={0.6} /></mesh>
+            {/* A soft glow while there's still something to find */}
+            {fresh && (
+              <mesh position={[0, 0.5, 0]}>
+                <sphereGeometry args={[0.06, 8, 6]} />
+                <meshBasicMaterial color="#f0e08a" transparent opacity={0.7} />
+              </mesh>
+            )}
+            <Html position={[0, 0.7, 0]} center distanceFactor={12} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
+              <div style={{
+                background: 'rgba(28, 18, 10, 0.8)', border: '1px solid #c9a23c', borderRadius: 3,
+                padding: '1px 6px', color: '#f0d89a', fontFamily: '"Ma Shan Zheng", "Songti SC", serif',
+                fontSize: '10.5px', whiteSpace: 'nowrap',
+              }}>⛰ {s.zh}</div>
+            </Html>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteClick, onScenicClick, onQuickAction, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
   onPortClick: (portId: string) => void;
   onFortClick: (fortId: string) => void;
   onTribeClick: (tribeId: string) => void;
   onSiteClick: (siteId: string) => void;
+  onScenicClick: (siteId: string) => void;
   /** 快捷輪盤 — open the march/recruit picker for a city (DOM modals live
    *  in the outer shell, outside the Canvas). */
   onQuickAction: (kind: 'march' | 'recruit', cityId: string) => void;
@@ -5228,6 +5283,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <Forts3D onFortClick={onFortClick} hideNearPx={battleSitePx} />
       <Tribes3D onTribeClick={onTribeClick} />
       <WildSites3D onSiteClick={onSiteClick} />
+      <ScenicSites3D onScenicClick={onScenicClick} />
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
           over (same scene component, same state; rotated to its true bearing,
@@ -5750,6 +5806,7 @@ export function StrategicMap3D() {
   const [selectedFortId, setSelectedFortId] = useState<string | null>(null);
   const [selectedTribeId, setSelectedTribeId] = useState<string | null>(null);
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
+  const [selectedScenicId, setSelectedScenicId] = useState<string | null>(null);
   const [showStockadeBuild, setShowStockadeBuild] = useState(false);
   // Orbit pivot — held as STATE (stable ref) so re-renders don't snap the
   // target back; BattleFocusFly animates it to a clash site, then locks it in.
@@ -6163,6 +6220,7 @@ export function StrategicMap3D() {
             onFortClick={setSelectedFortId}
             onTribeClick={setSelectedTribeId}
             onSiteClick={setSelectedSiteId}
+            onScenicClick={setSelectedScenicId}
             onQuickAction={(kind, cityId) => setQuickPick({ kind, cityId })}
             dioSelectedId={worldBattleMinimized ? dioSelectedId : null}
             dioMode={dioMode}
@@ -6448,6 +6506,12 @@ export function StrategicMap3D() {
         <SitePanel
           siteId={selectedSiteId}
           onClose={() => setSelectedSiteId(null)}
+        />
+      )}
+      {selectedScenicId && (
+        <ScenicPanel
+          siteId={selectedScenicId}
+          onClose={() => setSelectedScenicId(null)}
         />
       )}
       {showStockadeBuild && (
