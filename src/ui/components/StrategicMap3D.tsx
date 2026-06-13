@@ -395,10 +395,12 @@ function sampleTerrain(px: number, py: number): { h: number; color: THREE.Color 
     // Snowline drops toward the cold north/west so high ranges read snowy.
     const snowBoost = smoothstep((220 - py) / 220) * 0.35 + smoothstep((260 - px) / 260) * 0.25;
     const peakT = Math.min(1, mountainH / 1.5 + snowBoost * 0.4);
-    if (peakT < 0.45) {
-      color = C_MOUNTAIN.clone().lerp(C_PEAK, peakT / 0.45);
+    if (peakT < 0.55) {
+      color = C_MOUNTAIN.clone().lerp(C_PEAK, peakT / 0.55);
     } else {
-      color = C_PEAK.clone().lerp(C_SNOW, (peakT - 0.45) / 0.55);
+      // Crisp snowcap — smoothstep tightens the rock→snow line so high peaks
+      // read as clearly snow-mantled rather than fading to grey.
+      color = C_PEAK.clone().lerp(C_SNOW, smoothstep((peakT - 0.55) / 0.45));
     }
   }
 
@@ -517,14 +519,18 @@ function terrainFillFor(budgetMs: number): boolean {
           Math.sin(px * 5.1 + py * 3.3) * 0.5
           + Math.sin(px * 11.7 + py * 7.9) * 0.3
           + (Math.sin(x * 1.31) * Math.cos(y * 0.97)) * 0.4
-        ) * 0.05;
-        const mottle = valueNoise(px * 0.5, py * 0.5) * 0.6;
-        const rock = h > 0.25 ? (h - 0.25) : 0;
-        const streak = Math.sin(px * 0.9 - py * 0.6) * Math.sin(px * 2.7 + 1.0) * rock * 0.14;
+        ) * 0.06;
+        // Two-octave mottling: fine speckle + coarse soft patches (fields,
+        // meadows, weathered rock) so no colour field reads as flat paint.
+        const mottle = valueNoise(px * 0.5, py * 0.5) * 0.7 + valueNoise(px * 0.13, py * 0.11) * 0.6;
+        const rock = h > 0.22 ? (h - 0.22) : 0;
+        // Rocky strata on slopes — a second cross-streak adds craggy texture.
+        const streak = (Math.sin(px * 0.9 - py * 0.6) * Math.sin(px * 2.7 + 1.0)
+          + Math.sin(px * 1.7 + py * 1.1) * 0.5) * rock * 0.2;
         const green = color.g - (color.r > color.b ? color.r : color.b);
-        const veg = green > 0.02 ? Math.sin(px * 21 + 0.5) * Math.cos(py * 17) * 0.035 : 0;
+        const veg = green > 0.02 ? Math.sin(px * 21 + 0.5) * Math.cos(py * 17) * 0.05 : 0;
         const d = grain + mottle + streak + veg;
-        r += d; g += d * 0.96; b += d * 0.88;   // detail reads a touch warm
+        r += d; g += d * 0.96; b += d * 0.86;   // detail reads a touch warm
       }
       const i = (y * TEX_W + x) * 4;
       data[i]     = Math.max(0, Math.min(255, r * 255));
@@ -817,7 +823,9 @@ function Ocean() {
     const t = clock.elapsedTime;
     for (let i = 0; i < pos.count; i++) {
       const x = orig[i * 3], y = orig[i * 3 + 1];
-      const swell = Math.sin(x * 0.05 + t * 0.7) * 0.06 + Math.cos(y * 0.045 + t * 0.55) * 0.06;
+      // Layered swell — big rollers + a finer cross-chop for glittering relief.
+      const swell = Math.sin(x * 0.05 + t * 0.7) * 0.06 + Math.cos(y * 0.045 + t * 0.55) * 0.06
+        + Math.sin(x * 0.13 - y * 0.11 + t * 1.3) * 0.025;
       pos.setZ(i, swell);
     }
     pos.needsUpdate = true;
@@ -828,11 +836,13 @@ function Ocean() {
   return (
     <mesh ref={ref} geometry={geom} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 0]} receiveShadow>
       <meshStandardMaterial
-        color="#1a4a72"
-        roughness={0.32}
-        metalness={0.6}
+        color="#12476e"
+        roughness={0.18}
+        metalness={0.72}
+        emissive="#0a2c46"
+        emissiveIntensity={0.3}
         transparent
-        opacity={0.85}
+        opacity={0.9}
       />
     </mesh>
   );
@@ -1606,8 +1616,8 @@ function Roads({ cities }: { cities: Record<string, City> }) {
     return list;
   }, [cities]);
 
-  const lineGeoms = useMemo(() => {
-    const out: THREE.BufferGeometry[] = [];
+  const linePts = useMemo(() => {
+    const out: THREE.Vector3[][] = [];
     for (const { from, to, seed } of edges) {
       const [fpx, fpy] = cityPixel(from.id, from.coords.x, from.coords.y);
       const [tpx, tpy] = cityPixel(to.id, to.coords.x, to.coords.y);
@@ -1636,21 +1646,23 @@ function Roads({ cities }: { cities: Record<string, City> }) {
         const it = 1 - t;
         const x = it * it * fx + 2 * it * t * mx + t * t * tx;
         const z = it * it * fz + 2 * it * t * mz + t * t * tz;
-        const y = sampleTerrainHeight(x, z) + 0.02;
+        const y = sampleTerrainHeight(x, z) + 0.035;
         pts.push(new THREE.Vector3(x, y, z));
       }
-      out.push(new THREE.BufferGeometry().setFromPoints(pts));
+      out.push(pts);
     }
     return out;
   }, [edges, cities]);
 
+  // Two-pass worn path: a wider dark bed + a lighter trodden centre, so roads
+  // read as packed-earth highways instead of GPU-hairlines.
   return (
     <group>
-      {lineGeoms.map((geom, i) => (
-        <line key={i}>
-          <primitive object={geom} attach="geometry" />
-          <lineBasicMaterial color="#b48c5a" transparent opacity={0.6} linewidth={1} />
-        </line>
+      {linePts.map((pts, i) => (
+        <group key={i}>
+          <Line points={pts} color="#7a5a36" lineWidth={4.5} transparent opacity={0.5} />
+          <Line points={pts} color="#c8a06a" lineWidth={2.2} transparent opacity={0.75} />
+        </group>
       ))}
     </group>
   );
