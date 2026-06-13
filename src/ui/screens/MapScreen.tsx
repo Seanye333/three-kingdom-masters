@@ -30,6 +30,7 @@ import { SeasonReportModal } from '../components/SeasonReportModal';
 import { BattleTheaterModal } from '../components/BattleTheaterModal';
 import { StrategicMap3D } from '../components/StrategicMap3D';
 import { TutorialOverlay } from '../components/TutorialOverlay';
+import { TutorialTasks } from '../components/TutorialTasks';
 import { VictoryModal } from '../components/VictoryModal';
 import { WishesModal } from '../components/WishesModal';
 import { TacticalBattleScreen } from './TacticalBattleScreen';
@@ -623,6 +624,7 @@ export function MapScreen() {
         <EndingsModal onClose={() => setShowEnding(false)} />
       )}
       <TutorialOverlay />
+      <TutorialTasks />
       {/* Headless AI turns while the fullscreen battle view is down (fly-in
           delay or minimized to the diorama) — never alongside the screen's
           own driver. */}
