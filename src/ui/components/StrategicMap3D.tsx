@@ -3638,6 +3638,66 @@ function SnowBlanket() {
   );
 }
 
+/* ─── 四時換裝 — the land itself shifts colour through the year ───────
+ *  Spring flush, summer deep green, autumn gold (winter is the snow blanket).
+ *  A land-masked tint over the terrain — water untouched. */
+let landMaskCache: THREE.Texture | null = null;
+function buildLandMask(): THREE.Texture {
+  if (landMaskCache) return landMaskCache;
+  const W = 500, H = 360;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const px = (x / W) * PX_W, py = (y / H) * PX_H;
+      const { h } = sampleTerrain(px, py);
+      const i = (y * W + x) * 4;
+      d[i] = 255; d[i + 1] = 255; d[i + 2] = 255;
+      d[i + 3] = h <= 0 ? 0 : 255;   // land only
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = true;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  landMaskCache = tex;
+  return tex;
+}
+
+const SEASON_GROUND: Partial<Record<Season, { color: string; opacity: number }>> = {
+  spring: { color: '#a8d98a', opacity: 0.13 },
+  summer: { color: '#8fbf6e', opacity: 0.10 },
+  autumn: { color: '#e0b257', opacity: 0.18 },
+  // winter handled by <SnowBlanket />
+};
+
+function SeasonGroundTint({ season }: { season: Season }) {
+  const cfg = SEASON_GROUND[season];
+  const geom = useMemo(() => {
+    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 200, 150);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i); const wy = pos.getY(i);
+      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
+      pos.setZ(i, sampleTerrain(px, py).h + 0.03);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  const texture = useMemo(() => buildLandMask(), []);
+  if (!cfg) return null;
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={1}>
+      <meshBasicMaterial map={texture} color={cfg.color} transparent opacity={cfg.opacity} depthWrite={false} />
+    </mesh>
+  );
+}
+
 /* ─── 行軍預覽 — glowing route while the march picker is open ─────── */
 function MarchPreviewLine({ fromId, toId, cities }: {
   fromId: string; toId: string; cities: Record<string, City>;
@@ -5446,6 +5506,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       {mapStyle === 'classic' && <Lakes3D />}
       {mapStyle === 'classic' && <RiverRibbons frozen={season === 'winter'} />}
       {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
+      {mapStyle === 'classic' && season !== 'winter' && <SeasonGroundTint season={season} />}
       {/* Forests plant at the shared height function, so the same trees stand
           perfectly on the hex quilt too. */}
       <Forest3D season={season} />
