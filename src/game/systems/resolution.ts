@@ -82,7 +82,11 @@ export interface ResolutionOutput {
   armies?: Record<EntityId, import('../types').Army>;
   /** Field-battle sites this season (ambush/camp-storm/clash) to mark on the
    *  map. Coords in 1000×720 map space. */
-  fieldBattleMarks?: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash' }>;
+  fieldBattleMarks?: Array<{
+    x: number; y: number; kind: 'ambush' | 'camp' | 'clash';
+    aColor?: string; bColor?: string; winner?: -1 | 1; winName?: string;
+    aTroops?: number; bTroops?: number;
+  }>;
   /** Player-involved field clashes deferred to interactive tactical battles
    *  (AI 亲征) — the store fights these after the season report. */
   pendingFieldBattles?: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId; x: number; y: number }>;
@@ -166,7 +170,11 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // Camps stormed this season → the victor seizes the broken camp's ground.
   const campSeizures: Array<{ x: number; y: number; forceId: EntityId }> = [];
   // Field-battle sites to mark on the map this season.
-  const fieldBattleMarks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash' }> = [];
+  const fieldBattleMarks: Array<{
+    x: number; y: number; kind: 'ambush' | 'camp' | 'clash';
+    aColor?: string; bColor?: string; winner?: -1 | 1; winName?: string;
+    aTroops?: number; bTroops?: number;
+  }> = [];
   // Build a field BattleDetail; `atk` is the victor side, `def` the loser.
   type FieldSide = {
     forceId: EntityId | null; commanderId: EntityId; companionIds: EntityId[];
@@ -266,10 +274,19 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         const lp = aWins ? pb : pa;
         campSeizures.push({ x: lp.x, y: lp.y, forceId: winnerCmdr.forceId });
       }
-      // Mark the clash site on the map.
+      // Mark the clash site on the map — carry the real outcome so the
+      // world-map melee replays THIS fight (right victor, sizes, colours).
+      const aFid = officers[a.officerId]?.forceId;
+      const bFid = officers[b.officerId]?.forceId;
       fieldBattleMarks.push({
         x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2,
         kind: ambush ? 'ambush' : campStormed ? 'camp' : 'clash',
+        aColor: (aFid && forces[aFid]?.color) || undefined,
+        bColor: (bFid && forces[bFid]?.color) || undefined,
+        winner: aWins ? -1 : 1,
+        winName: winnerCmdr?.name.zh,
+        aTroops: a.troops,
+        bTroops: b.troops,
       });
       // Casualties are drawn from each army's source city (troops are
       // notionally still there until the march resolves).

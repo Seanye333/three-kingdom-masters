@@ -4588,8 +4588,18 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         // shows where you just fought (decays over 2 seasons like field marks).
         const markPos = tb.geoAnchor
           ?? (() => { const c = state.cities[tb.cityId]; return c ? cityPos(c) : null; })();
+        const atkWon = tb.winner === 'attacker';
+        const winFid = atkWon ? tb.attackerForceId : tb.defenderForceId;
         const battleSiteMarks = markPos
-          ? [...state.fieldBattleMarks, { x: markPos.x, y: markPos.y, kind: 'clash' as const, seasonsLeft: 2 }].slice(-40)
+          ? [...state.fieldBattleMarks, {
+              x: markPos.x, y: markPos.y, kind: 'clash' as const, seasonsLeft: 2,
+              aColor: (tb.attackerForceId && state.forces[tb.attackerForceId]?.color) || undefined,
+              bColor: (tb.defenderForceId && state.forces[tb.defenderForceId]?.color) || undefined,
+              winner: (atkWon ? -1 : 1) as -1 | 1,
+              winName: (winFid && state.forces[winFid]?.name.zh) || undefined,
+              aTroops: tb.startTroops?.attacker,
+              bTroops: tb.startTroops?.defender,
+            }].slice(-40)
           : state.fieldBattleMarks;
 
         set({

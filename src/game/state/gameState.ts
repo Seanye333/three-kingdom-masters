@@ -266,7 +266,14 @@ export interface GameState {
   burningCities: Array<{ cityId: EntityId; seasonsLeft: number }>;
   /** Recent field-battle sites marked on the map (ambush/camp-storm/clash),
    *  decaying over seasons. Coords are in the 1000×720 map space. */
-  fieldBattleMarks: Array<{ x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number }>;
+  fieldBattleMarks: Array<{
+    x: number; y: number; kind: 'ambush' | 'camp' | 'clash'; seasonsLeft: number;
+    // ── Enrichment so the on-map melee can replay the REAL outcome ──
+    aColor?: string; bColor?: string;   // the two sides' force colours
+    winner?: -1 | 1;                    // -1 = side A (left) prevailed, 1 = side B
+    winName?: string;                   // victor's name for the on-site result flag
+    aTroops?: number; bTroops?: number; // scale each side's brawler count
+  }>;
   /** Player-involved field clashes the AI forced this season (AI 亲征),
    *  awaiting interactive tactical resolution after the season report. */
   pendingFieldBattleQueue: Array<{ playerArmyId: EntityId; enemyArmyId: EntityId }>;
