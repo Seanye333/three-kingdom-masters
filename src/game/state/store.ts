@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { idbStorage } from './idbStorage';
 import type {
   BuildingId,
   CivicTitleId,
@@ -5870,7 +5871,10 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
     }),
     {
       name: 'tkm-save-v26',
-      storage: createJSONStorage(() => localStorage),
+      // 存檔遷移 IndexedDB — the live campaign blob leaves the 5MB
+      // localStorage budget to the save slots; transparent fallback +
+      // one-time migration live in idbStorage.
+      storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({
         chronicle: state.chronicle,
         date: state.date,
