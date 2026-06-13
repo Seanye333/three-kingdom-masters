@@ -18,8 +18,8 @@
 | 6 | [單挑](#第六章-單挑) | duel, gauntlet | ✅ |
 | 7 | [外交・謀略・天子](#第七章-外交謀略天子) | diplomacy, coalition, schemes, espionage, intrigue, emperor, imperialEffects, mandate, courtFactions, appointmentEffects | ✅ |
 | 8 | [事件・天命・異族・宗教](#第八章-事件天命異族宗教) | events, historicalEvents, customEvents, factionEvents, religion, tribes | ✅ |
-| 9 | [元遊戲・收藏・分享](#第九章-元遊戲收藏分享) | achievements, deedTitles, dailyChallenge, leaderboard, mods, powerHistory, historyBook, sound | ✅ |
-| 10 | [AI](#第十章-ai) | ai, aiBuild, aiCourt, aiAppointments | ✅ |
+| 9 | [元遊戲・收藏・分享](#第九章-元遊戲收藏分享) | achievements, deedTitles, dailyChallenge, leaderboard, mods, powerHistory, historyBook, sound, voiceLines, dialogueRoll | ✅ |
+| 10 | [AI](#第十章-ai) | ai, aiBuild, aiCourt, aiAppointments, aiWishesFlavor | ✅ |
 | 11 | [核心流程・勝敗・培訓・其他模式](#第十一章-核心流程勝敗培訓其他模式) | resolution, endings, training, succession, objectives, hotSeat, spectator, heroMode, customOfficer, eventEditor, randomScenario, dynasties | ✅ |
 | 圖 | [流程圖 Flowcharts](#流程圖-flowcharts) | 核心循環視覺化:結算順序 / 戰鬥管線 / 招攬升級 / 培訓 / 金收公式 | ✅ |
 
@@ -206,6 +206,13 @@
 - **改換門庭者**(趙雲 公孫瓚→劉備、張遼 呂布→曹操、馬超/法正 劉璋/馬騰→劉備)可掛在多位君主名下;以**已手動指派的後手君主優先**,確保史實歸屬正確。
 - 意義:小軍閥開局不再光桿司令,陣容貼史實,也讓「先打誰能撿到名將」多了一層盤算。
 
+### 2.9 武將心願(wishes.ts)
+
+自家武將每季有小機率上書陳情(忠誠 ≥95 者不會開口):求升遷、求賞賜等。
+
+- **應允** → 忠誠 +8~14(依心願類型);**駁回** → 忠誠 −4~12;**置之不理(逾期)** → 較小的忠誠折損(怠慢之過,比明駁輕)。
+- 野心/傲慢者更常開口求官。把心願當成低成本的忠誠維護 —— 順手應允通常比事後補救划算。(AI 勢力同理,旁白見第九章 aiWishesFlavor。)
+
 ---
 
 ## 第三章 人才・招攬・舌戰
@@ -377,7 +384,7 @@
 - **奉迎天子**:天子駐一城,佔該城者挾之 —— 詔書七折、天命 +2/季,但全勢力對挾持者 −1/季。可奉迎入都(+10 天命)。
 - **帝位 imperial rank**:侯 → 公 → 王 → 帝,逐級解鎖敕令(求賢令、罪己詔、討伐、即位…)。
 - **天命 mandate**(每勢力 0~100,初始 50):祥瑞/凶兆每季 8% 觸發增減;挾天子者日聚。
-- **朝廷派系**(courtFactions)、任官加成(appointmentEffects:太守/丞相/司徒等乘內政、刺史加徵兵)。
+- **朝廷派系**(courtFactions / intrigue):武將按屬性自動歸入改革派(政高且 <40 歲)、宦官(統 <50 政 >70)、門閥(政 >75 魅 >70)、武人(武 >80)四派,牽動朝局與事件;任官加成(appointmentEffects:太守/丞相/司徒等乘內政、刺史加徵兵)。
 
 ---
 
@@ -415,6 +422,7 @@
 - **每日挑戰 dailyChallenge.ts**:日期種子全網同題(困難+迷霧+隨機第三條),最佳成績本地存,🏆 全球排行榜(leaderboard.ts,需 Vercel KV;未開通則本地)。
 - **Mod 數據包 mods.ts**:JSON 加武將/事件/劇本(重畫城池歸屬),id 自動隔離。
 - **音效・BGM sound.ts**:全程 Web Audio 合成,零素材;環境音(風/鳥/蟲/鼓)。
+- **氛圍與旁白(flavor 層)**:戰場語音(voiceLines.ts —— 出陣/斬將/危殆台詞)、季度隨機對話事件(dialogues.ts / dialogueRoll,多為趣味、少數有實際效果)、派系事件(factionEvents.ts)、AI 朝廷請願旁白(aiWishesFlavor.ts —— 每季 0~2 條,且晉升/賞賜會真的調動軍階與忠誠)。
 - **存檔**:IndexedDB 主存(idbStorage,localStorage 降級)+ 五槽(縮略圖)+ 存檔互傳(導出/導入 JSON)。
 
 ---
