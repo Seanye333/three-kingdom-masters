@@ -140,6 +140,15 @@ export const CITY_GEO_OVERRIDES: Record<string, [number, number]> = {
   'baima': [114.66, 35.29],   // 白馬
   'yanjin': [114.12, 35.27],   // 延津
   'liyang': [114.46, 35.9],   // 黎陽
+  // ── 三國志標配補城 ──
+  'qiao': [115.78, 33.84],      // 譙(亳州,曹操故鄉、沛國治)
+  'changshan': [114.57, 38.14], // 常山(真定/正定,趙雲故鄉)
+  'xindu': [115.58, 37.55],     // 信都(冀州治,袁紹據點)
+  'zhongshan': [114.99, 38.52], // 中山(盧奴/定州)
+  'zhangye': [100.45, 38.93],   // 張掖(河西走廊)
+  'qianwei': [103.9, 30.0],     // 犍為(武陽,益州南)
+  'juyongguan': [116.07, 40.29],// 居庸關(薊北門戶,禦烏桓/鮮卑)
+  'hanguguan': [110.87, 34.62], // 函谷關(洛陽西、潼關東)
 };
 
 /** Pixel coords for a city, preferring the geographic override.

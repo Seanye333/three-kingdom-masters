@@ -1024,6 +1024,65 @@ const CITY_TEMPLATES: CityTemplate[] = [
     terrain: 'wetland',
     base: { population: 25_000, gold: 500, food: 14_000, troops: 2500, agriculture: 30, commerce: 25, defense: 30, loyalty: 45 },
   },
+  // ── 三國志標配補城(neighbour links are one-way here; buildInitialCities symmetrises them) ──
+  {
+    id: 'qiao',
+    name: { en: 'Qiao', zh: '譙' },
+    coords: { x: 682, y: 254 },
+    adjacentCityIds: ['chenliu', 'xuchang', 'runan', 'pengcheng', 'xiaopei'],
+    base: { population: 120_000, gold: 2000, food: 50_000, troops: 9000, agriculture: 50, commerce: 45, defense: 45, loyalty: 60 },
+  },
+  {
+    id: 'changshan',
+    name: { en: 'Changshan', zh: '常山' },
+    coords: { x: 640, y: 135 },
+    adjacentCityIds: ['ye', 'boling', 'taiyuan', 'zhongshan', 'xindu'],
+    base: { population: 110_000, gold: 1800, food: 48_000, troops: 8000, agriculture: 50, commerce: 40, defense: 50, loyalty: 60 },
+  },
+  {
+    id: 'xindu',
+    name: { en: 'Xindu', zh: '信都' },
+    coords: { x: 675, y: 151 },
+    adjacentCityIds: ['ye', 'nanpi', 'pingyuan', 'boling', 'zhongshan', 'changshan'],
+    base: { population: 130_000, gold: 2200, food: 52_000, troops: 9500, agriculture: 55, commerce: 45, defense: 50, loyalty: 65 },
+  },
+  {
+    id: 'zhongshan',
+    name: { en: 'Zhongshan', zh: '中山' },
+    coords: { x: 655, y: 124 },
+    adjacentCityIds: ['changshan', 'xindu', 'boling', 'yi-county', 'beiping'],
+    base: { population: 100_000, gold: 1700, food: 45_000, troops: 7000, agriculture: 50, commerce: 40, defense: 50, loyalty: 60 },
+  },
+  {
+    id: 'zhangye',
+    name: { en: 'Zhangye', zh: '張掖' },
+    coords: { x: 153, y: 113 },
+    adjacentCityIds: ['wuwei', 'jiuquan'],
+    base: { population: 60_000, gold: 1200, food: 32_000, troops: 5000, agriculture: 40, commerce: 35, defense: 55, loyalty: 60 },
+  },
+  {
+    id: 'qianwei',
+    name: { en: 'Qianwei', zh: '犍為' },
+    coords: { x: 272, y: 360 },
+    adjacentCityIds: ['chengdu', 'jiangzhou', 'yuexi'],
+    base: { population: 95_000, gold: 1600, food: 48_000, troops: 6500, agriculture: 58, commerce: 35, defense: 40, loyalty: 65 },
+  },
+  {
+    id: 'juyongguan',
+    name: { en: 'Juyong Pass', zh: '居庸關' },
+    coords: { x: 692, y: 75 },
+    adjacentCityIds: ['ji', 'beiping', 'yuyang'],
+    terrain: 'pass',
+    base: { population: 15_000, gold: 400, food: 12_000, troops: 4500, agriculture: 10, commerce: 10, defense: 78, loyalty: 60 },
+  },
+  {
+    id: 'hanguguan',
+    name: { en: 'Hangu Pass', zh: '函谷關' },
+    coords: { x: 513, y: 232 },
+    adjacentCityIds: ['luoyang', 'tongguan'],
+    terrain: 'pass',
+    base: { population: 12_000, gold: 350, food: 10_000, troops: 4500, agriculture: 8, commerce: 8, defense: 82, loyalty: 60 },
+  },
 ];
 
 export function buildInitialCities(
@@ -1051,11 +1110,24 @@ export function buildInitialCities(
     }
     return best?.owner ?? null;
   };
+  // Roads are two-way — symmetrise adjacency so a city added with a neighbour
+  // link is reachable both ways without hand-editing every neighbour's list.
+  // (Existing data is already ~symmetric, so this is effectively a no-op for
+  // it and just auto-wires newly-added cities.)
+  const adj = new Map<string, Set<string>>();
+  for (const t of CITY_TEMPLATES) {
+    if (!adj.has(t.id)) adj.set(t.id, new Set());
+    for (const a of t.adjacentCityIds) {
+      adj.get(t.id)!.add(a);
+      if (!adj.has(a)) adj.set(a, new Set());
+      adj.get(a)!.add(t.id);
+    }
+  }
   return CITY_TEMPLATES.map((t) => ({
     id: t.id,
     name: t.name,
     coords: t.coords,
-    adjacentCityIds: t.adjacentCityIds,
+    adjacentCityIds: [...(adj.get(t.id) ?? [])],
     ownerForceId: effectiveOwner(t),
     terrain: t.terrain ?? 'plain',
     port: t.port ?? false,
