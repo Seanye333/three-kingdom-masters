@@ -788,7 +788,7 @@ function MapTerrain({ onGroundClick }: { onGroundClick?: (px: number, py: number
  *  swells, so the sea shimmers and undulates instead of sitting glassy-flat. */
 function Ocean() {
   const ref = useRef<THREE.Mesh>(null);
-  const geom = useMemo(() => new THREE.PlaneGeometry(MAP_W * 1.5, MAP_D * 1.5, 24, 24), []);
+  const geom = useMemo(() => new THREE.PlaneGeometry(MAP_W * 1.1, MAP_D * 1.1, 24, 24), []);
   const orig = useMemo(() => Float32Array.from(geom.attributes.position.array), [geom]);
   const frame = useRef(0);
   useFrame(({ clock }) => {
