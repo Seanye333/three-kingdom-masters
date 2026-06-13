@@ -864,6 +864,56 @@ function GovernmentHall3D({ x, z, bannerColor }: { x: number; z: number; bannerC
   );
 }
 
+/** 兵營 — a drill yard: a long timber barracks hall, a spear rack and a
+ *  war banner. The seat of 徵兵 (recruitment). */
+function Barracks3D({ x, z, bannerColor }: { x: number; z: number; bannerColor: string }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 0.7, 0.8]} />
+        <meshStandardMaterial color="#6a5236" roughness={0.85} />
+      </mesh>
+      <group position={[0, 0.72, 0]}><ChineseRoof3D size={1.6} color="#3a3026" /></group>
+      {[-0.5, -0.3, -0.1, 0.1, 0.3, 0.5].map((sx, i) => (
+        <mesh key={i} position={[sx, 0.35, 0.62]} rotation={[0.18, 0, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.7, 5]} />
+          <meshStandardMaterial color="#2a2018" roughness={0.8} />
+        </mesh>
+      ))}
+      <mesh position={[0.85, 0.3, 0.4]} castShadow>
+        <cylinderGeometry args={[0.06, 0.07, 0.6, 6]} />
+        <meshStandardMaterial color="#4a3a26" roughness={0.9} />
+      </mesh>
+      <FlagPole3D x={-0.85} z={0.4} color={bannerColor} h={1.8} />
+    </group>
+  );
+}
+
+/** 酒樓 — a two-storey tavern under a hanging 「酒」 banner: the haunt of
+ *  wanderers and unsung talent. The seat of 人材探訪. */
+function Tavern3D({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.95, 0.8, 0.9]} />
+        <meshStandardMaterial color="#7d5a36" roughness={0.82} />
+      </mesh>
+      <mesh position={[0, 1.0, 0]} castShadow>
+        <boxGeometry args={[0.8, 0.5, 0.75]} />
+        <meshStandardMaterial color="#8a6a40" roughness={0.82} />
+      </mesh>
+      <group position={[0, 1.3, 0]}><ChineseRoof3D size={1.0} color="#3a2f24" ornament /></group>
+      <mesh position={[0.62, 0.95, 0.4]}>
+        <cylinderGeometry args={[0.02, 0.02, 1.5, 6]} />
+        <meshStandardMaterial color="#2a2018" />
+      </mesh>
+      <Html position={[0.62, 1.35, 0.4]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{ background: '#9a2a2a', border: '1px solid #f0d0a0', color: '#f5e8c8', fontFamily: 'Songti SC, serif', fontSize: '13px', padding: '2px 5px', writingMode: 'vertical-rl' }}>酒</div>
+      </Html>
+    </group>
+  );
+}
+
 /** A stylised low-poly garden tree — leafy, blossom or pine by hash, dressed
  *  for the season (gold in autumn, snow-dusted/bare in winter). */
 function GardenTree3D({ x, z, seed }: { x: number; z: number; seed: number }) {
@@ -1840,8 +1890,11 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats, g
     const hallCell = { col: Math.max(1, Math.round(cityWallCol * 0.42)), row: Math.round(H / 2) };
     // 屯田 farm plot front-right, below the foundation grid.
     const farmCell = { col: Math.max(3, W - 5), row: Math.max(2, H - 3) };
+    // 兵營 / 酒樓 flank the entrance avenue, in the plot-free south band.
+    const barracksCell = { col: Math.max(2, gateCol - 4), row: Math.max(2, H - 3) };
+    const tavernCell = { col: Math.min(W - 2, gateCol + 3), row: Math.max(2, H - 3) };
     const keys = new Set<string>();
-    for (const c of [pagodaCell, drumCell, bellCell, gardenCell, hallCell]) {
+    for (const c of [pagodaCell, drumCell, bellCell, gardenCell, hallCell, barracksCell, tavernCell]) {
       for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${c.col + dc},${c.row + dr}`);
     }
     for (let dc = -1; dc <= 2; dc++) for (let dr = -1; dr <= 1; dr++) keys.add(`${farmCell.col + dc},${farmCell.row + dr}`);
@@ -1854,7 +1907,9 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats, g
     const [bx, bz] = hexWorld(bellCell.col, bellCell.row);
     const [gx2, gz2] = hexWorld(gardenCell.col, gardenCell.row);
     const [fx, fz] = hexWorld(farmCell.col, farmCell.row);
-    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, bell: { x: bx, z: bz }, garden: { x: gx2, z: gz2 }, farm: { x: fx, z: fz } };
+    const [barx, barz] = hexWorld(barracksCell.col, barracksCell.row);
+    const [tavx, tavz] = hexWorld(tavernCell.col, tavernCell.row);
+    return { keys, pagoda: { x: px, z: pz }, drum: { x: dx, z: dz }, bell: { x: bx, z: bz }, garden: { x: gx2, z: gz2 }, farm: { x: fx, z: fz }, barracks: { x: barx, z: barz }, tavern: { x: tavx, z: tavz } };
   }, [preview.width, preview.height, cityWallCol, grand]);
 
   const { houses, trees, paths, villagers, flowers, avenue, grass, dirt, puddles } = useMemo(() => {
@@ -2046,8 +2101,14 @@ function CityDwellings3D({ preview, cityWallCol, occupied, bannerColor, stats, g
       <group onClick={(e) => { e.stopPropagation(); inspect({ title: '屯田 · 田畝', body: '军民屯垦之田,城邑粮秣所出。可於此勸課農桑。', color: '#bcd07a', commands: ['develop-agriculture', 'major-agriculture'] }); }}>
         <Farmland3D x={landmarks.farm.x} z={landmarks.farm.z} lush={stats.fAgri} />
       </group>
-      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '府衙 · 治所', body: '一城之治所,太守理政、聚將議事之地。徵兵、安民、訪賢、招撫、修城,皆決於此。', color: '#f0d98a', commands: ['recruit-troops', 'improve-loyalty', 'search', 'encourage-migration', 'build-defense', 'upgrade-wall'] }); }}>
+      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '府衙 · 治所', body: '一城之治所,太守理政、安民撫眾之地。', color: '#f0d98a', commands: ['improve-loyalty', 'encourage-migration'] }); }}>
         <GovernmentHall3D x={hall.x} z={hall.z} bannerColor={bannerColor} />
+      </group>
+      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '兵營 · 校場', body: '操演士卒、招募新軍之所。', color: '#c08858', commands: ['recruit-troops'] }); }}>
+        <Barracks3D x={landmarks.barracks.x} z={landmarks.barracks.z} bannerColor={bannerColor} />
+      </group>
+      <group onClick={(e) => { e.stopPropagation(); inspect({ title: '酒樓', body: '杯酒之間,常聞在野賢才之名。可於此遣人探訪。', color: '#d98a6a', commands: ['search'] }); }}>
+        <Tavern3D x={landmarks.tavern.x} z={landmarks.tavern.z} />
       </group>
     </>
   );
@@ -2718,7 +2779,9 @@ function CityScene({
               const [x, z] = hexWorld(col, row);
               return <CornerTower3D key={`tower-${c}`} x={x} z={z} bannerColor={bannerColor} />;
             })}
-            <CityGate3D x={gx} z={gz} bannerColor={bannerColor} />
+            <group onClick={(e) => { e.stopPropagation(); onInspect({ title: '城牆 · 城門', body: '一城之屏障。可於此修築城防、強化城壁。', color: '#9aa6b0', commands: ['build-defense', 'upgrade-wall'] }); }}>
+              <CityGate3D x={gx} z={gz} bannerColor={bannerColor} />
+            </group>
             {/* Stone bridge crossing the moat out from the gate */}
             <StoneBridge3D x={gx} z={gz + 2.1} />
             {/* Water gate + wharf on the east wall */}
