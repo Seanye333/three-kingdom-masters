@@ -4596,6 +4596,47 @@ function Villages3D() {
   );
 }
 
+/* ─── 驛站 — a relay post (hut + pennant) at the midpoint of long roads,
+ *  on dry ground, so the highways feel travelled. ── */
+function PostStations3D({ cities }: { cities: Record<string, City> }) {
+  const posts = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ x: number; z: number; rot: number }> = [];
+    for (const c of Object.values(cities)) {
+      for (const adj of c.adjacentCityIds ?? []) {
+        const o = cities[adj]; if (!o) continue;
+        const key = c.id < o.id ? `${c.id}|${o.id}` : `${o.id}|${c.id}`;
+        if (seen.has(key)) continue; seen.add(key);
+        const [fpx, fpy] = cityPixel(c.id, c.coords.x, c.coords.y);
+        const [tpx, tpy] = cityPixel(o.id, o.coords.x, o.coords.y);
+        const mpx = (fpx + tpx) / 2, mpy = (fpy + tpy) / 2;
+        const g = battleGroundAt(mpx, mpy);
+        if (g === 'river' || g === 'lake' || g === 'sea') continue;   // not on water (bridges handle that)
+        const [fx, fz] = pxToWorld(fpx, fpy);
+        const [tx, tz] = pxToWorld(tpx, tpy);
+        if (Math.hypot(tx - fx, tz - fz) < 5) continue;               // only the longer hauls
+        const [mx, mz] = pxToWorld(mpx, mpy);
+        if (sampleTerrainHeight(mx, mz) < 0.06) continue;
+        out.push({ x: mx, z: mz, rot: Math.atan2(tx - fx, tz - fz) });
+      }
+    }
+    return out;
+  }, [cities]);
+  if (posts.length === 0) return null;
+  return (
+    <group>
+      {posts.map((p, i) => (
+        <group key={i} position={[p.x, sampleTerrainHeight(p.x, p.z), p.z]} rotation={[0, p.rot, 0]}>
+          <mesh position={[0, 0.03, 0]} castShadow><boxGeometry args={[0.07, 0.06, 0.08]} /><meshStandardMaterial color="#a08a64" roughness={0.9} /></mesh>
+          <mesh position={[0, 0.075, 0]} rotation={[0, Math.PI / 4, 0]} castShadow><coneGeometry args={[0.065, 0.035, 4]} /><meshStandardMaterial color="#5f4a2e" roughness={0.85} /></mesh>
+          <mesh position={[0.05, 0.1, 0.05]}><cylinderGeometry args={[0.004, 0.004, 0.14, 4]} /><meshStandardMaterial color="#3a2818" /></mesh>
+          <mesh position={[0.085, 0.13, 0.05]}><planeGeometry args={[0.06, 0.035]} /><meshStandardMaterial color="#c0502e" side={THREE.DoubleSide} /></mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 /* ─── 名勝古戰場 — a stone stele + label marking the famous battlefields the
  *  named-map data records (赤壁/官渡/長坂/定軍山…). One per battle. ── */
 function Landmarks3D({ cities }: { cities: Record<string, City> }) {
@@ -4873,6 +4914,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       {/* In hex mode the road network is paved into the quilt itself. */}
       {mapStyle === 'classic' && <Roads cities={cities} />}
       {mapStyle === 'classic' && <Bridges3D cities={cities} />}
+      {mapStyle === 'classic' && <PostStations3D cities={cities} />}
       <Landmarks3D cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={visibleCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       {overlayMode === 'supply' && <SupplyLines3D />}
