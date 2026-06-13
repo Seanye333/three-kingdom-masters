@@ -72,10 +72,13 @@ function islandSDF(x: number, y: number): number {
   // stay on land at any WORLD_SCALE.
   let best = -Infinity;
   for (const i of ISLANDS) {
-    best = Math.max(best, Math.min(
-      i.hw * WORLD_SCALE - Math.abs(x - i.cx * WORLD_SCALE),
-      i.hh * WORLD_SCALE - Math.abs(y - i.cy * WORLD_SCALE),
-    ));
+    const cx = i.cx * WORLD_SCALE, cy = i.cy * WORLD_SCALE;
+    const hw = i.hw * WORLD_SCALE, hh = i.hh * WORLD_SCALE;
+    // Elliptical island — an organic rounded coast instead of a stark box
+    // (the old min/box read as a floating rectangle when fully zoomed out).
+    const dx = (x - cx) / hw, dy = (y - cy) / hh;
+    const r = Math.hypot(dx, dy);          // 0 at centre, 1 at the ellipse edge
+    best = Math.max(best, (1 - r) * Math.min(hw, hh));
   }
   return best;
 }
