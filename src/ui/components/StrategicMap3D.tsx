@@ -4079,11 +4079,22 @@ function DuskCityLights({ cities }: { cities: Record<string, City> }) {
 const CARAVAN_COUNT = IS_MOBILE ? 4 : 12;
 
 function Caravans3D({ cities }: { cities: Record<string, City> }) {
+  const tradeRoutes = useGameStore((s) => s.tradeRoutes);
   const routes = useMemo(() => {
-    // Busiest internal trade pairs — adjacent cities under the same lord
-    // (or both masterless — peddlers don't care), ranked by commerce.
     const seen = new Set<string>();
     const pairs: Array<{ a: City; b: City; score: number }> = [];
+    // 名產商路優先 — carts ride the LIVE specialty trade routes first, so the
+    // ox-carts you see are the goods actually moving (and earning) this season.
+    for (const r of tradeRoutes) {
+      const a = cities[r.cityAId]; const b = cities[r.cityBId];
+      if (!a || !b) continue;
+      const key = a.id < b.id ? a.id + b.id : b.id + a.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      pairs.push({ a, b, score: 100000 + r.baseIncome });   // always ahead of filler
+    }
+    // Top up with the busiest internal pairs — adjacent same-owner cities.
+    const filler: Array<{ a: City; b: City; score: number }> = [];
     for (const a of Object.values(cities)) {
       for (const adjId of a.adjacentCityIds ?? []) {
         const b = cities[adjId];
@@ -4091,10 +4102,11 @@ function Caravans3D({ cities }: { cities: Record<string, City> }) {
         const key = a.id < adjId ? a.id + adjId : adjId + a.id;
         if (seen.has(key)) continue;
         seen.add(key);
-        pairs.push({ a, b, score: a.commerce + b.commerce });
+        filler.push({ a, b, score: a.commerce + b.commerce });
       }
     }
-    pairs.sort((x, y) => y.score - x.score);
+    filler.sort((x, y) => y.score - x.score);
+    pairs.push(...filler);
     const out: Array<{ pts: THREE.Vector3[]; cum: number[]; total: number; speed: number; phase: number }> = [];
     for (const { a, b } of pairs.slice(0, CARAVAN_COUNT)) {
       const pa = cityPos(a);
@@ -4116,7 +4128,7 @@ function Caravans3D({ cities }: { cities: Record<string, City> }) {
       });
     }
     return out;
-  }, [cities]);
+  }, [cities, tradeRoutes]);
 
   const refs = useRef<Array<THREE.Group | null>>([]);
   useFrame(({ clock }) => {
