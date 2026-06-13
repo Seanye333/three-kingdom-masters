@@ -199,6 +199,22 @@ export function MapScreen() {
       endSeason();
     }
   };
+  // 演義模擬器 — no player force means observe mode: auto-advance ticks
+  // (auto-dismissing the season report) until a force unifies the realm.
+  const observing = playerForceId === null;
+  const [autoSim, setAutoSim] = useState(observing);
+  useEffect(() => {
+    if (!autoSim || !observing) return;
+    const id = setInterval(() => {
+      const s = useGameStore.getState();
+      if (s.tacticalBattle || s.victoryStatus === 'victory') return;
+      if (s.lastReport) { s.dismissReport(); return; }
+      if (s.pendingEvent) { s.dismissEvent(); return; }
+      s.endSeason();
+    }, 1400);
+    return () => clearInterval(id);
+  }, [autoSim, observing]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code !== 'Space' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -393,16 +409,27 @@ export function MapScreen() {
             })),
           ]}
         />
-        <button
-          className={styles.advanceButton}
-          onClick={advanceTurn}
-        >
-          {hotSeatPlayers.length > 1
-            ? t(`結束 ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? '回合'} →`,
-                `End ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? 'Turn'} →`)
-            : t(`下旬 ${monthNum}月${phaseInfo.zh} →`,
-                `End ${monthNum}m ${phaseInfo.zh} →`)}
-        </button>
+        {observing ? (
+          <button
+            className={styles.advanceButton}
+            onClick={() => setAutoSim((v) => !v)}
+            title={t('演義模擬器 — 自動推演天下大勢', 'Spectator — auto-simulating the realm')}
+            style={{ background: autoSim ? 'rgba(122,106,168,0.3)' : undefined }}
+          >
+            {autoSim ? t('⏸ 暫停推演', '⏸ Pause') : t('▶ 繼續推演', '▶ Resume')}
+          </button>
+        ) : (
+          <button
+            className={styles.advanceButton}
+            onClick={advanceTurn}
+          >
+            {hotSeatPlayers.length > 1
+              ? t(`結束 ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? '回合'} →`,
+                  `End ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? 'Turn'} →`)
+              : t(`下旬 ${monthNum}月${phaseInfo.zh} →`,
+                  `End ${monthNum}m ${phaseInfo.zh} →`)}
+          </button>
+        )}
       </header>
 
       <main className={styles.main}>

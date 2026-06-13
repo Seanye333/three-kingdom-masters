@@ -37,6 +37,7 @@ const DIFFICULTIES: Array<{ id: Difficulty; en: string; zh: string; noteZh: stri
 
 export function TitleScreen() {
   const loadScenario = useGameStore((s) => s.loadScenario);
+  const observeScenario = useGameStore((s) => s.observeScenario);
   const loadRandom = useGameStore((s) => s.loadRandomScenario);
   const setTutorialStep = useGameStore((s) => s.setTutorialStep);
   const setHotSeatPlayers = useGameStore((s) => s.setHotSeatPlayers);
@@ -685,6 +686,15 @@ export function TitleScreen() {
                 {t('▶ 開始遊戲', '▶ Start Game')}
               </button>
             </div>
+            {/* 演義模擬器 — watch the AI play every realm from turn one. */}
+            <button
+              className={styles.officersButton}
+              style={{ width: '100%', marginTop: '0.5rem', borderColor: '#7a6aa8', color: '#b0a0d0' }}
+              onClick={() => { observeScenario(scenario, difficulty); setTutorialStep(null); }}
+              title={t('不選勢力,純觀看 AI 群雄逐鹿', 'Pick no side — just watch the AI warlords contend')}
+            >
+              👁 {t('觀戰模式(演義模擬器)', 'Spectate (AI vs AI)')}
+            </button>
           </section>
         )}
       </main>

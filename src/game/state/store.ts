@@ -164,6 +164,8 @@ import {
 import { loadFromSlot, saveToSlot, deleteSlot, listSlots } from './saveSlots';
 
 interface GameStore extends GameState {
+  /** 演義模擬器 — spectate the AI playing every force from turn one. */
+  observeScenario: (scenario: Scenario, difficulty: Difficulty) => void;
   loadScenario: (
     scenario: Scenario,
     playerForceId: EntityId,
@@ -592,6 +594,17 @@ export const useGameStore = create<GameStore>()(
 
       loadScenario: (scenario, playerForceId, difficulty, customOfficer) =>
         set((s) => loadScenario(s, scenario, playerForceId, difficulty, customOfficer)),
+
+      // 演義模擬器 — load a scenario with NO player force and start in
+      // observe mode, so the AI runs every realm and the season tick
+      // simulates history while you watch.
+      observeScenario: (scenario, difficulty) =>
+        set((s) => ({
+          ...loadScenario(s, scenario, scenario.forces[0].id, difficulty),
+          playerForceId: null,
+          victoryStatus: 'observing' as const,
+          tutorialStep: null,
+        })),
 
       startChallenge: (challengeId) => {
         const challenge = findChallenge(challengeId);
