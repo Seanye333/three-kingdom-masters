@@ -4677,6 +4677,130 @@ function Landmarks3D({ cities }: { cities: Record<string, City> }) {
   );
 }
 
+/* ─── 唯一名建築 — landmark monuments at iconic cities ────────────────
+ * Each three-kingdoms capital and a handful of legendary sites carry a
+ * one-of-a-kind structure that reads instantly from the map: 鄴 flies the
+ * Bronze Sparrow Terrace, the Han capitals raise twin-eaved palace halls,
+ * 成都 the brocade-roofed Shu palace. Purely cosmetic, geo-anchored to the
+ * real city pixel so it sits right beside the city marker. */
+type LandmarkKind = 'terrace' | 'palace' | 'brocade';
+const UNIQUE_LANDMARKS: ReadonlyArray<{ cityId: string; zh: string; kind: LandmarkKind }> = [
+  { cityId: 'ye',      zh: '銅雀臺', kind: 'terrace' },  // 曹操鄴城,銅雀／金鳳／冰井三臺
+  { cityId: 'luoyang', zh: '漢宮',   kind: 'palace'  },  // 後漢南北宮、魏都宮城
+  { cityId: 'changan', zh: '未央宮', kind: 'palace'  },  // 前漢宮室、董卓遷都
+  { cityId: 'xuchang', zh: '許都',   kind: 'palace'  },  // 獻帝行在、曹魏發跡
+  { cityId: 'jianye',  zh: '太初宮', kind: 'palace'  },  // 孫吳宮城
+  { cityId: 'chengdu', zh: '錦官城', kind: 'brocade' },  // 蜀宮、錦官織造
+];
+
+/** A twin-eaved swept roof in a chosen palette (重檐廡殿頂). */
+function PalaceRoof3D({ y, w, d, color = '#c9a23c', ridge = '#e8cf6a' }: {
+  y: number; w: number; d: number; color?: string; ridge?: string;
+}) {
+  const eave = (ey: number, ew: number, ed: number, eh: number) => (
+    <group position={[0, ey, 0]}>
+      <mesh castShadow><boxGeometry args={[ew, eh, ed]} /><meshStandardMaterial color={color} roughness={0.55} metalness={0.25} /></mesh>
+      {([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([sx, sz], i) => (
+        <mesh key={i} position={[sx * ew * 0.46, eh * 0.3, sz * ed * 0.4]} rotation={[sz * 0.5, 0, -sx * 0.5]} castShadow>
+          <coneGeometry args={[eh * 0.55, eh * 1.4, 4]} />
+          <meshStandardMaterial color={color} roughness={0.55} metalness={0.25} />
+        </mesh>
+      ))}
+    </group>
+  );
+  return (
+    <group position={[0, y, 0]}>
+      {eave(0, w, d, 0.05)}
+      {/* upper tier — 重檐 */}
+      <mesh position={[0, 0.07, 0]} castShadow><boxGeometry args={[w * 0.6, 0.06, d * 0.6]} /><meshStandardMaterial color="#8a2f28" roughness={0.8} /></mesh>
+      {eave(0.12, w * 0.66, d * 0.66, 0.04)}
+      {/* golden ridge acroteria (鴟尾) */}
+      <mesh position={[-w * 0.34, 0.05, 0]} rotation={[0, 0, 0.5]} castShadow><coneGeometry args={[0.022, 0.07, 5]} /><meshStandardMaterial color={ridge} roughness={0.4} metalness={0.5} /></mesh>
+      <mesh position={[w * 0.34, 0.05, 0]} rotation={[0, 0, -0.5]} castShadow><coneGeometry args={[0.022, 0.07, 5]} /><meshStandardMaterial color={ridge} roughness={0.4} metalness={0.5} /></mesh>
+    </group>
+  );
+}
+
+/** A grand palace hall on a raised stone platform with vermilion columns. */
+function PalaceHall3D({ roofColor, roofRidge }: { roofColor?: string; roofRidge?: string }) {
+  return (
+    <group>
+      {/* Raised stone platform (臺基) */}
+      <mesh position={[0, 0.04, 0]} receiveShadow castShadow><boxGeometry args={[0.72, 0.08, 0.46]} /><meshStandardMaterial color="#b8a88c" roughness={0.92} /></mesh>
+      <mesh position={[0, 0.085, 0.25]} castShadow><boxGeometry args={[0.3, 0.01, 0.06]} /><meshStandardMaterial color="#9a8a70" roughness={0.95} /></mesh>
+      {/* Vermilion hall body */}
+      <mesh position={[0, 0.17, 0]} castShadow receiveShadow><boxGeometry args={[0.6, 0.16, 0.36]} /><meshStandardMaterial color="#8a2f28" roughness={0.78} /></mesh>
+      {/* Front colonnade */}
+      {[-0.24, -0.08, 0.08, 0.24].map((cx, i) => (
+        <mesh key={i} position={[cx, 0.17, 0.19]} castShadow><cylinderGeometry args={[0.018, 0.018, 0.16, 8]} /><meshStandardMaterial color="#6a1f1a" roughness={0.7} /></mesh>
+      ))}
+      <PalaceRoof3D y={0.27} w={0.7} d={0.46} color={roofColor} ridge={roofRidge} />
+    </group>
+  );
+}
+
+/** 銅雀臺 — a three-tier stone terrace crowned by a pavilion and the bronze
+ *  sparrow that gave it its name. */
+function BronzeTerrace3D() {
+  return (
+    <group>
+      {/* Three receding stone tiers */}
+      <mesh position={[0, 0.10, 0]} castShadow receiveShadow><boxGeometry args={[0.5, 0.2, 0.42]} /><meshStandardMaterial color="#9a9082" roughness={0.95} /></mesh>
+      <mesh position={[0, 0.27, 0]} castShadow receiveShadow><boxGeometry args={[0.37, 0.16, 0.31]} /><meshStandardMaterial color="#a89e8e" roughness={0.95} /></mesh>
+      <mesh position={[0, 0.41, 0]} castShadow receiveShadow><boxGeometry args={[0.26, 0.12, 0.22]} /><meshStandardMaterial color="#b4aa98" roughness={0.95} /></mesh>
+      {/* Crowning pavilion */}
+      <mesh position={[0, 0.52, 0]} castShadow><boxGeometry args={[0.2, 0.1, 0.17]} /><meshStandardMaterial color="#8a2f28" roughness={0.78} /></mesh>
+      <PalaceRoof3D y={0.6} w={0.26} d={0.22} color="#c9a23c" />
+      {/* 銅雀 — the bronze sparrow perched on the ridge */}
+      <group position={[0, 0.74, 0]}>
+        <mesh castShadow><sphereGeometry args={[0.035, 10, 8]} /><meshStandardMaterial color="#9c7a3c" roughness={0.45} metalness={0.6} /></mesh>
+        <mesh position={[0, 0.04, -0.02]} castShadow><sphereGeometry args={[0.02, 8, 6]} /><meshStandardMaterial color="#b5894a" roughness={0.45} metalness={0.6} /></mesh>
+        <mesh position={[-0.04, 0.01, 0]} rotation={[0, 0, 0.7]} castShadow><coneGeometry args={[0.02, 0.08, 4]} /><meshStandardMaterial color="#9c7a3c" roughness={0.45} metalness={0.6} /></mesh>
+        <mesh position={[0.04, 0.01, 0]} rotation={[0, 0, -0.7]} castShadow><coneGeometry args={[0.02, 0.08, 4]} /><meshStandardMaterial color="#9c7a3c" roughness={0.45} metalness={0.6} /></mesh>
+        <mesh position={[0, -0.01, 0.05]} rotation={[1.2, 0, 0]} castShadow><coneGeometry args={[0.015, 0.06, 4]} /><meshStandardMaterial color="#b5894a" roughness={0.45} metalness={0.6} /></mesh>
+      </group>
+    </group>
+  );
+}
+
+function UniqueLandmarks3D({ cities }: { cities: Record<string, City> }) {
+  const sites = useMemo(() => {
+    const out: Array<{ x: number; z: number; zh: string; kind: LandmarkKind }> = [];
+    for (const lm of UNIQUE_LANDMARKS) {
+      const c = cities[lm.cityId];
+      if (!c) continue;
+      const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
+      const [wx, wz] = pxToWorld(px, py);
+      out.push({ x: wx, z: wz, zh: lm.zh, kind: lm.kind });
+    }
+    return out;
+  }, [cities]);
+  const scale = PIXEL_TO_WORLD * 50 * 0.5 * MARKER_SCALE;
+  return (
+    <group>
+      {sites.map((s, i) => {
+        // Offset opposite the battle signpost so the two never collide.
+        const x = s.x - 0.6, z = s.z - 0.6;
+        const y = sampleTerrainHeight(x, z);
+        return (
+          <group key={i} position={[x, y, z]} scale={scale}>
+            {s.kind === 'terrace' ? <BronzeTerrace3D />
+              : s.kind === 'brocade' ? <PalaceHall3D roofColor="#3f7d6e" roofRidge="#7fd0b8" />
+              : <PalaceHall3D />}
+            <Html position={[0, s.kind === 'terrace' ? 0.95 : 0.5, 0]} center distanceFactor={11} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
+              <div style={{
+                background: 'rgba(28, 18, 10, 0.82)', border: '1px solid #c9a23c', borderRadius: 3,
+                padding: '1px 6px', color: '#f0d89a', fontFamily: '"Ma Shan Zheng", "Songti SC", serif',
+                fontSize: '11px', whiteSpace: 'nowrap',
+              }}>🏯 {s.zh}</div>
+            </Html>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
@@ -4916,6 +5040,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       {mapStyle === 'classic' && <Bridges3D cities={cities} />}
       {mapStyle === 'classic' && <PostStations3D cities={cities} />}
       <Landmarks3D cities={cities} />
+      <UniqueLandmarks3D cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={visibleCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       {overlayMode === 'supply' && <SupplyLines3D />}
       {overlayMode === 'diplomacy' && <DiplomacyLines3D cities={cities} forces={forces} />}
