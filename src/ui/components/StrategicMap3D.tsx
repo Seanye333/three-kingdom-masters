@@ -2268,6 +2268,91 @@ function ClashDust({ startRef }: { startRef: { current: number | null } }) {
   );
 }
 
+/* ─── 開戰演出 (stage 3) — when a battle ignites, a war-drum + horn sounds, a
+ *  「X軍 ⚔ Y軍」 title card flashes, and dust bursts at the clash site, so the
+ *  start of every fight reads as a moment, not a silent state flip. ── */
+function BattleIgnitionCard() {
+  const battleId = useGameStore((s) => s.tacticalBattle?.id ?? null);
+  const forces = useGameStore((s) => s.forces);
+  const cities = useGameStore((s) => s.cities);
+  const [card, setCard] = useState<{ a: string; b: string; ac: string; bc: string } | null>(null);
+  const lastId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!battleId || battleId === lastId.current) return;
+    lastId.current = battleId;
+    const b = useGameStore.getState().tacticalBattle;
+    if (!b) return;
+    const af = b.attackerForceId ? forces[b.attackerForceId] : undefined;
+    const df = b.defenderForceId ? forces[b.defenderForceId] : undefined;
+    setCard({
+      a: af?.name.zh ?? '討伐軍',
+      b: df?.name.zh ?? (cities[b.cityId]?.name.zh ?? '守軍'),
+      ac: af?.color ?? '#3a7dd9',
+      bc: df?.color ?? '#b8442e',
+    });
+    playSfx('wardrum');
+    const t1 = setTimeout(() => playSfx('horn'), 260);
+    const t2 = setTimeout(() => setCard(null), 2200);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [battleId, forces, cities]);
+  if (!card) return null;
+  const side = (c: string): React.CSSProperties => ({
+    background: 'rgba(15, 10, 5, 0.86)', border: `2px solid ${c}`, borderRadius: 4,
+    padding: '0.45rem 1.1rem', color: '#ffe9a8', fontFamily: '"Ma Shan Zheng", "Songti SC", serif',
+    fontSize: '1.9rem', letterSpacing: '2px', textShadow: '0 0 8px rgba(0,0,0,0.9)',
+    boxShadow: `0 0 18px ${c}aa`, whiteSpace: 'nowrap',
+  });
+  return (
+    <div style={{
+      position: 'absolute', top: '32%', left: '50%', transform: 'translateX(-50%)',
+      zIndex: 30, pointerEvents: 'none',
+    }}>
+      <style>{'@keyframes tkm-ignite{0%{opacity:0;transform:scale(0.65)}14%{opacity:1;transform:scale(1.06)}28%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:scale(1.02)}}'}</style>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', animation: 'tkm-ignite 2.2s ease-out forwards' }}>
+        <span style={side(card.ac)}>{card.a}軍</span>
+        <span style={{ fontSize: '2.6rem', color: '#e0552a', textShadow: '0 0 18px #e0552a, 0 0 4px #fff' }}>⚔</span>
+        <span style={side(card.bc)}>{card.b}軍</span>
+      </div>
+    </div>
+  );
+}
+
+/** Dust kicked up at a battle's clash point the instant it ignites. */
+function IgnitionDust3D() {
+  const anchor = useGameStore((s) => s.tacticalBattle?.geoAnchor ?? null);
+  const battleId = useGameStore((s) => s.tacticalBattle?.id ?? null);
+  const ref = useRef<THREE.Group>(null);
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  const startRef = useRef<number | null>(null);
+  const idRef = useRef<string | null>(null);
+  useFrame(({ clock }) => {
+    if (battleId !== idRef.current) {
+      idRef.current = battleId;
+      startRef.current = battleId ? clock.elapsedTime : null;
+    }
+    const g = ref.current;
+    if (!g) return;
+    if (startRef.current == null || !anchor) { g.visible = false; return; }
+    const t = (clock.elapsedTime - startRef.current) / 1.3;
+    if (t >= 1) { g.visible = false; return; }
+    g.visible = true;
+    const s = 0.25 + t * 1.7;
+    g.scale.set(s, 1, s);
+    if (matRef.current) matRef.current.opacity = 0.5 * (1 - t);
+  });
+  if (!anchor) return null;
+  const [wx, wz] = pxToWorld(anchor.x, anchor.y);
+  const y = sampleTerrainHeight(wx, wz) + 0.05;
+  return (
+    <group ref={ref} position={[wx, y, wz]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.3, 0.46, 32]} />
+        <meshBasicMaterial ref={matRef} color="#d8c4a0" transparent opacity={0.5} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
 function FieldCamp({ color, troops = 0 }: { color: string; troops?: number }) {
   const flagRef = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
@@ -4499,6 +4584,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
       {overlayMode === 'diplomacy' && <DiplomacyLines3D cities={cities} forces={forces} />}
       <FieldBattleMarks3D marks={fieldBattleMarks} />
       <FieldClashMelee3D marks={fieldBattleMarks} />
+      <IgnitionDust3D />
       <QueuedBattles3D />
       <BeaconAlerts3D />
       <BurningCities3D />
@@ -5277,6 +5363,9 @@ export function StrategicMap3D() {
           </div>
         )}
       </div>
+
+      {/* 開戰字卡 — flashes 「X軍 ⚔ Y軍」 + drums when any battle ignites. */}
+      <BattleIgnitionCard />
 
       {/* Season + weather chip */}
       <div style={{

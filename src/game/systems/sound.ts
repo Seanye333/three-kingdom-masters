@@ -66,7 +66,8 @@ export type SfxName =
   | 'pluck'         // hover / subtle tick
   | 'quake'         // critical event
   | 'thud'          // ram hits a gate / repair hammering
-  | 'shout';        // war cry — charge, sally, rout
+  | 'shout'         // war cry — charge, sally, rout
+  | 'wardrum';      // battle ignition — pounding war drums
 
 interface Tone {
   freq: number;
@@ -152,6 +153,12 @@ const SFX_PATTERNS: Record<SfxName, Tone[]> = {
     { freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.07, sweep: 280 },
     { freq: 165, duration: 0.22, type: 'sawtooth', gain: 0.06, sweep: 220, detune: 18 },
     { freq: 330, duration: 0.14, type: 'square', gain: 0.03, sweep: 240 },
+  ],
+  wardrum: [
+    { freq: 90, duration: 0.14, type: 'square', gain: 0.20 },
+    { freq: 90, duration: 0.14, type: 'square', gain: 0.15 },
+    { freq: 112, duration: 0.14, type: 'square', gain: 0.20 },
+    { freq: 90, duration: 0.22, type: 'square', gain: 0.24, sweep: -60 },
   ],
 };
 
