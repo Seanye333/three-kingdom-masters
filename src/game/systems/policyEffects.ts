@@ -90,6 +90,123 @@ export function lockedPolicies(officers: Officer[]): Array<{ id: PolicyId; missi
   return locked;
 }
 
+export type CombatTerrain = 'river' | 'naval' | 'mountain' | 'plain';
+
+/**
+ * Data tables — the single source of truth for what each policy does.
+ *
+ * Both the runtime resolvers below AND the docs catalog generator
+ * (`scripts/gen-catalog.ts`) read these, so the design reference can never
+ * drift from the live numbers. Multiplier fields are stored as the *delta*
+ * from 1.0 (e.g. `goldMul: 0.20` means ×1.20); the resolver sums deltas onto
+ * a base of 1. Insertion order is preserved for badge display order.
+ */
+export interface CityPolicyEffect {
+  goldMul?: number;     // additive delta to gold-income multiplier
+  goldFlat?: number;    // flat gold per season
+  foodMul?: number;     // additive delta to food multiplier
+  loyaltyDelta?: number;
+  defenseBonus?: number;
+  troopCapMul?: number; // additive delta to troop-cap multiplier
+  badge: string;
+}
+
+export const CITY_POLICY_EFFECTS: Partial<Record<PolicyId, CityPolicyEffect>> = {
+  // ── ECONOMY ──
+  tuntian:        { foodMul: 0.25, badge: '屯田 +25% 糧' },
+  'ox-plowing':   { foodMul: 0.12, badge: '牛耕 +12% 糧' },
+  'iron-tools':   { foodMul: 0.20, badge: '鐵具 +20% 糧' },
+  'water-mill':   { foodMul: 0.12, badge: '水車 +12% 糧' },
+  hydraulics:     { foodMul: 0.15, badge: '治水 +15% 糧' },
+  commerce:       { goldMul: 0.20, badge: '商業 +20% 金' },
+  'silk-trade':   { goldMul: 0.25, badge: '絲綢 +25% 金' },
+  'maritime-trade': { goldMul: 0.30, badge: '海貿 +30% 金' },
+  'salt-monopoly': { goldFlat: 60, loyaltyDelta: -1, badge: '鹽政 +60 金/-1 忠' },
+  'iron-monopoly': { goldFlat: 40, badge: '鐵政 +40 金' },
+  'gold-mining':  { goldFlat: 120, badge: '金礦 +120 金' },
+  'silver-mining': { goldFlat: 90, badge: '銀礦 +90 金' },
+  'copper-mining': { goldFlat: 50, badge: '銅礦 +50 金' },
+  'pearl-trade':  { goldFlat: 60, badge: '珍珠貿 +60 金' },
+  'jade-trade':   { goldFlat: 40, badge: '玉貿 +40 金' },
+  'river-customs': { goldFlat: 50, badge: '関稅 +50 金' },
+  'tea-trade':    { goldMul: 0.10, badge: '茶馬 +10% 金' },
+  'fish-salt':    { goldFlat: 40, foodMul: 0.15, badge: '漁鹽 +40 金 +15% 糧' },
+  // ── LOYALTY / SOCIAL ──
+  rites:          { loyaltyDelta: 1, badge: '禮樂 +1 忠/季' },
+  'poor-relief':  { loyaltyDelta: 1, badge: '賑災 +1 忠/季' },
+  'community-granary': { loyaltyDelta: 2, badge: '義倉 +2 忠/季' },
+  'charity-house': { loyaltyDelta: 1, badge: '養濟院 +1 忠' },
+  mediation:      { loyaltyDelta: 1, badge: '鄉約 +1 忠' },
+  'tax-light':    { loyaltyDelta: 2, goldMul: -0.20, badge: '輕徭 +2 忠/-20% 金' },
+  'frontier-pacification': { loyaltyDelta: 2, badge: '撫夷 +2 忠' },
+  corvee:         { loyaltyDelta: -2, badge: '力役 −2 忠' },
+  conscription:   { loyaltyDelta: -1, troopCapMul: 0.35, badge: '徵兵 −1 忠 +35% 兵' },
+  watchnight:     { loyaltyDelta: -1, badge: '夜禁 −1 忠' },
+  // ── DEFENSE ──
+  fortifications: { defenseBonus: 30, badge: '城防 +30 守' },
+  'moat-construction': { defenseBonus: 15, badge: '護城河 +15 守' },
+  'watch-towers': { defenseBonus: 10, badge: '烽燧 +10 守' },
+  'mountain-passes': { defenseBonus: 20, badge: '關隘 +20 守' },
+  'coastal-fortress': { defenseBonus: 20, badge: '海防 +20 守' },
+  'imperial-guard': { defenseBonus: 25, badge: '禁衛 +25 守' },
+  // ── RECRUITMENT / TROOPS ──
+  recruitment:    { troopCapMul: 0.20, badge: '養兵 +20% 兵' },
+  'horse-breeding': { troopCapMul: 0.10, badge: '牧苑 +10% 兵' },
+};
+
+export interface CombatPolicyEffect {
+  attackMul?: number;   // additive delta to attack multiplier
+  defenseMul?: number;  // additive delta to damage-taken multiplier (<0 = tougher)
+  fireMul?: number;     // additive delta to fire-stratagem multiplier
+  rangedMul?: number;   // additive delta to ranged-stratagem multiplier
+  moraleFloor?: number; // morale floor (applied via max, not sum)
+  /** If set, the effect only applies when the battle terrain is in this list. */
+  terrain?: CombatTerrain[];
+  /** Naval-fireships: stronger fire bonus when fighting on water. */
+  waterFireMul?: number;
+  waterBadge?: string;
+  badge: string;
+}
+
+const WATER: CombatTerrain[] = ['naval', 'river'];
+
+export const COMBAT_POLICY_EFFECTS: Partial<Record<PolicyId, CombatPolicyEffect>> = {
+  'military-theory':  { attackMul: 0.10, badge: '軍学 +10% 攻' },
+  'camp-discipline':  { moraleFloor: 30, badge: '軍紀 士氣保底 30' },
+  'military-academy': { attackMul: 0.08, badge: '武備堂 +8% 攻' },
+  'elite-guards':     { defenseMul: -0.15, badge: '親衛 −15% 受傷' },
+  'horse-armor':      { defenseMul: -0.20, badge: '馬鎧 −20% 受傷' },
+  'shield-wall':      { rangedMul: -0.25, defenseMul: -0.10, badge: '盾陣 抗箭' },
+  'crossbow-corps':   { rangedMul: 0.30, badge: '弩兵 +30% 射' },
+  'archery-school':   { rangedMul: 0.15, badge: '射禮 +15% 射' },
+  'naval-fireships':  { fireMul: 0.20, waterFireMul: 0.50, badge: '火船 +20% 火攻', waterBadge: '火船 +50% 火攻' },
+  'supply-train':     { moraleFloor: 25, badge: '輜重 士氣保底 25' },
+  'frontier-pacification': { attackMul: 0.15, terrain: ['mountain'], badge: '撫夷 山地 +15% 攻' },
+  'mountain-warfare': { attackMul: 0.20, defenseMul: -0.10, terrain: ['mountain'], badge: '山戰 山地 +20% 攻' },
+  'naval-academy':    { attackMul: 0.20, terrain: WATER, badge: '水軍 +20% 攻' },
+};
+
+export interface RecruitPolicyEffect {
+  searchSuccessBonus?: number; // additive % to search success
+  recruitTroopMul?: number;    // additive delta to troops-per-recruit multiplier
+  badge?: string;
+}
+
+export const RECRUIT_POLICY_EFFECTS: Partial<Record<PolicyId, RecruitPolicyEffect>> = {
+  scholarship:      { searchSuccessBonus: 0.20, badge: '學問 招攬 +20%' },
+  'seek-talent':    { searchSuccessBonus: 0.15 },  // tactic alias if ever — no badge
+  'nine-grade':     { searchSuccessBonus: 0.15, badge: '九品 招攬 +15%' },
+  examination:      { searchSuccessBonus: 0.10, badge: '察舉 招攬 +10%' },
+  'school-village':  { searchSuccessBonus: 0.10, badge: '鄉學 +10%' },
+  'imperial-academy': { searchSuccessBonus: 0.15, badge: '太學 +15%' },
+  'defector-reward': { searchSuccessBonus: 0.10, badge: '招降 +10%' },
+  'noble-titles':   { searchSuccessBonus: 0.10, badge: '封爵 +10%' },
+  propaganda:       { searchSuccessBonus: 0.05, badge: '檄文 +5%' },
+  recruitment:      { recruitTroopMul: 0.20 },
+  'horse-breeding': { recruitTroopMul: 0.10 },
+  'military-drill': { recruitTroopMul: 0.05, badge: '演武 兵質 +5%' },
+} as Partial<Record<PolicyId, RecruitPolicyEffect>>;
+
 /**
  * Compute economic + defense effects for one city, given the officers
  * currently stationed there.
@@ -103,51 +220,16 @@ export function cityPolicyEffects(
   let defenseBonus = 0, troopCapMul = 1;
   const badges: string[] = [];
 
-  // ── ECONOMY ────────────────────────────────────────────────────────
-  if (pol.has('tuntian'))            { foodMul += 0.25; badges.push('屯田 +25% 糧'); }
-  if (pol.has('ox-plowing'))         { foodMul += 0.12; badges.push('牛耕 +12% 糧'); }
-  if (pol.has('iron-tools'))         { foodMul += 0.20; badges.push('鐵具 +20% 糧'); }
-  if (pol.has('water-mill'))         { foodMul += 0.12; badges.push('水車 +12% 糧'); }
-  if (pol.has('hydraulics'))         { foodMul += 0.15; badges.push('治水 +15% 糧'); }
-  if (pol.has('commerce'))           { goldMul += 0.20; badges.push('商業 +20% 金'); }
-  if (pol.has('silk-trade'))         { goldMul += 0.25; badges.push('絲綢 +25% 金'); }
-  if (pol.has('maritime-trade'))     { goldMul += 0.30; badges.push('海貿 +30% 金'); }
-  if (pol.has('salt-monopoly'))      { goldFlat += 60; loyaltyDelta -= 1; badges.push('鹽政 +60 金/-1 忠'); }
-  if (pol.has('iron-monopoly'))      { goldFlat += 40; badges.push('鐵政 +40 金'); }
-  if (pol.has('gold-mining'))        { goldFlat += 120; badges.push('金礦 +120 金'); }
-  if (pol.has('silver-mining'))      { goldFlat += 90; badges.push('銀礦 +90 金'); }
-  if (pol.has('copper-mining'))      { goldFlat += 50; badges.push('銅礦 +50 金'); }
-  if (pol.has('pearl-trade'))        { goldFlat += 60; badges.push('珍珠貿 +60 金'); }
-  if (pol.has('jade-trade'))         { goldFlat += 40; badges.push('玉貿 +40 金'); }
-  if (pol.has('river-customs'))      { goldFlat += 50; badges.push('関稅 +50 金'); }
-  if (pol.has('tea-trade'))          { goldMul += 0.10; badges.push('茶馬 +10% 金'); }
-  if (pol.has('fish-salt'))          { goldFlat += 40; foodMul += 0.15; badges.push('漁鹽 +40 金 +15% 糧'); }
-
-  // ── LOYALTY / SOCIAL ──────────────────────────────────────────────
-  if (pol.has('rites'))              { loyaltyDelta += 1; badges.push('禮樂 +1 忠/季'); }
-  if (pol.has('poor-relief'))        { loyaltyDelta += 1; badges.push('賑災 +1 忠/季'); }
-  if (pol.has('community-granary'))  { loyaltyDelta += 2; badges.push('義倉 +2 忠/季'); }
-  if (pol.has('charity-house'))      { loyaltyDelta += 1; badges.push('養濟院 +1 忠'); }
-  if (pol.has('mediation'))          { loyaltyDelta += 1; badges.push('鄉約 +1 忠'); }
-  if (pol.has('tax-light'))          { loyaltyDelta += 2; goldMul -= 0.20; badges.push('輕徭 +2 忠/-20% 金'); }
-  // (protect-people is a tactic, not a policy — handled via tactics if needed)
-  if (pol.has('frontier-pacification')) { loyaltyDelta += 2; badges.push('撫夷 +2 忠'); }
-  // Heavy-handed policies cost loyalty for civic benefit
-  if (pol.has('corvee'))             { loyaltyDelta -= 2; badges.push('力役 −2 忠'); }
-  if (pol.has('conscription'))       { loyaltyDelta -= 1; troopCapMul += 0.35; badges.push('徵兵 −1 忠 +35% 兵'); }
-  if (pol.has('watchnight'))         { loyaltyDelta -= 1; badges.push('夜禁 −1 忠'); }
-
-  // ── DEFENSE ──────────────────────────────────────────────────────
-  if (pol.has('fortifications'))     { defenseBonus += 30; badges.push('城防 +30 守'); }
-  if (pol.has('moat-construction'))  { defenseBonus += 15; badges.push('護城河 +15 守'); }
-  if (pol.has('watch-towers'))       { defenseBonus += 10; badges.push('烽燧 +10 守'); }
-  if (pol.has('mountain-passes'))    { defenseBonus += 20; badges.push('關隘 +20 守'); }
-  if (pol.has('coastal-fortress'))   { defenseBonus += 20; badges.push('海防 +20 守'); }
-  if (pol.has('imperial-guard'))     { defenseBonus += 25; badges.push('禁衛 +25 守'); }
-
-  // ── RECRUITMENT / TROOPS ────────────────────────────────────────
-  if (pol.has('recruitment'))        { troopCapMul += 0.20; badges.push('養兵 +20% 兵'); }
-  if (pol.has('horse-breeding'))     { troopCapMul += 0.10; badges.push('牧苑 +10% 兵'); }
+  for (const [id, eff] of Object.entries(CITY_POLICY_EFFECTS) as Array<[PolicyId, CityPolicyEffect]>) {
+    if (!pol.has(id)) continue;
+    goldMul += eff.goldMul ?? 0;
+    goldFlat += eff.goldFlat ?? 0;
+    foodMul += eff.foodMul ?? 0;
+    loyaltyDelta += eff.loyaltyDelta ?? 0;
+    defenseBonus += eff.defenseBonus ?? 0;
+    troopCapMul += eff.troopCapMul ?? 0;
+    badges.push(eff.badge);
+  }
 
   return {
     goldMul, goldFlat, foodMul, loyaltyDelta,
@@ -160,37 +242,29 @@ export function cityPolicyEffects(
  */
 export function combatPolicyEffects(
   sideOfficers: Officer[],
-  context?: { weather?: string; terrain?: 'river' | 'naval' | 'mountain' | 'plain' },
+  context?: { weather?: string; terrain?: CombatTerrain },
 ): CombatPolicyEffects {
   const pol = aggregatePolicies(sideOfficers);
   let attackMul = 1, defenseMul = 1, fireMul = 1, rangedMul = 1, moraleFloor = 0;
   const badges: string[] = [];
+  const onWater = context?.terrain === 'naval' || context?.terrain === 'river';
 
-  if (pol.has('military-theory'))    { attackMul += 0.10; badges.push('軍学 +10% 攻'); }
-  if (pol.has('camp-discipline'))    { moraleFloor = Math.max(moraleFloor, 30); badges.push('軍紀 士氣保底 30'); }
-  if (pol.has('military-academy'))   { attackMul += 0.08; badges.push('武備堂 +8% 攻'); }
-  if (pol.has('elite-guards'))       { defenseMul -= 0.15; badges.push('親衛 −15% 受傷'); }
-  if (pol.has('horse-armor'))        { defenseMul -= 0.20; badges.push('馬鎧 −20% 受傷'); }
-  if (pol.has('shield-wall'))        { rangedMul -= 0.25; defenseMul -= 0.10; badges.push('盾陣 抗箭'); }
-  if (pol.has('crossbow-corps'))     { rangedMul += 0.30; badges.push('弩兵 +30% 射'); }
-  if (pol.has('archery-school'))     { rangedMul += 0.15; badges.push('射禮 +15% 射'); }
-  // Naval-fireships shine in water battles with wind
-  if (pol.has('naval-fireships')) {
-    if (context?.terrain === 'naval' || context?.terrain === 'river') {
-      fireMul += 0.50; badges.push('火船 +50% 火攻');
-    } else {
-      fireMul += 0.20; badges.push('火船 +20% 火攻');
+  for (const [id, eff] of Object.entries(COMBAT_POLICY_EFFECTS) as Array<[PolicyId, CombatPolicyEffect]>) {
+    if (!pol.has(id)) continue;
+    // Terrain-gated doctrines only fire on matching ground.
+    if (eff.terrain && (!context?.terrain || !eff.terrain.includes(context.terrain))) continue;
+    // Naval-fireships: stronger on water, weaker on land — but always fires.
+    if (eff.waterFireMul != null) {
+      if (onWater) { fireMul += eff.waterFireMul; badges.push(eff.waterBadge ?? eff.badge); }
+      else { fireMul += eff.fireMul ?? 0; badges.push(eff.badge); }
+      continue;
     }
-  }
-  if (pol.has('supply-train'))       { moraleFloor = Math.max(moraleFloor, 25); badges.push('輜重 士氣保底 25'); }
-  if (pol.has('frontier-pacification') && context?.terrain === 'mountain') {
-    attackMul += 0.15; badges.push('撫夷 山地 +15% 攻');
-  }
-  if (pol.has('mountain-warfare') && context?.terrain === 'mountain') {
-    attackMul += 0.20; defenseMul -= 0.10; badges.push('山戰 山地 +20% 攻');
-  }
-  if (pol.has('naval-academy') && (context?.terrain === 'naval' || context?.terrain === 'river')) {
-    attackMul += 0.20; badges.push('水軍 +20% 攻');
+    attackMul += eff.attackMul ?? 0;
+    defenseMul += eff.defenseMul ?? 0;
+    fireMul += eff.fireMul ?? 0;
+    rangedMul += eff.rangedMul ?? 0;
+    if (eff.moraleFloor != null) moraleFloor = Math.max(moraleFloor, eff.moraleFloor);
+    badges.push(eff.badge);
   }
 
   return { attackMul, defenseMul, moraleFloor, fireMul, rangedMul, badges };
@@ -207,17 +281,11 @@ export function recruitmentPolicyEffects(forceOfficers: Officer[]): {
   const pol = aggregatePolicies(forceOfficers);
   let searchSuccessBonus = 0, recruitTroopMul = 1;
   const badges: string[] = [];
-  if (pol.has('scholarship'))     { searchSuccessBonus += 0.20; badges.push('學問 招攬 +20%'); }
-  if (pol.has('seek-talent' as PolicyId)) { searchSuccessBonus += 0.15; }   // tactic alias if ever
-  if (pol.has('nine-grade'))      { searchSuccessBonus += 0.15; badges.push('九品 招攬 +15%'); }
-  if (pol.has('examination'))     { searchSuccessBonus += 0.10; badges.push('察舉 招攬 +10%'); }
-  if (pol.has('school-village'))  { searchSuccessBonus += 0.10; badges.push('鄉學 +10%'); }
-  if (pol.has('imperial-academy')){ searchSuccessBonus += 0.15; badges.push('太學 +15%'); }
-  if (pol.has('defector-reward')) { searchSuccessBonus += 0.10; badges.push('招降 +10%'); }
-  if (pol.has('noble-titles'))    { searchSuccessBonus += 0.10; badges.push('封爵 +10%'); }
-  if (pol.has('propaganda'))      { searchSuccessBonus += 0.05; badges.push('檄文 +5%'); }
-  if (pol.has('recruitment'))     { recruitTroopMul += 0.20; }
-  if (pol.has('horse-breeding'))  { recruitTroopMul += 0.10; }
-  if (pol.has('military-drill'))  { recruitTroopMul += 0.05; badges.push('演武 兵質 +5%'); }
+  for (const [id, eff] of Object.entries(RECRUIT_POLICY_EFFECTS) as Array<[PolicyId, RecruitPolicyEffect]>) {
+    if (!pol.has(id)) continue;
+    searchSuccessBonus += eff.searchSuccessBonus ?? 0;
+    recruitTroopMul += eff.recruitTroopMul ?? 0;
+    if (eff.badge) badges.push(eff.badge);
+  }
   return { searchSuccessBonus, recruitTroopMul, badges };
 }
