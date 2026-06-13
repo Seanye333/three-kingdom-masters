@@ -519,17 +519,24 @@ function terrainFillFor(budgetMs: number): boolean {
           Math.sin(px * 5.1 + py * 3.3) * 0.5
           + Math.sin(px * 11.7 + py * 7.9) * 0.3
           + (Math.sin(x * 1.31) * Math.cos(y * 0.97)) * 0.4
-        ) * 0.06;
+        ) * 0.07;
         // Two-octave mottling: fine speckle + coarse soft patches (fields,
         // meadows, weathered rock) so no colour field reads as flat paint.
-        const mottle = valueNoise(px * 0.5, py * 0.5) * 0.7 + valueNoise(px * 0.13, py * 0.11) * 0.6;
+        const mottle = valueNoise(px * 0.5, py * 0.5) * 0.75 + valueNoise(px * 0.13, py * 0.11) * 0.65;
         const rock = h > 0.22 ? (h - 0.22) : 0;
         // Rocky strata on slopes — a second cross-streak adds craggy texture.
         const streak = (Math.sin(px * 0.9 - py * 0.6) * Math.sin(px * 2.7 + 1.0)
-          + Math.sin(px * 1.7 + py * 1.1) * 0.5) * rock * 0.2;
+          + Math.sin(px * 1.7 + py * 1.1) * 0.5) * rock * 0.22;
         const green = color.g - (color.r > color.b ? color.r : color.b);
         const veg = green > 0.02 ? Math.sin(px * 21 + 0.5) * Math.cos(py * 17) * 0.05 : 0;
-        const d = grain + mottle + streak + veg;
+        // 烘焙光影 — macro relief shading: a NW-facing slope catches the sun,
+        // its lee + valleys fall into shadow. Only on raised ground (cheap).
+        let shade = 0;
+        if (h > 0.1) {
+          const hNW = sampleTerrain(px - 5, py - 5).h;
+          shade = Math.max(-0.2, Math.min(0.2, (h - hNW) * 1.4));
+        }
+        const d = grain + mottle + streak + veg + shade;
         r += d; g += d * 0.96; b += d * 0.86;   // detail reads a touch warm
       }
       const i = (y * TEX_W + x) * 4;
@@ -836,14 +843,72 @@ function Ocean() {
   return (
     <mesh ref={ref} geometry={geom} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 0]} receiveShadow>
       <meshStandardMaterial
-        color="#12476e"
-        roughness={0.18}
-        metalness={0.72}
-        emissive="#0a2c46"
-        emissiveIntensity={0.3}
+        color="#0e5e74"
+        roughness={0.16}
+        metalness={0.74}
+        emissive="#0a3a48"
+        emissiveIntensity={0.34}
         transparent
         opacity={0.9}
       />
+    </mesh>
+  );
+}
+
+/* ─── 海岸白浪 — a foam band that breathes along every coastline ────────
+ *  Mask built once (white in the land-side surf band); opacity pulses so the
+ *  surf laps in and out. Terrain-following plane, like the snow blanket. */
+let coastMaskCache: THREE.Texture | null = null;
+function buildCoastMask(): THREE.Texture {
+  if (coastMaskCache) return coastMaskCache;
+  const W = 500, H = 360;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const px = (x / W) * PX_W, py = (y / H) * PX_H;
+      // Land within ~9px of the waterline = surf band; brightest at the edge.
+      const sdf = landSDF(px, py);
+      let alpha = 0;
+      if (sdf > 0 && sdf < 9 * WORLD_SCALE) {
+        alpha = sdf < 4 * WORLD_SCALE ? 0.9 : 0.5;
+      }
+      const i = (y * W + x) * 4;
+      d[i] = 248; d[i + 1] = 252; d[i + 2] = 255;
+      d[i + 3] = Math.round(alpha * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = true; tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+  coastMaskCache = tex;
+  return tex;
+}
+function CoastFoam() {
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  const geom = useMemo(() => {
+    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 200, 150);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i); const wy = pos.getY(i);
+      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
+      pos.setZ(i, sampleTerrain(px, py).h + 0.02);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  const texture = useMemo(() => buildCoastMask(), []);
+  // The surf breathes — opacity swells in and ebbs out, ~5s period.
+  useFrame(({ clock }) => {
+    if (matRef.current) matRef.current.opacity = 0.42 + Math.sin(clock.elapsedTime * 1.25) * 0.22;
+  });
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
+      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.5} depthWrite={false} />
     </mesh>
   );
 }
@@ -1617,8 +1682,10 @@ function Roads({ cities }: { cities: Record<string, City> }) {
   }, [cities]);
 
   const linePts = useMemo(() => {
-    const out: THREE.Vector3[][] = [];
+    const out: Array<{ pts: THREE.Vector3[]; imp: number }> = [];
     for (const { from, to, seed } of edges) {
+      // Trunk roads between great cities run wider than back-country tracks.
+      const imp = Math.max(0, Math.min(1, (from.population + to.population) / 320000));
       const [fpx, fpy] = cityPixel(from.id, from.coords.x, from.coords.y);
       const [tpx, tpy] = cityPixel(to.id, to.coords.x, to.coords.y);
       const [fx, fz] = pxToWorld(fpx, fpy);
@@ -1649,19 +1716,19 @@ function Roads({ cities }: { cities: Record<string, City> }) {
         const y = sampleTerrainHeight(x, z) + 0.035;
         pts.push(new THREE.Vector3(x, y, z));
       }
-      out.push(pts);
+      out.push({ pts, imp });
     }
     return out;
   }, [edges, cities]);
 
   // Two-pass worn path: a wider dark bed + a lighter trodden centre, so roads
-  // read as packed-earth highways instead of GPU-hairlines.
+  // read as packed-earth highways instead of GPU-hairlines. Trunk roads thicken.
   return (
     <group>
-      {linePts.map((pts, i) => (
+      {linePts.map(({ pts, imp }, i) => (
         <group key={i}>
-          <Line points={pts} color="#7a5a36" lineWidth={4.5} transparent opacity={0.5} />
-          <Line points={pts} color="#c8a06a" lineWidth={2.2} transparent opacity={0.75} />
+          <Line points={pts} color="#6b4a28" lineWidth={3.6 + imp * 3.2} transparent opacity={0.55} />
+          <Line points={pts} color="#cda268" lineWidth={1.7 + imp * 1.6} transparent opacity={0.82} />
         </group>
       ))}
     </group>
@@ -5529,6 +5596,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
         </Suspense>
       )}
       <Ocean />
+      {mapStyle === 'classic' && season !== 'winter' && <CoastFoam />}
       {mapStyle === 'classic' && <Lakes3D />}
       {mapStyle === 'classic' && <RiverRibbons frozen={season === 'winter'} />}
       {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
