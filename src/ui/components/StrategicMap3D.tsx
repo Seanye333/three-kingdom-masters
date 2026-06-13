@@ -657,9 +657,10 @@ function buildWaterAlphaMask(): THREE.Texture {
   ctx.putImageData(img, 0, 0);
   const tex = new THREE.CanvasTexture(canvas);
   tex.flipY = true;
-  tex.minFilter = THREE.LinearFilter;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.magFilter = THREE.LinearFilter;
-  tex.generateMipmaps = false;
+  tex.anisotropy = 8;
+  tex.generateMipmaps = true;
   waterMaskCache = tex;
   return tex;
 }
@@ -688,7 +689,7 @@ function TerritoryGroundLayer({
       const wy = pos.getY(i);
       const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
       const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
-      pos.setZ(i, sampleTerrain(px, py).h + 0.05);
+      pos.setZ(i, sampleTerrain(px, py).h + 0.05 * WORLD_SCALE);   // lift scales with world so it clears the terrain plane (no z-fight) at far zoom
     }
     g.computeVertexNormals();
     return g;
@@ -702,10 +703,10 @@ function TerritoryGroundLayer({
   const texture = useMemo(() => {
     const tex = new THREE.CanvasTexture(getTerritoryCanvas(cities, forces, territoryOwnership));
     tex.flipY = true;
-    tex.minFilter = THREE.LinearFilter;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;   // mipmaps so the tint doesn't alias into streaks when minified on the big world
     tex.magFilter = THREE.LinearFilter;
-    tex.anisotropy = 8;
-    tex.generateMipmaps = false;
+    tex.anisotropy = 8;                                // keeps edges crisp when zoomed in
+    tex.generateMipmaps = true;
     tex.needsUpdate = true;
     return tex;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3386,9 +3387,9 @@ function buildProvinceBorderTexture(cities: Record<string, City>): THREE.Texture
   }
   const tex = new THREE.CanvasTexture(canvas);
   tex.flipY = true;
-  tex.minFilter = THREE.LinearFilter;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.magFilter = THREE.LinearFilter;
-  tex.generateMipmaps = false;
+  tex.generateMipmaps = true;
   tex.anisotropy = 8;
   provinceBorderTexCache = tex;
   return tex;
@@ -5557,7 +5558,7 @@ export function StrategicMap3D() {
         // Phones: shadow maps are the single biggest GPU cost on this scene.
         shadows={!IS_MOBILE}
         dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
-        camera={{ position: [0, MAP_D * 0.9, MAP_D * 0.7], fov: 45 }}
+        camera={{ position: [0, MAP_D * 0.9, MAP_D * 0.7], fov: 45, near: 0.5, far: 400 * WORLD_SCALE }}
         // preserveDrawingBuffer lets the 📷 button read the frame back.
         gl={{ antialias: !IS_MOBILE, preserveDrawingBuffer: true }}
       >
