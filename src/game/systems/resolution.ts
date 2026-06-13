@@ -495,8 +495,14 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // its crossing (same 50%/tick stall as a 防壁, applied near the ford).
   const hostileFords = Object.values(input.sites ?? {}).filter((s) => s.subtype === 'ford' && s.ownerForceId);
   const FORD_BLOCK_RANGE = 18 * WORLD_SCALE;
+  // 關隘阻路 — a permanent pass-fort (街亭/定軍山/劍閣…) held by a hostile force
+  // gates the corridor: a column trying to push past is held up. A 關 is a
+  // stronger chokepoint than a ford — wider reach, higher stall chance.
+  const hostilePasses = Object.values(input.forts ?? {}).filter((f) => f.subtype === 'fort' && f.ownerForceId);
+  const PASS_BLOCK_RANGE = 24 * WORLD_SCALE;
+  const PASS_STALL_CHANCE = 0.6;
   const pf = input.playerForceId ?? null;
-  if (facilities.length > 0 || hostileFords.length > 0) {
+  if (facilities.length > 0 || hostileFords.length > 0 || hostilePasses.length > 0) {
     for (const cmd of allMarches) {
       if (cancelledMarchOfficers.has(cmd.officerId) || deferredOfficers.has(cmd.officerId)) continue;
       const force = officers[cmd.officerId]?.forceId;
@@ -505,17 +511,29 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       if (!pos) continue;
       let dmg = 0, heal = 0, blocked = false;
       let byPlayer = false; // a player-owned facility contributed damage/block
-      let fordBlocked = false; // distinct messaging for a contested crossing
-      let fordName: { en: string; zh: string } | null = null;
+      // Distinct messaging for a stalled crossing (渡口) vs a barred pass (關隘).
+      let crossBlocked: 'ford' | 'pass' | null = null;
+      let crossName: { en: string; zh: string } | null = null;
       for (const fd of hostileFords) {
         const [fx, fy] = geoToPixel(fd.coords.lon, fd.coords.lat);
         if (Math.hypot(pos.x - fx, pos.y - fy) > FORD_BLOCK_RANGE) continue;
         if (!isHostilePermitted(input.diplomacy, fd.ownerForceId!, force)) continue;
         if ((input.rng ?? Math.random)() < 0.5) {
           blocked = true;
-          fordBlocked = true;
-          fordName = fd.name;
+          crossBlocked = 'ford';
+          crossName = fd.name;
           if (fd.ownerForceId === pf) byPlayer = true;
+        }
+      }
+      for (const ps of hostilePasses) {
+        const [px2, py2] = geoToPixel(ps.coords.lon, ps.coords.lat);
+        if (Math.hypot(pos.x - px2, pos.y - py2) > PASS_BLOCK_RANGE) continue;
+        if (!isHostilePermitted(input.diplomacy, ps.ownerForceId!, force)) continue;
+        if ((input.rng ?? Math.random)() < PASS_STALL_CHANCE) {
+          blocked = true;
+          crossBlocked = 'pass';
+          crossName = ps.name;
+          if (ps.ownerForceId === pf) byPlayer = true;
         }
       }
       for (const f of facilities) {
@@ -557,19 +575,27 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         }
         if (blocked && force === pf) {
           entries.push({ cityId: null, kind: 'command-failure',
-            text: fordBlocked
-              ? `${nm.en}'s crossing at ${fordName?.en ?? 'a ford'} was held off by the enemy — stalled half a month.`
+            text: crossBlocked === 'ford'
+              ? `${nm.en}'s crossing at ${crossName?.en ?? 'a ford'} was held off by the enemy — stalled half a month.`
+              : crossBlocked === 'pass'
+              ? `${nm.en}'s march was barred at ${crossName?.en ?? 'the pass'} — stalled half a month.`
               : `${nm.en}'s march was stalled half a month by an enemy barricade.`,
-            textZh: fordBlocked
-              ? `${nm.zh}渡${fordName?.zh ?? '津'}為敵所扼，滯留半月。`
+            textZh: crossBlocked === 'ford'
+              ? `${nm.zh}渡${crossName?.zh ?? '津'}為敵所扼，滯留半月。`
+              : crossBlocked === 'pass'
+              ? `${nm.zh}為敵據${crossName?.zh ?? '關'}所阻，滯留半月。`
               : `${nm.zh}行軍為敵防壁所阻，滯留半月。` });
         } else if (blocked && byPlayer) {
           entries.push({ cityId: null, kind: 'command-success',
-            text: fordBlocked
-              ? `Your hold on ${fordName?.en ?? 'the ford'} stalled ${nm.en}'s crossing half a month.`
+            text: crossBlocked === 'ford'
+              ? `Your hold on ${crossName?.en ?? 'the ford'} stalled ${nm.en}'s crossing half a month.`
+              : crossBlocked === 'pass'
+              ? `Your hold on ${crossName?.en ?? 'the pass'} barred ${nm.en}'s march half a month.`
               : `Your barricade stalled ${nm.en}'s march half a month.`,
-            textZh: fordBlocked
-              ? `我軍扼守${fordName?.zh ?? '津渡'}，阻${nm.zh}半月不得渡。`
+            textZh: crossBlocked === 'ford'
+              ? `我軍扼守${crossName?.zh ?? '津渡'}，阻${nm.zh}半月不得渡。`
+              : crossBlocked === 'pass'
+              ? `我軍據${crossName?.zh ?? '關'}阻${nm.zh}之師，滯其半月。`
               : `我軍防壁攔阻${nm.zh}之師，滯其半月。` });
         }
       }
