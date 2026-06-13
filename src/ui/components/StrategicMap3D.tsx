@@ -931,11 +931,41 @@ function cityElevation(wx: number, wz: number): number {
  *  - 城 (city) → brick wall + 2-story pagoda + 2 corner towers
  *  - 大城 (large) → tall wall + 3-story pagoda + 4 corner towers
  *  - 都 (capital) → grand wall + 5-story pagoda + 4 corner towers + side halls */
-function ChineseCity({ city, radius, height, forceColor, onClick }: {
+/** 市坊 — a ring of suburb roofs that grows with the city's built structures,
+ *  so a heavily-developed city visibly sprawls beyond its wall (RTK/TW). */
+function CitySuburb({ radius, count }: { radius: number; count: number }) {
+  if (count <= 0) return null;
+  const n = Math.min(10, count);
+  return (
+    <group>
+      {Array.from({ length: n }).map((_, i) => {
+        const a = (i / n) * Math.PI * 2 + (i % 2) * 0.3;
+        const r = radius * (1.45 + (i % 3) * 0.22);
+        const x = Math.cos(a) * r, z = Math.sin(a) * r;
+        const w = radius * 0.34, h = radius * (0.4 + (i % 3) * 0.12);
+        return (
+          <group key={i} position={[x, 0, z]} rotation={[0, -a, 0]}>
+            <mesh position={[0, h * 0.4, 0]} castShadow receiveShadow>
+              <boxGeometry args={[w, h * 0.8, w * 0.8]} />
+              <meshStandardMaterial color="#b09a78" roughness={0.92} />
+            </mesh>
+            <mesh position={[0, h * 0.9, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+              <coneGeometry args={[w * 0.62, h * 0.4, 4]} />
+              <meshStandardMaterial color="#4a4540" roughness={0.85} />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+function ChineseCity({ city, radius, height, forceColor, development = 0, onClick }: {
   city: City;
   radius: number;
   height: number;
   forceColor: string;
+  development?: number;
   onClick: () => void;
 }) {
   const isPass = city.name.zh.includes('關');
@@ -943,7 +973,12 @@ function ChineseCity({ city, radius, height, forceColor, onClick }: {
   const click = (e: { stopPropagation: () => void }) => { e.stopPropagation(); onClick(); };
 
   if (tier === 'pass') return <PassGate radius={radius} height={height} forceColor={forceColor} onClick={click} />;
-  if (tier === 'hamlet') return <HamletVillage radius={radius} height={height} forceColor={forceColor} onClick={click} />;
+  if (tier === 'hamlet') return (
+    <>
+      <HamletVillage radius={radius} height={height} forceColor={forceColor} onClick={click} />
+      <CitySuburb radius={radius} count={development} />
+    </>
+  );
 
   // Walled-city variants — pagoda story count + tower count scale with tier
   const stories  = tier === 'town' ? 1 : tier === 'city' ? 2 : tier === 'large' ? 3 : 5;
@@ -976,6 +1011,7 @@ function ChineseCity({ city, radius, height, forceColor, onClick }: {
             baseY={height * wallHigh + 0.02} h={height * 0.35} />
         </>
       )}
+      <CitySuburb radius={radius} count={development} />
     </>
   );
 }
@@ -1380,7 +1416,7 @@ function MiniNavRig({ controlsRef, onView, jump }: {
 }
 
 function City3D({
-  city, forceColor, isCapital, isSelected, terrainY, overlay, onClick,
+  city, forceColor, isCapital, isSelected, terrainY, overlay, development = 0, onClick,
 }: {
   city: City;
   forceColor: string;
@@ -1388,6 +1424,7 @@ function City3D({
   isSelected: boolean;
   terrainY: number;
   overlay: { color: string; label: string } | null;
+  development?: number;
   onClick: () => void;
 }) {
   const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
@@ -1423,6 +1460,7 @@ function City3D({
         radius={radius}
         height={height}
         forceColor={forceColor}
+        development={development}
         onClick={onClick}
       />
       {/* Force banner — every owned city flies its colours so ownership
@@ -5209,6 +5247,15 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
     return set;
   }, [forces]);
 
+  // 城建程度 — sum of building levels per city; drives the suburb sprawl that
+  // makes development visible on the map (a built-up city outgrows its wall).
+  const buildingsState = useGameStore((s) => s.buildings);
+  const devByCity = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const b of buildingsState) m[b.cityId] = (m[b.cityId] ?? 0) + Math.max(1, b.level);
+    return m;
+  }, [buildingsState]);
+
   // Maxes for heatmap normalization
   const maxes = useMemo(() => {
     const vs = Object.values(cities);
@@ -5466,6 +5513,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
               isCapital={capitalCityIds.has(city.id)}
               isSelected={selectedCityId === city.id}
               terrainY={terrainY}
+              development={devByCity[city.id] ?? 0}
               overlay={fog && city.ownerForceId !== playerForceId && !fog.visibleCityIds.has(city.id)
                 ? (overlayMode === 'none' ? null : FOG_OVERLAY)
                 : overlayMode === 'threat' ? (threatOverlays[city.id] ?? null) : overlayForCity(city, overlayMode, maxes)}
