@@ -550,6 +550,46 @@ function UnitWeapon({ unit, yLift }: { unit: TacticalUnit; yLift: number }) {
 }
 
 /* ─── A unit standing on a hex ─────────────────────────────────────── */
+/* ─── 千軍萬馬 — a small block of rank-and-file behind the hero figure so a
+ *  unit reads as a host, not a lone general. Count scales with troop strength;
+ *  they idle-bob in formation. Skipped for navy (footmen on a boat read wrong). */
+function RetinueFig({ x, z, ph, color }: { x: number; z: number; ph: number; color: string }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (ref.current) ref.current.position.y = Math.abs(Math.sin(clock.elapsedTime * 4 + ph)) * 0.03;
+  });
+  return (
+    <group ref={ref} position={[x, 0, z]} scale={0.42}>
+      <mesh position={[0, 0.18, 0]} castShadow>
+        <cylinderGeometry args={[0.16, 0.22, 0.34, 7]} />
+        <meshStandardMaterial color={color} roughness={0.72} />
+      </mesh>
+      <mesh position={[0, 0.42, 0]} castShadow>
+        <sphereGeometry args={[0.1, 7, 7]} />
+        <meshStandardMaterial color="#e0c498" roughness={0.75} />
+      </mesh>
+      <mesh position={[0.12, 0.42, 0]} castShadow>
+        <cylinderGeometry args={[0.015, 0.015, 0.5, 4]} />
+        <meshStandardMaterial color="#3a2818" />
+      </mesh>
+    </group>
+  );
+}
+
+function UnitRetinue({ troops, color }: { troops: number; color: string }) {
+  // One figure per ~2500 troops, clamped 3–9, ranked in a 3-wide block behind.
+  const n = Math.max(3, Math.min(9, Math.round(troops / 2500)));
+  const figs = useMemo(() => {
+    const out: Array<{ x: number; z: number; ph: number }> = [];
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / 3), c = i % 3;
+      out.push({ x: (c - 1) * 0.24, z: -0.55 - r * 0.24, ph: (i * 0.7) % (Math.PI * 2) });
+    }
+    return out;
+  }, [n]);
+  return <group>{figs.map((f, i) => <RetinueFig key={i} {...f} color={color} />)}</group>;
+}
+
 function UnitMesh({
   unit, terrainH, isPlayer, selected, onClick, isWounded,
 }: {
@@ -591,6 +631,8 @@ function UnitMesh({
     <group ref={groupRef} position={[tx, terrainH + 0.02, tz]}>
       {/* Mount or vehicle (cavalry horse / siege cart / navy boat) */}
       <UnitMount unit={unit} onClick={onClick} />
+      {/* Rank-and-file host behind the hero (footmen read wrong on a boat). */}
+      {unit.unitType !== 'navy' && <UnitRetinue troops={unit.troops} color={color} />}
       {/* Lower robe / hakama — wider at the bottom, gives armored silhouette. */}
       <mesh
         position={[0, 0.18 + yLift, 0]}
