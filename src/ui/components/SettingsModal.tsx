@@ -281,7 +281,7 @@ function ModRows() {
         />
       </Row>
       {mods.map((m) => (
-        <Row key={m.name} label={`📦 ${m.name}`} hint={t(`${m.officers?.length ?? 0} 武將 · ${m.events?.length ?? 0} 事件`, `${m.officers?.length ?? 0} officers · ${m.events?.length ?? 0} events`)}>
+        <Row key={m.name} label={`📦 ${m.name}`} hint={t(`${m.officers?.length ?? 0} 武將 · ${m.events?.length ?? 0} 事件 · ${m.scenarios?.length ?? 0} 劇本`, `${m.officers?.length ?? 0} officers · ${m.events?.length ?? 0} events · ${m.scenarios?.length ?? 0} scenarios`)}>
           <button
             style={{ ...btn, borderColor: '#b8442e', color: '#e8a890' }}
             onClick={() => { removeMod(m.name); setMods(loadMods()); }}

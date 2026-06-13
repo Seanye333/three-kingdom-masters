@@ -20,6 +20,19 @@ export interface ModBundle {
   name: string;
   officers?: ModOfficer[];
   events?: HistoricalEvent[];
+  scenarios?: ModScenario[];
+}
+
+/** A mod scenario re-skins an existing base scenario's map: same cities
+ *  and officer roster, but your own forces and who-owns-what. */
+export interface ModScenario {
+  id: string;
+  name: { zh: string; en: string };
+  /** Base scenario id whose cities/officers are reused. */
+  baseScenarioId: string;
+  forces: Array<{ id: string; name: { zh: string; en: string }; rulerOfficerId: string; capitalCityId: string; color: string }>;
+  /** cityId → owning forceId (cities omitted stay masterless). */
+  cityOwnership: Record<string, string>;
 }
 
 export interface ModOfficer {
@@ -70,8 +83,20 @@ export function parseModBundle(raw: string): { ok: true; bundle: ModBundle } | {
     if (!e || typeof e.id !== 'string' || !e.name?.zh || typeof e.yearMin !== 'number') continue;
     events.push({ ...e, id: e.id.startsWith('mod-') ? e.id : `mod-${e.id}` });
   }
-  if (officers.length === 0 && events.length === 0) return { ok: false, reason: 'empty' };
-  return { ok: true, bundle: { kind: 'tkm-mod', version: 1, name: b.name.trim(), officers, events } };
+  const scenarios: ModScenario[] = [];
+  for (const sc of b.scenarios ?? []) {
+    if (!sc || typeof sc.id !== 'string' || !sc.name?.zh || typeof sc.baseScenarioId !== 'string') continue;
+    if (!Array.isArray(sc.forces) || sc.forces.length === 0 || typeof sc.cityOwnership !== 'object') continue;
+    scenarios.push({
+      id: sc.id.startsWith('mod-') ? sc.id : `mod-${sc.id}`,
+      name: { zh: String(sc.name.zh), en: String(sc.name.en ?? sc.name.zh) },
+      baseScenarioId: sc.baseScenarioId,
+      forces: sc.forces,
+      cityOwnership: sc.cityOwnership,
+    });
+  }
+  if (officers.length === 0 && events.length === 0 && scenarios.length === 0) return { ok: false, reason: 'empty' };
+  return { ok: true, bundle: { kind: 'tkm-mod', version: 1, name: b.name.trim(), officers, events, scenarios } };
 }
 
 export function loadMods(): ModBundle[] {
@@ -131,6 +156,56 @@ export function modEventsForStart(mods: ModBundle[]): HistoricalEvent[] {
       if (seen.has(e.id)) continue;
       seen.add(e.id);
       out.push(e);
+    }
+  }
+  return out;
+}
+
+
+/** Build playable Scenario objects from installed mod scenarios, cloning
+ *  each base scenario's cities + officers and reassigning ownership.
+ *  Officers whose force no longer exists become free agents at their
+ *  city, so the result is always valid. */
+export function modScenariosForStart(
+  mods: ModBundle[],
+  baseById: Record<string, import('../types').Scenario>,
+): import('../types').Scenario[] {
+  const out: import('../types').Scenario[] = [];
+  const seen = new Set<string>();
+  for (const m of mods) {
+    for (const ms of m.scenarios ?? []) {
+      if (seen.has(ms.id)) continue;
+      const base = baseById[ms.baseScenarioId];
+      if (!base) continue;
+      seen.add(ms.id);
+      const forceIds = new Set(ms.forces.map((f) => f.id));
+      const cities = base.cities.map((c) => ({
+        ...c,
+        ownerForceId: ms.cityOwnership[c.id] && forceIds.has(ms.cityOwnership[c.id]) ? ms.cityOwnership[c.id] : null,
+      }));
+      const ownedByForce = new Map<string, string>(); // forceId → first city (capital fallback)
+      for (const c of cities) if (c.ownerForceId && !ownedByForce.has(c.ownerForceId)) ownedByForce.set(c.ownerForceId, c.id);
+      const officers = base.officers.map((o) => {
+        if (o.forceId && forceIds.has(o.forceId)) return o;
+        if (o.forceId) return { ...o, forceId: null, status: 'unsearched' as const, task: null }; // orphaned → free agent
+        return o;
+      });
+      out.push({
+        id: ms.id,
+        name: ms.name,
+        description: `Mod scenario (${m.name})`,
+        kind: 'whatif',
+        startDate: base.startDate,
+        cities,
+        forces: ms.forces.map((f) => ({
+          ...f,
+          capitalCityId: cities.some((c) => c.id === f.capitalCityId && c.ownerForceId === f.id)
+            ? f.capitalCityId
+            : ownedByForce.get(f.id) ?? f.capitalCityId,
+          isPlayer: false,
+        })) as import('../types').Force[],
+        officers,
+      });
     }
   }
   return out;

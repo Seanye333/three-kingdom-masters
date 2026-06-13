@@ -1,4 +1,5 @@
 import type { Force, Scenario, Officer } from '../types';
+import { loadMods, modScenariosForStart } from '../systems/mods';
 import { buildInitialCities } from './cities';
 import { buildInitialOfficers, buildHistoricalOfficers } from './officers';
 import { fillRetinues } from './retinues';
@@ -8606,6 +8607,11 @@ export const SCENARIOS: Scenario[] = RAW_SCENARIOS.map((s) => ({
   officers: fillRetinues(s.officers, s.forces, s.startDate.year),
 }));
 
+export const SCENARIOS_BY_ID: Record<string, Scenario> = Object.fromEntries(
+  RAW_SCENARIOS.map((s) => [s.id, s]),
+);
+
+
 // ── Death-year normalization ───────────────────────────────────────────
 // Assignment tables sometimes place officers who were already dead by the
 // scenario's year (a stray entry copied between tables), and buildInitial
@@ -8624,5 +8630,18 @@ for (const scenario of SCENARIOS) {
       o.task = null;
       o.loyalty = 0;
     }
+  }
+}
+
+
+/** Built-in scenarios plus any the installed Mod packs contribute.
+ *  (mods.ts imports only types, so this static import is cycle-free.) */
+export function allScenarios(): Scenario[] {
+  try {
+    const baseById: Record<string, Scenario> = Object.fromEntries(SCENARIOS.map((s) => [s.id, s]));
+    const mod = modScenariosForStart(loadMods(), baseById);
+    return mod.length > 0 ? [...SCENARIOS, ...mod] : SCENARIOS;
+  } catch {
+    return SCENARIOS;
   }
 }

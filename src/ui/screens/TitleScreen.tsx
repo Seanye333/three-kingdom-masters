@@ -1,6 +1,9 @@
 import { Suspense, lazy, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { SCENARIOS } from '../../game/data';
+import { SCENARIOS as BUILTIN_SCENARIOS, allScenarios } from '../../game/data';
 import { dailySeedString, dailyShareString, loadDailyResults, recentChallengeDays, rollDailyChallenge, winStreak } from '../../game/systems/dailyChallenge';
+
+// Built-ins + installed mod scenarios, resolved once at module load.
+const SCENARIOS = (() => { try { return allScenarios(); } catch { return BUILTIN_SCENARIOS; } })();
 import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
