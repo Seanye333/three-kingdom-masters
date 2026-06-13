@@ -2991,6 +2991,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
   // big farm means high agriculture, crowds mean population, lanterns mean a
   // loyal populace. The city view becomes a readout of its own numbers.
   const cap = size.statCap || 100;
+  const econCap = size.econCap || cap;
   const cityStats = {
     fCommerce: Math.min(1, city.commerce / cap),
     fAgri: Math.min(1, city.agriculture / cap),
@@ -3675,8 +3676,8 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
               const sizeId = citySize(city).id;
               // The metric this landmark governs, for the at-a-glance readout.
               const cmds = inspect.commands;
-              const metric = cmds.includes('develop-agriculture') ? { zh: '農業', v: city.agriculture, max: cap }
-                : cmds.includes('develop-commerce') ? { zh: '商業', v: city.commerce, max: cap }
+              const metric = cmds.includes('develop-agriculture') ? { zh: '農業', v: city.agriculture, max: econCap }
+                : cmds.includes('develop-commerce') ? { zh: '商業', v: city.commerce, max: econCap }
                 : { zh: '城防', v: city.defense, max: cap };
               return (
                 <div style={{ marginTop: 8, borderTop: '1px solid #3a2d20', paddingTop: 6 }}>
@@ -3731,8 +3732,8 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
           fontSize: '0.66rem', lineHeight: 1.55, textAlign: 'right',
         }}>
           <div style={{ color: '#8a7858', fontSize: '0.6rem', letterSpacing: '0.15rem', marginBottom: 2 }}>城景 · 實況</div>
-          <div>市集 <span style={{ color: '#d4a84a' }}>商業 {city.commerce}/{cap}</span></div>
-          <div>屯田 <span style={{ color: '#9ac06a' }}>農業 {city.agriculture}/{cap}</span></div>
+          <div>市集 <span style={{ color: '#d4a84a' }}>商業 {city.commerce}/{econCap}</span></div>
+          <div>屯田 <span style={{ color: '#9ac06a' }}>農業 {city.agriculture}/{econCap}</span></div>
           <div>行人 <span style={{ color: '#88b7e8' }}>人口 {city.population.toLocaleString()}</span></div>
           <div>張燈 <span style={{ color: '#e0884a' }}>民忠 {city.loyalty}/{size.loyaltyCap}</span></div>
         </div>

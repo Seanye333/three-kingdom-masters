@@ -7,7 +7,7 @@ import type {
   ReportEntry,
 } from '../types';
 import { ITEMS_BY_ID } from '../data/items';
-import { cityStatCap, citySize, CITY_SIZES, type CitySize } from './citySize';
+import { cityStatCap, cityEconCap, citySize, CITY_SIZES, type CitySize } from './citySize';
 import { internalAffairsMultiplier } from './traitEffects';
 
 export interface CommandDef {
@@ -177,35 +177,36 @@ export function resolveInternalAffairs(
   const statValue = Math.round(officer.stats[def.stat] * traitMul * titleMul);
 
   const size = citySize(city);
-  const cap = cityStatCap(city);
+  const cap = cityStatCap(city);      // defense ceiling
+  const econCap = cityEconCap(city); // agriculture & commerce ceiling
 
   switch (type) {
     case 'develop-agriculture': {
-      const gain = applyDevelopment(city.agriculture, statValue, rng, cap);
-      const capHit = city.agriculture + gain >= cap && gain === 0;
+      const gain = applyDevelopment(city.agriculture, statValue, rng, econCap);
+      const econCapHit = city.agriculture + gain >= econCap && gain === 0;
       return {
         success: gain > 0,
         delta: { agriculture: gain },
-        message: capHit
-          ? `${officer.name.en}: Agriculture already at ${size.name.zh}'s cap (${cap}). Promote the city first.`
-          : `${officer.name.en} raised Agriculture by ${gain} (now ${city.agriculture + gain}/${cap}).`,
-        messageZh: capHit
-          ? `${officer.name.zh}:農業已達${size.name.zh}上限 (${cap}),需先升城。`
-          : `${officer.name.zh}勸農 +${gain} (現 ${city.agriculture + gain}/${cap})。`,
+        message: econCapHit
+          ? `${officer.name.en}: Agriculture already at ${size.name.zh}'s cap (${econCap}). Promote the city first.`
+          : `${officer.name.en} raised Agriculture by ${gain} (now ${city.agriculture + gain}/${econCap}).`,
+        messageZh: econCapHit
+          ? `${officer.name.zh}:農業已達${size.name.zh}上限 (${econCap}),需先升城。`
+          : `${officer.name.zh}勸農 +${gain} (現 ${city.agriculture + gain}/${econCap})。`,
       };
     }
     case 'develop-commerce': {
-      const gain = applyDevelopment(city.commerce, statValue, rng, cap);
-      const capHit = city.commerce + gain >= cap && gain === 0;
+      const gain = applyDevelopment(city.commerce, statValue, rng, econCap);
+      const econCapHit = city.commerce + gain >= econCap && gain === 0;
       return {
         success: gain > 0,
         delta: { commerce: gain },
-        message: capHit
-          ? `${officer.name.en}: Commerce already at ${size.name.zh}'s cap (${cap}).`
-          : `${officer.name.en} raised Commerce by ${gain} (now ${city.commerce + gain}/${cap}).`,
-        messageZh: capHit
-          ? `${officer.name.zh}:商業已達${size.name.zh}上限 (${cap})。`
-          : `${officer.name.zh}興商 +${gain} (現 ${city.commerce + gain}/${cap})。`,
+        message: econCapHit
+          ? `${officer.name.en}: Commerce already at ${size.name.zh}'s cap (${econCap}).`
+          : `${officer.name.en} raised Commerce by ${gain} (now ${city.commerce + gain}/${econCap}).`,
+        messageZh: econCapHit
+          ? `${officer.name.zh}:商業已達${size.name.zh}上限 (${econCap})。`
+          : `${officer.name.zh}興商 +${gain} (現 ${city.commerce + gain}/${econCap})。`,
       };
     }
     case 'build-defense': {
@@ -247,21 +248,21 @@ export function resolveInternalAffairs(
       };
     }
     case 'major-agriculture': {
-      const gain = Math.min(cap - city.agriculture, applyDevelopment(city.agriculture, statValue, rng, cap) * 3);
+      const gain = Math.min(econCap - city.agriculture, applyDevelopment(city.agriculture, statValue, rng, econCap) * 3);
       return {
         success: gain > 0,
         delta: { agriculture: gain },
-        message: `${officer.name.en} 大農政: Agriculture +${gain} (now ${city.agriculture + gain}/${cap}).`,
-        messageZh: `${officer.name.zh}大農政:農業 +${gain} (現 ${city.agriculture + gain}/${cap})。`,
+        message: `${officer.name.en} 大農政: Agriculture +${gain} (now ${city.agriculture + gain}/${econCap}).`,
+        messageZh: `${officer.name.zh}大農政:農業 +${gain} (現 ${city.agriculture + gain}/${econCap})。`,
       };
     }
     case 'major-commerce': {
-      const gain = Math.min(cap - city.commerce, applyDevelopment(city.commerce, statValue, rng, cap) * 3);
+      const gain = Math.min(econCap - city.commerce, applyDevelopment(city.commerce, statValue, rng, econCap) * 3);
       return {
         success: gain > 0,
         delta: { commerce: gain },
-        message: `${officer.name.en} 大商政: Commerce +${gain} (now ${city.commerce + gain}/${cap}).`,
-        messageZh: `${officer.name.zh}大商政:商業 +${gain} (現 ${city.commerce + gain}/${cap})。`,
+        message: `${officer.name.en} 大商政: Commerce +${gain} (now ${city.commerce + gain}/${econCap}).`,
+        messageZh: `${officer.name.zh}大商政:商業 +${gain} (現 ${city.commerce + gain}/${econCap})。`,
       };
     }
     case 'major-defense': {

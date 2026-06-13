@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { cityEconCap } from '../../game/systems/citySize';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { cityPolicyEffects, lockedPolicies } from '../../game/systems/policyEffects';
@@ -128,8 +129,8 @@ export function CityPanel() {
 
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>{t('內政', 'Development')}</h3>
-        <Bar label="Agriculture" zh="農業" value={city.agriculture} cap={citySize(city).statCap} />
-        <Bar label="Commerce" zh="商業" value={city.commerce} cap={citySize(city).statCap} />
+        <Bar label="Agriculture" zh="農業" value={city.agriculture} cap={cityEconCap(city)} />
+        <Bar label="Commerce" zh="商業" value={city.commerce} cap={cityEconCap(city)} />
         <Bar label="Defense" zh="守備" value={city.defense} cap={citySize(city).statCap} />
         <Bar label="Loyalty" zh="民忠" value={city.loyalty} cap={100} />
       </section>

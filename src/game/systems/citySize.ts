@@ -22,8 +22,11 @@ export interface CitySizeDef {
   popMin: number;
   /** Display name. */
   name: { zh: string; en: string };
-  /** Cap on agriculture/commerce/defense. */
+  /** Cap on defense (walls don't grow without bound). */
   statCap: number;
+  /** Cap on agriculture & commerce — higher, so a developed city becomes
+   *  a true economic powerhouse; tiered with city size. */
+  econCap: number;
   /** Cap on loyalty (always 100). */
   loyaltyCap: 100;
   /** Cap on troop garrison (separates "城內" from "外駐"). */
@@ -42,35 +45,35 @@ export const CITY_SIZES: CitySizeDef[] = [
   {
     id: 'hamlet', popMin: 0,
     name: { zh: '邑', en: 'Hamlet' },
-    statCap: 60, loyaltyCap: 100, troopCap: 8000,
+    statCap: 60, econCap: 90, loyaltyCap: 100, troopCap: 8000,
     goldMul: 0.85, foodMul: 0.85, buildingSlots: 4,
     color: '#7a7050',
   },
   {
     id: 'town', popMin: 30000,
     name: { zh: '鎮', en: 'Town' },
-    statCap: 80, loyaltyCap: 100, troopCap: 20000,
+    statCap: 80, econCap: 140, loyaltyCap: 100, troopCap: 20000,
     goldMul: 1.0, foodMul: 1.0, buildingSlots: 6,
     color: '#a89868',
   },
   {
     id: 'city', popMin: 80000,
     name: { zh: '城', en: 'City' },
-    statCap: 100, loyaltyCap: 100, troopCap: 40000,
+    statCap: 100, econCap: 190, loyaltyCap: 100, troopCap: 40000,
     goldMul: 1.15, foodMul: 1.15, buildingSlots: 8,
     color: '#c0a878',
   },
   {
     id: 'large', popMin: 160000,
     name: { zh: '大城', en: 'Large City' },
-    statCap: 130, loyaltyCap: 100, troopCap: 70000,
+    statCap: 130, econCap: 250, loyaltyCap: 100, troopCap: 70000,
     goldMul: 1.35, foodMul: 1.30, buildingSlots: 10,
     color: '#d4a84a',
   },
   {
     id: 'capital', popMin: 280000,
     name: { zh: '都', en: 'Capital' },
-    statCap: 160, loyaltyCap: 100, troopCap: 120000,
+    statCap: 160, econCap: 320, loyaltyCap: 100, troopCap: 120000,
     goldMul: 1.60, foodMul: 1.50, buildingSlots: 12,
     color: '#f0e0b0',
   },
@@ -92,6 +95,11 @@ export function citySize(city: City): CitySizeDef {
 /** Stat cap (agriculture/commerce/defense) for this city. */
 export function cityStatCap(city: City): number {
   return citySize(city).statCap;
+}
+
+/** Agriculture & commerce cap (higher than the defense cap). */
+export function cityEconCap(city: City): number {
+  return citySize(city).econCap;
 }
 
 /** Population needed to reach the NEXT tier (or null if at top tier). */
