@@ -11,7 +11,7 @@
 | # | 章節 | 涵蓋系統 | 狀態 |
 |---|---|---|---|
 | 1 | [城市・內政・經濟](#第一章-城市內政經濟) | citySize, economy, commands, market, buildings, autoBuild, policyEffects, forging, growth | ✅ |
-| 2 | [武將・成長・家族](#第二章-武將成長家族) | officerFate, traitEffects, personality, biography, posthumous, aging, family, wishes, rapport, relationshipEffects, career, codex | ✅ |
+| 2 | [武將・成長・家族](#第二章-武將成長家族) | officerFate, traitEffects, personality, biography, posthumous, aging, family, retinues, wishes, rapport, relationshipEffects, career, codex | ✅ |
 | 3 | [人才・招攬・舌戰](#第三章-人才招攬舌戰) | commands(search), officerFate, debate, wordWar, commonerTalent | ✅ |
 | 4 | [軍事指揮・委任](#第四章-軍事指揮委任) | muster, legion, governor, advisor | ✅ |
 | 5 | [戰術戰鬥](#第五章-戰術戰鬥) | tactical, combat, formations, stratagems, weather, battlefieldTerrain, personalTactics, weaponTypes, namedMaps, damagePredict, battleRecap, fogOfWar | ✅ |
@@ -197,6 +197,14 @@
 ### 2.7 武將生涯(career.ts)
 
 - 開局可選一名武將為主角,以個人視角經歷生涯;配合「永久死亡」設定,主角身故即終局。
+
+### 2.8 部曲(retinues.ts,32 位君主)
+
+許多二線軍閥史實上統領十餘將,但劇本裡常以孤身君主登場、舊部散落在野。**部曲表**按**君主 id** 綁定其歷史班底;開局時 `fillRetinues` 把名單上的舊部召入麾下 —— 前提是該將在此劇本存在、當年在世、且尚未事他主。
+
+- 例:呂布 → 陳宮、高順、張遼、臧霸…;劉表 → 蔡瑁、蒯越、黃祖、文聘…;馬騰 → 馬超、馬岱、龐德、韓遂…;孫堅 → 程普、黃蓋、韓當、孫策。
+- **改換門庭者**(趙雲 公孫瓚→劉備、張遼 呂布→曹操、馬超/法正 劉璋/馬騰→劉備)可掛在多位君主名下;以**已手動指派的後手君主優先**,確保史實歸屬正確。
+- 意義:小軍閥開局不再光桿司令,陣容貼史實,也讓「先打誰能撿到名將」多了一層盤算。
 
 ---
 
