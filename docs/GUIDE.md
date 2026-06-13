@@ -382,4 +382,254 @@
 
 ---
 
-*全十章完。數值若與遊戲不符,以代碼為準並回報修正本文。*
+## 第十一章 核心流程・勝敗・培訓・其他模式
+
+### 11.1 結算流程(resolution.ts,每旬一次)
+
+一旬(上/下半月)結算順序:
+
+1. **命令處理**:先行軍(出陣/集結/軍團)—— 含中途攔截、領土佔領、城池易主;後內政令。
+2. **季度結算**(每季,即每 9 旬一次,`seasonBoundary`):
+   - 經濟 tick(金/糧/糧耗/逃兵/人口)
+   - 領土補給壓力(衛星格被切則城受損)
+   - 隨機事件(豐歉/疫/洪/民變/異族,見第八章)
+   - 武將任務重置 + 忠誠向勢力強度漂移
+3. **衰老**(每年冬→春 + 季界):死亡、繼承、子嗣成年。
+4. 天命祥瑞/凶兆、天氣轉換、勢力消長快照、自動存檔。
+
+> 設施每旬(非每季)生效:箭樓 180 / 投石臺 320 / 兵營補給 150;拒馬每旬 50% 機率攔停。
+
+### 11.2 勝敗結局(endings.ts)
+
+| 結局 | 條件 |
+|---|---|
+| **天下統一** | 佔領全部城池 |
+| **汉室再兴** | 扮劉姓,同時據洛陽 + 長安 + 許昌 |
+| **三国鼎立** | 220 年後,前三強各據 ≥28% 城池且你是其一 |
+| **隐士退隐** | 220 年後,自家城 ≤3 且麾下平均忠誠 ≥90 |
+| **即位称帝** | 稱帝滿 5 年且仍據半數以上城池 |
+| **败亡** | 失去所有城池 |
+
+> 每旬結算後檢查;達成即彈結局。多結局 = 不必非得吞下天下才算贏。
+
+### 11.3 培訓(training.ts)
+
+兩種途徑讓武將習得新**政策**或**戰法**:
+
+- **書院培訓**:需城內書院。費用 = 200 + 50×已有政策數(忠義者 ×0.8);戰法基礎 300。時長 = 政策層級(1~3 季)。**書院容量**:lv1 同時 5 人 / lv2 10 人 / lv3 不限(且 lv3 瞬成)。
+- **師徒傳授**:同城武將傳授其已通政策,**無需書院、免費**,但 +1 季較慢。
+- 政策/戰法分三級(policyTier / tacticTier),級越高越貴越久。
+
+### 11.4 其他模式與工具
+
+- **熱座多人**(hot-seat):開局選 2~4 名人類玩家輪流操作,過完一輪才進下一季。
+- **觀戰模式**(演義模擬器):不選勢力,AI 接管全部,自動推演(見第十章)。
+- **英雄模式挑戰**:限定開局 + 目標(見附錄 E),跨戰役保存最佳。
+- **自定義武將**:標題畫面捏人(名/字/五圍/性格/頭像),塞進任意勢力或在野。
+- **事件編輯器**:自製事件,走 customEvents 管線。
+- **剧本目标 objectives.ts**:每個劇本有主目標(ObjectivePanel 顯示進度)。
+
+---
+
+# 附錄:內容目錄(由 data 自動生成)
+
+> 以下摘要由 `scripts/gen-catalog.ts` 從 `src/game/data/` 直接抽取,確保與遊戲一致。完整全量見 [docs/CATALOG.md](CATALOG.md)。重新生成:`npm run docs:catalog`。
+
+<!-- CATALOG:START -->
+> 完整全量(全部 1273 名品 / 政策 / 戰法逐條)見 **[docs/CATALOG.md](CATALOG.md)**;此處為可讀摘要。
+
+### 內容總量
+
+| 類別 | 數量 |
+|---|---|
+| 名品 Items | 1273(weapon 253 / horse 52 / treasure 565 / book 403) |
+| 政策 Policies | 161 |
+| 戰法 Tactics | 589 |
+| 技能 Skills | 30 |
+| 威名 Prestige | 8 |
+| 官職 Civic Titles | 9 |
+| 船級 Ships | 8 |
+| 精兵 Elite | 6 |
+| 攻城器械 Siege | 9 |
+| 城防設施 Defense | 9 |
+| 英雄挑戰 Challenges | 11 |
+| 劇本 Scenarios | 86 |
+
+### 名品精選(加成最高 30 件,全表見 CATALOG)
+
+| 名 | 類 | 出處城 | 加成 |
+|---|---|---|---|
+| 汾陽王印 | treasure | taiyuan | LEA+10 WAR+7 POL+6 CHA+6 |
+| 合縱六國 | book | jicheng | INT+10 CHA+10 POL+8 |
+| 清太宗璽 | treasure | shengjing | WAR+9 LEA+10 POL+8 |
+| 睢陽守城 | treasure | suiyang | LEA+10 WAR+7 CHA+10 |
+| 十面埋伏 | book | gaixia | WAR+10 LEA+9 INT+8 |
+| 竊符救趙 | treasure | daliang | LEA+7 POL+7 WAR+5 CHA+7 |
+| 一人滅一國 | treasure | changan | WAR+7 LEA+7 CHA+6 INT+6 |
+| 天人三策 | book | guangchuan | INT+10 POL+9 CHA+7 |
+| 連橫之術 | book | xianyang | INT+10 CHA+9 POL+7 |
+| 封狼居胥 | treasure | mobei | WAR+10 LEA+8 CHA+8 |
+| 天可汗 | treasure | changan | LEA+10 WAR+7 CHA+9 |
+| 收復台灣 | treasure | taiwan | WAR+9 LEA+9 CHA+8 |
+| 鎮魔七寶 | treasure | kunlun | INT+10 WAR+8 CHA+8 |
+| 討袁軍 | treasure | kunming | WAR+8 LEA+8 CHA+9 |
+| 檀道濟唱籌量沙 | treasure | jingkou | WAR+8 LEA+9 INT+8 |
+| 木華黎經略 | treasure | dadu | LEA+10 WAR+9 POL+6 |
+| 平三藩 | treasure | beiping | LEA+10 WAR+7 POL+8 |
+| 八百破十萬 | treasure | hefei | WAR+10 LEA+8 CHA+7 |
+| 街亭破馬謖 | treasure | jieting | WAR+9 LEA+8 INT+8 |
+| 桃李不言下自成蹊 | treasure | longxi | WAR+8 CHA+10 LEA+7 |
+| 杯酒釋兵權 | treasure | kaifeng | POL+10 CHA+8 LEA+7 |
+| 靖難之役 | treasure | jinling | WAR+9 LEA+9 POL+7 |
+| 盤古斧 | weapon | haojing | WAR+15 CHA+10 |
+| 阿桂平金川 | treasure | chengdu | LEA+9 WAR+8 POL+7 |
+| 大同書 | book | kuaiji | INT+9 POL+8 CHA+7 |
+| 飲冰室合集 | book | kuaiji | CHA+9 INT+8 POL+7 |
+| 李典書識 | treasure | shanyang | INT+7 LEA+6 WAR+6 POL+5 |
+| 陸抗書疏 | book | jianye | LEA+9 WAR+8 INT+7 |
+| 霍光輔漢 | treasure | changan | POL+10 LEA+7 INT+7 |
+| 明犯強漢者雖遠必誅 | treasure | changan | WAR+9 LEA+8 CHA+7 |
+
+### 技能 Skills(30)
+
+| 技 | 類別 | 說明 |
+|---|---|---|
+| 武神 God of War | combat | 蓋世猛將。近戰武力 +15，一騎打勝率 +20%。 |
+| 飛将 Flying General | combat | 凡人莫敵。武力 +18,15% 機率對敵造成三倍損失。 |
+| 兵聖 Sage of War | combat | 通曉萬般戰陣。武力 +12,統率 +8。 |
+| 虎臣 Tiger Vanguard | combat | 三軍之先鋒。武力 +10,攻擊力 +10%。 |
+| 鉄誓 Iron Vow | combat | 誓不勝即死。武力 +8,我方損失 −10%。 |
+| 神算 Celestial Tactician | wisdom | 料敵於先機。統率 +12,我方戰力 +10%。 |
+| 臥龍 Crouching Dragon | wisdom | 計謀感天動地。統率 +15,敵方計策效果減半。 |
+| 鳳雛 Young Phoenix | wisdom | 才智與臥龍齊名。統率 +13,戰力 +10%。 |
+| 鉄壁 Iron Formation | command | 陣列堅不可破。統率 +10,我方損失 −15%。 |
+| 威風 Imposing Host | command | 威勢震敵膽。統率 +8,戰力 +5%。 |
+| 攻城 Siegemaster | command | 不畏堅城。攻城時戰力 +20%。 |
+| 守城 Wallwarden | command | 守將之翹楚。守城時城防 ×1.3。 |
+| 火神 Fire Master | wisdom | 精於火攻。敵方損失 ×1.2。 |
+| 伏兵 Ambush Master | wisdom | 布下絕命陷阱。敵方損失 ×1.15,統率 +5。 |
+| 剛胆 Iron Will | wisdom | 不受敵計所惑。防禦 ×1.15。 |
+| 仁徳 Benevolent | civil | 深得民心。所在城每季民忠 +5,徵兵成功率 +15%。 |
+| 弁舌 Silver Tongue | civil | 舌辯為力。徵兵成功率 +20%。 |
+| 識才 Eye for Talent | civil | 慧眼識珠。徵兵成功率 +15%,民忠光環 +5。 |
+| 内政 Administrator | civil | 倉廩司之能臣。內政效果 ×1.3。 |
+| 財政 Tax Genius | civil | 金流隨之而至。商業效果 ×1.4。 |
+| 農政 Farmer | civil | 通曉穀粒之理。農業效果 ×1.35。 |
+| 弓神 Archer Master | combat | 箭無虛發。武力 +10,敵方損失 ×1.1。 |
+| 騎神 Cavalry Master | combat | 馬背生長之人。武力 +10,野戰戰力 +10%。 |
+| 水神 Navy Master | combat | 江河之主宰。水戰統率 +12,戰力 +5%。 |
+| 勇猛 Brave | combat | 勇氣激勵全軍。武力 +6。 |
+| 不屈 Tireless | combat | 不可磨滅之意志。我方損失 ×0.92。 |
+| 追撃 Pursuit | combat | 潰兵無處可逃。敵方損失 ×1.12。 |
+| 殿軍 Rear Guard | combat | 敗中不亂。我方損失 ×0.85。 |
+| 江東之虎 Tiger of Jiangdong | combat | 開朝立國之虎。武力 +12,統率 +5。 |
+| 小覇王 Little Conqueror | combat | 少年霸主。武力 +14。 |
+
+### 威名 Prestige(8)
+
+| 威名 | 路線 | 效果 |
+|---|---|---|
+| 虎將 Tiger General | military | 單挑+12 戰力×1.08 |
+| 王佐之才 Royal Aide | strategist | 戰力×1.06 收入×1.06 |
+| 能臣 Able Minister | official | 收入×1.15 |
+| 名將 Famed General | military | 單挑+9 戰力×1.05 |
+| 猛將 Fierce General | military | 單挑+7 戰力×1.04 |
+| 軍師 Strategist | strategist | 戰力×1.03 收入×1.03 |
+| 良吏 Steward | official | 收入×1.07 |
+| 巨賈 Great Merchant | merchant | 收入×1.1 |
+
+### 官職 Civic Titles(9)
+
+| 官職 | 主屬性 | 效果 |
+|---|---|---|
+| 太守 Prefect | politics | 一城之長。所在城池內政效果 +15%。 |
+| 軍師 Strategist | intelligence | 勢力首席軍師。軍力 +10%。 |
+| 丞相 Chancellor | politics | 三公之首。內政效果 ×1.25,招募 +15%。設丞相則 太尉/司徒/大鴻臚 罷。 |
+| 刺史 Inspector | politics | 監察使。招募 +10%。 |
+| 司徒 Minister | politics | 高位文臣。內政效果 +15%。 |
+| 太尉 Grand Marshal | war | 全軍統帥之首。軍力 +8%。 |
+| 大鴻臚 Herald | charisma | 外交之長。邦交效果 ×1.2。 |
+| 御史中丞 Censor | politics | 監察百官。全勢力每季忠誠 +1（肅貪）。 |
+| 諫議大夫 Advisor | intelligence | 諫議朝政。書信、夙願之忠誠回報 ×1.5。 |
+
+### 軍階 Military Ranks(7)
+
+兵卒 → 都尉 → 校尉 → 偏将軍 → 将軍 → 大将軍 → 丞相
+
+### 船級 Ship Classes(8)
+
+| 船 | 造價 | 工期 | 戰力 | 載量 |
+|---|---|---|---|---|
+| 運船 Transport | 300 | 2 | 50 | 800 |
+| 艨艟 Warship | 800 | 3 | 200 | 300 |
+| 樓船 Flagship Tower-Ship | 2200 | 5 | 600 | 500 |
+| 鬥艦 Battle-Junk | 600 | 2 | 150 | 250 |
+| 走舸 Fast Skiff | 200 | 1 | 60 | 100 |
+| 海鶻 Sea-Hawk | 1000 | 3 | 220 | 350 |
+| 戈船 Halberd-Ship | 750 | 3 | 180 | 200 |
+| 大翼 Great-Wing | 2800 | 6 | 750 | 600 |
+
+### 精兵 Elite Troops(6)
+
+| 精兵 | 戰力× | 損耗× | 武力+ |
+|---|---|---|---|
+| 虎豹騎 Tiger-Leopard Cavalry | 1.18 | 0.8 | 8 |
+| 陷陣營 Fall-Formation Company | 1.25 | 0.75 | 10 |
+| 白毦兵 White-Plume Guard | 1.15 | 0.78 | 6 |
+| 藤甲兵 Rattan-Armor Troops | 1.2 | 0.55 | 5 |
+| 丹陽兵 Danyang Troops | 1.12 | 0.85 | 4 |
+| 烏丸突騎 Wuhuan Mounted Vanguard | 1.1 | 0.82 | 5 |
+
+### 攻城器械 Siege Engines(9)
+
+| 器械 | 守備× | 說明 |
+|---|---|---|
+| 衝車 Battering Ram | 0.85 | 鐵首滾輪攻城車。最宜攻破二級以上石牆城池之城門。 |
+| 雲梯 Scaling Ladder | 0.9 | 高大有輪之攻城梯,用以直攻城牆。各等級城池皆適用。 |
+| 投石機 Trebuchet | 0.78 | 配重式投石機。專破三級堅城之牆垣。 |
+| 樓車 Siege Tower | 0.82 | 有輪之高樓,可讓弓手居高臨下射擊守軍。 |
+| 井闌 Well-Tower | 0.88 | 井闌——曹操官渡之戰列陣此器,壓制袁軍城牆。固定式高臺,弓手居高遠射。 |
+| 火箭車 Fire-Arrow Cart | 0.8 | 齊射火矢之車。對木柵與一級城牆破壞極大,對堅城效果有限。 |
+| 連弩車 Repeating Crossbow Cart | 0.84 | 車載連弩,諸葛亮改良之制。攻城時壓制守軍弓矢還擊。 |
+| 轒轀 Armored Sapper-Cart | 0.86 | 頂上加蓋之輪車,掩護工兵於城下掘地、填壕。 |
+| 飛樓 Flying Tower | 0.76 | 高於樓車之巨型攻城樓,弓手與步卒可直接踏上城牆。建造緩慢但常為破城關鍵。 |
+
+### 城防設施 Defense Buildings(9)
+
+| 設施 | 造價 | 上限級 | 說明 |
+|---|---|---|---|
+| 箭樓 Watchtower | 400 | 3 |  |
+| 烽火台 Beacon Tower | 300 | 3 |  |
+| 拒馬 Caltrops | 250 | 3 |  |
+| 瞭望塔 Lookout | 200 | 2 |  |
+| 外營 Outer Barracks | 500 | 3 |  |
+| 外倉 Outer Granary | 350 | 3 |  |
+| 鐵索 Iron Chains | 700 | 2 |  |
+| 落石 Rockfall Trap | 600 | 2 |  |
+| 箭台 Arrow Platform | 650 | 3 |  |
+
+### 英雄模式挑戰 Hero-Mode Challenges(11)
+
+| 挑戰 | 難度 | 劇本 | 期限 |
+|---|---|---|---|
+| 蒼天當立 The Heavens Must Stand | easy | scn-184-yellow-turban | 186 |
+| 奉天子以令不臣 Shelter the Son of Heaven | normal | scn-190-anti-dong-zhuo | 196 |
+| 官渡逆襲 Against the Tide at Guandu | hard | scn-200-guandu | 204 |
+| 白門樓困龍 The Cornered Dragon | hard | scn-198-xiapi | 999 |
+| 赤壁鏖兵 Inferno at Red Cliffs | normal | scn-208-chibi | 999 |
+| 借荊圖蜀 Borrow Jing, Seize Shu | hard | scn-208-chibi | 217 |
+| 為兄復仇 Vengeance for a Brother | hard | scn-222-yiling | 227 |
+| 北伐中原 The Northern Campaign | hard | scn-234-wuzhang | 238 |
+| 小霸王立業 The Little Conqueror | normal | scn-200-guandu | 208 |
+| 魏武揮鞭 Wei Unifies the Realm | hard | scn-220-declaration | 240 |
+| 蒼天已死 The Blue Heaven is Dead | hard | scn-184-yellow-turban | 187 |
+
+### 劇本 Scenarios(86)
+
+- **historical**(69):隋末群雄逐鹿(178)、隋唐·淺水原之戰(178)、隋唐·柏壁之戰(178)、隋唐·虎牢之戰(178)、安史之亂(178)、大澤鄉起義(178)、鉅鹿之戰(178)、楚漢爭霸(178)、楚漢·還定三秦(178)、楚漢·彭城之戰(178)、楚漢·濰水之戰(178)、楚漢·井陘之戰(178)、楚漢·垓下之戰(178)、戰國七雄·逐鹿(178)、戰國·魏文侯首霸(178)、戰國·商鞅變法(178)、戰國·圍魏救趙(178)、戰國·五國攻秦(178)、戰國·伊闕之戰(178)、戰國·鄢郢之戰(178)、戰國·閼與之戰(178)、戰國·齊湣王稱帝(178)、戰國·樂毅伐齊(178)、戰國·長平之戰(178)、戰國·邯鄲之戰(178)、戰國·田單復國(178)、戰國·秦滅六國(178)、黃巾之亂(184)、十常侍之亂(189)、反董卓聯軍(190)、王允連環計(192)、徐州牧(194)、孫策定江東(195)、渤海戰線(197)、下邳之圍(198)、易京之戰(199)、官渡之戰(200)、鄴城陷落(204)、三顧茅廬(207)、白狼山·北征烏桓(207)、赤壁之戰(208)、渭南之戰(211)、落鳳坡(213)、入主西川(214)、合肥之戰(215)、定軍山·漢中之戰(218)、漢中王(219)、三國鼎立(220)、蜀漢建國(221)、夷陵之戰(222)、南征之役(225)、街亭之戰(228)、石亭之戰(228)、三帝鼎立(229)、鹵城之戰(231)、五丈原(234)、遼東·襄平之戰(238)、吳攻魏·芍陂之戰(241)、興勢之戰(244)、高平陵之變(249)、東興之戰(252)、合肥新城之戰(253)、淮南二叛·毌丘儉文欽之亂(255)、淮南三叛·諸葛誕之亂(257)、滅蜀之役(263)、鍾會之亂(264)、司馬炎篡魏(265)、西陵之戰(272)、晉滅吳(280)
+- **whatif**(17):英雄集結(200)、關羽守住荊州(220)、諸葛亮活到八十(240)、曹操贏赤壁(208)、女傑時代(200)、若袁紹勝官渡(201)、若呂布割據徐州(198)、若馬超盡得關中(211)、若孫策不死(201)、若董卓未亡(192)、若袁術稱帝成(198)、若郭嘉不死(208)、若周瑜不死(211)、若龐統不死(215)、若關羽威震華夏(219)、若曹爽先發制人(249)、若陸遜不冤死(249)
+<!-- CATALOG:END -->
+
+---
+
+*全十一章 + 附錄。數值若與遊戲不符,以代碼為準並回報修正本文。*
