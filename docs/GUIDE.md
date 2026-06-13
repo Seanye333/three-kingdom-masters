@@ -11,7 +11,7 @@
 | # | 章節 | 涵蓋系統 | 狀態 |
 |---|---|---|---|
 | 1 | [城市・內政・經濟](#第一章-城市內政經濟) | citySize, economy, commands, market, buildings, autoBuild, policyEffects, growth | ✅ |
-| 2 | 武將・成長・家族 | officerFate, traitEffects, personality, biography, posthumous, aging, family, wishes, rapport, relationshipEffects, career, codex | 📝 |
+| 2 | [武將・成長・家族](#第二章-武將成長家族) | officerFate, traitEffects, personality, biography, posthumous, aging, family, wishes, rapport, relationshipEffects, career, codex | ✅ |
 | 3 | 人才・招攬・舌戰 | commands(search), officerFate, debate, wordWar, commonerTalent | 📝 |
 | 4 | 軍事指揮・委任 | muster, legion, governor, advisor | 📝 |
 | 5 | 戰術戰鬥 | tactical, combat, weather, battlefieldTerrain, personalTactics, damagePredict, battleRecap, fogOfWar | 📝 |
@@ -127,4 +127,55 @@
 
 ---
 
-*本文持續擴充。下一章:武將・成長・家族。*
+## 第二章 武將・成長・家族
+
+### 2.1 五圍與成長(growth.ts)
+
+- 五圍:**統率**(行軍/守城)、**武力**(單挑/戰場殺傷)、**智力**(計謀/用間/識破)、**政治**(內政增益)、**魅力**(招攬/徵兵/民忠)。
+- **潛能 latentStats**:每人有隱藏資質,成長以此為天花板;`STAT_CAP = 150`(遠高於起始數值,留足上升空間)。
+- **經驗 XP → 等級**:升級門檻 `[100, 250, 500, 900, 1500, 2500]`(共 6 級)。升級時向潛能靠攏:`新值 = min(150, 當前 + max(8, ⌊(150−當前)×25%⌋))` —— 越接近潛能漲得越慢,但每次至少 +8。
+- **XP 來源**:打仗(awardBattleXp)、培訓、內政成功等;高 XP 武將會自然習得性格與技能。
+
+### 2.2 性格 traits(personality.ts,共 200 條定義)
+
+- 每人 0~3 條性格,驅動 AI 傾向、事件鉤子與各系統加成。
+- **內政契合**(traitEffects):勤勉 +20%、怠惰 −20%、專精類別 +20%… 在選將面板顯示 ⭐(相宜 ≥1.15×)/ ⚠(相剋 ≤0.85×)。
+- **招攬難度**:貪婪/野心/怯懦等易策反;忠義/高潔/愛國/廉潔/鐵骨等極難(見第三章)。
+- **壽數**:某些性格影響死亡機率(deathChanceMultiplier)。
+- **舌戰崩潰**:性烈者(暴躁/傲慢/虛榮/剛愎)氣勢被打穿時可被「罵死」(見第六章)。
+
+### 2.3 衰老與死亡(aging.ts,每年冬末結算)
+
+- **史實武將**:在 `deathYear` 前不死;之後每年死亡機率 `min(1, 0.3 + (當年−卒年)×0.15)` —— 卒年當年 30%,逐年 +15%,約幾年內必逝。卒年前後波動,可能改寫歷史。
+- **虛構/子嗣武將**:60 歲前不死;之後每年 `(歲−60)×0.05`(70 歲 50%)。
+- **諡號**:在職病逝者獲朝廷追諡(見第九章 codex/posthumous 速覽)—— 名將用史諡(關羽壯繆侯),餘者依諡法按生平定名。
+- **絕命詩**:部分名將身故附絕命詩。
+- **君主之死 → 繼承**(succession.ts):君主亡則由同勢力最高魅力武將繼位;無人則勢力可能瓦解。
+
+### 2.4 家族與子嗣(family.ts)
+
+- **聯姻**:可在外交面板為自家武將與他方武將締姻(或府內結親),兩家好感大增、忠誠穩固。
+- **生育 → 子嗣**:配偶會誕下子嗣(pendingHeirs),`COMING_OF_AGE = 14` 歲成年自動出仕,加入父輩勢力。
+- **資質遺傳**:子嗣五圍取雙親均值加噪聲;**潛能 = 起始 +25**(min 150),5% 機率出「神童」暴漲 —— 養成名門世家、打穿八十年世代傳承的核心。
+- **喪親之痛**:武將身故,與其結義/血親者忠誠受挫(griefOnDeath)。
+
+### 2.5 好感與義結(rapport.ts / relationshipEffects.ts)
+
+- **好感 rapport**(0~100):靠社交行動培養。
+- **社交命令**:結交(`socializeOfficers`,+25 好感/次)、宴請(全城武將互增好感+提民忠)、贈禮等。
+- **義結 OathBond**:一對武將好感達 `RAPPORT_BOND_THRESHOLD = 100` 自動結為兄弟 —— 戰場並肩有 bondBonus 戰力加成、不易相互背叛。
+- **既有羈絆**:義兄弟、師徒、宿敵、私仇、戀人、主従、家族關係,影響招攬機率、戰力、事件。
+- **自然結義**:同城/同軍共事的武將每季有機率自發結義(recentBonds 提示)。
+
+### 2.6 列傳與圖鑑(交叉引用)
+
+- **武將列傳**(biography.ts):武將詳情頁的「本朝實錄」由本局戰績/成名之戰/稱號自動生成(見第九章)。
+- **武將圖鑑**(codex.ts):跨戰役收藏冊 —— 遇/仕/斬三檔,五虎將等成套點亮(見第九章)。
+
+### 2.7 武將生涯(career.ts)
+
+- 開局可選一名武將為主角,以個人視角經歷生涯;配合「永久死亡」設定,主角身故即終局。
+
+---
+
+*本文持續擴充。下一章:人才・招攬・舌戰。*
