@@ -4456,6 +4456,55 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, fogCityId
   );
 }
 
+/* ─── 橋樑 — timber bridges where a road crosses a river/lake. Each
+ *  city-adjacency edge is sampled; a crossing run gets one bridge oriented
+ *  along the road. ── */
+function Bridges3D({ cities }: { cities: Record<string, City> }) {
+  const bridges = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ x: number; z: number; rot: number }> = [];
+    for (const c of Object.values(cities)) {
+      for (const adj of c.adjacentCityIds ?? []) {
+        const o = cities[adj]; if (!o) continue;
+        const key = c.id < o.id ? `${c.id}|${o.id}` : `${o.id}|${c.id}`;
+        if (seen.has(key)) continue; seen.add(key);
+        const [fpx, fpy] = cityPixel(c.id, c.coords.x, c.coords.y);
+        const [tpx, tpy] = cityPixel(o.id, o.coords.x, o.coords.y);
+        const cross: Array<[number, number]> = [];
+        const N = 26;
+        for (let i = 1; i < N; i++) {
+          const t = i / N;
+          const px = fpx + (tpx - fpx) * t, py = fpy + (tpy - fpy) * t;
+          const g = battleGroundAt(px, py);
+          if (g === 'river' || g === 'lake') cross.push([px, py]);
+        }
+        if (cross.length === 0) continue;
+        const [mpx, mpy] = cross[Math.floor(cross.length / 2)];
+        const [wx, wz] = pxToWorld(mpx, mpy);
+        const [fx, fz] = pxToWorld(fpx, fpy);
+        const [tx, tz] = pxToWorld(tpx, tpy);
+        out.push({ x: wx, z: wz, rot: Math.atan2(tx - fx, tz - fz) });
+      }
+    }
+    return out;
+  }, [cities]);
+  if (bridges.length === 0) return null;
+  return (
+    <group>
+      {bridges.map((b, i) => (
+        <group key={i} position={[b.x, sampleTerrainHeight(b.x, b.z) + 0.05, b.z]} rotation={[0, b.rot, 0]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[0.16, 0.025, 0.9]} />
+            <meshStandardMaterial color="#8a6840" roughness={0.85} />
+          </mesh>
+          <mesh position={[0.08, 0.04, 0]}><boxGeometry args={[0.015, 0.05, 0.9]} /><meshStandardMaterial color="#5f4326" /></mesh>
+          <mesh position={[-0.08, 0.04, 0]}><boxGeometry args={[0.015, 0.05, 0.9]} /><meshStandardMaterial color="#5f4326" /></mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapStyle, dioSelectedId, dioMode, dioCast, dioArcs, dioFx, dioHover, onDioHover, onDioramaTile }: {
   overlayMode: OverlayMode;
   mapStyle: 'classic' | 'hex';
@@ -4690,6 +4739,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onQuickAction, mapSty
 
       {/* In hex mode the road network is paved into the quilt itself. */}
       {mapStyle === 'classic' && <Roads cities={cities} />}
+      {mapStyle === 'classic' && <Bridges3D cities={cities} />}
       <MarchingArmies cities={cities} pendingCommands={visibleCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
       {overlayMode === 'supply' && <SupplyLines3D />}
       {overlayMode === 'diplomacy' && <DiplomacyLines3D cities={cities} forces={forces} />}
