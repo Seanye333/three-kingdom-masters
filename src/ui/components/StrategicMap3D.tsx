@@ -3852,6 +3852,48 @@ function MarchPreviewLine({ fromId, toId, cities }: {
   );
 }
 
+/* ─── 天穹 — a gradient sky dome + sun, the void above the horizon filled ──
+ *  An inverted sphere parented to the camera so its edge is never reached;
+ *  zenith blue → horizon haze (matched to the fog colour so land melts into
+ *  sky). Shifts to a warm sunset at dusk. A bloom-haloed sun rides the
+ *  sunlight direction. */
+function SkyDome({ dusk, horizon }: { dusk: boolean; horizon: string }) {
+  const ref = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+  useFrame(() => { if (ref.current) ref.current.position.copy(camera.position); });
+  const material = useMemo(() => {
+    const top = new THREE.Color(dusk ? '#1f2a52' : '#5f8ec8');
+    const bottom = new THREE.Color(horizon);
+    return new THREE.ShaderMaterial({
+      side: THREE.BackSide, depthWrite: false, fog: false,
+      uniforms: { top: { value: top }, bottom: { value: bottom }, exponent: { value: 0.7 } },
+      vertexShader: `varying float vH; void main(){ vH = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+      fragmentShader: `uniform vec3 top; uniform vec3 bottom; uniform float exponent; varying float vH;
+        void main(){ float t = pow(max(vH,0.0), exponent); gl_FragColor = vec4(mix(bottom, top, t), 1.0); }`,
+    });
+  }, [dusk, horizon]);
+  const R = 1500;
+  const sunDir = useMemo(() => new THREE.Vector3(...(dusk ? [12, 7, 10] : [8, 16, 6])).normalize(), [dusk]);
+  const sunPos = sunDir.clone().multiplyScalar(R * 0.9);
+  const sunColor = dusk ? '#ff9848' : '#fff2c8';
+  return (
+    <group ref={ref}>
+      <mesh material={material}>
+        <sphereGeometry args={[R, 32, 16]} />
+      </mesh>
+      {/* Sun — small bright core + a soft halo the bloom pass catches. */}
+      <mesh position={sunPos}>
+        <sphereGeometry args={[34, 16, 12]} />
+        <meshBasicMaterial color={sunColor} toneMapped={false} fog={false} />
+      </mesh>
+      <mesh position={sunPos}>
+        <sphereGeometry args={[78, 16, 12]} />
+        <meshBasicMaterial color={sunColor} transparent opacity={0.28} depthWrite={false} fog={false} />
+      </mesh>
+    </group>
+  );
+}
+
 /* ─── 雲影 — soft clouds drifting over the land, shadows in tow ───── */
 function DriftingClouds() {
   const ref = useRef<THREE.Group>(null);
@@ -5541,6 +5583,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       {/* Distance fog — color follows season; far value pushed past max
        *  camera zoom (100) so the world stays visible when fully zoomed out. */}
       <fog attach="fog" args={[dusk ? '#caa37e' : seasonPreset.fogColor, 120 * WORLD_SCALE, 500 * WORLD_SCALE]} />
+
+      {/* 天穹 — gradient sky + sun, horizon matched to the fog colour. */}
+      <SkyDome dusk={dusk} horizon={dusk ? '#caa37e' : seasonPreset.fogColor} />
 
       {/* Per-season lighting */}
       <ambientLight intensity={seasonPreset.ambient * (dusk ? 0.72 : 1)} color={dusk ? '#d8b890' : seasonPreset.ambientColor} />
