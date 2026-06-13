@@ -657,10 +657,10 @@ function buildWaterAlphaMask(): THREE.Texture {
   ctx.putImageData(img, 0, 0);
   const tex = new THREE.CanvasTexture(canvas);
   tex.flipY = true;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.minFilter = THREE.LinearFilter;
   tex.magFilter = THREE.LinearFilter;
   tex.anisotropy = 8;
-  tex.generateMipmaps = true;
+  tex.generateMipmaps = false;
   waterMaskCache = tex;
   return tex;
 }
@@ -703,10 +703,10 @@ function TerritoryGroundLayer({
   const texture = useMemo(() => {
     const tex = new THREE.CanvasTexture(getTerritoryCanvas(cities, forces, territoryOwnership));
     tex.flipY = true;
-    tex.minFilter = THREE.LinearMipmapLinearFilter;   // mipmaps so the tint doesn't alias into streaks when minified on the big world
+    tex.minFilter = THREE.LinearFilter;   // crisp (no mipmap); the z-fight fix (camera near + lift) is what removed the far-zoom striping, not mipmaps
     tex.magFilter = THREE.LinearFilter;
-    tex.anisotropy = 8;                                // keeps edges crisp when zoomed in
-    tex.generateMipmaps = true;
+    tex.anisotropy = 8;
+    tex.generateMipmaps = false;
     tex.needsUpdate = true;
     return tex;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3387,9 +3387,9 @@ function buildProvinceBorderTexture(cities: Record<string, City>): THREE.Texture
   }
   const tex = new THREE.CanvasTexture(canvas);
   tex.flipY = true;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.minFilter = THREE.LinearFilter;
   tex.magFilter = THREE.LinearFilter;
-  tex.generateMipmaps = true;
+  tex.generateMipmaps = false;
   tex.anisotropy = 8;
   provinceBorderTexCache = tex;
   return tex;
