@@ -30,7 +30,9 @@ export function tickCityEconomy(
   const eff = cityPolicyEffects(city, cityOfficers);
   const size = citySize(city);
 
-  const baseGold = Math.floor(city.commerce * (city.population / 5000));
+  // 稅入基數 — divisor lowered 5000→4000 (≈ +25% gold across the board) to
+  // ease the early-game cash crunch. Applies to every force, AI included.
+  const baseGold = Math.floor(city.commerce * (city.population / 4000));
   // 能臣/良吏/巨賈 prestige — the ablest administrator present fattens the coffers.
   const prestigeMul = cityOfficers.reduce((m, o) => Math.max(m, effectivePrestigeEffects(o).incomeMul), 1);
   const goldIncome = Math.max(0, Math.floor(baseGold * eff.goldMul * size.goldMul * prestigeMul + eff.goldFlat));
