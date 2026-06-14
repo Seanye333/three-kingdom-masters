@@ -666,6 +666,8 @@ function UnitMesh({
   const hitAt = useRef(-1);
   const deathAt = useRef(-1);
   const flashRef = useRef<THREE.MeshBasicMaterial>(null);
+  const dustRef = useRef<THREE.Group>(null);
+  const lastMoveAt = useRef(-10);
   const HIT_DUR = 0.34;
   const DEATH_DUR = 0.85;
   useFrame(({ clock }, delta) => {
@@ -682,6 +684,22 @@ function UnitMesh({
       + (selected ? Math.sin(clock.elapsedTime * 3) * 0.05 : 0)
       + (moving ? Math.abs(Math.sin(clock.elapsedTime * 10)) * 0.08 : 0);  // walking bounce
     prevTarget.current = { x: tx, z: tz };
+    // 行軍揚塵 — kick up dust while on the move; it lingers ~0.4s after halting.
+    if (moving) lastMoveAt.current = clock.elapsedTime;
+    if (dustRef.current && unit.unitType !== 'navy') {
+      const dustAmt = Math.max(0, 1 - (clock.elapsedTime - lastMoveAt.current) / 0.4);
+      let i = 0;
+      dustRef.current.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        const m = mesh.material as THREE.MeshBasicMaterial | undefined;
+        if (m && 'opacity' in m) {
+          const churn = 0.55 + 0.45 * Math.sin(clock.elapsedTime * 9 + i * 1.7);
+          m.opacity = dustAmt * 0.4 * churn;
+          mesh.position.y = 0.04 + ((clock.elapsedTime * 0.6 + i * 0.3) % 0.25);
+          i++;
+        }
+      });
+    }
     // Detect a troop loss since last frame → trigger the hit reaction.
     if (unit.troops < prevTroops.current) hitAt.current = clock.elapsedTime;
     prevTroops.current = unit.troops;
@@ -741,6 +759,17 @@ function UnitMesh({
         <sphereGeometry args={[0.52, 12, 10]} />
         <meshBasicMaterial ref={flashRef} color="#ff3018" transparent opacity={0} depthWrite={false} toneMapped={false} />
       </mesh>
+      {/* 行軍揚塵 — ground dust puffs, opacity driven by movement in useFrame. */}
+      {unit.unitType !== 'navy' && (
+        <group ref={dustRef} raycast={() => null}>
+          {[[-0.22, -0.18], [0.2, -0.22], [-0.05, 0.24], [0.26, 0.1], [-0.28, 0.06]].map(([dx, dz], i) => (
+            <mesh key={i} position={[dx, 0.04, dz]}>
+              <sphereGeometry args={[0.1 + (i % 3) * 0.03, 6, 5]} />
+              <meshBasicMaterial color={unit.unitType === 'cavalry' ? '#b6a07a' : '#a89878'} transparent opacity={0} depthWrite={false} />
+            </mesh>
+          ))}
+        </group>
+      )}
       {/* Mount or vehicle (cavalry horse / siege cart / navy boat) */}
       <UnitMount unit={unit} onClick={onClick} />
       {/* Rank-and-file host behind the hero (footmen read wrong on a boat). */}
