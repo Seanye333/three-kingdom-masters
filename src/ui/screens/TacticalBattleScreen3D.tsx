@@ -642,6 +642,28 @@ function UnitRetinue({ troops, color, unitType }: { troops: number; color: strin
   );
 }
 
+/** 旌旗 — a flag that swings from its pole, each on its own phase so a line of
+ *  banners ripples rather than flapping in lockstep. */
+function FlutterFlag({ color, poleX, y, big }: { color: string; poleX: number; y: number; big?: boolean }) {
+  const ref = useRef<THREE.Group>(null);
+  const ph = useMemo(() => Math.sin(poleX * 12.9 + y * 7.7) * 6.28, [poleX, y]);
+  const w = big ? 0.6 : 0.42, h = big ? 0.42 : 0.28;
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.elapsedTime * 4 + ph;
+    ref.current.rotation.y = -0.2 + Math.sin(t) * 0.5;
+    ref.current.rotation.z = Math.sin(t * 1.4) * 0.12;
+  });
+  return (
+    <group ref={ref} position={[poleX, y, 0]}>
+      <mesh position={[w / 2, 0, 0]} castShadow>
+        <planeGeometry args={[w, h, 4, 1]} />
+        <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.85} />
+      </mesh>
+    </group>
+  );
+}
+
 function UnitMesh({
   unit, terrainH, isPlayer, selected, onClick, isWounded, lunge,
 }: {
@@ -831,15 +853,19 @@ function UnitMesh({
       )}
       {/* Per-unit-type weapon */}
       <UnitWeapon unit={unit} yLift={yLift} />
-      {/* Banner pole + flag */}
-      <mesh position={[0.28, 1.05 + yLift, 0]} castShadow>
-        <cylinderGeometry args={[0.025, 0.025, 0.95, 6]} />
+      {/* Banner pole + fluttering flag — commanders fly a taller 大纛. */}
+      <mesh position={[0.28, (unit.isCommander ? 1.2 : 1.05) + yLift, 0]} castShadow>
+        <cylinderGeometry args={[0.025, 0.025, unit.isCommander ? 1.25 : 0.95, 6]} />
         <meshStandardMaterial color="#3a2818" />
       </mesh>
-      <mesh position={[0.50, 1.40 + yLift, 0]} castShadow>
-        <planeGeometry args={[0.42, 0.28]} />
-        <meshStandardMaterial color={color} side={THREE.DoubleSide} />
-      </mesh>
+      <FlutterFlag color={color} poleX={0.29} y={(unit.isCommander ? 1.62 : 1.40) + yLift} big={unit.isCommander} />
+      {/* Commander 大纛 finial — a small gold ball atop the standard. */}
+      {unit.isCommander && (
+        <mesh position={[0.28, 1.84 + yLift, 0]} castShadow>
+          <sphereGeometry args={[0.05, 8, 8]} />
+          <meshStandardMaterial color="#d4a84a" metalness={0.6} roughness={0.3} />
+        </mesh>
+      )}
       {/* Selection ring */}
       {selected && (
         <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
