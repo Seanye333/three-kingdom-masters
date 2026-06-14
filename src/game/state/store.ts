@@ -1257,16 +1257,23 @@ export const useGameStore = create<GameStore>()(
         );
         // 漕運損耗 — spoilage/attrition grows with the haul (≈6% per season past
         // the first), winter roads add a little, all capped; 木牛流馬 halves it.
+        // 漕運 — port-to-port over water (and not already land-adjacent): faster
+        // and gentler on the cargo than an overland haul.
+        const naval = !from.adjacentCityIds.includes(toCityId) && navalReachableCityIds(fromCityId, state.ports).has(toCityId);
         const baseSeasons = Math.max(1, marchDurationFor(from, to, state.date.season));
         let lossFrac = Math.min(0.4, 0.06 * (baseSeasons - 1));
         if (state.date.season === 'winter') lossFrac += 0.04;
+        if (naval) lossFrac *= 0.5;
         if (woodenOx) lossFrac *= 0.5;
         lossFrac = Math.max(0, Math.min(0.5, lossFrac));
         const keep = 1 - lossFrac;
         const arriveFood = Math.floor(shipFood * keep);
         const arriveGold = Math.floor(shipGold * keep);
         const arriveTroops = Math.floor(shipTroops * keep);
-        const seasons = woodenOx ? Math.max(1, Math.round(baseSeasons * 0.6)) : baseSeasons;
+        let effSeasons = baseSeasons;
+        if (naval) effSeasons = Math.round(effSeasons * 0.7);
+        if (woodenOx) effSeasons = Math.round(effSeasons * 0.6);
+        const seasons = Math.max(1, effSeasons);
         const id = `convoy-${fromCityId}-${toCityId}-${state.date.year}-${state.date.season}-${Object.keys(state.convoys ?? {}).length}`;
         set({
           cities: {
@@ -1280,6 +1287,7 @@ export const useGameStore = create<GameStore>()(
               fromCityId, toCityId,
               food: arriveFood, gold: arriveGold, troops: arriveTroops,
               seasonsRemaining: seasons, totalSeasons: seasons,
+              ...(naval ? { naval: true } : {}),
             },
           },
         });

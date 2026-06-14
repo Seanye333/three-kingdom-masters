@@ -18,6 +18,9 @@ export interface Convoy {
   troops: number;
   seasonsRemaining: number;
   totalSeasons: number;
+  /** 漕運 — shipped by sea/river between linked ports: faster, less spoilage,
+   *  and rendered as a junk gliding the water rather than an ox-cart. */
+  naval?: boolean;
 }
 
 export interface ConvoyStepResult {

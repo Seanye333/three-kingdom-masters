@@ -1957,18 +1957,19 @@ function Convoys({
   convoys: Record<string, import('../../game/systems/convoy').Convoy>;
 }) {
   const list = useMemo(() => {
-    const out: Array<{ id: string; route: Array<{ x: number; y: number }>; t: number; kind: 'food' | 'gold' | 'troops' }> = [];
+    const out: Array<{ id: string; route: Array<{ x: number; y: number }>; t: number; kind: 'food' | 'gold' | 'troops'; naval: boolean }> = [];
     for (const c of Object.values(convoys)) {
       const from = cities[c.fromCityId];
       const to = cities[c.toCityId];
       if (!from || !to) continue;
       const [fx, fy] = cityPixel(from.id, from.coords.x, from.coords.y);
       const [tx, ty] = cityPixel(to.id, to.coords.x, to.coords.y);
-      const route = terrainRoute(fx, fy, tx, ty);
+      // A junk runs a straight sea lane; an ox-cart follows the land route.
+      const route = c.naval ? [{ x: fx, y: fy }, { x: tx, y: ty }] : terrainRoute(fx, fy, tx, ty);
       const elapsed = c.totalSeasons - c.seasonsRemaining;
       const t = Math.min(0.96, Math.max(0.04, (elapsed + 0.5) / Math.max(1, c.totalSeasons)));
       const kind: 'food' | 'gold' | 'troops' = c.food > 0 ? 'food' : c.gold > 0 ? 'gold' : 'troops';
-      out.push({ id: c.id, route, t, kind });
+      out.push({ id: c.id, route, t, kind, naval: !!c.naval });
     }
     return out;
   }, [cities, convoys]);
@@ -1976,13 +1977,13 @@ function Convoys({
   return (
     <>
       {list.map((c) => (
-        <ConvoyCart key={c.id} route={c.route} t={c.t} kind={c.kind} />
+        <ConvoyCart key={c.id} route={c.route} t={c.t} kind={c.kind} naval={c.naval} />
       ))}
     </>
   );
 }
 
-function ConvoyCart({ route, t, kind }: { route: Array<{ x: number; y: number }>; t: number; kind: 'food' | 'gold' | 'troops' }) {
+function ConvoyCart({ route, t, kind, naval }: { route: Array<{ x: number; y: number }>; t: number; kind: 'food' | 'gold' | 'troops'; naval?: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
   useFrame(() => {
     if (!groupRef.current || route.length === 0) return;
@@ -1990,10 +1991,35 @@ function ConvoyCart({ route, t, kind }: { route: Array<{ x: number; y: number }>
     const ahead = positionAlongRoute(route, Math.min(0.99, t + 0.05));
     const [wx, wz] = pxToWorld(here.x, here.y);
     const [wx2, wz2] = pxToWorld(ahead.x, ahead.y);
-    groupRef.current.position.set(wx, sampleTerrainHeight(wx, wz) + 0.05, wz);
+    // A junk floats at water level; a cart rides the terrain.
+    const y = naval ? 0.06 : sampleTerrainHeight(wx, wz) + 0.05;
+    groupRef.current.position.set(wx, y, wz);
     if (wx2 !== wx || wz2 !== wz) groupRef.current.rotation.y = Math.atan2(wx2 - wx, wz2 - wz);
   });
   const cargoColor = kind === 'gold' ? '#e8c84a' : kind === 'troops' ? '#9aa8b0' : '#d8c88a';
+  if (naval) {
+    // 漕船 — a small grain junk: hull, cargo deck, single mast & sail.
+    return (
+      <group ref={groupRef} scale={ARMY_TOKEN_SCALE * 0.85}>
+        <mesh position={[0, 0.1, 0]} castShadow>
+          <boxGeometry args={[0.3, 0.16, 0.62]} />
+          <meshStandardMaterial color="#5a3f24" roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.24, 0.05]} castShadow>
+          <boxGeometry args={[0.22, 0.14, 0.34]} />
+          <meshStandardMaterial color={cargoColor} roughness={0.85} />
+        </mesh>
+        <mesh position={[0, 0.42, -0.05]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.5, 5]} />
+          <meshStandardMaterial color="#3a2818" />
+        </mesh>
+        <mesh position={[0, 0.42, -0.05]}>
+          <boxGeometry args={[0.01, 0.34, 0.26]} />
+          <meshStandardMaterial color="#d8cdb0" roughness={1} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+    );
+  }
   return (
     <group ref={groupRef} scale={ARMY_TOKEN_SCALE * 0.8}>
       {/* cart bed */}
