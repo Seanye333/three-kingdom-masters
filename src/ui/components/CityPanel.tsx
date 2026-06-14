@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { cityEconCap } from '../../game/systems/citySize';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
@@ -128,6 +128,8 @@ export function CityPanel() {
         <Stat label="Troops" zh="兵士" num={city.troops} flash suffix={` / ${citySize(city).troopCap.toLocaleString()}`} />
       </section>
 
+      <GrainTransferSection cityId={city.id} isPlayerCity={isPlayerCity} />
+
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>{t('內政', 'Development')}</h3>
         <Bar label="Agriculture" zh="農業" value={city.agriculture} cap={cityEconCap(city)} />
@@ -187,6 +189,71 @@ export function CityPanel() {
         />
       ))}
     </aside>
+  );
+}
+
+/**
+ * 運糧 — ship grain from this city to another of yours. Adjacent cities (linked
+ * on the supply network) arrive in full; a longer haul loses 12% on the road.
+ */
+function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPlayerCity: boolean }) {
+  const t = useT();
+  const lang = useLanguage();
+  const allCities = useGameStore((s) => s.cities);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const transferGrain = useGameStore((s) => s.transferGrain);
+  const [open, setOpen] = useState(false);
+  const [destId, setDestId] = useState('');
+  const city = allCities[cityId];
+  const dests = useMemo(
+    () => Object.values(allCities)
+      .filter((c) => c.ownerForceId === playerForceId && c.id !== cityId)
+      .sort((a, b) => a.name.zh.localeCompare(b.name.zh)),
+    [allCities, playerForceId, cityId],
+  );
+  if (!isPlayerCity || !city || dests.length === 0) return null;
+  const dest = allCities[destId] ?? dests[0];
+  const adjacent = dest ? city.adjacentCityIds.includes(dest.id) : false;
+  const amounts = [1000, 5000, Math.floor(city.food / 2)].filter((a) => a >= 500);
+  const btn: CSSProperties = {
+    background: '#2a1f15', border: '1px solid #3a2d20', color: '#d4a84a',
+    padding: '0.2rem 0.55rem', fontFamily: 'inherit', fontSize: '0.72rem', cursor: 'pointer',
+  };
+
+  return (
+    <section className={styles.section}>
+      <h3 className={styles.sectionTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span>{t('運糧', 'Ship Grain')}</span>
+        <button onClick={() => setOpen((v) => !v)} style={{ ...btn, fontSize: '0.65rem' }}>
+          {open ? t('收起', 'close') : t('調撥 ⇨', 'ship ⇨')}
+        </button>
+      </h3>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <select
+            value={dest?.id ?? ''}
+            onChange={(e) => setDestId(e.target.value)}
+            style={{ background: '#0a0805', border: '1px solid #4a3520', color: '#d4a84a', padding: '0.25rem', fontFamily: 'inherit', fontSize: '0.78rem' }}
+          >
+            {dests.map((c) => (
+              <option key={c.id} value={c.id}>
+                {(lang === 'en' ? c.name.en : c.name.zh)} · {t('糧', 'grain')} {c.food.toLocaleString()}{city.adjacentCityIds.includes(c.id) ? t(' · 鄰', ' · adj') : ''}
+              </option>
+            ))}
+          </select>
+          <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {amounts.map((a) => (
+              <button key={a} style={btn} disabled={city.food < a} onClick={() => dest && transferGrain(cityId, dest.id, a)}>
+                {a.toLocaleString()}
+              </button>
+            ))}
+            <span style={{ fontSize: '0.68rem', color: adjacent ? '#7ed68a' : '#e0a070' }}>
+              {adjacent ? t('鄰城直運,無耗', 'adjacent — no loss') : t('遠運耗 12%', '−12% en route')}
+            </span>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -245,6 +245,9 @@ interface GameStore extends GameState {
   welcomeEmperor: () => { ok: boolean; reason?: string };
   /** 市易 — convert gold↔food at the city's current market rate. */
   tradeFood: (cityId: EntityId, kind: 'buy' | 'sell', amount: number) => { ok: boolean; got: number };
+  /** 運糧 — ship grain from one of your cities to another. Adjacent cities (on
+   *  the supply network) arrive in full; a longer haul loses 12% on the road. */
+  transferGrain: (fromCityId: EntityId, toCityId: EntityId, amount: number) => { ok: boolean; delivered: number };
   /** 借糧 — ask a friendly force to send grain to your capital. Allies and NAP
    *  partners (or anyone you're on good terms with) oblige; the grain comes out
    *  of their own stores. */
@@ -1227,6 +1230,32 @@ export const useGameStore = create<GameStore>()(
         const gold = sellQuote(city, season, amount);
         set({ cities: { ...state.cities, [cityId]: { ...city, food: city.food - amount, gold: city.gold + gold } } });
         return { ok: true, got: gold };
+      },
+
+      transferGrain: (fromCityId, toCityId, amount) => {
+        const state = get();
+        const from = state.cities[fromCityId];
+        const to = state.cities[toCityId];
+        if (!from || !to || fromCityId === toCityId) return { ok: false, delivered: 0 };
+        if (from.ownerForceId !== state.playerForceId || to.ownerForceId !== state.playerForceId) return { ok: false, delivered: 0 };
+        const ship = Math.min(Math.max(0, Math.floor(amount)), from.food);
+        if (ship <= 0) return { ok: false, delivered: 0 };
+        // 漕運損耗 — adjacent cities ship along the supply network with no loss;
+        // a longer overland haul spills 12% to spoilage and escort rations.
+        const adjacent = from.adjacentCityIds.includes(toCityId);
+        const delivered = adjacent ? ship : Math.floor(ship * 0.88);
+        set({
+          cities: {
+            ...state.cities,
+            [fromCityId]: { ...from, food: from.food - ship },
+            [toCityId]: { ...to, food: to.food + delivered },
+          },
+        });
+        get().notify(
+          `運糧 · ${from.name.zh} → ${to.name.zh} 糧 ${delivered.toLocaleString()}${adjacent ? '' : `（耗 ${(ship - delivered).toLocaleString()}）`}`,
+          `Grain · ${from.name.en} → ${to.name.en}: ${delivered.toLocaleString()}${adjacent ? '' : ` (−${(ship - delivered).toLocaleString()} en route)`}`,
+        );
+        return { ok: true, delivered };
       },
 
       createLegion: (legion) => {
