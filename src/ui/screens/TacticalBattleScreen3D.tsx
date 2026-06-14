@@ -432,6 +432,29 @@ export function RiverArt({ y }: { y: number }) {
 /* ─── Per-unit-type mount (horse / cart / boat) under the rider ──── */
 function UnitMount({ unit, onClick }: { unit: TacticalUnit; onClick: () => void }) {
   const click = (e: { stopPropagation: () => void }) => { e.stopPropagation(); onClick(); };
+  if (unit.isSupply) {
+    // 糧車 — a tarp-covered grain wagon: a fat box on wheels, sacks heaped on top.
+    return (
+      <>
+        <mesh position={[0, 0.26, 0]} onClick={click} castShadow>
+          <boxGeometry args={[0.6, 0.34, 0.92]} />
+          <meshStandardMaterial color="#7a5a32" roughness={0.9} />
+        </mesh>
+        {/* heaped grain sacks under a tarp */}
+        <mesh position={[0, 0.5, 0]} castShadow>
+          <boxGeometry args={[0.52, 0.22, 0.8]} />
+          <meshStandardMaterial color="#d8c88a" roughness={0.95} />
+        </mesh>
+        {/* two wheels each side */}
+        {([[-0.34, 0.3], [-0.34, -0.3], [0.34, 0.3], [0.34, -0.3]] as const).map(([sx, sz], i) => (
+          <mesh key={i} position={[sx, 0.12, sz]} rotation={[0, 0, Math.PI / 2]} castShadow>
+            <cylinderGeometry args={[0.13, 0.13, 0.06, 8]} />
+            <meshStandardMaterial color="#3a2818" />
+          </mesh>
+        ))}
+      </>
+    );
+  }
   if (unit.unitType === 'cavalry') {
     return (
       <>

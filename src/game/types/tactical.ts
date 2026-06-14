@@ -192,6 +192,9 @@ export interface TacticalUnit {
    *  of its side's next turn (unless it's pinned in melee). Cleared on arrival,
    *  on a blocked route, or when the player issues a fresh manual order. */
   path?: HexCoord[];
+  /** 糧車 — a supply/grain convoy, not a fighting unit: slow and lightly manned.
+   *  Burn it down and the side that fed off it starves (see endTurn's 燒糧). */
+  isSupply?: boolean;
 }
 
 export type TacticalStatus =
@@ -279,6 +282,9 @@ export interface TacticalBattle {
   withdrew?: boolean;
   /** 決堤 — a dam map-trap has been broken (one-shot flood). */
   damBroken?: boolean;
+  /** 燒糧 — a supply convoy has been destroyed and the starvation penalty
+   *  already applied (one-shot, so it doesn't re-fire each turn). */
+  grainBurned?: boolean;
   /** Casualty totals, computed at end. */
   attackerLosses: number;
   defenderLosses: number;

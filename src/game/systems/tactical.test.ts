@@ -382,3 +382,31 @@ describe('多步命令 — pathfinding & waypoint orders', () => {
     expect(held.path).toEqual(planned);     // order preserved
   });
 });
+
+describe('糧車護送 — supply convoy & 燒糧', () => {
+  it('destroying a supply unit starves the side that depended on it', () => {
+    const cart = mkUnit({ id: 'd-supply', officerId: 'sup', side: 'defender', isSupply: true, coord: { col: 5, row: 2 }, troops: 0 });
+    const dCmd = mkUnit({ id: 'd-cmd', officerId: 'od', side: 'defender', isCommander: true, coord: { col: 7, row: 2 }, troops: 5000, morale: 80 });
+    const aCmd = mkUnit({ id: 'a-cmd', officerId: 'oa', side: 'attacker', isCommander: true, coord: { col: 0, row: 2 }, troops: 5000 });
+    const b = mkBattle({ units: [cart, dCmd, aCmd], width: 9, height: 6, activeSide: 'attacker' });
+
+    const after = endTurn(b);
+    expect(after.grainBurned).toBe(true);
+    const d = after.units.find((u) => u.id === 'd-cmd')!;
+    expect(d.morale).toBeLessThan(80);
+    expect(d.effects.some((e) => e.kind === 'starving')).toBe(true);
+    // the other side is unaffected
+    const a = after.units.find((u) => u.id === 'a-cmd')!;
+    expect(a.effects.some((e) => e.kind === 'starving')).toBe(false);
+  });
+
+  it('does not re-fire 燒糧 once grain is already burned', () => {
+    const cart = mkUnit({ id: 'd-supply', officerId: 'sup', side: 'defender', isSupply: true, coord: { col: 5, row: 2 }, troops: 0 });
+    const dCmd = mkUnit({ id: 'd-cmd', officerId: 'od', side: 'defender', isCommander: true, coord: { col: 7, row: 2 }, troops: 5000, morale: 50 });
+    const aCmd = mkUnit({ id: 'a-cmd', officerId: 'oa', side: 'attacker', isCommander: true, coord: { col: 0, row: 2 }, troops: 5000 });
+    const b = mkBattle({ units: [cart, dCmd, aCmd], width: 9, height: 6, activeSide: 'attacker', grainBurned: true });
+    const after = endTurn(b);
+    const d = after.units.find((u) => u.id === 'd-cmd')!;
+    expect(d.effects.some((e) => e.kind === 'starving')).toBe(false); // already burned — no new penalty
+  });
+});

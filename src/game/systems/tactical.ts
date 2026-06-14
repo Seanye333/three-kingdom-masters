@@ -819,6 +819,41 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     log.push({ turn: 1, text: '防壁橫亙中野 — 敵軍須拔除方可長驅。', kind: 'event' });
   }
 
+  // 糧車 — a named map's wagon/supply tile fields a slow, lightly-manned grain
+  // convoy for the defender. Reduce it to nothing and the garrison starves
+  // (endTurn's 燒糧 handler). Opt-in via map design, so procedural sieges are
+  // untouched. The cart has no real officer (defends at baseline stats).
+  const supplyTiles = (namedMap?.specialTiles ?? []).filter((s) => s.role === 'wagon' || s.role === 'supply');
+  if (supplyTiles.length > 0) {
+    const occupied = new Set(workedUnits.map((u) => `${u.coord.col},${u.coord.row}`));
+    supplyTiles.forEach((st, i) => {
+      const key = `${st.coord.col},${st.coord.row}`;
+      if (occupied.has(key)) return;
+      occupied.add(key);
+      workedUnits = [
+        ...workedUnits,
+        {
+          id: `defender-supply-${i}`,
+          officerId: `supply-${i}`,
+          side: 'defender',
+          coord: st.coord,
+          troops: 1500,
+          maxTroops: 1500,
+          ap: 1,
+          maxAp: 1,
+          morale: 100,
+          isCommander: false,
+          effects: [],
+          unitType: 'infantry',
+          isSupply: true,
+        },
+      ];
+    });
+    if (workedUnits.some((u) => u.isSupply)) {
+      log.push({ turn: 1, text: '糧車屯於陣後 — 守之則安,失之則餓。', kind: 'event' });
+    }
+  }
+
   return {
     id: `tac-${p.cityId}-${Date.now()}`,
     cityId: p.cityId,
@@ -2363,6 +2398,28 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     return { ...u, troops, morale, effects: newEffects, ap: u.maxAp };
   });
 
+  // ── 燒糧 — a supply convoy reduced to ruin starves the host that leaned on
+  // it: the owning side's units lose heart and begin deserting (烏巢之火).
+  // One-shot, guarded by grainBurned so it never re-fires.
+  let grainBurned = b.grainBurned ?? false;
+  const grainLog: NonNullable<TacticalBattle['log']> = [];
+  if (!grainBurned) {
+    const burnedSides = new Set(
+      b.units.filter((u) => u.isSupply && u.troops <= 0).map((u) => u.side),
+    );
+    if (burnedSides.size > 0) {
+      grainBurned = true;
+      tickedUnits = tickedUnits.map((u) => {
+        if (!burnedSides.has(u.side) || u.isSupply || u.troops <= 0) return u;
+        const starving = u.effects.some((e) => e.kind === 'starving')
+          ? u.effects
+          : [...u.effects, { kind: 'starving' as const, turnsLeft: 3 }];
+        return { ...u, morale: Math.max(0, u.morale - 20), effects: starving };
+      });
+      grainLog.push({ turn: b.turn + 1, text: '糧車被焚！三軍乏食、士氣大挫 — 軍心動搖。', kind: 'event' });
+    }
+  }
+
   // ── Fire spread: each burning unit may set an adjacent unit alight.
   // Rain blocks spread entirely; wind doubles the chance and biases the
   // spread direction. Forest hexes and rattan-armor units catch fire most
@@ -2856,12 +2913,13 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     attackerLosses,
     defenderLosses,
     startTroops,
+    grainBurned,
     winner: winner ?? b.winner,
     attackerObjective: attackerObj,
     defenderObjective: defenderObj,
     reinforcements: remaining,
     casualties,
-    log: [...(b.log ?? []), ...fireLog, ...weatherLog, ...windLog, ...arrivalLog, ...structureLog, ...eventLog],
+    log: [...(b.log ?? []), ...grainLog, ...fireLog, ...weatherLog, ...windLog, ...arrivalLog, ...structureLog, ...eventLog],
     damagePopups: structurePopups, // visible briefly on turn flip
     cityStructures: updatedStructures,
   };
