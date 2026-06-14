@@ -2368,6 +2368,16 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     return false;
   });
 
+  // 收攏潰兵 — a unit broken (morale 0) but still manned, standing beside a
+  // steady commander, is rallied back into the line instead of fleeing.
+  tickedUnits = tickedUnits.map((u) => {
+    if (u.troops <= 0 || u.morale > 0) return u;
+    const rallied = tickedUnits.some((c) =>
+      c.side === u.side && c.isCommander && c.troops > 0 && c.morale > 30
+      && hexNeighbours(c.coord).some((n) => n.col === u.coord.col && n.row === u.coord.row));
+    return rallied ? { ...u, morale: 25 } : u;
+  });
+
   // Remove routed units (troops 0 or morale 0).
   const allUnits = [...tickedUnits, ...arrivedUnits];
   const surviving = allUnits.filter((u) => u.troops > 0 && u.morale > 0);
