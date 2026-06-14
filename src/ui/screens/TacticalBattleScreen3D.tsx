@@ -3308,6 +3308,8 @@ export function TacticalBattleScreen3D() {
   // 🤖 委託指揮 — the same tactical AI that drives the enemy plays YOUR
   // side while engaged; flip it off any turn to take the reins back.
   const [autoPilot, setAutoPilot] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const setBattleSpeed = useGameStore((s) => s.setBattleSpeed);
   const toggleRecording = () => {
     if (recorderRef.current) {
       recorderRef.current.stop();
@@ -3474,6 +3476,7 @@ export function TacticalBattleScreen3D() {
   // or on the player's side too, when 委託指揮 is engaged.
   useEffect(() => {
     if (!battle || battle.winner) return;
+    if (paused) return;  // 暫停 — freeze the AI's auto-advance
     if (playerSide && (battle.activeSide !== playerSide || autoPilot)) {
       const delay = Math.max(150, 700 / Math.max(1, battleSpeed));
       const id = setTimeout(() => {
@@ -3528,7 +3531,7 @@ export function TacticalBattleScreen3D() {
       }, delay);
       return () => clearTimeout(id);
     }
-  }, [battle, officers, playerSide, start, battleSpeed, difficulty, autoPilot]);
+  }, [battle, officers, playerSide, start, battleSpeed, difficulty, autoPilot, paused]);
 
   // 勝負定格 — on decision, a dramatic camera kick (FOV punch + hitstop) and a
   // slam-in banner play before the results modal slides in.
@@ -3775,6 +3778,26 @@ export function TacticalBattleScreen3D() {
             color: autoPilot ? '#c8e8a0' : '#a89070', fontFamily: 'inherit',
           }}
         >{autoPilot ? '🤖 軍師代戰中' : '🤖 委託指揮'}</button>
+        {/* 速度 / 暫停 — pace the auto-advance, or freeze to read the board. */}
+        <button
+          onClick={() => setPaused((v) => !v)}
+          title={t('暫停 / 繼續推演', 'Pause / resume')}
+          style={{
+            fontSize: '0.72rem', padding: '2px 8px', cursor: 'pointer',
+            background: paused ? 'rgba(212,168,74,0.25)' : 'rgba(40, 28, 18, 0.7)',
+            border: `1px solid ${paused ? '#d4a84a' : '#5a4530'}`,
+            color: paused ? '#f0d98a' : '#a89070', fontFamily: 'inherit',
+          }}
+        >{paused ? '▶ 繼續' : '⏸ 暫停'}</button>
+        <button
+          onClick={() => setBattleSpeed(battleSpeed >= 4 ? 1 : battleSpeed * 2)}
+          title={t('推演速度', 'Playback speed')}
+          style={{
+            fontSize: '0.72rem', padding: '2px 8px', cursor: 'pointer',
+            background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530',
+            color: '#a89070', fontFamily: 'inherit',
+          }}
+        >⏩ {battleSpeed}×</button>
         {/* 戰前準備 — one card, played before your first move. */}
         {myTurn && battle.turn === 1 && playerSide && !battle.prepUsed?.[playerSide] && !prepDismissed && (
           <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
