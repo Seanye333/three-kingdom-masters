@@ -1858,9 +1858,12 @@ export function applyStratagem(
         return { battle: b, ok: false, reason: 'invalid target' };
       const aWar = off?.stats.war ?? 60;
       const dLead = officers[target.officerId]?.stats.leadership ?? 50;
+      // 撞沉 — ramming caves in a hull; against another ship it's devastating.
+      const ramShipMul = target.unitType === 'navy' ? 1.5 : 1.0;
       const damage = Math.floor(
-        (unit.troops * (aWar + 30) * 1.6 * shipPowerMul(unit.shipClass)) / (dLead + 50),
+        (unit.troops * (aWar + 30) * 1.6 * shipPowerMul(unit.shipClass) * ramShipMul) / (dLead + 50),
       );
+      const sank = damage >= target.troops;
       const next: TacticalBattle = {
         ...b,
         units: b.units.map((u) => {
@@ -1871,8 +1874,11 @@ export function applyStratagem(
         }),
         damagePopups: [
           ...(b.damagePopups ?? []),
-          { id: `dmg-${Date.now()}-ram`, coord: target.coord, text: `-${damage.toLocaleString()}!`, color: '#ff6a4a', spawnedAt: Date.now() },
+          { id: `dmg-${Date.now()}-ram`, coord: target.coord, text: `${sank && target.unitType === 'navy' ? '撞沉 ' : ''}-${damage.toLocaleString()}!`, color: '#7ec8e6', spawnedAt: Date.now() },
         ],
+        log: sank && target.unitType === 'navy'
+          ? [...(b.log ?? []), { turn: b.turn, text: `${officers[target.officerId]?.name.zh ?? '敵艦'}座艦被撞沉!`, kind: 'event' as const }]
+          : b.log,
       };
       return finalize(next, unitId, stratagem, 2);
     }

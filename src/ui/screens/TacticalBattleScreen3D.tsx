@@ -2837,6 +2837,28 @@ function SkyBody({ position, color, night }: { position: [number, number, number
   );
 }
 
+/** 連環船 — iron chains binding two linked ships, drawn as a row of links along
+ *  the span (the 赤壁 fleet that can't scatter — and burns as one). */
+function ChainLink({ a, c }: { a: HexCoord; c: HexCoord }) {
+  const [ax, az] = hexWorld(a.col, a.row);
+  const [cx, cz] = hexWorld(c.col, c.row);
+  const ang = Math.atan2(cz - az, cx - ax);
+  const n = 5;
+  return (
+    <group raycast={() => null}>
+      {Array.from({ length: n }).map((_, i) => {
+        const t = (i + 0.5) / n;
+        return (
+          <mesh key={i} position={[ax + (cx - ax) * t, 0.2, az + (cz - az) * t]} rotation={[Math.PI / 2, 0, ang]}>
+            <torusGeometry args={[0.08, 0.025, 5, 8]} />
+            <meshStandardMaterial color="#5a554e" metalness={0.6} roughness={0.5} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 /** 攻城 — garrison silhouettes man the battlements, and assault ladders lean
  *  against any wall an attacker has reached. A first-pass siege dressing. */
 function SiegeOverlay({ battle, playerSide }: { battle: TacticalBattle; playerSide: 'attacker' | 'defender' | null }) {
@@ -3179,6 +3201,23 @@ export function BattleScene({
       {ambushFx.map((a) => <AmbushBurst key={a.id} coord={a.coord} at={a.at} />)}
       {/* 攻城 — wall defenders + assault ladders (siege battles only). */}
       {!embedded && <SiegeOverlay battle={battle} playerSide={playerSide} />}
+      {/* 連環船 — chains binding linked fleets. */}
+      {(() => {
+        const drawn = new Set<string>();
+        const links: React.ReactNode[] = [];
+        for (const u of units) {
+          const ce = u.effects.find((e) => e.kind === 'chained') as { chainedWith?: EntityId[] } | undefined;
+          if (!ce?.chainedWith) continue;
+          for (const pid of ce.chainedWith) {
+            const key = [u.id, pid].sort().join('|');
+            if (drawn.has(key)) continue;
+            drawn.add(key);
+            const p = units.find((x) => x.id === pid);
+            if (p && u.troops > 0 && p.troops > 0) links.push(<ChainLink key={key} a={u.coord} c={p.coord} />);
+          }
+        }
+        return links;
+      })()}
 
       {/* All units — skip hidden enemy units. */}
       {units
