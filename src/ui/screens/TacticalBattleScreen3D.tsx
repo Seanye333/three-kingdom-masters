@@ -2747,6 +2747,40 @@ function SkyBody({ position, color, night }: { position: [number, number, number
   );
 }
 
+/** 伏兵 — a purple shock-ring + flung debris bursts where a hidden unit springs
+ *  its ambush, so the reveal reads as a sudden sally from cover. */
+function AmbushBurst({ coord, at }: { coord: HexCoord; at: number }) {
+  const ref = useRef<THREE.Group>(null);
+  const [x, z] = hexWorld(coord.col, coord.row);
+  useFrame(() => {
+    const g = ref.current;
+    if (!g) return;
+    const t = Math.min(1, (Date.now() - at) / 750);
+    g.scale.setScalar(0.4 + t * 2.1);
+    g.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined;
+      if (m && 'opacity' in m) m.opacity = (1 - t) * 0.8;
+    });
+  });
+  return (
+    <group ref={ref} position={[x, 0.12, z]} raycast={() => null}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.3, 0.6, 20]} />
+        <meshBasicMaterial color="#9a6ad0" transparent opacity={0.8} side={THREE.DoubleSide} toneMapped={false} depthWrite={false} />
+      </mesh>
+      {Array.from({ length: 7 }).map((_, i) => {
+        const a = (i / 7) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.35, 0.15 + (i % 3) * 0.1, Math.sin(a) * 0.35]}>
+            <boxGeometry args={[0.07, 0.05, 0.02]} />
+            <meshBasicMaterial color={i % 2 ? '#6a8a4a' : '#7a6a4a'} transparent opacity={0.8} depthWrite={false} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 /** 屍橫 — a fallen unit leaves a mound, a blood/scorch stain, a downed spear
  *  and a scrap of its banner where it died; the field fills with carnage. */
 function Corpse({ coord, color }: { coord: HexCoord; color: string }) {
@@ -2825,6 +2859,23 @@ export function BattleScene({
     }
     if (add.length) setFallen((f) => [...f, ...add].slice(-50));
   }, [units, playerSide]);
+
+  // 伏兵奇襲 — burst an ambush FX where a hidden unit just sprang into view.
+  const prevHidden = useRef<Set<string>>(new Set());
+  const [ambushFx, setAmbushFx] = useState<{ id: string; coord: HexCoord; at: number }[]>([]);
+  useEffect(() => {
+    const sprung: { id: string; coord: HexCoord; at: number }[] = [];
+    for (const u of units) {
+      if (prevHidden.current.has(u.id) && !u.hidden && u.troops > 0) {
+        sprung.push({ id: `amb-${u.id}-${Date.now()}`, coord: u.coord, at: Date.now() });
+      }
+    }
+    prevHidden.current = new Set(units.filter((u) => u.hidden).map((u) => u.id));
+    if (sprung.length) {
+      setAmbushFx((f) => [...f, ...sprung]);
+      sprung.forEach((s) => setTimeout(() => setAmbushFx((f) => f.filter((x) => x.id !== s.id)), 1000));
+    }
+  }, [units]);
 
   // Compute scene bounds for weather particles
   const bounds = useMemo(() => {
@@ -2987,6 +3038,8 @@ export function BattleScene({
 
       {/* 屍橫遍野 — the accumulated dead (skipped in the lightweight diorama). */}
       {!embedded && fallen.map((c) => <Corpse key={`corpse-${c.id}`} coord={c.coord} color={c.color} />)}
+      {/* 伏兵奇襲 — reveal bursts where ambushers sprang. */}
+      {ambushFx.map((a) => <AmbushBurst key={a.id} coord={a.coord} at={a.at} />)}
 
       {/* All units — skip hidden enemy units. */}
       {units
