@@ -23,7 +23,11 @@ export function AnimatedNumber({ value, format = (v) => Math.round(v).toLocaleSt
   const [display, setDisplay] = useState(value);
   const fromRef = useRef(value);
   const rafRef = useRef(0);
+  const popRef = useRef(0);
   const [dir, setDir] = useState<-1 | 0 | 1>(0);
+  // A quick scale-pop on change — only on flashing numbers, so the busy
+  // per-city stats stay calm while the headline figures get a little life.
+  const [pop, setPop] = useState(false);
 
   useEffect(() => {
     if (value === fromRef.current) return;
@@ -32,6 +36,11 @@ export function AnimatedNumber({ value, format = (v) => Math.round(v).toLocaleSt
     const from = fromRef.current;
     const to = value;
     setDir(to > from ? 1 : -1);
+    if (flash) {
+      setPop(true);
+      window.clearTimeout(popRef.current);
+      popRef.current = window.setTimeout(() => setPop(false), 190);
+    }
     const start = performance.now();
     const tick = (now: number) => {
       // Clamp to [0,1] — the first rAF timestamp can read a hair before our
@@ -52,8 +61,24 @@ export function AnimatedNumber({ value, format = (v) => Math.round(v).toLocaleSt
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [value, durationMs]);
+  }, [value, durationMs, flash]);
+
+  useEffect(() => () => window.clearTimeout(popRef.current), []);
 
   const color = flash && dir > 0 ? '#7ed68a' : flash && dir < 0 ? '#e2706a' : undefined;
-  return <span style={{ ...style, color: color ?? style?.color, transition: 'color 0.5s ease' }}>{format(display)}</span>;
+  return (
+    <span
+      style={{
+        ...style,
+        color: color ?? style?.color,
+        // inline-block so the pop transform can actually take (and animate both
+        // ways); harmless for a numeric run.
+        display: style?.display ?? 'inline-block',
+        transform: pop ? 'scale(1.16)' : 'scale(1)',
+        transition: 'color 0.5s ease, transform 0.19s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      }}
+    >
+      {format(display)}
+    </span>
+  );
 }

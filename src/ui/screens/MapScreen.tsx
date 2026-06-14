@@ -190,6 +190,9 @@ export function MapScreen() {
   const playerTroops = useGameStore((s) =>
     Object.values(s.cities).reduce((a, c) => (c.ownerForceId === s.playerForceId ? a + c.troops : a), 0),
   );
+  const playerFood = useGameStore((s) =>
+    Object.values(s.cities).reduce((a, c) => (c.ownerForceId === s.playerForceId ? a + c.food : a), 0),
+  );
   const pendingCount = useGameStore(
     (s) => Object.keys(s.pendingCommands).length,
   );
@@ -412,6 +415,7 @@ export function MapScreen() {
               <span className={styles.playerNameEn}>{t('', playerForce.name.en)}</span>
               <span style={{ marginLeft: 10, fontSize: '0.82rem', color: '#c8b07a', fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap' }}>
                 <span style={{ color: '#7a8893' }}>{t('金', 'Gold')}</span> <AnimatedNumber value={playerGold} flash />
+                <span style={{ color: '#7a8893', marginLeft: 8 }}>{t('糧', 'Grain')}</span> <AnimatedNumber value={playerFood} flash />
                 <span style={{ color: '#7a8893', marginLeft: 8 }}>{t('兵', 'Troops')}</span> <AnimatedNumber value={playerTroops} flash />
               </span>
             </>
