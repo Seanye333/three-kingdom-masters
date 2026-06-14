@@ -11,7 +11,7 @@ import { stratagemFxKind, tacticFxKind, tacticFxSpec, FX_DURATION, FX_IMPACT, ty
 import { categoryOfTactic } from '../../game/data/officerAttributes';
 import { applyBattlePrep,
   aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
-  moveUnit, resolveBattleEnd, unitAt, forecastAttack, matchupLabel,
+  moveUnit, resolveBattleEnd, unitAt, forecastAttack, matchupLabel, battleStratagemSituation,
 } from '../../game/systems/tactical';
 import { canDuel } from '../../game/systems/duel';
 import { personalTacticsForUnit } from '../../game/systems/personalTactics';
@@ -3374,6 +3374,15 @@ export function TacticalBattleScreen3D() {
             duel: { color: '#d4a84a', text: t('點擊相鄰敵將一騎打', 'Click an adjacent enemy to duel') },
             stratagem: { color: '#c19a3b', text: t('點擊目標施放計略', 'Click a target to cast stratagem') },
           }[actionMode.kind];
+          // 戰法情境預覽 — while a stratagem is armed, read out how the current
+          // weather/terrain bends it, before you've even picked a target.
+          let sitNote: { zh: string; en: string } | null = null;
+          let sitUp = true;
+          if (actionMode.kind === 'stratagem' && selectedUnit) {
+            const s = battleStratagemSituation(battle, selectedUnit.coord, selectedUnit.coord, actionMode.id);
+            sitNote = s.note;
+            sitUp = s.mult >= 1;
+          }
           return (
             <div style={{
               position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
@@ -3384,7 +3393,14 @@ export function TacticalBattleScreen3D() {
               fontFamily: 'Songti SC, serif',
               fontSize: '0.9rem',
               pointerEvents: 'none',
-            }}>{config.text}</div>
+            }}>
+              {config.text}
+              {sitNote && (
+                <span style={{ color: sitUp ? '#9ad6a8' : '#e8a07a', marginLeft: '0.5rem' }}>
+                  · {sitUp ? '⊕' : '⊖'} {t(sitNote.zh, sitNote.en)}
+                </span>
+              )}
+            </div>
           );
         })()}
       </div>

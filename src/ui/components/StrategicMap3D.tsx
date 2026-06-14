@@ -21,7 +21,7 @@ import { BattleScene, BattleCinematics, hexWorld as battleHexWorld, FX_DURATION,
 import { tacticFxSpec, FX_IMPACT, type StratagemFxInstance, type StratagemFxKind, type TacticFxSpec } from '../../game/data/stratagemFx';
 import { categoryOfTactic } from '../../game/data/officerAttributes';
 // In-place battle commanding — the SAME pure battle ops the fullscreen uses.
-import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStratagem, hexDistance, forecastAttack, matchupLabel } from '../../game/systems/tactical';
+import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStratagem, hexDistance, forecastAttack, matchupLabel, battleStratagemSituation } from '../../game/systems/tactical';
 import { canDuel } from '../../game/systems/duel';
 import { personalTacticsForUnit } from '../../game/systems/personalTactics';
 import { DuelGameModal } from './DuelGameModal';
@@ -7062,6 +7062,16 @@ export function StrategicMap3D() {
                     {dioDuelArm ? t('點相鄰敵將', 'tap adjacent foe') : t('點目標格施放', 'tap a target hex')}
                   </span>
                 )}
+                {/* 戰法情境預覽 — current weather/terrain effect on the armed cast. */}
+                {dioCast && (() => {
+                  const s = battleStratagemSituation(worldBattle, sel.coord, sel.coord, dioCast.id);
+                  if (!s.note) return null;
+                  return (
+                    <span style={{ color: s.mult >= 1 ? '#9ad6a8' : '#e8a07a', fontSize: '0.7rem' }}>
+                      {s.mult >= 1 ? '⊕' : '⊖'} {t(s.note.zh, s.note.en)}
+                    </span>
+                  );
+                })()}
               </>
             ) : (
               <span style={{ color: '#8a7050', fontSize: '0.74rem' }}>
