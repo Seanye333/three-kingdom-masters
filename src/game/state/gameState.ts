@@ -220,6 +220,10 @@ export interface GameState {
    *  Breaking an alliance burns it; honoured pacts slowly rebuild it. Low
    *  credibility makes others wary of the player's future proposals. */
   credibility: Record<EntityId, number>;
+  /** 積怨 — how much each AI force resents the PLAYER (0–100, absent ⇒ 0).
+   *  Rises when you march on their cities or tear up a pact; soothed by tribute
+   *  and honoured agreements. A bitter foe is far harder to make peace with. */
+  grudges: Record<EntityId, number>;
   /** 細作開眼 — cities lit by successful espionage, ticks of intel left.
    *  Decremented each half-month; consumed by the fog-of-war view. */
   espionageReveals: Record<EntityId, number>;
@@ -393,6 +397,7 @@ export const EMPTY_STATE: GameState = {
   fogOfWar: false,
   taxPolicy: {},
   credibility: {},
+  grudges: {},
   espionageReveals: {},
   cityDelegations: {},
   legions: [],
@@ -634,6 +639,7 @@ export function loadScenario(
     fogOfWar: state.fogOfWar,
     taxPolicy: state.taxPolicy ?? {},
     credibility: state.credibility ?? {},
+    grudges: state.grudges ?? {},
     commandTemplates: state.commandTemplates,
     autoBuildQueues: {},
     pendingDialogue: null,

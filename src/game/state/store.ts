@@ -1115,6 +1115,10 @@ export const useGameStore = create<GameStore>()(
               totalSeasons: dur,
             },
           },
+          // 積怨 — marching on a force's own city stokes its lasting resentment.
+          ...(target.ownerForceId && target.ownerForceId !== source.ownerForceId
+            ? { grudges: { ...state.grudges, [target.ownerForceId]: Math.min(100, (state.grudges[target.ownerForceId] ?? 0) + 6) } }
+            : {}),
         });
         get().notify(
           `出兵 · ${officer.name.zh} 領 ${troops.toLocaleString()} 兵 → ${target.name.zh}（${dur}季抵達）`,
@@ -3624,6 +3628,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           date: state.date,
           diplomacyMultiplier: appointmentBonusFor(player.id, state.appointments, state.officers).diplomacyMultiplier,
           proposerCredibility: state.credibility[state.playerForceId] ?? 100,
+          targetGrudge: state.grudges[targetForceId] ?? 0,
         });
 
         if (outcome.ok) {
@@ -3636,8 +3641,13 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               },
             },
             diplomacy: outcome.diplomacy,
-            // Honoured dealings slowly rebuild a tarnished name.
-            ...(outcome.accepted ? { credibility: { ...state.credibility, [state.playerForceId]: Math.min(100, (state.credibility[state.playerForceId] ?? 100) + 5) } } : {}),
+            // Honoured dealings rebuild a tarnished name and mend old grudges.
+            ...(outcome.accepted
+              ? {
+                  credibility: { ...state.credibility, [state.playerForceId]: Math.min(100, (state.credibility[state.playerForceId] ?? 100) + 5) },
+                  grudges: { ...state.grudges, [targetForceId]: Math.max(0, (state.grudges[targetForceId] ?? 0) - 15) },
+                }
+              : {}),
           });
         }
         return {
@@ -3675,6 +3685,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           date: state.date,
           diplomacyMultiplier: appointmentBonusFor(player.id, state.appointments, state.officers).diplomacyMultiplier,
           proposerCredibility: state.credibility[state.playerForceId] ?? 100,
+          targetGrudge: state.grudges[targetForceId] ?? 0,
         });
 
         if (outcome.ok) {
@@ -3687,7 +3698,12 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
               },
             },
             diplomacy: outcome.diplomacy,
-            ...(outcome.accepted ? { credibility: { ...state.credibility, [state.playerForceId]: Math.min(100, (state.credibility[state.playerForceId] ?? 100) + 5) } } : {}),
+            ...(outcome.accepted
+              ? {
+                  credibility: { ...state.credibility, [state.playerForceId]: Math.min(100, (state.credibility[state.playerForceId] ?? 100) + 5) },
+                  grudges: { ...state.grudges, [targetForceId]: Math.max(0, (state.grudges[targetForceId] ?? 0) - 15) },
+                }
+              : {}),
           });
         }
         return {
@@ -3730,6 +3746,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             [capital.id]: { ...capital, gold: capital.gold - amount },
           },
           diplomacy: outcome.diplomacy,
+          // Silver soothes resentment — a tribute takes the edge off a grudge.
+          grudges: { ...state.grudges, [targetForceId]: Math.max(0, (state.grudges[targetForceId] ?? 0) - 10) },
         });
         return { ok: true, message: outcome.message };
       },
@@ -3771,7 +3789,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
       breakAlliance: (targetForceId) => {
         const state = get();
         if (!state.playerForceId) return;
-        // 背盟 — tearing up a pact brands you an oath-breaker: −25 信譽.
+        // 背盟 — tearing up a pact brands you an oath-breaker (−25 信譽) and
+        // the jilted force nurses a lasting grudge (+30 積怨).
         const cur = state.credibility[state.playerForceId] ?? 100;
         set({
           diplomacy: breakAlliance(
@@ -3780,6 +3799,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             targetForceId,
           ),
           credibility: { ...state.credibility, [state.playerForceId]: Math.max(0, cur - 25) },
+          grudges: { ...state.grudges, [targetForceId]: Math.min(100, (state.grudges[targetForceId] ?? 0) + 30) },
         });
       },
 

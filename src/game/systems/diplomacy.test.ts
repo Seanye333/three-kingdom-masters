@@ -35,3 +35,27 @@ describe('信譽 — credibility gates pact acceptance', () => {
     expect(proposeNonAggression(ctx(undefined, 0.3)).accepted).toBe(true);
   });
 });
+
+describe('積怨 — grudge gates pact acceptance', () => {
+  const ctxG = (grudge: number, roll: number): DiplomaticContext => ({
+    player: force('me'),
+    playerRulerCharisma: 0,
+    target: force('rival'),
+    targetTotalTroops: 10_000,
+    playerTotalTroops: 10_000,
+    diplomacy: { relations: {} },
+    date: { year: 200, season: 'spring' },
+    rng: () => roll,
+    targetGrudge: grudge,
+  });
+
+  it('a bitter foe (high grudge) refuses a NAP an unresentful one accepts', () => {
+    // base NAP chance 0.55; grudge 100 → −0.5 → 0.10. A roll of 0.3 splits them.
+    expect(proposeNonAggression(ctxG(0, 0.3)).accepted).toBe(true);
+    expect(proposeNonAggression(ctxG(100, 0.3)).accepted).toBe(false);
+  });
+
+  it('omitting grudge behaves as no resentment', () => {
+    expect(proposeNonAggression(ctxG(undefined as unknown as number, 0.3)).accepted).toBe(true);
+  });
+});

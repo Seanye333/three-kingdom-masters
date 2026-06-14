@@ -47,12 +47,21 @@ export interface DiplomaticContext {
   /** 信譽 — the proposer's reputation (0–100, default 100). Below 100 it shaves
    *  the odds of any pact: a known oath-breaker is harder to trust. */
   proposerCredibility?: number;
+  /** 積怨 — the target's resentment of the proposer (0–100, default 0). A
+   *  bitter foe is far less inclined to take your hand. */
+  targetGrudge?: number;
 }
 
 /** Credibility's drag on acceptance odds: 0 at full repute, −0.4 at zero. */
 function credibilityMod(ctx: DiplomaticContext): number {
   const cred = ctx.proposerCredibility ?? 100;
   return (Math.max(0, Math.min(100, cred)) - 100) / 250;
+}
+
+/** Grudge's drag on acceptance odds: 0 at no resentment, −0.5 at boiling. */
+function grudgeMod(ctx: DiplomaticContext): number {
+  const g = Math.max(0, Math.min(100, ctx.targetGrudge ?? 0));
+  return -g / 200;
 }
 
 /** Round-half-up so a 1.2 multiplier on a +5 base still feels generous. */
@@ -89,7 +98,8 @@ export function proposeAlliance(ctx: DiplomaticContext): DiplomaticOutcome {
       Math.max(-0.3, Math.min(0.3, strengthFactor * 0.2)) +
       traitBonus -
       targetResist +
-      credibilityMod(ctx),
+      credibilityMod(ctx) +
+      grudgeMod(ctx),
   );
   const roll = rng();
 
@@ -142,7 +152,7 @@ export function proposeNonAggression(
 
   const napTraitBonus = ctx.playerRuler ? diplomacyProposalBonus(ctx.playerRuler) : 0;
   const napTargetResist = ctx.targetRuler ? diplomacyResistance(ctx.targetRuler) : 0;
-  const chance = clamp(0.1, 0.95, current.score / 150 + 0.55 + napTraitBonus - napTargetResist + credibilityMod(ctx));
+  const chance = clamp(0.1, 0.95, current.score / 150 + 0.55 + napTraitBonus - napTargetResist + credibilityMod(ctx) + grudgeMod(ctx));
   const roll = rng();
   if (roll < chance) {
     const delta = scaleDelta(15, ctx.diplomacyMultiplier);

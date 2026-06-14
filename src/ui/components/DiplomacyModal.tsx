@@ -46,6 +46,7 @@ export function DiplomacyModal({ onClose }: Props) {
   const payTribute = useGameStore((s) => s.payTribute);
   const requestGrain = useGameStore((s) => s.requestGrain);
   const breakAlliance = useGameStore((s) => s.breakAlliance);
+  const grudges = useGameStore((s) => s.grudges);
   const credibility = useGameStore((s) => (playerForceId ? s.credibility[playerForceId] : undefined) ?? 100);
 
   const [feedback, setFeedback] = useState<{
@@ -141,6 +142,11 @@ export function DiplomacyModal({ onClose }: Props) {
                   <span>
                     {t('兵', 'Troops')} <strong>{row.troops.toLocaleString()}</strong>
                   </span>
+                  {(grudges[row.id] ?? 0) >= 15 && (
+                    <span title={t('對我方積怨 — 越高越難議和結盟', 'Resentment toward you — high grudges make pacts hard')}>
+                      {t('積怨', 'Grudge')} <strong style={{ color: (grudges[row.id] ?? 0) >= 50 ? '#e0707a' : '#e0a070' }}>{grudges[row.id] ?? 0}</strong>
+                    </span>
+                  )}
                 </div>
 
                 {feedback?.forceId === row.id && (
