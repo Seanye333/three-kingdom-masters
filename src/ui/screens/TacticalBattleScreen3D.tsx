@@ -4214,10 +4214,42 @@ function UnitPanel3D({
       overflowY: 'auto',
     }}>
       <div style={{ fontSize: '0.62rem', color: '#8a7050', letterSpacing: '0.15rem' }}>{t('已選', 'SELECTED')}</div>
-      <div style={{ fontWeight: 'bold', fontSize: '1.15rem', marginTop: 2 }}>
-        {officer?.name.zh ?? '?'}
-      </div>
-      <div style={{ fontSize: '0.7rem', color: '#a89070' }}>{officer?.name.en ?? ''}</div>
+      {/* 武將立繪(風格化頭像)— 姓字印 + 角色徽,無美術資源時的代位畫像。 */}
+      {(() => {
+        const st = officer?.stats;
+        const role = !st ? '士' : st.war >= st.intelligence + 8 ? '猛'
+          : st.intelligence >= st.war + 8 ? '智'
+          : st.leadership >= 85 ? '帥' : '將';
+        const rc = role === '猛' ? '#e8704a' : role === '智' ? '#9a7ce8'
+          : role === '帥' ? '#d4a84a' : '#7ec0e0';
+        const surname = officer?.name.zh?.[0] ?? '?';
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginTop: 4 }}>
+            <div style={{
+              position: 'relative', width: 52, height: 64, flexShrink: 0,
+              border: `2px solid ${rc}`, borderRadius: 3,
+              background: `linear-gradient(160deg, rgba(40,28,18,0.9), ${rc}33)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 0 10px ${rc}66`,
+            }}>
+              <span style={{ fontSize: '2rem', fontWeight: 700, color: '#f4e8c8', fontFamily: 'Songti SC, serif', textShadow: '0 2px 4px #000' }}>{surname}</span>
+              <span style={{
+                position: 'absolute', bottom: -1, right: -1, fontSize: '0.62rem',
+                background: rc, color: '#1a120a', padding: '0 3px', fontWeight: 700, borderRadius: 2,
+              }}>{role}</span>
+            </div>
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '1.15rem' }}>{officer?.name.zh ?? '?'}</div>
+              <div style={{ fontSize: '0.7rem', color: '#a89070' }}>{officer?.name.en ?? ''}</div>
+              {st && (
+                <div style={{ fontSize: '0.64rem', color: '#9a8a6a', marginTop: 2, fontFamily: 'ui-monospace, monospace' }}>
+                  武{st.war} 智{st.intelligence} 統{st.leadership}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
       {officer && (
         <div style={{ fontSize: '0.66rem', color: '#8a7050', marginTop: 4, letterSpacing: '0.08rem' }}>
           LED {officer.stats.leadership} · WAR {officer.stats.war} · INT {officer.stats.intelligence}
