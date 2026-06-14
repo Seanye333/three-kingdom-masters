@@ -14,11 +14,15 @@ export function CityRosterModal({ onClose }: { onClose: () => void }) {
   const playerForceId = useGameStore((s) => s.playerForceId);
   const selectCity = useGameStore((s) => s.selectCity);
   const [sortBy, setSortBy] = useState<Col>('troops');
+  const [query, setQuery] = useState('');
 
-  const rows = useMemo(() => Object.values(cities)
-    .filter((c) => c.ownerForceId === playerForceId)
-    .sort((a, b) => (b[sortBy] as number) - (a[sortBy] as number)),
-  [cities, playerForceId, sortBy]);
+  const rows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return Object.values(cities)
+      .filter((c) => c.ownerForceId === playerForceId)
+      .filter((c) => !q || c.name.zh.includes(q) || c.name.en.toLowerCase().includes(q))
+      .sort((a, b) => (b[sortBy] as number) - (a[sortBy] as number));
+  }, [cities, playerForceId, sortBy, query]);
 
   const cols: Array<{ key: Col; zh: string; en: string }> = [
     { key: 'agriculture', zh: '農', en: 'Agr' },
@@ -41,6 +45,17 @@ export function CityRosterModal({ onClose }: { onClose: () => void }) {
           <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>🏯 {t('郡縣一覽', 'Cities')} <span style={{ color: '#8a7050', fontSize: '0.8rem' }}>({rows.length})</span></div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('搜索城池…', 'Search cities…')}
+          autoFocus
+          style={{
+            width: '100%', boxSizing: 'border-box', marginBottom: '0.6rem',
+            background: '#14100a', border: '1px solid #4a3520', borderRadius: 4,
+            color: '#e8d9b0', padding: '0.35rem 0.6rem', fontFamily: 'inherit', fontSize: '0.85rem',
+          }}
+        />
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
           <thead>
             <tr style={{ color: '#8a7050', borderBottom: '1px solid #4a3520' }}>
