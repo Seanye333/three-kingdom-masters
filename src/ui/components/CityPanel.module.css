@@ -1,7 +1,10 @@
 .root {
   width: 320px;
   min-width: 320px;
-  background: #1b2531;
+  /* 紙紋 — faint paper grain over the panel ground. */
+  background-color: #1b2531;
+  background-image: var(--tkm-paper);
+  background-blend-mode: soft-light;
   border: 1px solid #2b3845;
   padding: 1.25rem;
   overflow-y: auto;

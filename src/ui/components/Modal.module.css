@@ -17,7 +17,10 @@
 }
 
 .frame {
-  background: linear-gradient(160deg, #1b2531, #10161e);
+  /* 紙紋 — paper grain rides the ink gradient at low contrast (soft-light). */
+  background-color: #10161e;
+  background-image: var(--tkm-paper), linear-gradient(160deg, #1b2531, #10161e);
+  background-blend-mode: soft-light, normal;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   color: #e6edf3;
