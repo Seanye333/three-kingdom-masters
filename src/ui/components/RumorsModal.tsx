@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { useT } from '../i18n';
+import { Modal } from './Modal';
 
 interface Rumor { key: string; zh: string; en: string; icon: string }
 
@@ -91,16 +92,7 @@ export function RumorsModal({ onClose }: { onClose: () => void }) {
   }, [officers, forces, cities, year, playerForceId]);
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-        width: 'min(540px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
-        fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.2rem',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.2rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>🏮 {t('市井流言', 'Word on the Street')}</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
-        </div>
+    <Modal onClose={onClose} width="min(540px, 100%)" icon="🏮" title={t('市井流言', 'Word on the Street')}>
         <div style={{ color: '#7a8893', fontSize: '0.72rem', fontStyle: 'italic', marginBottom: '0.7rem' }}>
           {t('道聽途說,未必盡實 — 然空穴來風,亦或有自。', 'Hearsay, not gospel — yet smoke seldom rises without fire.')}
         </div>
@@ -112,7 +104,6 @@ export function RumorsModal({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

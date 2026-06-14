@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { tickCityEconomy, TAX_EFFECT } from '../../game/systems/economy';
 import type { TaxRate } from '../../game/types';
 import { useT } from '../i18n';
+import { Modal } from './Modal';
 
 /**
  * 度支簿 — the realm's ledger for the coming season: every city's projected
@@ -57,19 +58,13 @@ export function BudgetModal({ onClose }: { onClose: () => void }) {
   const signed = (n: number) => (n >= 0 ? `+${num(n)}` : `−${num(-n)}`);
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-        width: 'min(680px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
-        fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.2rem',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
-            🪙 {t('度支簿', 'Treasury')} <span style={{ color: '#7a8893', fontSize: '0.8rem' }}>{t(`${seasonZh}季預算`, `${season} budget`)}</span>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
-        </div>
-
+    <Modal
+      onClose={onClose}
+      width="min(680px, 100%)"
+      icon="🪙"
+      title={t('度支簿', 'Treasury')}
+      badge={t(`${seasonZh}季預算`, `${season} budget`)}
+    >
         {/* Realm summary — three cards: treasury on hand, gold/season, grain/season. */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: '0.7rem' }}>
           <div style={{ background: '#141c25', border: '1px solid #243240', padding: '0.5rem 0.6rem', borderRadius: 4 }}>
@@ -165,7 +160,6 @@ export function BudgetModal({ onClose }: { onClose: () => void }) {
         {rows.length === 0 && (
           <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1rem 0' }}>{t('尚無城池。', 'No cities yet.')}</div>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }

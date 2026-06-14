@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { PROVINCES } from '../../game/data';
 import { useT } from '../i18n';
+import { Modal } from './Modal';
 
 /**
  * 州牧圖 — the realm a province at a time. For each of the 13 provinces: how
@@ -41,16 +42,7 @@ export function ProvinceModal({ onClose }: { onClose: () => void }) {
   const num = (n: number) => n.toLocaleString();
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-        width: 'min(620px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
-        fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.2rem',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>🗺 {t('州域', 'Provinces')}</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
-        </div>
+    <Modal onClose={onClose} width="min(620px, 100%)" icon="🗺" title={t('州域', 'Provinces')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {rows.map((r) => {
             const frac = r.held > 0 ? r.mine / r.held : 0;
@@ -85,7 +77,6 @@ export function ProvinceModal({ onClose }: { onClose: () => void }) {
             );
           })}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
