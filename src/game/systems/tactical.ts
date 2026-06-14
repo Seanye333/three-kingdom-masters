@@ -1259,6 +1259,15 @@ export function attackUnits(
           && hexDistance(u.coord, target.coord) === 1)
         .map((u) => u.id))
     : null;
+  // 主將陣亡 — slaying the enemy commander crashes their WHOLE army's morale.
+  const commanderFell = newTroops === 0 && target.isCommander;
+  if (commanderFell) {
+    log.push({
+      turn: b.turn,
+      text: `${To?.name.zh ?? '主將'}陣亡 — 全軍動搖!`,
+      kind: 'event',
+    });
+  }
   const units = b.units.map((u) => {
     if (u.id === targetId) {
       return {
@@ -1282,7 +1291,11 @@ export function attackUnits(
       });
       return { ...u, troops: tr };
     }
-    // Witnessing a comrade wiped out — morale shock to adjacent allies.
+    // Morale shock: whole-army crash if the commander fell, else a local
+    // tremor through the dead unit's immediate neighbours.
+    if (commanderFell && u.side === target.side && u.id !== targetId && u.troops > 0) {
+      return { ...u, morale: Math.max(0, u.morale - 30) };
+    }
     if (routShock && routShock.has(u.id)) {
       return { ...u, morale: Math.max(0, u.morale - 14) };
     }
