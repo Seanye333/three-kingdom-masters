@@ -57,6 +57,7 @@ const SchemesModal = lazy(() => import('../components/SchemesModal').then(m => (
 const PowerGraphModal = lazy(() => import('../components/PowerGraphModal').then(m => ({ default: m.PowerGraphModal })));
 const CityRosterModal = lazy(() => import('../components/CityRosterModal').then(m => ({ default: m.CityRosterModal })));
 const BudgetModal = lazy(() => import('../components/BudgetModal').then(m => ({ default: m.BudgetModal })));
+const ToDoModal = lazy(() => import('../components/ToDoModal').then(m => ({ default: m.ToDoModal })));
 const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
 const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
 const DiplomacyGraphModal = lazy(() => import('../components/DiplomacyGraphModal').then(m => ({ default: m.DiplomacyGraphModal })));
@@ -107,6 +108,7 @@ export function MapScreen() {
   const [showPowerGraph, setShowPowerGraph] = useState(false);
   const [showCityRoster, setShowCityRoster] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
+  const [showToDo, setShowToDo] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
@@ -426,6 +428,7 @@ export function MapScreen() {
           items={[
             { label: t('史書', 'Annals'),    onClick: () => setShowHistoryBook(true) },
             { label: t('大勢', 'Powers'),    onClick: () => setShowPowerGraph(true) },
+            { label: t('待辦', 'To-Do'),     onClick: () => setShowToDo(true) },
             { label: t('郡縣', 'Cities'),    onClick: () => setShowCityRoster(true) },
             { label: t('度支', 'Treasury'),  onClick: () => setShowBudget(true) },
             { label: t('勳功', 'Achievements'), onClick: () => setShowAch(true) },
@@ -588,6 +591,7 @@ export function MapScreen() {
         {showPowerGraph && <PowerGraphModal onClose={() => setShowPowerGraph(false)} />}
         {showCityRoster && <CityRosterModal onClose={() => setShowCityRoster(false)} />}
         {showBudget && <BudgetModal onClose={() => setShowBudget(false)} />}
+        {showToDo && <ToDoModal onClose={() => setShowToDo(false)} onOpenLetters={() => setShowWishes(true)} />}
       </Suspense>
       {/* 戰略層回饋 — order-confirmation toasts, top-centre */}
       <ActionToasts />
