@@ -58,6 +58,8 @@ const PowerGraphModal = lazy(() => import('../components/PowerGraphModal').then(
 const CityRosterModal = lazy(() => import('../components/CityRosterModal').then(m => ({ default: m.CityRosterModal })));
 const BudgetModal = lazy(() => import('../components/BudgetModal').then(m => ({ default: m.BudgetModal })));
 const ToDoModal = lazy(() => import('../components/ToDoModal').then(m => ({ default: m.ToDoModal })));
+const CommandPalette = lazy(() => import('../components/CommandPalette').then(m => ({ default: m.CommandPalette })));
+type PaletteCommand = import('../components/CommandPalette').PaletteCommand;
 const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
 const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
 const DiplomacyGraphModal = lazy(() => import('../components/DiplomacyGraphModal').then(m => ({ default: m.DiplomacyGraphModal })));
@@ -109,6 +111,7 @@ export function MapScreen() {
   const [showCityRoster, setShowCityRoster] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
   const [showToDo, setShowToDo] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
@@ -278,11 +281,19 @@ export function MapScreen() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON' || el.isContentEditable)) return;
+      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
       const s = useGameStore.getState();
-      if (s.lastReport || s.cityMapOpen || s.tacticalBattle || s.victoryStatus !== 'playing') return;
+      const blocked = !!s.lastReport || s.cityMapOpen || !!s.tacticalBattle || s.victoryStatus !== 'playing';
+      // 命令臺 — / or ⌘K/Ctrl-K opens the command palette.
+      if (!typing && !blocked && (e.key === '/' || ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')))) {
+        e.preventDefault();
+        setShowPalette(true);
+        return;
+      }
+      if (e.code !== 'Space' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (typing || (el && el.tagName === 'BUTTON')) return;
+      if (blocked) return;
       e.preventDefault();
       advanceTurn();
     };
@@ -300,6 +311,51 @@ export function MapScreen() {
   const mandateColor =
     mandateInfo.tone === 'high' ? '#d4a84a' :
     mandateInfo.tone === 'mid'  ? '#b0a070' : '#b8442e';
+
+  // 命令臺指令集 — every panel + key action, reachable by keyboard. Cheap to
+  // rebuild; only mounted when the palette is open.
+  const paletteCommands: PaletteCommand[] = (() => {
+    const g = { diplo: t('外交', 'Diplomacy'), people: t('人才', 'Personnel'), court: t('朝堂', 'Court'), mil: t('軍務', 'Military'), craft: t('匠工', 'Crafting'), rec: t('記錄', 'Records'), act: t('指令', 'Action'), sys: t('系統', 'System') };
+    const c: PaletteCommand[] = [
+      { id: 'idle', zh: '前往閒置武將', en: 'Go to idle commander', hint: g.act, run: jumpToIdle },
+      ...(threats.length > 0 ? [{ id: 'threat', zh: '前往受襲城池', en: 'Go to threatened city', hint: g.act, run: jumpToThreat }] : []),
+      { id: 'advance', zh: '結束本旬', en: 'End the turn', hint: g.act, run: advanceTurn },
+      { id: 'todo', zh: '待辦', en: 'To-Do', hint: g.rec, run: () => setShowToDo(true) },
+      { id: 'cities', zh: '郡縣一覽', en: 'Cities roster', hint: g.rec, run: () => setShowCityRoster(true) },
+      { id: 'budget', zh: '度支簿', en: 'Treasury', hint: g.rec, run: () => setShowBudget(true) },
+      { id: 'power', zh: '天下大勢', en: 'Balance of power', hint: g.rec, run: () => setShowPowerGraph(true) },
+      { id: 'annals', zh: '史書', en: 'Annals', hint: g.rec, run: () => setShowHistoryBook(true) },
+      { id: 'chronicle', zh: '國史', en: 'Chronicle', hint: g.rec, run: () => setShowChronicle(true) },
+      { id: 'ach', zh: '勳功', en: 'Achievements', hint: g.rec, run: () => setShowAch(true) },
+      { id: 'stats', zh: '戰記', en: 'Campaign stats', hint: g.rec, run: () => setShowCampaignStats(true) },
+      { id: 'diplomacy', zh: '邦交', en: 'Diplomacy', hint: g.diplo, run: () => setShowDiplomacy(true) },
+      { id: 'dipgraph', zh: '關係図', en: 'Relations graph', hint: g.diplo, run: () => setShowDipGraph(true) },
+      { id: 'forces', zh: '群雄', en: 'Forces', hint: g.diplo, run: () => setShowForces(true) },
+      { id: 'relationships', zh: '因緣', en: 'Officer relations', hint: g.people, run: () => setShowRelationships(true) },
+      { id: 'bonds', zh: '結義', en: 'Bonds', hint: g.people, run: () => setShowBonds(true) },
+      { id: 'prestige', zh: '威名', en: 'Prestige', hint: g.people, run: () => setShowPrestige(true) },
+      { id: 'deeds', zh: '武功', en: 'Deeds', hint: g.people, run: () => setShowDeeds(true) },
+      { id: 'wiki', zh: '列傳', en: 'Biographies', hint: g.people, run: () => setShowEncyclopedia(true) },
+      { id: 'titles', zh: '任官', en: 'Appointments', hint: g.court, run: () => setShowTitles(true) },
+      { id: 'governors', zh: '州牧', en: 'Governors', hint: g.court, run: () => setShowGovernors(true) },
+      { id: 'courtm', zh: '朝廷', en: 'Court', hint: g.court, run: () => setShowCourt(true) },
+      { id: 'relations', zh: '邦交關係', en: 'Relations', hint: g.court, run: () => setShowRelations(true) },
+      { id: 'letters', zh: '書信', en: 'Letters', hint: g.court, run: () => setShowWishes(true) },
+      { id: 'advisor', zh: '錦囊', en: 'Advisor', hint: g.mil, run: () => setShowAdvisor(true) },
+      { id: 'schemes', zh: '計略', en: 'Schemes', hint: g.mil, run: () => setShowSchemes(true) },
+      { id: 'legions', zh: '軍團', en: 'Legions', hint: g.mil, run: () => setShowLegions(true) },
+      { id: 'battles', zh: '戰史', en: 'Battle history', hint: g.mil, run: () => setShowHistory(true) },
+      { id: 'replays', zh: '戰錄', en: 'Replays', hint: g.mil, run: () => setShowReplays(true) },
+      { id: 'guard', zh: '私兵', en: 'Private guard', hint: g.mil, run: () => setShowPrivateForces(true) },
+      { id: 'espionage', zh: '密偵', en: 'Espionage', hint: g.mil, run: () => setShowEspionage(true) },
+      { id: 'formations', zh: '陣形', en: 'Formations', hint: g.mil, run: () => setShowFormations(true) },
+      { id: 'armoury', zh: '寶物', en: 'Armoury', hint: g.craft, run: () => setShowArmoury(true) },
+      { id: 'forge', zh: '鍛造', en: 'Forge', hint: g.craft, run: () => setShowForge(true) },
+      { id: 'settings', zh: '設定', en: 'Settings', hint: g.sys, run: () => setShowSettings(true) },
+    ];
+    if (careerMode) c.push({ id: 'career', zh: '一代記', en: 'Career chronicle', hint: g.people, run: () => setShowCareer(true) });
+    return c;
+  })();
 
   return (
     <div className={styles.root}>
@@ -442,6 +498,7 @@ export function MapScreen() {
           label={t('設定', 'System')}
           title={t('系統 — 設定、存讀、音效', 'System — settings, save/load, sound')}
           items={[
+            { label: t('⌨ 命令臺 (/)', '⌨ Command (/)'),       onClick: () => setShowPalette(true) },
             { label: t('⚙ 設定', '⚙ Settings'),                onClick: () => setShowSettings(true) },
             { label: fogOfWar ? t('🌫 戰霧：開', '🌫 Fog: On') : t('☀ 戰霧：關', '☀ Fog: Off'), onClick: () => setFogOfWar(!fogOfWar) },
             { label: t('📖 教學', '📖 Tutorial'),               onClick: () => setTutorialStep(0) },
@@ -613,6 +670,7 @@ export function MapScreen() {
         {showCityRoster && <CityRosterModal onClose={() => setShowCityRoster(false)} />}
         {showBudget && <BudgetModal onClose={() => setShowBudget(false)} />}
         {showToDo && <ToDoModal onClose={() => setShowToDo(false)} onOpenLetters={() => setShowWishes(true)} />}
+        {showPalette && <CommandPalette commands={paletteCommands} onClose={() => setShowPalette(false)} />}
       </Suspense>
       {/* 戰略層回饋 — order-confirmation toasts, top-centre */}
       <ActionToasts />
