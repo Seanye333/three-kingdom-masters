@@ -169,7 +169,7 @@ export function EndingsModal({ onClose }: Props) {
               textAlign: 'center',
               fontStyle: 'italic',
               marginTop: '0.5rem',
-              letterSpacing: '0.3rem',
+              letterSpacing: '0.1rem',
             }}
           >
             {ending.titleEn}
@@ -220,7 +220,7 @@ export function EndingsModal({ onClose }: Props) {
               color: '#e6c473',
               padding: '0.6rem 2rem',
               fontFamily: 'inherit',
-              letterSpacing: '0.3rem',
+              letterSpacing: '0.1rem',
               cursor: 'pointer',
             }}
           >

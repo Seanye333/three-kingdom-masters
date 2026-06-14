@@ -225,7 +225,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                     )}
                     {tAvail.length > 0 && (
                       <>
-                        <div style={{ fontSize: '0.7rem', color: '#7ed68a', letterSpacing: '0.15rem', margin: '0.3rem 0' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#7ed68a', letterSpacing: '0.05rem', margin: '0.3rem 0' }}>
                           {t('可學戰法', 'Available')} ({tAvail.length})
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
@@ -304,7 +304,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
               )}
               {mode === 'policy' && available.length > 0 && (
                 <>
-                  <div style={{ fontSize: '0.7rem', color: '#7ed68a', letterSpacing: '0.15rem', margin: '0.3rem 0' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#7ed68a', letterSpacing: '0.05rem', margin: '0.3rem 0' }}>
                     {t('可學', 'Available')} ({available.length})
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -394,7 +394,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
 
               {mode === 'policy' && locked.length > 0 && (
                 <>
-                  <div style={{ fontSize: '0.7rem', color: '#7a8893', letterSpacing: '0.15rem', margin: '0.6rem 0 0.3rem' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#7a8893', letterSpacing: '0.05rem', margin: '0.6rem 0 0.3rem' }}>
                     🔒 {t('需先學前置', 'Locked — need prerequisite')} ({locked.length})
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>

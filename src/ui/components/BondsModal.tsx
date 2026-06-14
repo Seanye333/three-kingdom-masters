@@ -154,7 +154,7 @@ export function BondsModal({ onClose }: Props) {
 
         {/* 社交 — grow rapport (好感) toward sworn bonds */}
         <div style={{ border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)', padding: '0.6rem 0.75rem', margin: '0 0 0.8rem' }}>
-          <div style={{ color: '#e6c473', letterSpacing: '0.2rem', marginBottom: '0.5rem', position: 'relative' }}>
+          <div style={{ color: '#e6c473', letterSpacing: '0.07rem', marginBottom: '0.5rem', position: 'relative' }}>
             {t('結交養誼', 'Build Rapport')}
             {floater && (
               <span

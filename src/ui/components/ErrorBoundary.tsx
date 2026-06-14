@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
             fontFamily: '"Songti SC", serif',
           }}
         >
-          <div style={{ fontSize: '1.1rem', color: '#b8442e', letterSpacing: '0.2rem' }}>
+          <div style={{ fontSize: '1.1rem', color: '#b8442e', letterSpacing: '0.07rem' }}>
             ⚠ {this.props.fallbackLabel ?? 'A panel crashed'}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#aab6c0', marginTop: '0.5rem', fontFamily: 'ui-monospace, monospace' }}>

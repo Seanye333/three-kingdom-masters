@@ -75,7 +75,7 @@
 .titleZh {
   font-size: 1.75rem;
   color: #e6c473;
-  letter-spacing: 0.4rem;
+  letter-spacing: 0.14rem;
 }
 
 .titleEn {
@@ -164,7 +164,7 @@
 .sectionDivider {
   font-size: 0.7rem;
   color: #7a8893;
-  letter-spacing: 0.3rem;
+  letter-spacing: 0.1rem;
   text-transform: uppercase;
   padding: 0.4rem 0;
   border-top: 1px dashed #2b3845;
@@ -211,7 +211,7 @@
     border-radius: 0 !important;
     border: none !important;
   }
-  .titleZh { font-size: 1.4rem !important; letter-spacing: 0.2rem !important; }
+  .titleZh { font-size: 1.4rem !important; letter-spacing: 0.07rem !important; }
   .titleEn { font-size: 0.7rem !important; }
   .entry, .row { font-size: 0.78rem !important; padding: 0.4rem 0.5rem !important; }
 }

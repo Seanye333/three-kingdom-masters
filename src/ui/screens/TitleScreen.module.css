@@ -62,7 +62,7 @@
 
 .titleEn {
   font-size: 0.9rem;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
   text-transform: uppercase;
   color: #7a8893;
   animation: tkmTitleFadeIn 1.4s ease-out 0.6s both;
@@ -90,7 +90,7 @@
 .forceLabel,
 .difficultyLabel {
   font-size: 0.7rem;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
   text-transform: uppercase;
   color: #7a8893;
   margin-bottom: 0.5rem;

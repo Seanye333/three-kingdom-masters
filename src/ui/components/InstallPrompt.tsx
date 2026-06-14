@@ -85,7 +85,7 @@ export function InstallPrompt() {
           style={{
             background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473',
             color: '#f2dd9a', padding: '0.45rem 1rem', cursor: 'pointer',
-            fontFamily: 'inherit', letterSpacing: '0.15rem', whiteSpace: 'nowrap',
+            fontFamily: 'inherit', letterSpacing: '0.05rem', whiteSpace: 'nowrap',
           }}
         >{t('安裝', 'Install')}</button>
       )}

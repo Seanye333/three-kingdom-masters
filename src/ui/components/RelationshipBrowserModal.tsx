@@ -120,7 +120,7 @@ export function RelationshipBrowserModal({ onClose, officersOverride }: Props) {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <div>
-            <div style={{ color: '#e6c473', fontSize: '1.3rem', letterSpacing: '0.4rem' }}>
+            <div style={{ color: '#e6c473', fontSize: '1.3rem', letterSpacing: '0.14rem' }}>
               {t('人物關係圖', 'Relationship Browser')}
             </div>
             <div style={{ fontSize: '0.68rem', color: '#7a8893', letterSpacing: '0.1rem' }}>
@@ -231,7 +231,7 @@ export function RelationshipBrowserModal({ onClose, officersOverride }: Props) {
                       </span>
                       <span style={{
                         fontSize: '0.62rem',
-                        letterSpacing: '0.15rem',
+                        letterSpacing: '0.05rem',
                         color: meta?.color ?? '#7a8893',
                       }}>
                         {meta ? (lang === 'en' ? meta.en : meta.zh) : e.kind}

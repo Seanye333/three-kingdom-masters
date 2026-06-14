@@ -32,7 +32,7 @@
 .eyebrow {
   font-family: ui-monospace, monospace;
   font-size: 0.65rem;
-  letter-spacing: 0.3rem;
+  letter-spacing: 0.1rem;
   color: #c9a64e;
   text-transform: uppercase;
   text-align: center;
@@ -43,7 +43,7 @@
   font-size: 2rem;
   font-weight: bold;
   text-align: center;
-  letter-spacing: 0.4rem;
+  letter-spacing: 0.14rem;
   color: #e6c473;
   text-shadow: 0 0 12px rgba(212, 168, 74, 0.4);
 }
@@ -93,7 +93,7 @@
   padding: 0.6rem 2rem;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
   font-size: 1rem;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
   cursor: pointer;
   transition: all 0.15s;
 }

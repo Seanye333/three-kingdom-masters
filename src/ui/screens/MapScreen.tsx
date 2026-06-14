@@ -765,7 +765,7 @@ export function MapScreen() {
             maxWidth: 280,
           }}
         >
-          <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#c9a64e' }}>
+          <div style={{ fontSize: '0.65rem', letterSpacing: '0.1rem', color: '#c9a64e' }}>
             稱號 EARNED
           </div>
           {recentDeedTitles.slice(-3).map((g, i) => {
@@ -808,7 +808,7 @@ export function MapScreen() {
             maxWidth: 280,
           }}
         >
-          <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#d96a4a' }}>
+          <div style={{ fontSize: '0.65rem', letterSpacing: '0.1rem', color: '#d96a4a' }}>
             威名 PRESTIGE
           </div>
           {recentPrestige.slice(-3).map((g, i) => {

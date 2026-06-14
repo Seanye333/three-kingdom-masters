@@ -40,7 +40,7 @@ export function DebateModal({ me, foe, onDone }: {
         width: 'min(620px,100%)', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
         color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.3rem',
       }}>
-        <div style={{ textAlign: 'center', fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.35rem', marginBottom: '0.7rem' }}>
+        <div style={{ textAlign: 'center', fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.04rem', marginBottom: '0.7rem' }}>
           💬 {t('舌戰', 'War of Words')}
         </div>
         {/* The two minds */}
@@ -72,7 +72,7 @@ export function DebateModal({ me, foe, onDone }: {
             onClick={() => onDone({ won: state.winner === 'a', collapse: state.collapse })}
             style={{
               background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473',
-              color: '#f2dd9a', padding: '0.5rem', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.25rem',
+              color: '#f2dd9a', padding: '0.5rem', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08rem',
             }}
           >{state.winner === 'a' ? t('✓ 舌戰得勝', '✓ Victory') : t('敗下陣來…', 'Defeated…')}</button>
         ) : (

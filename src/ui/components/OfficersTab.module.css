@@ -31,7 +31,7 @@
 .titleZh {
   font-size: 1.75rem;
   color: #e6c473;
-  letter-spacing: 0.4rem;
+  letter-spacing: 0.14rem;
 }
 
 .titleEn {
@@ -71,7 +71,7 @@
 
 .controlLabel {
   font-size: 0.7rem;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   text-transform: uppercase;
   color: #7a8893;
   min-width: 50px;
@@ -116,7 +116,7 @@
   padding: 0.4rem 0.35rem;
   border-bottom: 1px solid #2b3845;
   font-size: 0.65rem;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   text-transform: uppercase;
   color: #7a8893;
   position: sticky;

@@ -4126,7 +4126,7 @@ export function TacticalBattleScreen3D() {
               fontFamily: 'Songti SC, serif',
               fontSize: '0.9rem',
               color: '#e8c878',
-              letterSpacing: '0.2rem',
+              letterSpacing: '0.07rem',
               opacity: 0.7,
             }}>
               {lang === 'zh' ? '★ 簽名戰法 ★' : '★ Signature Stratagem ★'}
@@ -4270,7 +4270,7 @@ export function TacticalBattleScreen3D() {
             <div style={{ fontSize: '0.95rem', color: '#a89070', marginTop: '0.3rem', fontFamily: 'ui-monospace, monospace' }}>
               {tally(me).toLocaleString()} {t('對', 'vs')} {tally(foe).toLocaleString()}
             </div>
-            <div style={{ fontSize: '0.9rem', color: winColor, marginTop: '0.35rem', letterSpacing: '0.2rem' }}>
+            <div style={{ fontSize: '0.9rem', color: winColor, marginTop: '0.35rem', letterSpacing: '0.07rem' }}>
               {t('預估勝算', 'Est. odds')} ~{win}%
             </div>
           </div>
@@ -4297,7 +4297,7 @@ export function TacticalBattleScreen3D() {
             }}>{ch}</div>
             <div className="tkm-victory-sub" style={{
               fontFamily: 'Songti SC, serif', fontSize: 'clamp(1rem, 4vw, 2rem)',
-              color: col, letterSpacing: '0.4rem', marginTop: '0.5rem',
+              color: col, letterSpacing: '0.14rem', marginTop: '0.5rem',
               textShadow: '0 2px 8px #000',
             }}>{sub}</div>
           </div>
@@ -4468,7 +4468,7 @@ function UnitPanel3D({
       boxShadow: '0 0 16px rgba(212, 168, 74, 0.4)',
       overflowY: 'auto',
     }}>
-      <div style={{ fontSize: '0.62rem', color: '#8a7050', letterSpacing: '0.15rem' }}>{t('已選', 'SELECTED')}</div>
+      <div style={{ fontSize: '0.62rem', color: '#8a7050', letterSpacing: '0.05rem' }}>{t('已選', 'SELECTED')}</div>
       {/* 武將立繪(風格化頭像)— 姓字印 + 角色徽,無美術資源時的代位畫像。 */}
       {(() => {
         const st = officer?.stats;
@@ -4563,7 +4563,7 @@ function UnitPanel3D({
 
       {availableStratagems.length > 0 && (
         <div style={{ marginTop: '0.6rem', borderTop: '1px dotted #3a2818', paddingTop: '0.4rem' }}>
-          <div style={{ fontSize: '0.62rem', color: '#d4a84a', letterSpacing: '0.15rem', marginBottom: '0.3rem' }}>{t('計略', 'STRATAGEMS')}</div>
+          <div style={{ fontSize: '0.62rem', color: '#d4a84a', letterSpacing: '0.05rem', marginBottom: '0.3rem' }}>{t('計略', 'STRATAGEMS')}</div>
           {availableStratagems.map((s) => {
             const cdKey = `${unit.id}-${s.id}`;
             const cd = (battle.stratagemCooldowns[cdKey] ?? 0) - battle.turn;
@@ -4603,7 +4603,7 @@ function UnitPanel3D({
 
       {personalTactics.length > 0 && (
         <div style={{ marginTop: '0.6rem', borderTop: '1px dotted #3a2818', paddingTop: '0.4rem' }}>
-          <div style={{ fontSize: '0.62rem', color: '#d4a84a', letterSpacing: '0.15rem', marginBottom: '0.3rem' }}>
+          <div style={{ fontSize: '0.62rem', color: '#d4a84a', letterSpacing: '0.05rem', marginBottom: '0.3rem' }}>
             ★ {t('個人戰法', 'PERSONAL')} <span style={{ color: '#6a5238' }}>({personalTactics.length})</span>
           </div>
           <div style={{ maxHeight: 232, overflowY: 'auto', paddingRight: 2 }}>

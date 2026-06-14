@@ -32,7 +32,7 @@
 .titleZh {
   font-size: 1.6rem;
   color: #e6c473;
-  letter-spacing: 0.4rem;
+  letter-spacing: 0.14rem;
 }
 
 .titleEn {
@@ -60,7 +60,7 @@
 .outcome {
   display: inline-block;
   padding: 0.35rem 1rem;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   font-size: 0.9rem;
   border: 1px solid;
 }
@@ -94,7 +94,7 @@
 
 .sideLabel {
   font-size: 0.7rem;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   text-transform: uppercase;
   color: #7a8893;
 }
@@ -172,7 +172,7 @@
 
 .sectionTitle {
   font-size: 0.7rem;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   text-transform: uppercase;
   color: #7a8893;
   margin: 0 0 0.4rem 0;

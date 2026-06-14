@@ -71,7 +71,7 @@ export function DuelGameModal({
     </div>
   );
   const guardPips = (n: number) => (
-    <div style={{ fontSize: '0.7rem', color: n >= POWER_GUARD_COST ? '#e6c473' : '#6a5238', letterSpacing: '0.15rem' }}>
+    <div style={{ fontSize: '0.7rem', color: n >= POWER_GUARD_COST ? '#e6c473' : '#6a5238', letterSpacing: '0.05rem' }}>
       {t('氣', 'GD')} {'◆'.repeat(n)}{'◇'.repeat(Math.max(0, POWER_GUARD_COST - n))}
     </div>
   );
@@ -85,7 +85,7 @@ export function DuelGameModal({
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'grid', placeItems: 'center', zIndex: 130 }}>
       <div style={{ width: 560, maxWidth: '95vw', background: '#1f1810', border: '1px solid #e6c473', padding: '1.25rem', fontFamily: 'Songti SC, serif', color: '#e6edf3' }}>
-        <div style={{ textAlign: 'center', color: '#e6c473', letterSpacing: '0.4rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
+        <div style={{ textAlign: 'center', color: '#e6c473', letterSpacing: '0.14rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
           ⚔ {t('單挑', 'Single Combat')}
         </div>
 
@@ -116,7 +116,7 @@ export function DuelGameModal({
             style={{
               marginTop: '0.9rem', width: '100%', padding: '0.4rem',
               background: 'rgba(184, 88, 74, 0.18)', border: '1px solid #b8584a',
-              color: '#e8b0a0', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem',
+              color: '#e8b0a0', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.07rem',
             }}
             title={t('開打前先罵陣搦戰 — 武力+魅力壓過對手則蓄一記奮擊,反之自亂陣腳', 'Taunt before blows — win on War+Charisma to bank an Overpower, lose and rattle yourself')}
           >🗣 {t('罵陣搦戰', 'Taunt')}</button>
@@ -155,10 +155,10 @@ export function DuelGameModal({
 
         {bout.over && (
           <div style={{ marginTop: '0.6rem', textAlign: 'center' }}>
-            <div style={{ color: bout.killedId ? '#b8442e' : '#e6c473', fontSize: '1.05rem', letterSpacing: '0.2rem', marginBottom: '0.6rem' }}>{resultText}</div>
+            <div style={{ color: bout.killedId ? '#b8442e' : '#e6c473', fontSize: '1.05rem', letterSpacing: '0.07rem', marginBottom: '0.6rem' }}>{resultText}</div>
             <button
               onClick={() => onComplete({ winner: bout.winner ?? 'draw', killedId: bout.killedId as 'attacker' | 'defender' | undefined })}
-              style={{ padding: '0.45rem 1.6rem', background: '#1e2832', border: '1px solid #e6c473', color: '#e6c473', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem' }}
+              style={{ padding: '0.45rem 1.6rem', background: '#1e2832', border: '1px solid #e6c473', color: '#e6c473', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.07rem' }}
             >
               {t('確定', 'Continue')}
             </button>

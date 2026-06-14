@@ -91,7 +91,7 @@ export function DeedsModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('武功榜', 'Heroic Deeds')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>{t('武功榜', 'Heroic Deeds')}</div>
             {lang === 'both' && <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Heroic Deeds Leaderboard</div>}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -225,7 +225,7 @@ export function DeedsModal({ onClose }: Props) {
 }
 
 function th() {
-  return { textAlign: 'left' as const, padding: '0.4rem 0.5rem', fontWeight: 'normal' as const, fontSize: '0.72rem', letterSpacing: '0.15rem', textTransform: 'uppercase' as const };
+  return { textAlign: 'left' as const, padding: '0.4rem 0.5rem', fontWeight: 'normal' as const, fontSize: '0.72rem', letterSpacing: '0.05rem', textTransform: 'uppercase' as const };
 }
 function td() {
   return { padding: '0.35rem 0.5rem' };

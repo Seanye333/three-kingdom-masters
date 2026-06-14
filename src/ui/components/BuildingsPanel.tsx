@@ -31,7 +31,7 @@ export function BuildingsPanel({ cityId }: Props) {
 
   return (
     <div style={{ background: '#10161e', border: '1px solid #2b3845', padding: '0.6rem', marginTop: '0.6rem' }}>
-      <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+      <div style={{ fontSize: '0.7rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
         {t('建設', 'Buildings')}
       </div>
       {specialty && (
@@ -93,7 +93,7 @@ export function BuildingsPanel({ cityId }: Props) {
 
       {/* Auto-build queue */}
       <div style={{ marginTop: '0.5rem', borderTop: '1px dotted #26323e', paddingTop: '0.4rem' }}>
-        <div style={{ fontSize: '0.65rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+        <div style={{ fontSize: '0.65rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
           {t('自動建造佇列', 'Auto-Build Queue')} {autoQueue.length > 0 && `(${autoQueue.length})`}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>

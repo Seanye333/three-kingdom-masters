@@ -30,7 +30,7 @@
 .titleZh {
   font-size: 1.4rem;
   color: #e6c473;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
 }
 
 .titleEn {
@@ -98,7 +98,7 @@
   padding: 0.5rem 1rem;
   font-family: inherit;
   cursor: pointer;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
 }
 
 .actionBtn:hover:not(:disabled) {

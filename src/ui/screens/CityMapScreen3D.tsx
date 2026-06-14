@@ -3286,7 +3286,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         zIndex: 10,
       }}>
-        <div style={{ color: '#d4a84a', fontFamily: 'Songti SC, serif', letterSpacing: '0.3rem' }}>
+        <div style={{ color: '#d4a84a', fontFamily: 'Songti SC, serif', letterSpacing: '0.1rem' }}>
           <span style={{ fontSize: '1.3rem' }}>{city.name.zh}</span>
           <span style={{ fontSize: '0.85rem', color: size.color, marginLeft: '0.6rem' }}>{size.name.zh}</span>
           <span style={{ fontSize: '0.7rem', color: '#8a7050', marginLeft: '0.8rem' }}>
@@ -3423,7 +3423,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-              <div style={{ color: '#d4a84a', letterSpacing: '0.2rem' }}>
+              <div style={{ color: '#d4a84a', letterSpacing: '0.07rem' }}>
                 {lang === 'en'
                   ? `${COMPASS_EN[selectedSlot]} Gate`
                   : `${COMPASS_ZH[selectedSlot]}面 · 第 ${selectedSlot + 1} 號位`}
@@ -3553,7 +3553,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                <div style={{ color: '#d4a84a', letterSpacing: '0.2rem' }}>
+                <div style={{ color: '#d4a84a', letterSpacing: '0.07rem' }}>
                   {existing ? '城内設施' : '營建新設施'}
                 </div>
                 <button onClick={() => setSelectedPlot(null)} style={{
@@ -3650,7 +3650,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             padding: '0.3rem 0.6rem',
             color: '#8a7050', fontFamily: 'Songti SC, serif',
-            fontSize: '0.7rem', letterSpacing: '0.15rem',
+            fontSize: '0.7rem', letterSpacing: '0.05rem',
           }}>
             點金色八角位 → 城外防禦 · 點地基(金框) → 城内營建
           </div>
@@ -3668,7 +3668,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
             boxShadow: '0 4px 18px rgba(0,0,0,0.5)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: inspect.color, fontSize: '1rem', letterSpacing: '0.2rem' }}>{inspect.title}</span>
+              <span style={{ color: inspect.color, fontSize: '1rem', letterSpacing: '0.07rem' }}>{inspect.title}</span>
               <button onClick={() => setInspect(null)} style={{
                 background: 'transparent', border: 'none', color: '#8a7050', cursor: 'pointer', fontSize: '0.9rem',
               }}>×</button>
@@ -3735,7 +3735,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
           color: '#b8a274', fontFamily: 'Songti SC, serif',
           fontSize: '0.66rem', lineHeight: 1.55, textAlign: 'right',
         }}>
-          <div style={{ color: '#8a7858', fontSize: '0.6rem', letterSpacing: '0.15rem', marginBottom: 2 }}>城景 · 實況</div>
+          <div style={{ color: '#8a7858', fontSize: '0.6rem', letterSpacing: '0.05rem', marginBottom: 2 }}>城景 · 實況</div>
           <div>市集 <span style={{ color: '#d4a84a' }}>商業 {city.commerce}/{econCap}</span></div>
           <div>屯田 <span style={{ color: '#9ac06a' }}>農業 {city.agriculture}/{econCap}</span></div>
           <div>行人 <span style={{ color: '#88b7e8' }}>人口 {city.population.toLocaleString()}</span></div>

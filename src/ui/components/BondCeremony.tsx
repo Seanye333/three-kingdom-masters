@@ -104,7 +104,7 @@ export function BondCeremony({ a, b, titleZh, titleEn, color, year, onDone }: Pr
         <div style={{ fontSize: '2.6rem', color: '#f2dd9a', fontFamily: '"Songti SC","Noto Serif SC",serif', textShadow: `0 0 18px ${hexA(color, 0.7)}, 0 2px 6px rgba(0,0,0,0.6)` }}>
           {titleZh}
         </div>
-        <div style={{ fontSize: '0.95rem', color: '#aab6c0', fontStyle: 'italic', letterSpacing: '0.2rem', marginTop: '0.4rem' }}>
+        <div style={{ fontSize: '0.95rem', color: '#aab6c0', fontStyle: 'italic', letterSpacing: '0.07rem', marginTop: '0.4rem' }}>
           {lang === 'zh' ? '' : titleEn}
         </div>
         <div style={{ fontSize: '1.05rem', color: '#e6edf3', marginTop: '0.6rem', fontFamily: '"Songti SC", serif' }}>

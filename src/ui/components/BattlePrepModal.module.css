@@ -30,7 +30,7 @@
 .titleZh {
   font-size: 1.5rem;
   color: #e6c473;
-  letter-spacing: 0.3rem;
+  letter-spacing: 0.1rem;
 }
 
 .titleEn {
@@ -67,7 +67,7 @@
 
 .sectionLabel {
   font-size: 0.7rem;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
   color: #7a8893;
   text-transform: uppercase;
 }
@@ -177,7 +177,7 @@
 
 .ctxLabel {
   font-size: 0.65rem;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   color: #7a8893;
   text-transform: uppercase;
   margin-bottom: 0.2rem;
@@ -203,7 +203,7 @@
   padding: 0.65rem 2rem;
   font-family: inherit;
   font-size: 1rem;
-  letter-spacing: 0.25rem;
+  letter-spacing: 0.08rem;
   cursor: pointer;
 }
 

@@ -69,7 +69,7 @@ export function SettingsModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('設定', 'Settings')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>{t('設定', 'Settings')}</div>
             <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>{t('遊戲偏好', 'Preferences')}</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -336,7 +336,7 @@ function ModRows() {
 function Section({ title, children }: { title: string; children: import('react').ReactNode }) {
   return (
     <div style={{ marginBottom: '1rem' }}>
-      <div style={{ fontSize: '0.7rem', letterSpacing: '0.25rem', color: '#c9a64e', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+      <div style={{ fontSize: '0.7rem', letterSpacing: '0.08rem', color: '#c9a64e', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
         {title}
       </div>
       {children}

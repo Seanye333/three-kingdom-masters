@@ -63,7 +63,7 @@ export function HeroModeModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('英雄模式', 'Hero Mode')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>{t('英雄模式', 'Hero Mode')}</div>
             <div style={{ fontSize: '0.82rem', color: '#7a8893', fontStyle: 'italic' }}>
               {t('限時挑戰 — 達成目標方得功成', 'Timed challenges — meet the goal before the clock runs out')}
             </div>

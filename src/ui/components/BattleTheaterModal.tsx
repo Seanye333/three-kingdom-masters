@@ -140,14 +140,14 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.8rem',
             color: 'var(--tkm-text-h2, #e6c473)',
-            letterSpacing: '0.4rem',
+            letterSpacing: '0.14rem',
           }}>
             {city?.name.zh ?? '?'} 之戰
           </div>
           <div style={{
             fontSize: '0.78rem',
             color: 'var(--tkm-text-muted)',
-            letterSpacing: '0.2rem',
+            letterSpacing: '0.07rem',
             marginTop: '0.2rem',
           }}>
             Battle of {city?.name.en ?? '?'}
@@ -218,7 +218,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
               fontFamily: 'var(--tkm-font-zh)',
               fontSize: '1.15rem',
               color: 'var(--tkm-text-h2, #e6c473)',
-              letterSpacing: '0.25rem',
+              letterSpacing: '0.08rem',
               marginBottom: '0.3rem',
             }}>
               第 {step + 1} 幕 · {PHASE_LABEL[currentPhase.phase]?.zh ?? currentPhase.phase}
@@ -227,7 +227,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
                 color: 'var(--tkm-text-muted)',
                 fontStyle: 'italic',
                 marginLeft: '0.5rem',
-                letterSpacing: '0.15rem',
+                letterSpacing: '0.05rem',
               }}>
                 {PHASE_LABEL[currentPhase.phase]?.en ?? currentPhase.phase}
               </span>
@@ -270,7 +270,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
                 color: battle.stratagem.succeeded ? 'var(--tkm-warn)' : 'var(--tkm-text-muted)',
                 textAlign: 'center',
                 marginBottom: '0.5rem',
-                letterSpacing: '0.2rem',
+                letterSpacing: '0.07rem',
               }}>
                 {battle.stratagem.succeeded ? '✓' : '✗'} {battle.stratagem.nameZh}（{battle.stratagem.nameEn}）
                 {battle.stratagem.succeeded ? ' 之計成' : ' 之計敗'}
@@ -346,7 +346,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
           fontSize: '0.7rem',
           color: 'var(--tkm-text-muted)',
           marginTop: '0.8rem',
-          letterSpacing: '0.2rem',
+          letterSpacing: '0.07rem',
         }}>
           {isSummary
             ? '⟫ 點擊任意處關閉'
@@ -494,14 +494,14 @@ function ArmyPanel({
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.15rem',
             color: 'var(--tkm-text-h1, #eef4f8)',
-            letterSpacing: '0.2rem',
+            letterSpacing: '0.07rem',
           }}>
             {officer.name.zh}
           </div>
           <div style={{
             fontSize: '0.7rem',
             color: 'var(--tkm-text-muted)',
-            letterSpacing: '0.15rem',
+            letterSpacing: '0.05rem',
           }}>
             {force?.name.zh ?? '—'} · {troops.toLocaleString()} 兵
           </div>
@@ -512,7 +512,7 @@ function ArmyPanel({
         <div style={{
           fontSize: '0.65rem',
           color: 'var(--tkm-text-muted)',
-          letterSpacing: '0.15rem',
+          letterSpacing: '0.05rem',
           textAlign: align,
         }}>士氣 {Math.round(morale)}</div>
         <div className="tkm-morale-bar">

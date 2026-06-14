@@ -296,7 +296,7 @@ export function BattlePrepModal({
             padding: '0.5rem 0.75rem', marginTop: '0.5rem', fontSize: '0.78rem',
             background: 'rgba(26,20,16,0.55)', border: '1px solid #2b3845',
           }}>
-            <span style={{ color: '#7a8893', letterSpacing: '0.15rem' }}>攻城方略</span>
+            <span style={{ color: '#7a8893', letterSpacing: '0.05rem' }}>攻城方略</span>
             {([
               { id: 'storm' as const, zh: '強攻', en: 'Storm', hint: lang === 'zh' ? '直接攻城' : 'Assault as-is', disabled: false },
               { id: 'invest' as const, zh: '圍困', en: 'Invest', hint: (lang === 'zh' ? `斷其糧道（軍糧 −${investFoodCost.toLocaleString()}）守軍飢疲` : `Starve them out (food −${investFoodCost.toLocaleString()})`), disabled: !canInvest },
@@ -349,7 +349,7 @@ export function BattlePrepModal({
                 background: 'rgba(26,20,16,0.55)', border: '1px solid #2b3845',
                 marginTop: '0.5rem',
               }}>
-                <span style={{ color: '#7a8893', letterSpacing: '0.2rem', marginRight: '0.3rem' }}>
+                <span style={{ color: '#7a8893', letterSpacing: '0.07rem', marginRight: '0.3rem' }}>
                   地形組成
                 </span>
                 {entries.map(([k, n]) => (

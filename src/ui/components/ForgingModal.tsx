@@ -73,14 +73,14 @@ export function ForgingModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>鍛造</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>鍛造</div>
             <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Forge & Smithy</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
 
         <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid #2b3845' }}>
-          <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+          <div style={{ fontSize: '0.7rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
             Foundry City
           </div>
           {foundryCities.length === 0 ? (

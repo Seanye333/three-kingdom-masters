@@ -168,8 +168,11 @@ body {
   background: var(--tkm-bg);
   color: var(--tkm-text-body);
   font-family: var(--tkm-font-body);
+  /* CJK serif wants air between lines; the default ~1.2 read cramped. */
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* ─── Phase 32: shared visual polish ───────────────────────────────── */
@@ -749,8 +752,8 @@ button:not(:disabled):active {
   100% { box-shadow: 0 0 14px 0 rgba(212, 168, 74, 0.5); }
 }
 @keyframes tkmAchTitlePulse {
-  0%, 100% { letter-spacing: 0.3rem; text-shadow: 0 0 4px rgba(193, 154, 59, 0.4); }
-  50%      { letter-spacing: 0.4rem; text-shadow: 0 0 12px rgba(193, 154, 59, 0.95); }
+  0%, 100% { letter-spacing: 0.1rem; text-shadow: 0 0 4px rgba(193, 154, 59, 0.4); }
+  50%      { letter-spacing: 0.14rem; text-shadow: 0 0 12px rgba(193, 154, 59, 0.95); }
 }
 .tkm-ach-toast {
   animation: tkmAchToastBurst 1.2s ease-out forwards;

@@ -74,7 +74,7 @@ export function CareerModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('一代記', 'Chronicle')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>{t('一代記', 'Chronicle')}</div>
             <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
               {lang === 'en' ? `Career: ${officer?.name.en ?? '?'}` : `主角 ${officer?.name.zh ?? '?'}`}
             </div>
@@ -92,7 +92,7 @@ export function CareerModal({ onClose }: Props) {
               marginBottom: '1rem',
             }}
           >
-            <div style={{ fontSize: '1.8rem', color: '#e6c473', letterSpacing: '0.3rem' }}>
+            <div style={{ fontSize: '1.8rem', color: '#e6c473', letterSpacing: '0.1rem' }}>
               {lang === 'en' ? officer?.name.en : officer?.name.zh}
               {lang === 'both' && <> <span style={{ fontSize: '0.95rem', color: '#7a8893', fontStyle: 'italic' }}>{officer?.name.en}</span></>}
             </div>
@@ -124,7 +124,7 @@ export function CareerModal({ onClose }: Props) {
             return (
               <div style={{ background: '#10161e', border: '1px solid #e6c473', padding: '0.85rem', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-                  <div style={{ color: '#e6c473', letterSpacing: '0.2rem' }}>
+                  <div style={{ color: '#e6c473', letterSpacing: '0.07rem' }}>
                     {t('身份', 'Standing')} · <strong>{lang === 'en' ? s.status.en : s.status.zh}</strong>
                     <span style={{ fontSize: '0.78rem', color: '#7a8893', marginLeft: '0.5rem' }}>{t('品', 'Rank')} {s.rank}</span>
                   </div>
@@ -140,7 +140,7 @@ export function CareerModal({ onClose }: Props) {
                 </div>
                 {/* 品階特權 — unlocked perks light up as the hero climbs */}
                 <div style={{ marginTop: '0.6rem', borderTop: '1px solid #1e2832', paddingTop: '0.5rem' }}>
-                  <div style={{ fontSize: '0.66rem', letterSpacing: '0.15rem', color: '#7a8893', marginBottom: '0.3rem' }}>{t('品階特權', 'Rank Privileges')}</div>
+                  <div style={{ fontSize: '0.66rem', letterSpacing: '0.05rem', color: '#7a8893', marginBottom: '0.3rem' }}>{t('品階特權', 'Rank Privileges')}</div>
                   {careerPrivileges(s).map((p, i) => (
                     <div key={i} style={{ fontSize: '0.76rem', color: p.unlocked ? '#7ed68a' : '#6a5238', marginTop: '0.15rem' }}>
                       {p.unlocked ? '✓' : '○'} {lang === 'en' ? p.en : p.zh}
@@ -154,7 +154,7 @@ export function CareerModal({ onClose }: Props) {
           {/* Deeds summary */}
           {d && (
             <div style={{ background: '#10161e', border: '1px solid #2b3845', padding: '0.85rem', marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              <div style={{ fontSize: '0.7rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                 {t('武功', 'Deeds')}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', fontFamily: 'ui-monospace, monospace', fontSize: '0.8rem' }}>
@@ -172,7 +172,7 @@ export function CareerModal({ onClose }: Props) {
 
           {/* Milestone timeline */}
           <div style={{ background: '#10161e', border: '1px solid #2b3845', padding: '0.85rem' }}>
-            <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.7rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
               {t('年譜', 'Chronicle')} ({career.milestones.length})
             </div>
             {career.milestones.length === 0 ? (

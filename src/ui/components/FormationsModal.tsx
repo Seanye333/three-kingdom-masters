@@ -121,11 +121,11 @@ export function FormationsModal({ onClose }: Props) {
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.5rem',
             color: 'var(--tkm-text-h2, #e6c473)',
-            letterSpacing: '0.3rem',
+            letterSpacing: '0.1rem',
           }}>
             陣形
           </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--tkm-text-muted, #7a8893)', letterSpacing: '0.2rem', flex: 1 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--tkm-text-muted, #7a8893)', letterSpacing: '0.07rem', flex: 1 }}>
             {t(`${FORMATIONS.length} 種`, `FORMATIONS · ${FORMATIONS.length}`)}
           </div>
           <button
@@ -158,7 +158,7 @@ export function FormationsModal({ onClose }: Props) {
                   padding: '0.3rem 0.7rem',
                   fontFamily: 'var(--tkm-font-body)',
                   fontSize: '0.78rem',
-                  letterSpacing: '0.15rem',
+                  letterSpacing: '0.05rem',
                   cursor: 'pointer',
                 }}
               >
@@ -178,7 +178,7 @@ export function FormationsModal({ onClose }: Props) {
                 padding: '0.3rem 0.7rem',
                 fontFamily: 'var(--tkm-font-body)',
                 fontSize: '0.78rem',
-                letterSpacing: '0.15rem',
+                letterSpacing: '0.05rem',
                 cursor: 'pointer',
                 marginLeft: '0.4rem',
               }}
@@ -229,7 +229,7 @@ export function FormationsModal({ onClose }: Props) {
                     fontFamily: 'var(--tkm-font-zh)',
                     fontSize: '1.3rem',
                     color: 'var(--tkm-text-h1, #eef4f8)',
-                    letterSpacing: '0.2rem',
+                    letterSpacing: '0.07rem',
                   }}>
                     {lang === 'en' ? f.name.en : f.name.zh}
                   </span>
@@ -269,7 +269,7 @@ export function FormationsModal({ onClose }: Props) {
                   }}>{f.minIntelligence}</span></span>
                   <span style={{
                     color: accent,
-                    letterSpacing: '0.15rem',
+                    letterSpacing: '0.05rem',
                   }}>
                     {lang === 'en' ? CATEGORY_LABEL[c].en : CATEGORY_LABEL[c].zh}
                   </span>

@@ -270,7 +270,7 @@ export function EspionageModal({ onClose }: Props) {
               display: 'flex', alignItems: 'center', gap: '0.5rem',
               minWidth: '160px',
             }}>
-              <span style={{ fontSize: '0.7rem', color: '#7a8893', letterSpacing: '0.15rem' }}>
+              <span style={{ fontSize: '0.7rem', color: '#7a8893', letterSpacing: '0.05rem' }}>
                 估算
               </span>
               <div style={{

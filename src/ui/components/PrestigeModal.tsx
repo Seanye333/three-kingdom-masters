@@ -52,7 +52,7 @@ export function PrestigeModal({ onClose }: Props) {
       <div style={panel} onClick={(e) => e.stopPropagation()}>
         <header style={header}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('威名一覽', 'Prestige')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>{t('威名一覽', 'Prestige')}</div>
             <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>
               {t('憑天資與功業而得的名望階層', 'Reputation ranks earned through talent and deeds')}
             </div>

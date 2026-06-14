@@ -82,14 +82,14 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.5rem',
             color: 'var(--tkm-text-h2, #e6c473)',
-            letterSpacing: '0.3rem',
+            letterSpacing: '0.1rem',
           }}>
             {lang === 'en' ? title.en : title.zh}
           </div>
           <div style={{
             fontSize: '0.78rem',
             color: 'var(--tkm-text-muted, #7a8893)',
-            letterSpacing: '0.2rem',
+            letterSpacing: '0.07rem',
             flex: 1,
           }}>
             {lang === 'zh' ? `${items.length} 種` : lang === 'en' ? `${title.en.toUpperCase()} · ${items.length}` : `${title.en.toUpperCase()} · ${items.length} 種`}
@@ -123,7 +123,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
                     padding: '0.3rem 0.7rem',
                     fontFamily: 'var(--tkm-font-body)',
                     fontSize: '0.78rem',
-                    letterSpacing: '0.15rem',
+                    letterSpacing: '0.05rem',
                     cursor: 'pointer',
                   }}
                 >
@@ -175,7 +175,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
                     fontFamily: 'var(--tkm-font-zh)',
                     fontSize: '1.25rem',
                     color: 'var(--tkm-text-h1, #eef4f8)',
-                    letterSpacing: '0.2rem',
+                    letterSpacing: '0.07rem',
                   }}>
                     {lang === 'en' ? it.en : it.zh}
                   </span>
@@ -215,7 +215,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
                     display: 'flex', justifyContent: 'flex-end',
                     fontSize: '0.7rem',
                     color: it.tag.color,
-                    letterSpacing: '0.15rem',
+                    letterSpacing: '0.05rem',
                     borderTop: '1px solid var(--tkm-border-soft)',
                     paddingTop: '0.4rem',
                     marginTop: '0.5rem',

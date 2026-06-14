@@ -40,7 +40,7 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
           boxShadow: `0 0 30px ${accent}44`,
         }}
       >
-        <div style={{ fontSize: '0.95rem', letterSpacing: '0.4rem', color: accent, marginBottom: '0.1rem' }}>
+        <div style={{ fontSize: '0.95rem', letterSpacing: '0.14rem', color: accent, marginBottom: '0.1rem' }}>
           🎉 {t('招攬成功', 'Recruited!')}
         </div>
         <div style={{ fontSize: '0.72rem', color: '#7a8893', marginBottom: '0.8rem' }}>
@@ -86,7 +86,7 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
           style={{
             width: '100%', padding: '0.5rem', cursor: 'pointer',
             background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: `1px solid ${accent}`,
-            color: '#f2dd9a', fontFamily: 'inherit', letterSpacing: '0.3rem',
+            color: '#f2dd9a', fontFamily: 'inherit', letterSpacing: '0.1rem',
           }}
         >{t('善', 'Excellent')}</button>
       </div>

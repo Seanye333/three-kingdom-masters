@@ -42,7 +42,7 @@ export function WordWarModal({ result, onClose }: Props) {
         <div
           style={{
             fontSize: '0.7rem',
-            letterSpacing: '0.4rem',
+            letterSpacing: '0.14rem',
             color: '#c9a64e',
             textTransform: 'uppercase',
             marginBottom: '1rem',
@@ -53,7 +53,7 @@ export function WordWarModal({ result, onClose }: Props) {
 
         {cur ? (
           <>
-            <div style={{ fontSize: '1.1rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
+            <div style={{ fontSize: '1.1rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
               {lang === 'en' ? speaker?.name.en : speaker?.name.zh}
               {lang === 'both' && <> <span style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>{speaker?.name.en}</span></>}
             </div>
@@ -101,7 +101,7 @@ export function WordWarModal({ result, onClose }: Props) {
                 padding: '0.5rem 2rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',
-                letterSpacing: '0.2rem',
+                letterSpacing: '0.07rem',
               }}
             >
               {idx + 1 < total ? t('下一句', 'Next') : t('見分曉', 'Reveal')}
@@ -113,7 +113,7 @@ export function WordWarModal({ result, onClose }: Props) {
               style={{
                 fontSize: '2rem',
                 color: result.winnerSide === 'draw' ? '#c9a64e' : '#e6c473',
-                letterSpacing: '0.4rem',
+                letterSpacing: '0.14rem',
                 margin: '1.5rem 0',
               }}
             >
@@ -137,7 +137,7 @@ export function WordWarModal({ result, onClose }: Props) {
                 padding: '0.6rem 2rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',
-                letterSpacing: '0.3rem',
+                letterSpacing: '0.1rem',
               }}
             >
               {t('開戰', 'Begin Battle')}

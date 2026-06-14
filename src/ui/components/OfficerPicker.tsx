@@ -173,7 +173,7 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
               border: `1px solid ${picked.size > 0 ? '#e6c473' : '#26323e'}`,
               color: picked.size > 0 ? '#f2dd9a' : '#5a4a35',
               cursor: picked.size > 0 ? 'pointer' : 'not-allowed',
-              fontFamily: 'inherit', letterSpacing: '0.2rem', fontSize: '0.9rem',
+              fontFamily: 'inherit', letterSpacing: '0.07rem', fontSize: '0.9rem',
             }}
           >
             {picked.size === 0

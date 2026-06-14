@@ -98,7 +98,7 @@ export function RumorsModal({ onClose }: { onClose: () => void }) {
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.2rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🏮 {t('市井流言', 'Word on the Street')}</div>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>🏮 {t('市井流言', 'Word on the Street')}</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
         <div style={{ color: '#7a8893', fontSize: '0.72rem', fontStyle: 'italic', marginBottom: '0.7rem' }}>

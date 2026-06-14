@@ -328,7 +328,7 @@ function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
           fontFamily: 'Songti SC, serif', color: '#e6edf3',
         }}
       >
-        <div style={{ color: '#9ed68a', letterSpacing: '0.25rem', marginBottom: '0.3rem' }}>
+        <div style={{ color: '#9ed68a', letterSpacing: '0.08rem', marginBottom: '0.3rem' }}>
           ⚔ {t('演習點將', 'Drill Roster')}
         </div>
         <div style={{ color: '#7a8893', fontSize: '0.72rem', marginBottom: '0.6rem' }}>
@@ -369,7 +369,7 @@ function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
               flex: 1, padding: '0.45rem', cursor: picked.size > 0 ? 'pointer' : 'not-allowed',
               background: 'linear-gradient(180deg, #2a3a20, #1d2a16)',
               color: '#9ed68a', border: '1px solid #7ed68a', fontFamily: 'inherit',
-              letterSpacing: '0.15rem',
+              letterSpacing: '0.05rem',
             }}
           >{t('開始演習', 'Start Drill')}</button>
           <button
@@ -414,7 +414,7 @@ function MarketPanel({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
           minWidth: 320, maxWidth: 420, fontFamily: 'Songti SC, serif', color: '#e6edf3',
         }}
       >
-        <div style={{ color: '#e8c478', letterSpacing: '0.25rem', marginBottom: '0.2rem' }}>🪙 {t('市易', 'Grain Market')}</div>
+        <div style={{ color: '#e8c478', letterSpacing: '0.08rem', marginBottom: '0.2rem' }}>🪙 {t('市易', 'Grain Market')}</div>
         <div style={{ fontSize: '0.72rem', color: '#7a8893', marginBottom: '0.7rem' }}>
           {t(`時價:1金 ≈ ${rate.toFixed(1)}糧(市稅一成)· 庫:${city.gold}金 / ${city.food.toLocaleString()}糧`,
              `Rate: 1g ≈ ${rate.toFixed(1)} food (10% spread) · ${city.gold}g / ${city.food.toLocaleString()} food`)}

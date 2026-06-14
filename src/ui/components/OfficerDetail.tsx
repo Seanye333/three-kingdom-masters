@@ -184,7 +184,7 @@ export function OfficerDetail({
                 <div style={{
                   display: 'inline-block', marginTop: '0.3rem', padding: '0.12rem 0.5rem',
                   background: 'linear-gradient(180deg, #4a3a1a, #2a2010)', border: '1px solid #e6c473',
-                  color: '#f0d890', fontSize: '0.82rem', letterSpacing: '0.15rem', borderRadius: 2,
+                  color: '#f0d890', fontSize: '0.82rem', letterSpacing: '0.05rem', borderRadius: 2,
                 }}>
                   威名 · {lang === 'en' ? prestige.name.en : prestige.name.zh}
                 </div>
@@ -323,7 +323,7 @@ export function OfficerDetail({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.5rem', alignItems: 'baseline' }}>
               {officer.level !== undefined && (
                 <div>
-                  <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>{t('等級', 'Lv.')} </span>
+                  <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('等級', 'Lv.')} </span>
                   <span style={{ fontSize: '1.1rem', color: '#e6c473', fontFamily: 'ui-monospace, monospace' }}>
                     {officer.level}
                   </span>
@@ -333,7 +333,7 @@ export function OfficerDetail({
                 const d = DOCTRINE_DEFS[officer.doctrine];
                 return (
                   <div>
-                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>{t('主義', 'Doctrine')} </span>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('主義', 'Doctrine')} </span>
                     <span
                       title={`${d.zh} · ${d.en}`}
                       style={{
@@ -352,7 +352,7 @@ export function OfficerDetail({
                 const w = WEAPON_TYPE_DEFS[wt];
                 return (
                   <div>
-                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>{t('兵裝', 'Weapon')} </span>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('兵裝', 'Weapon')} </span>
                     <span
                       title={`${w.zh} · ${w.en}`}
                       style={{
@@ -447,7 +447,7 @@ export function OfficerDetail({
               if (combos.length === 0) return null;
               return (
                 <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: '#7a8893' }}>
-                  <div style={{ color: '#e6c473', marginBottom: '0.2rem', letterSpacing: '0.15rem' }}>
+                  <div style={{ color: '#e6c473', marginBottom: '0.2rem', letterSpacing: '0.05rem' }}>
                     {t('連環戰法進度', 'Combo Progress')}
                   </div>
                   {combos.map(({ combo, have, miss }) => (
@@ -919,7 +919,7 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
             {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>{other.name.en}</span></>}
           </span>
           <span style={{
-            fontSize: '0.65rem', letterSpacing: '0.15rem', textTransform: 'uppercase',
+            fontSize: '0.65rem', letterSpacing: '0.05rem', textTransform: 'uppercase',
             color: meta.color,
           }}>
             {lang === 'en' ? meta.en : lang === 'both' ? `${meta.zh} ${meta.en}` : meta.zh}
@@ -964,7 +964,7 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
                 <span style={{
                   color: meta.color,
                   fontSize: '0.72rem',
-                  letterSpacing: '0.2rem',
+                  letterSpacing: '0.07rem',
                 }}>
                   {isCollapsed ? '▸' : '▾'} {lang === 'en' ? meta.en : meta.zh}
                   <span style={{ marginLeft: 4, fontSize: '0.62rem', opacity: 0.7 }}>({arr.length})</span>
@@ -1011,7 +1011,7 @@ function CampaignChronicleBlock({ officer }: { officer: Officer }) {
   return (
     <div style={{ marginTop: '0.6rem', borderTop: '1px dashed #26323e', paddingTop: '0.5rem' }}>
       <div style={{
-        fontSize: '0.66rem', color: '#c9a64e', letterSpacing: '0.25rem',
+        fontSize: '0.66rem', color: '#c9a64e', letterSpacing: '0.08rem',
         textTransform: 'uppercase', fontFamily: 'ui-monospace, monospace', marginBottom: 4,
       }}>{t('本朝實錄', 'This campaign')}</div>
       {paragraphs.map((p, i) => (
@@ -1039,7 +1039,7 @@ function BiographyBlock({ officer }: { officer: Officer }) {
           style={{
             fontSize: '0.72rem',
             color: '#c9a64e',
-            letterSpacing: '0.2rem',
+            letterSpacing: '0.07rem',
             textTransform: 'uppercase',
             fontFamily: 'ui-monospace, monospace',
           }}
@@ -1573,7 +1573,7 @@ function FamilyTreeSection({ officerId, officersOverride }: {
               boxShadow: '0 0 12px rgba(212,168,74,0.4)',
             }}
           >
-            <span style={{ color: '#e6c473', fontSize: '0.62rem', letterSpacing: '0.15rem' }}>
+            <span style={{ color: '#e6c473', fontSize: '0.62rem', letterSpacing: '0.05rem' }}>
               {t('本人', 'Self')}
             </span>
             <span style={{ color: '#ffd47a', fontSize: '0.95rem', marginTop: 2, fontWeight: 600 }}>

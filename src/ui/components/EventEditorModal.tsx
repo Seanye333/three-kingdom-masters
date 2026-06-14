@@ -98,7 +98,7 @@ export function EventEditorModal({ scenario, onClose }: Props) {
       <div style={panel} onClick={(e) => e.stopPropagation()}>
         <header style={header}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('事件編輯器', 'Event Editor')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>{t('事件編輯器', 'Event Editor')}</div>
             <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>
               {lang === 'en' ? scenario.name.en : scenario.name.zh} · {t('自製事件於遊戲中觸發', 'Authored events fire during play')}
             </div>
@@ -196,7 +196,7 @@ export function EventEditorModal({ scenario, onClose }: Props) {
 const overlay: CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' };
 const panel: CSSProperties = { background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: 'min(720px,100%)', maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif' };
 const header: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845' };
-const sectionLabel: CSSProperties = { fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' };
+const sectionLabel: CSSProperties = { fontSize: '0.7rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' };
 const inp: CSSProperties = { background: '#14100c', border: '1px solid #2b3845', color: '#e6edf3', padding: '0.35rem 0.5rem', fontFamily: 'inherit', fontSize: '0.82rem' };
 const sel: CSSProperties = { ...inp };
 const miniBtn: CSSProperties = { background: '#1e2832', border: '1px solid #2b3845', color: '#e6c473', padding: '0.15rem 0.5rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem' };

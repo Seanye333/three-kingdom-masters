@@ -192,7 +192,7 @@ export function TitleScreen() {
   const whatIfBadge: CSSProperties = {
     marginLeft: 'auto', background: '#26323e', color: '#c178c7',
     border: '1px solid #c178c7', padding: '0.08rem 0.4rem',
-    fontSize: '0.6rem', letterSpacing: '0.15rem', borderRadius: 2,
+    fontSize: '0.6rem', letterSpacing: '0.05rem', borderRadius: 2,
   };
   const navPrimary = (enabled: boolean): CSSProperties => ({
     borderColor: enabled ? '#e6c473' : '#2b3845',
@@ -294,7 +294,7 @@ export function TitleScreen() {
                 border: '1px solid #b8584a', background: 'rgba(184, 88, 74, 0.08)',
                 padding: '0.45rem 0.8rem', marginBottom: '0.7rem', fontSize: '0.82rem',
               }}>
-                <span style={{ color: '#ff9080', letterSpacing: '0.15rem' }}>🔥 {t('每日挑戰', 'Daily')} {todayStr}</span>
+                <span style={{ color: '#ff9080', letterSpacing: '0.05rem' }}>🔥 {t('每日挑戰', 'Daily')} {todayStr}</span>
                 <span style={{ color: '#e6edf3' }}>
                   {lang === 'en' ? dailyScenario.name.en : dailyScenario.name.zh} · {lang === 'en' ? dailyForce.name.en : dailyForce.name.zh}
                 </span>
@@ -321,7 +321,7 @@ export function TitleScreen() {
                   style={{
                     marginLeft: 'auto', background: 'linear-gradient(180deg,#4a2418,#321810)',
                     border: '1px solid #ff7050', color: '#ffb0a0', padding: '0.3rem 1rem',
-                    cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem',
+                    cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.07rem',
                   }}
                 >{dailyResult ? t('再戰', 'Again') : t('應戰', 'Accept')}</button>
                 <button
@@ -429,7 +429,7 @@ export function TitleScreen() {
             {/* Hero Mode — timed challenge scenarios */}
             <button
               className={styles.officersButton}
-              style={{ marginTop: '0.6rem', borderColor: '#c0504a', color: '#e2a07a', letterSpacing: '0.12rem' }}
+              style={{ marginTop: '0.6rem', borderColor: '#c0504a', color: '#e2a07a', letterSpacing: '0.04rem' }}
               onClick={() => setShowHeroMode(true)}
             >
               ⚔ {t('英雄模式 — 限時挑戰', 'Hero Mode — Timed Challenges')}

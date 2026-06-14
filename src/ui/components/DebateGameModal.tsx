@@ -53,7 +53,7 @@ export function DebateGameModal({
     </div>
   );
   const pips = (n: number) => (
-    <div style={{ fontSize: '0.7rem', color: n >= PRESS_MOMENTUM_COST ? '#e6c473' : '#6a5238', letterSpacing: '0.15rem' }}>
+    <div style={{ fontSize: '0.7rem', color: n >= PRESS_MOMENTUM_COST ? '#e6c473' : '#6a5238', letterSpacing: '0.05rem' }}>
       {t('勢', 'MO')} {'◆'.repeat(n)}{'◇'.repeat(Math.max(0, PRESS_MOMENTUM_COST - n))}
     </div>
   );
@@ -68,7 +68,7 @@ export function DebateGameModal({
     // buried whenever the 3D view was up.
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'grid', placeItems: 'center', zIndex: 1100 }}>
       <div style={{ width: 560, maxWidth: '95vw', background: '#16140f', border: '1px solid #88b7e8', padding: '1.25rem', fontFamily: 'Songti SC, serif', color: '#e6edf3' }}>
-        <div style={{ textAlign: 'center', color: '#88b7e8', letterSpacing: '0.4rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
+        <div style={{ textAlign: 'center', color: '#88b7e8', letterSpacing: '0.14rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
           舌 {t('戰', 'War of Words')}
         </div>
 
@@ -123,14 +123,14 @@ export function DebateGameModal({
 
         {bout.over && (
           <div style={{ marginTop: '0.6rem', textAlign: 'center' }}>
-            <div style={{ color: '#88b7e8', fontSize: '1.05rem', letterSpacing: '0.2rem', marginBottom: '0.6rem' }}>{resultText}</div>
+            <div style={{ color: '#88b7e8', fontSize: '1.05rem', letterSpacing: '0.07rem', marginBottom: '0.6rem' }}>{resultText}</div>
             <button
               onClick={() => {
                 const { meDelta, foeDelta } = debateMoraleDeltas(bout);
                 const winner = bout.winner === 'a' ? 'me' : bout.winner === 'd' ? 'foe' : 'draw';
                 onComplete({ meDelta, foeDelta, winner });
               }}
-              style={{ padding: '0.45rem 1.6rem', background: '#26221a', border: '1px solid #88b7e8', color: '#88b7e8', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem' }}
+              style={{ padding: '0.45rem 1.6rem', background: '#26221a', border: '1px solid #88b7e8', color: '#88b7e8', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.07rem' }}
             >
               {t('確定', 'Continue')}
             </button>

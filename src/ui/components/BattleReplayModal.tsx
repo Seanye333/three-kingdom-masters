@@ -76,7 +76,7 @@ export function BattleReplayModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>戰史</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>戰史</div>
             <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Battle Replays</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -132,7 +132,7 @@ export function BattleReplayModal({ onClose }: Props) {
           <div style={{ overflowY: 'auto', padding: '1rem 1.5rem' }}>
             {replay ? (
               <>
-                <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
+                <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
                   {replay.cityName.zh} {replay.cityName.en}
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#7a8893', marginBottom: '1rem' }}>

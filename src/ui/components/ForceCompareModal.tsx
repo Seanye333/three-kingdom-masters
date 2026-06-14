@@ -86,7 +86,7 @@ export function ForceCompareModal({ onClose }: { onClose: () => void }) {
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>⚖ {t('較量', 'Compare')}</div>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>⚖ {t('較量', 'Compare')}</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
 
@@ -108,7 +108,7 @@ export function ForceCompareModal({ onClose }: { onClose: () => void }) {
 
             {rival && verdict && (
               <>
-                <div style={{ textAlign: 'center', color: verdict.color, fontSize: '1.05rem', letterSpacing: '0.2rem', marginBottom: '0.7rem' }}>
+                <div style={{ textAlign: 'center', color: verdict.color, fontSize: '1.05rem', letterSpacing: '0.07rem', marginBottom: '0.7rem' }}>
                   〔 {t(verdict.zh, verdict.en)} 〕
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

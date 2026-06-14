@@ -162,7 +162,7 @@ export function ItemsBrowser({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.3rem' }}>{t('名品', 'Items')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.1rem' }}>{t('名品', 'Items')}</div>
             <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
               {t(
                 `顯示 ${visible.length} / ${ITEMS.length}`,
@@ -298,12 +298,12 @@ function ItemCard({ item }: { item: Item }) {
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div style={{ fontSize: '0.95rem', color: '#e6c473', letterSpacing: '0.15rem' }}>
+        <div style={{ fontSize: '0.95rem', color: '#e6c473', letterSpacing: '0.05rem' }}>
           {lang === 'en' ? item.name.en : item.name.zh}
         </div>
         <div
           style={{
-            fontSize: '0.6rem', color, letterSpacing: '0.15rem', textTransform: 'uppercase',
+            fontSize: '0.6rem', color, letterSpacing: '0.05rem', textTransform: 'uppercase',
           }}
         >
           {lang === 'en' ? KIND_LABEL[item.kind].en : KIND_LABEL[item.kind].zh}

@@ -32,7 +32,7 @@
 .titleZh {
   font-size: 1.75rem;
   color: #e6c473;
-  letter-spacing: 0.4rem;
+  letter-spacing: 0.14rem;
 }
 
 .titleEn {
@@ -63,7 +63,7 @@
 .filterLabel {
   font-size: 0.7rem;
   color: #7a8893;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   text-transform: uppercase;
   min-width: 40px;
 }

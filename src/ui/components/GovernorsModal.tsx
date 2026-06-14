@@ -64,7 +64,7 @@ export function GovernorsModal({ onClose }: Props) {
       >
         <header style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.3rem' }}>州牧</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.1rem' }}>州牧</div>
             <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>
               Provincial Governors · appoint trusted officers to oversee a province
             </div>
@@ -87,7 +87,7 @@ export function GovernorsModal({ onClose }: Props) {
                   <li key={p.id} style={{ background: '#10161e', border: `1px solid ${p.color}`, padding: '0.7rem 1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
                       <div>
-                        <span style={{ fontSize: '1rem', color: p.color, letterSpacing: '0.2rem' }}>{lang === 'en' ? p.name.en : p.name.zh}</span>
+                        <span style={{ fontSize: '1rem', color: p.color, letterSpacing: '0.07rem' }}>{lang === 'en' ? p.name.en : p.name.zh}</span>
                         {lang === 'both' && <span style={{ fontSize: '0.72rem', color: '#7a8893', fontStyle: 'italic', marginLeft: '0.6rem' }}>{p.name.en}</span>}
                         <span style={{ fontSize: '0.7rem', color: '#aab6c0', marginLeft: '0.6rem' }}>
                           ({ownedCount} / {p.cityIds.length} cities held)

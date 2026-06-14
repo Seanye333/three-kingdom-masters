@@ -81,7 +81,7 @@ export function TutorialOverlay() {
       <div
         style={{
           fontSize: '0.65rem',
-          letterSpacing: '0.3rem',
+          letterSpacing: '0.1rem',
           color: '#c9a64e',
           textTransform: 'uppercase',
           marginBottom: '0.3rem',
@@ -89,7 +89,7 @@ export function TutorialOverlay() {
       >
         {t('教學', 'Tutorial')} {safeStep + 1} / {TUTORIAL_STEPS.length}
       </div>
-      <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
+      <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
         {lang === 'en' ? cur.titleEn : cur.titleZh}
       </div>
       {lang === 'both' && (
@@ -141,7 +141,7 @@ export function TutorialOverlay() {
             padding: '0.35rem 1rem',
             fontFamily: 'inherit',
             cursor: 'pointer',
-            letterSpacing: '0.15rem',
+            letterSpacing: '0.05rem',
           }}
         >
           {isLast ? t('完了', 'Done') : t('下一步', 'Next')}

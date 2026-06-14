@@ -86,7 +86,7 @@ export function ChronicleModal({ onClose }: { onClose: () => void }) {
           {years.length === 0 ? (
             <div style={{
               textAlign: 'center', color: '#7a8893', padding: '3rem 1rem',
-              fontStyle: 'italic', letterSpacing: '0.15rem',
+              fontStyle: 'italic', letterSpacing: '0.05rem',
             }}>
               {t('史官尚未動筆 — 去攻下一座城,或守住一場圍攻。', 'The historian\'s brush is dry — take a city, or hold one.')}
             </div>
@@ -98,7 +98,7 @@ export function ChronicleModal({ onClose }: { onClose: () => void }) {
                   display: 'flex', alignItems: 'center', gap: '0.7rem', margin: '0.4rem 0 0.6rem',
                 }}>
                   <span style={{
-                    fontSize: '1.05rem', color: '#e6c473', letterSpacing: '0.25rem',
+                    fontSize: '1.05rem', color: '#e6c473', letterSpacing: '0.08rem',
                     border: '1px solid #8a6f3a', padding: '0.1rem 0.6rem', borderRadius: 2,
                     background: 'rgba(212, 168, 74, 0.07)',
                   }}>{year}{t('年', ' AD')}</span>

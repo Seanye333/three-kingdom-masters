@@ -69,7 +69,7 @@ export function AdvisorModal({ onClose }: { onClose: () => void }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {advisor && <OfficerAvatar officer={advisor} size={42} />}
             <div>
-              <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🧠 {t('軍師錦囊', 'Advisor')}</div>
+              <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>🧠 {t('軍師錦囊', 'Advisor')}</div>
               <div style={{ fontSize: '0.72rem', color: '#7a8893' }}>
                 {advisor ? t(`${advisor.name.zh} 進言`, `${advisor.name.en} counsels`) : t('幕僚進言', 'Your aides counsel')}
               </div>
@@ -98,7 +98,7 @@ export function AdvisorModal({ onClose }: { onClose: () => void }) {
                 style={{
                   background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473',
                   color: '#f2dd9a', padding: '0.35rem 0.9rem', cursor: 'pointer',
-                  fontFamily: 'inherit', letterSpacing: '0.15rem', whiteSpace: 'nowrap',
+                  fontFamily: 'inherit', letterSpacing: '0.05rem', whiteSpace: 'nowrap',
                 }}
               >{t('照辦', 'Do it')}</button>
             ) : (

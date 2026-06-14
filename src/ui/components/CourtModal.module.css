@@ -32,7 +32,7 @@
 .titleZh {
   font-size: 1.4rem;
   color: #e6c473;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
 }
 
 .titleEn {
@@ -63,7 +63,7 @@
 .rankCurrent {
   font-size: 1.8rem;
   color: #e6c473;
-  letter-spacing: 0.4rem;
+  letter-spacing: 0.14rem;
 }
 
 .rankCurrentEn {
@@ -142,7 +142,7 @@
   padding: 0.5rem 0.6rem;
   font-family: inherit;
   cursor: pointer;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
   font-size: 0.85rem;
 }
 
@@ -198,7 +198,7 @@
 
 .historyTitle {
   font-size: 0.7rem;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
   color: #7a8893;
   text-transform: uppercase;
   margin-bottom: 0.4rem;

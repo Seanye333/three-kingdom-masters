@@ -25,7 +25,7 @@
 .nameZh {
   font-size: 1.75rem;
   color: #e6c473;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
 }
 
 .nameEn {
@@ -81,7 +81,7 @@
 
 .sectionTitle {
   font-size: 0.7rem;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
   text-transform: uppercase;
   color: #7a8893;
   margin: 0 0 0.5rem 0;

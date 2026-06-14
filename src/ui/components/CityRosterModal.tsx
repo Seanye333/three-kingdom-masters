@@ -42,7 +42,7 @@ export function CityRosterModal({ onClose }: { onClose: () => void }) {
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🏯 {t('郡縣一覽', 'Cities')} <span style={{ color: '#7a8893', fontSize: '0.8rem' }}>({rows.length})</span></div>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>🏯 {t('郡縣一覽', 'Cities')} <span style={{ color: '#7a8893', fontSize: '0.8rem' }}>({rows.length})</span></div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
         <input

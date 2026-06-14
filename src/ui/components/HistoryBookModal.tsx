@@ -52,7 +52,7 @@ export function HistoryBookModal({ onClose }: { onClose: () => void }) {
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.4rem', borderBottom: '1px solid #2b3845' }}>
           <div>
-            <div style={{ fontSize: '1.35rem', color: '#e6c473', letterSpacing: '0.3rem' }}>📜 《{forceName}本紀》</div>
+            <div style={{ fontSize: '1.35rem', color: '#e6c473', letterSpacing: '0.1rem' }}>📜 《{forceName}本紀》</div>
             <div style={{ fontSize: '0.72rem', color: '#7a8893', fontStyle: 'italic' }}>
               {victoryStatus === 'playing' ? t('未完之卷 — 至今實錄', 'The unfinished scroll — annals so far') : t('定本', 'Definitive edition')}
             </div>
@@ -69,7 +69,7 @@ export function HistoryBookModal({ onClose }: { onClose: () => void }) {
           {sections.map((sec) => (
             <div key={sec.title} style={{ marginBottom: '1.1rem' }}>
               <div style={{
-                fontSize: '0.95rem', color: '#c9a64e', letterSpacing: '0.4rem',
+                fontSize: '0.95rem', color: '#c9a64e', letterSpacing: '0.14rem',
                 borderBottom: '1px dashed #2b3845', paddingBottom: 4, marginBottom: 8,
               }}>{sec.title}</div>
               {sec.lines.map((l, i) => (

@@ -58,7 +58,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
               year={currentYear}
             />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '1rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
+              <div style={{ fontSize: '1rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
                 {officer.name.zh}{' '}
                 <span style={{ fontSize: '0.75rem', color: '#7a8893', fontStyle: 'italic' }}>
                   {officer.name.en}
@@ -77,7 +77,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
           </div>
           {t.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
-              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>
                 性格 TRAITS
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -103,7 +103,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
           )}
           {skills.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
-              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>
                 特技 SKILLS
               </div>
               <div style={{ fontSize: '0.72rem', color: '#c9a64e' }}>
@@ -113,7 +113,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
           )}
           {items.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
-              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>
                 持有 ITEMS ({items.length})
               </div>
               <div style={{ fontSize: '0.72rem', color: '#88b7e8' }}>

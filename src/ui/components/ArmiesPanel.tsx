@@ -54,7 +54,7 @@ export function ArmiesPanel() {
       boxShadow: '0 0 10px rgba(0,0,0,0.6)',
       pointerEvents: 'auto',
     }}>
-      <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: 3, display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ fontSize: '0.62rem', letterSpacing: '0.05rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: 3, display: 'flex', justifyContent: 'space-between' }}>
         <span>在途部隊 · Armies</span>
         {IS_MOBILE && (
           <button

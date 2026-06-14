@@ -86,12 +86,12 @@ export function PrestigeCeremony({ officer, titleId, color, year, onDone }: Prop
             ...anim('tkmBannerUnfurl 0.7s cubic-bezier(0.2,1.1,0.3,1) 0.4s both'),
           }}
         >
-          <span style={{ fontSize: '2.4rem', color: '#fff8e6', fontFamily: '"Songti SC","Noto Serif SC",serif', fontWeight: 'bold', letterSpacing: '0.3rem', textShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>
+          <span style={{ fontSize: '2.4rem', color: '#fff8e6', fontFamily: '"Songti SC","Noto Serif SC",serif', fontWeight: 'bold', letterSpacing: '0.1rem', textShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>
             {title.name.zh}
           </span>
         </div>
         {lang !== 'zh' && (
-          <div style={{ fontSize: '1rem', color: '#aab6c0', fontStyle: 'italic', letterSpacing: '0.2rem', ...anim('tkmCalligraphyReveal 0.9s ease-out 0.7s both') }}>
+          <div style={{ fontSize: '1rem', color: '#aab6c0', fontStyle: 'italic', letterSpacing: '0.07rem', ...anim('tkmCalligraphyReveal 0.9s ease-out 0.7s both') }}>
             {title.name.en}
           </div>
         )}

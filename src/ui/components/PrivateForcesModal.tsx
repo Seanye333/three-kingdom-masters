@@ -59,7 +59,7 @@ export function PrivateForcesModal({ onClose }: Props) {
       <div style={panel} onClick={(e) => e.stopPropagation()}>
         <header style={header}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('私兵 · 部曲', 'Private Forces')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>{t('私兵 · 部曲', 'Private Forces')}</div>
             <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>
               {t('募養家兵 — 增強麾下武將領軍之威（攻守皆然，上限 統率×100）', 'Fund a personal guard — strengthens the officer in battle (attack & defence), cap = leadership×100')}
             </div>

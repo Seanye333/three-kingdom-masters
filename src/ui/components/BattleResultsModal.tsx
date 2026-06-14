@@ -72,7 +72,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
                 style={{
                   fontSize: '0.78rem',
                   color: 'var(--tkm-text-muted)',
-                  letterSpacing: '0.15rem',
+                  letterSpacing: '0.05rem',
                 }}
               >
                 {speaker.name.zh} {speaker.name.en}

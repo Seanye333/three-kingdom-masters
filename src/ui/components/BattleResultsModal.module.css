@@ -40,7 +40,7 @@
   font-size: 0.9rem;
   color: #aab6c0;
   font-style: italic;
-  letter-spacing: 0.3rem;
+  letter-spacing: 0.1rem;
 }
 
 .body {
@@ -55,7 +55,7 @@
 
 .sectionLabel {
   font-size: 0.7rem;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.07rem;
   color: #7a8893;
   text-transform: uppercase;
   margin-bottom: 0.4rem;
@@ -147,7 +147,7 @@
   padding: 0.5rem 1.2rem;
   font-family: inherit;
   cursor: pointer;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.05rem;
 }
 
 .btnPrimary {

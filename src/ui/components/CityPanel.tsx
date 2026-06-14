@@ -499,7 +499,7 @@ function CityMiniMapText({ builtCount, wallTier }: { builtCount: number; wallTie
     <div style={{ textAlign: 'left', flex: 1 }}>
       <div style={{
         color: '#f2dd9a', fontSize: '0.95rem',
-        letterSpacing: '0.2rem', fontWeight: 'bold',
+        letterSpacing: '0.07rem', fontWeight: 'bold',
         fontFamily: 'var(--tkm-font-zh)',
       }}>
         ⛩ {t('進城 · 城邑地圖', 'Enter City · City Map')}
@@ -554,7 +554,7 @@ function CitySizeBadge({ city }: { city: import('../../game/types').City }) {
           fontFamily: 'var(--tkm-font-zh)',
           fontSize: '1.4rem',
           color: size.color,
-          letterSpacing: '0.25rem',
+          letterSpacing: '0.08rem',
           padding: '0.15rem 0.55rem',
           border: `1px solid ${size.color}`,
           borderRadius: 2,

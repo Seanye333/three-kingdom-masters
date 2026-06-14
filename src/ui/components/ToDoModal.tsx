@@ -171,7 +171,7 @@ export function ToDoModal({ onClose, onOpenLetters }: { onClose: () => void; onO
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
             📋 {t('待辦', 'To-Do')} {urgent > 0 && <span style={{ color: '#ffb088', fontSize: '0.8rem' }}>· {urgent} {t('急', 'urgent')}</span>}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>

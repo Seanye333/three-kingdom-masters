@@ -53,7 +53,7 @@ export function WishesModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>書信</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>書信</div>
             <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
               Officer Letters
             </div>
@@ -121,7 +121,7 @@ export function WishesModal({ onClose }: Props) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <div style={{ fontSize: '0.9rem', color: isInfo ? '#7ed68a' : '#e6c473' }}>
-                      {isInfo && <span style={{ marginRight: '0.4rem', letterSpacing: '0.2rem' }}>上書</span>}
+                      {isInfo && <span style={{ marginRight: '0.4rem', letterSpacing: '0.07rem' }}>上書</span>}
                       {o?.name.zh} {o?.name.en}
                       {grievance >= 2 && (
                         <span style={{ marginLeft: '0.5rem', color: '#b8442e', fontSize: '0.72rem' }}>

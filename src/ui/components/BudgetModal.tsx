@@ -64,7 +64,7 @@ export function BudgetModal({ onClose }: { onClose: () => void }) {
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
             🪙 {t('度支簿', 'Treasury')} <span style={{ color: '#7a8893', fontSize: '0.8rem' }}>{t(`${seasonZh}季預算`, `${season} budget`)}</span>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>

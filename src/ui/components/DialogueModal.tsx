@@ -80,7 +80,7 @@ export function DialogueModal() {
         }} />
         <div style={{
           fontSize: '0.65rem',
-          letterSpacing: '0.3rem',
+          letterSpacing: '0.1rem',
           color: '#c9a64e',
           textTransform: 'uppercase',
           marginBottom: '0.7rem',
@@ -88,7 +88,7 @@ export function DialogueModal() {
         }}>
           {t('書信', 'Court Event')}
         </div>
-        <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.2rem', textAlign: 'center' }}>
+        <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.07rem', textAlign: 'center' }}>
           {lang === 'en' ? speakerName.en : speakerName.zh}
         </div>
         {lang === 'both' && (
@@ -159,7 +159,7 @@ export function DialogueModal() {
                 padding: '0.5rem 2rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',
-                letterSpacing: '0.2rem',
+                letterSpacing: '0.07rem',
                 marginTop: '0.5rem',
               }}
             >

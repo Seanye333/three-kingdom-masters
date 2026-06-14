@@ -237,7 +237,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
               fontFamily: 'var(--tkm-font-zh)',
               fontSize: '1.4rem',
               color: 'var(--tkm-text-h2)',
-              letterSpacing: '0.3rem',
+              letterSpacing: '0.1rem',
             }}>
               {city.name.zh} 戰場地圖 — <span style={{ color: size.color }}>{size.name.zh}</span>
             </div>
@@ -517,7 +517,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
             ) : selectedSlot === null ? (
               <div style={{ color: 'var(--tkm-text-muted)', fontSize: '0.78rem' }}>
                 <div style={{
-                  fontSize: '0.7rem', letterSpacing: '0.2rem',
+                  fontSize: '0.7rem', letterSpacing: '0.07rem',
                   color: 'var(--tkm-text-h2)', marginBottom: '0.4rem',
                 }}>★ 戰場預覽 · Battle Preview</div>
                 <p style={{ marginBottom: '0.5rem' }}>
@@ -626,7 +626,7 @@ function SlotEditor({
       <div>
         <div style={{
           fontSize: '0.7rem', color: 'var(--tkm-text-h2)',
-          letterSpacing: '0.2rem', marginBottom: '0.4rem',
+          letterSpacing: '0.07rem', marginBottom: '0.4rem',
         }}>★ {SLOT_POSITIONS[slot]} 位 · Slot {slot}</div>
         <div style={{
           padding: '0.5rem 0.7rem',
@@ -637,7 +637,7 @@ function SlotEditor({
           <div style={{
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1rem', color: cur.color,
-            letterSpacing: '0.2rem',
+            letterSpacing: '0.07rem',
           }}>
             {cur.name.zh} Lv {current.level}/{cur.maxLevel}
           </div>
@@ -692,7 +692,7 @@ function SlotEditor({
     <div>
       <div style={{
         fontSize: '0.7rem', color: 'var(--tkm-text-h2)',
-        letterSpacing: '0.2rem', marginBottom: '0.4rem',
+        letterSpacing: '0.07rem', marginBottom: '0.4rem',
       }}>★ {SLOT_POSITIONS[slot]} 位 · 選擇建築</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
         {allBuildings.map((id) => {

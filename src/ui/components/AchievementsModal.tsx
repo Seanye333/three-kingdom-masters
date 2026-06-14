@@ -57,7 +57,7 @@ export function AchievementsModal({ onClose }: Props) {
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>勳功</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>勳功</div>
             <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
               Achievements ({completedCount} / {ACHIEVEMENTS.length})
             </div>
@@ -111,7 +111,7 @@ export function AchievementsModal({ onClose }: Props) {
                     fontFamily: 'ui-monospace, monospace',
                     fontSize: '0.6rem',
                     color,
-                    letterSpacing: '0.15rem',
+                    letterSpacing: '0.05rem',
                     textTransform: 'uppercase',
                   }}>{a.tier}</span>
                 </div>

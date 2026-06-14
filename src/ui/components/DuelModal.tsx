@@ -112,7 +112,7 @@ export function DuelModal({ result, onClose }: Props) {
             }}
           >
             <DuelPortrait id={a?.id} zh={a?.name.zh ?? '?'} color="#b8442e" side="attacker" />
-            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
+            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.1rem', marginTop: '0.5rem' }}>
               {lang === 'en' ? a?.name.en : a?.name.zh}
             </div>
             {lang === 'both' && <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>{a?.name.en}</div>}
@@ -147,7 +147,7 @@ export function DuelModal({ result, onClose }: Props) {
             ) : phase === 'standoff' ? (
               '⚔'
             ) : (
-              <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.3rem' }}>
+              <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.1rem' }}>
                 {result.winner === 'attacker' && t('攻方勝', 'Attacker')}
                 {result.winner === 'defender' && t('守方勝', 'Defender')}
                 {result.winner === 'draw' && t('平手', 'Draw')}
@@ -163,7 +163,7 @@ export function DuelModal({ result, onClose }: Props) {
             }}
           >
             <DuelPortrait id={d?.id} zh={d?.name.zh ?? '?'} color="#3a7dd9" side="defender" />
-            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
+            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.1rem', marginTop: '0.5rem' }}>
               {lang === 'en' ? d?.name.en : d?.name.zh}
             </div>
             {lang === 'both' && <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>{d?.name.en}</div>}
@@ -181,7 +181,7 @@ export function DuelModal({ result, onClose }: Props) {
                 fontSize: '2rem',
                 textAlign: 'center',
                 color: result.winner === 'draw' ? '#c9a64e' : '#e6c473',
-                letterSpacing: '0.4rem',
+                letterSpacing: '0.14rem',
                 textShadow: '0 0 14px rgba(212,168,74,0.4)',
               }}
             >
@@ -229,7 +229,7 @@ export function DuelModal({ result, onClose }: Props) {
                   color: '#e6c473',
                   padding: '0.5rem 2rem',
                   fontFamily: '"Songti SC", serif',
-                  letterSpacing: '0.3rem',
+                  letterSpacing: '0.1rem',
                   cursor: 'pointer',
                 }}
               >

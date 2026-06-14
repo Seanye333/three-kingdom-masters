@@ -34,10 +34,10 @@ export function CampaignStatsModal({ onClose }: Props) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ fontSize: '0.65rem', letterSpacing: '0.4rem', color: '#c9a64e', textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
+        <div style={{ fontSize: '0.65rem', letterSpacing: '0.14rem', color: '#c9a64e', textTransform: 'uppercase', textAlign: 'center', marginBottom: '0.5rem' }}>
           {t('戰記', 'Campaign Statistics')}
         </div>
-        <div style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.3rem', textAlign: 'center', marginBottom: '0.4rem' }}>
+        <div style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.1rem', textAlign: 'center', marginBottom: '0.4rem' }}>
           {t('戰記', 'Stats')}
         </div>
         <hr style={{ border: 'none', height: 1, background: 'linear-gradient(90deg, transparent, #e6c473, transparent)', margin: '1rem 0' }} />
@@ -47,7 +47,7 @@ export function CampaignStatsModal({ onClose }: Props) {
           <Row label={t('交戰次數', 'Battles fought')} value={stats.totalBattles} />
         </div>
 
-        <h3 style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', margin: '1rem 0 0.5rem' }}>{t('記錄', 'Records')}</h3>
+        <h3 style={{ fontSize: '0.7rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', margin: '1rem 0 0.5rem' }}>{t('記錄', 'Records')}</h3>
 
         {stats.biggestBattle ? (
           <Card label={t('最大之戰', 'Biggest Battle')}>
@@ -94,7 +94,7 @@ export function CampaignStatsModal({ onClose }: Props) {
               color: '#e6c473',
               padding: '0.5rem 2rem',
               fontFamily: 'inherit', cursor: 'pointer',
-              letterSpacing: '0.25rem',
+              letterSpacing: '0.08rem',
             }}
           >
             {t('關閉', 'Close')}
@@ -117,7 +117,7 @@ function Row({ label, value }: { label: string; value: string | number }) {
 function Card({ label, children }: { label: string; children: import('react').ReactNode }) {
   return (
     <div style={{ background: '#10161e', border: '1px solid #2b3845', padding: '0.5rem 0.7rem', marginBottom: '0.4rem' }}>
-      <div style={{ fontSize: '0.65rem', letterSpacing: '0.15rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
+      <div style={{ fontSize: '0.65rem', letterSpacing: '0.05rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
         {label}
       </div>
       {children}

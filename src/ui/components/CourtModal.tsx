@@ -100,7 +100,7 @@ export function CourtModal({ onClose }: Props) {
                   style={{
                     background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473',
                     color: '#f2dd9a', padding: '0.3rem 0.8rem', cursor: 'pointer',
-                    fontFamily: 'inherit', letterSpacing: '0.15rem', whiteSpace: 'nowrap',
+                    fontFamily: 'inherit', letterSpacing: '0.05rem', whiteSpace: 'nowrap',
                   }}
                   title={lang === 'en' ? 'Move the emperor into your capital (+10 Mandate)' : '奉迎天子入都 — 天命 +10,自此國都即帝都'}
                 >奉迎天子</button>
@@ -145,7 +145,7 @@ export function CourtModal({ onClose }: Props) {
                     padding: '0.5rem 0.9rem',
                     fontFamily: 'inherit',
                     cursor: check.ok && !isEmperorPath ? 'pointer' : 'not-allowed',
-                    letterSpacing: '0.2rem',
+                    letterSpacing: '0.07rem',
                   }}
                 >
                   進爵 → {nextDef.name.zh} {nextDef.name.en}
@@ -169,7 +169,7 @@ export function CourtModal({ onClose }: Props) {
           const total = factions.length;
           return (
             <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid #2b3845', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', fontSize: '0.78rem' }}>
-              <span style={{ color: '#7a8893', letterSpacing: '0.2rem' }}>朝堂派系：</span>
+              <span style={{ color: '#7a8893', letterSpacing: '0.07rem' }}>朝堂派系：</span>
               {(['military', 'gentry', 'reformer', 'eunuch'] as const).map((fid) => {
                 const n = counts[fid] ?? 0;
                 if (n === 0) return null;

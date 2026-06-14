@@ -56,7 +56,7 @@ export function LeaderboardModal({ date, onClose }: { date: string; onClose: () 
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
           <div>
-            <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🏆 {t('每日排行', 'Daily Leaderboard')}</div>
+            <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>🏆 {t('每日排行', 'Daily Leaderboard')}</div>
             <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>{date} · {t('旬數越少越前', 'fewer ticks ranks higher')}</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.3rem', cursor: 'pointer' }}>×</button>
@@ -98,7 +98,7 @@ export function LeaderboardModal({ date, onClose }: { date: string; onClose: () 
             <button
               onClick={submit}
               disabled={busy}
-              style={{ background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473', color: '#f2dd9a', padding: '0.35rem 0.9rem', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.15rem' }}
+              style={{ background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473', color: '#f2dd9a', padding: '0.35rem 0.9rem', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.05rem' }}
             >{t(`上榜(${myResult!.seasons}旬)`, `Submit (${myResult!.seasons})`)}</button>
           </div>
         )}

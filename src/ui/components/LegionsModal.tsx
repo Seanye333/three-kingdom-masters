@@ -82,7 +82,7 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
           <div>
-            <div style={{ fontSize: '1.3rem', color: '#e6c473', letterSpacing: '0.2rem' }}>⚔ {t('軍團府', 'Legions')}</div>
+            <div style={{ fontSize: '1.3rem', color: '#e6c473', letterSpacing: '0.07rem' }}>⚔ {t('軍團府', 'Legions')}</div>
             <div style={{ fontSize: '0.75rem', color: '#7a8893' }}>
               {t('劃城設督,授以方略 — 軍團每旬自行募兵發兵(內政請配合委任太守)', 'Assign cities to a marshal with a directive — the legion recruits and marches itself each tick')}
             </div>
@@ -117,7 +117,7 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
 
         {/* Builder */}
         <div style={box}>
-          <div style={{ fontSize: '0.72rem', letterSpacing: '0.2rem', color: '#c9a64e', marginBottom: 6 }}>{t('新設軍團', 'NEW LEGION')}</div>
+          <div style={{ fontSize: '0.72rem', letterSpacing: '0.07rem', color: '#c9a64e', marginBottom: 6 }}>{t('新設軍團', 'NEW LEGION')}</div>
           <div style={{ fontSize: '0.72rem', color: '#7a8893', marginBottom: 4 }}>{t('① 劃撥城池(未入他團者)', '1. Assign cities')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
             {ownCities.filter((c) => !assigned.has(c.id)).map((c) => {
@@ -173,7 +173,7 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
                 border: `1px solid ${canCreate ? '#e6c473' : '#26323e'}`,
                 color: canCreate ? '#f2dd9a' : '#5a4a35',
                 padding: '0.3rem 0.9rem', cursor: canCreate ? 'pointer' : 'not-allowed',
-                fontFamily: 'inherit', letterSpacing: '0.15rem',
+                fontFamily: 'inherit', letterSpacing: '0.05rem',
               }}
             >{t('成軍', 'Form')}</button>
           </div>

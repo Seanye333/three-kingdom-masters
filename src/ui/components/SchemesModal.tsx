@@ -59,7 +59,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.7rem' }}>
           <div>
-            <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.25rem' }}>🪄 {t('計略', 'Schemes')}</div>
+            <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.08rem' }}>🪄 {t('計略', 'Schemes')}</div>
             <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>
               {strategist ? t(`${strategist.name.zh} 運籌(智${strategist.stats.intelligence})`, `${strategist.name.en} plans`) : t('無人運籌', 'No strategist')}
             </div>
@@ -119,7 +119,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
             width: '100%', padding: '0.5rem', cursor: ready ? 'pointer' : 'not-allowed',
             background: ready ? 'linear-gradient(180deg,#3a2d18,#2a1f10)' : 'transparent',
             border: `1px solid ${ready ? '#e6c473' : '#26323e'}`,
-            color: ready ? '#f2dd9a' : '#5a4a35', fontFamily: 'inherit', letterSpacing: '0.25rem',
+            color: ready ? '#f2dd9a' : '#5a4a35', fontFamily: 'inherit', letterSpacing: '0.08rem',
           }}
         >{t('施計', 'Execute')}({def.goldCost}g)</button>
       </div>
