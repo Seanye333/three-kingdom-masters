@@ -92,13 +92,13 @@ export function CommandMenu({ cityId }: Props) {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
         background: governor ? 'rgba(126, 214, 138, 0.08)' : 'rgba(20, 14, 8, 0.5)',
-        border: `1px solid ${governor ? '#5a8a50' : '#3a2d20'}`,
+        border: `1px solid ${governor ? '#5a8a50' : '#26323e'}`,
         padding: '0.35rem 0.6rem', marginBottom: '0.5rem',
-        fontFamily: 'Songti SC, serif', fontSize: '0.78rem', color: '#c0a878',
+        fontFamily: 'Songti SC, serif', fontSize: '0.78rem', color: '#aab6c0',
       }}>
         <span>
           {t('太守', 'Governor')}{governor ? `:${lang === 'en' ? governor.name.en : governor.name.zh}` : ''}
-          <span style={{ display: 'block', fontSize: '0.6rem', color: '#8a7050' }}>
+          <span style={{ display: 'block', fontSize: '0.6rem', color: '#7a8893' }}>
             {governor
               ? t('已委任 — 每旬自動施政', 'Delegated — auto-governs each tick')
               : t('委任後此城自動內政', 'Delegate to auto-run internal affairs')}
@@ -108,7 +108,7 @@ export function CommandMenu({ cityId }: Props) {
           value={governorId ?? ''}
           onChange={(e) => delegateCity(cityId, e.target.value || null)}
           style={{
-            background: '#0a0805', border: '1px solid #4a3520', color: '#d4a84a',
+            background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473',
             padding: '0.2rem', fontFamily: 'inherit', fontSize: '0.72rem', maxWidth: 130,
           }}
         >
@@ -183,7 +183,7 @@ export function CommandMenu({ cityId }: Props) {
             >
               <span className={styles.cmdLabelZh}>
                 {lang === 'en' ? def.label.en : def.label.zh}
-                {def.minSize && <span style={{ fontSize: '0.55rem', color: '#8a7050', marginLeft: 4 }}>★{lang === 'en' ? minSizeDef?.name.en : minSizeDef?.name.zh}+</span>}
+                {def.minSize && <span style={{ fontSize: '0.55rem', color: '#7a8893', marginLeft: 4 }}>★{lang === 'en' ? minSizeDef?.name.en : minSizeDef?.name.zh}+</span>}
               </span>
               {lang === 'both' && <span className={styles.cmdLabelEn}>{def.label.en}</span>}
               <span className={styles.cmdCost}>{def.goldCost}g</span>
@@ -323,15 +323,15 @@ function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#1a1410', border: '1px solid #7ed68a', padding: '1rem 1.2rem',
+          background: '#10161e', border: '1px solid #7ed68a', padding: '1rem 1.2rem',
           minWidth: 320, maxWidth: 440, maxHeight: '80vh', overflow: 'auto',
-          fontFamily: 'Songti SC, serif', color: '#e8d9b0',
+          fontFamily: 'Songti SC, serif', color: '#e6edf3',
         }}
       >
         <div style={{ color: '#9ed68a', letterSpacing: '0.25rem', marginBottom: '0.3rem' }}>
           ⚔ {t('演習點將', 'Drill Roster')}
         </div>
-        <div style={{ color: '#8a7050', fontSize: '0.72rem', marginBottom: '0.6rem' }}>
+        <div style={{ color: '#7a8893', fontSize: '0.72rem', marginBottom: '0.6rem' }}>
           {t(`選至多 6 員上場(已選 ${picked.size})— 不損兵將,純為練兵`,
              `Pick up to 6 to take the field (${picked.size} picked) — no losses, practice only`)}
         </div>
@@ -345,13 +345,13 @@ function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
                 style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   background: on ? 'rgba(126, 214, 138, 0.12)' : 'transparent',
-                  border: `1px solid ${on ? '#7ed68a' : '#3a2d20'}`,
+                  border: `1px solid ${on ? '#7ed68a' : '#26323e'}`,
                   color: on ? '#d8f0c8' : '#a08a60', cursor: 'pointer',
                   padding: '0.35rem 0.6rem', fontFamily: 'inherit', fontSize: '0.8rem',
                 }}
               >
                 <span>{on ? '☑' : '☐'} {lang === 'en' ? o.name.en : o.name.zh}</span>
-                <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>
+                <span style={{ color: '#7a8893', fontSize: '0.7rem' }}>
                   {t('武', 'W')}{o.stats.war} {t('統', 'L')}{o.stats.leadership}
                 </span>
               </button>
@@ -376,7 +376,7 @@ function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
             onClick={onClose}
             style={{
               padding: '0.45rem 0.8rem', cursor: 'pointer', background: 'transparent',
-              color: '#8a7050', border: '1px solid #4a3520', fontFamily: 'inherit',
+              color: '#7a8893', border: '1px solid #2b3845', fontFamily: 'inherit',
             }}
           >{t('取消', 'Cancel')}</button>
         </div>
@@ -399,7 +399,7 @@ function MarketPanel({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
   const sellLots = [2000, 5000, 10000];
   const row: React.CSSProperties = { display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' };
   const btn: React.CSSProperties = {
-    background: '#241c12', border: '1px solid #5a4530', color: '#e8d9b0',
+    background: '#241c12', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e6edf3',
     padding: '0.35rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem',
   };
   return (
@@ -410,16 +410,16 @@ function MarketPanel({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#1a1410', border: '1px solid #c8a258', padding: '1rem 1.2rem',
-          minWidth: 320, maxWidth: 420, fontFamily: 'Songti SC, serif', color: '#e8d9b0',
+          background: '#10161e', border: '1px solid #c8a258', padding: '1rem 1.2rem',
+          minWidth: 320, maxWidth: 420, fontFamily: 'Songti SC, serif', color: '#e6edf3',
         }}
       >
         <div style={{ color: '#e8c478', letterSpacing: '0.25rem', marginBottom: '0.2rem' }}>🪙 {t('市易', 'Grain Market')}</div>
-        <div style={{ fontSize: '0.72rem', color: '#8a7050', marginBottom: '0.7rem' }}>
+        <div style={{ fontSize: '0.72rem', color: '#7a8893', marginBottom: '0.7rem' }}>
           {t(`時價:1金 ≈ ${rate.toFixed(1)}糧(市稅一成)· 庫:${city.gold}金 / ${city.food.toLocaleString()}糧`,
              `Rate: 1g ≈ ${rate.toFixed(1)} food (10% spread) · ${city.gold}g / ${city.food.toLocaleString()} food`)}
         </div>
-        <div style={{ fontSize: '0.78rem', color: '#c0a878', marginBottom: 4 }}>{t('買糧', 'Buy food')}</div>
+        <div style={{ fontSize: '0.78rem', color: '#aab6c0', marginBottom: 4 }}>{t('買糧', 'Buy food')}</div>
         <div style={row}>
           {buyLots.map((g) => (
             <button key={g} style={btn} disabled={city.gold < g}
@@ -430,7 +430,7 @@ function MarketPanel({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
             >{g}金 → ~{Math.floor(g * rate * 0.9).toLocaleString()}糧</button>
           ))}
         </div>
-        <div style={{ fontSize: '0.78rem', color: '#c0a878', marginBottom: 4 }}>{t('賣糧', 'Sell food')}</div>
+        <div style={{ fontSize: '0.78rem', color: '#aab6c0', marginBottom: 4 }}>{t('賣糧', 'Sell food')}</div>
         <div style={row}>
           {sellLots.map((f) => (
             <button key={f} style={btn} disabled={city.food < f}

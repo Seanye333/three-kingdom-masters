@@ -79,33 +79,33 @@ export function EncyclopediaModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(1000px,100%)',
           height: '88vh',
           display: 'flex',
           flexDirection: 'column',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <header style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>列傳</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>Encyclopedia of the Three Kingdoms</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>列傳</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Encyclopedia of the Three Kingdoms</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
-        <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1.5rem', borderBottom: '1px solid #4a3520' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1.5rem', borderBottom: '1px solid #2b3845' }}>
           {(['officers', 'codex', 'items', 'skills', 'traits', 'events', 'provinces'] as Section[]).map((s) => (
             <button
               key={s}
               onClick={() => setSection(s)}
               style={{
-                background: section === s ? '#3a2d20' : 'transparent',
-                border: '1px solid ' + (section === s ? '#d4a84a' : '#4a3520'),
-                color: section === s ? '#d4a84a' : '#8a7050',
+                background: section === s ? '#26323e' : 'transparent',
+                border: '1px solid ' + (section === s ? '#e6c473' : '#2b3845'),
+                color: section === s ? '#e6c473' : '#7a8893',
                 padding: '0.35rem 1rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',
@@ -125,7 +125,7 @@ export function EncyclopediaModal({ onClose }: Props) {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search…"
             style={{
-              background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+              background: '#10161e', border: '1px solid #2b3845', color: '#e6c473',
               padding: '0.3rem 0.5rem', fontFamily: 'inherit', flex: 1, marginLeft: 'auto',
             }}
           />
@@ -135,14 +135,14 @@ export function EncyclopediaModal({ onClose }: Props) {
             const bio = getBiography(o.id, o.name.en, o.name.zh, o.stats);
             return (
               <div key={o.id} style={card()}>
-                <div style={{ fontSize: '1.05rem', color: '#d4a84a' }}>
-                  {o.name.zh} <span style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic' }}>{o.name.en}</span>
-                  {o.courtesyName && <span style={{ color: '#8a7050', fontSize: '0.78rem', marginLeft: '0.4rem' }}>({o.courtesyName.zh})</span>}
+                <div style={{ fontSize: '1.05rem', color: '#e6c473' }}>
+                  {o.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{o.name.en}</span>
+                  {o.courtesyName && <span style={{ color: '#7a8893', fontSize: '0.78rem', marginLeft: '0.4rem' }}>({o.courtesyName.zh})</span>}
                 </div>
                 <div style={metaLine}>
                   W{o.stats.war} L{o.stats.leadership} I{o.stats.intelligence} P{o.stats.politics} C{o.stats.charisma} · {o.birthYear}{o.deathYear ? `–${o.deathYear}` : ''}
                 </div>
-                <div style={{ fontSize: '0.82rem', color: '#c0a878', marginTop: '0.4rem' }}>{bio.zh}</div>
+                <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.4rem' }}>{bio.zh}</div>
               </div>
             );
           })}
@@ -164,16 +164,16 @@ export function EncyclopediaModal({ onClose }: Props) {
                     const done = p.have === p.total;
                     return (
                       <div key={set.id} style={{
-                        border: `1px solid ${done ? '#d4a84a' : '#4a3520'}`,
+                        border: `1px solid ${done ? '#e6c473' : '#2b3845'}`,
                         background: done ? 'rgba(212,168,74,0.12)' : 'transparent',
                         padding: '0.3rem 0.7rem', fontSize: '0.78rem',
-                        color: done ? '#f0d98a' : '#8a7050',
+                        color: done ? '#f2dd9a' : '#7a8893',
                       }}>
                         {done ? '✦ ' : ''}{set.zh} {p.have}/{p.total}
                       </div>
                     );
                   })}
-                  <div style={{ fontSize: '0.72rem', color: '#8a7050', alignSelf: 'center' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#7a8893', alignSelf: 'center' }}>
                     遇 {codex.seen.length} · 仕 {codex.recruited.length} · 斬 {codex.slain.length}(跨戰役累積)
                   </div>
                 </div>
@@ -184,15 +184,15 @@ export function EncyclopediaModal({ onClose }: Props) {
                     const isSlain = slain.has(o.id);
                     return (
                       <div key={o.id} style={{
-                        border: `1px solid ${isRec ? '#d4a84a' : isSeen ? '#7a6244' : '#2a2014'}`,
+                        border: `1px solid ${isRec ? '#e6c473' : isSeen ? '#7a6244' : '#18212b'}`,
                         background: isRec ? 'rgba(212,168,74,0.10)' : '#15100a',
                         padding: '0.35rem 0.4rem', textAlign: 'center',
                         opacity: isSeen ? 1 : 0.45,
                       }}>
-                        <div style={{ fontSize: '0.85rem', color: isRec ? '#f0d98a' : isSeen ? '#c0a878' : '#5a4a38' }}>
+                        <div style={{ fontSize: '0.85rem', color: isRec ? '#f2dd9a' : isSeen ? '#aab6c0' : '#5a4a38' }}>
                           {isSeen ? o.name.zh : '???'}{isSlain ? ' ☠' : ''}
                         </div>
-                        <div style={{ fontSize: '0.6rem', color: '#6a5a45' }}>
+                        <div style={{ fontSize: '0.6rem', color: '#5f6c76' }}>
                           {isRec ? '仕' : isSeen ? '遇' : '未遇'}
                         </div>
                       </div>
@@ -204,11 +204,11 @@ export function EncyclopediaModal({ onClose }: Props) {
           })()}
           {section === 'items' && (matches as typeof ITEMS).map((it) => (
             <div key={it.id} style={card()}>
-              <div style={{ fontSize: '1rem', color: '#d4a84a' }}>
-                {it.name.zh} <span style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic' }}>{it.name.en}</span>
-                <span style={{ marginLeft: '0.4rem', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem', color: '#c19a3b' }}>· {it.kind}</span>
+              <div style={{ fontSize: '1rem', color: '#e6c473' }}>
+                {it.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{it.name.en}</span>
+                <span style={{ marginLeft: '0.4rem', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem', color: '#c9a64e' }}>· {it.kind}</span>
               </div>
-              <div style={{ fontSize: '0.82rem', color: '#c0a878', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(it)}</div>
+              <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(it)}</div>
               <div style={metaLine}>
                 {Object.entries(it.effects).map(([k, v]) => `${k.slice(0, 3).toUpperCase()} +${v}`).join(' · ')}
               </div>
@@ -216,38 +216,38 @@ export function EncyclopediaModal({ onClose }: Props) {
           ))}
           {section === 'skills' && (matches as typeof SKILLS).map((s) => (
             <div key={s.id} style={card()}>
-              <div style={{ fontSize: '1rem', color: '#d4a84a' }}>
-                {s.name.zh} <span style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic' }}>{s.name.en}</span>
-                <span style={{ marginLeft: '0.4rem', color: '#c19a3b', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem' }}>· {s.category}</span>
+              <div style={{ fontSize: '1rem', color: '#e6c473' }}>
+                {s.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{s.name.en}</span>
+                <span style={{ marginLeft: '0.4rem', color: '#c9a64e', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem' }}>· {s.category}</span>
               </div>
-              <div style={{ fontSize: '0.82rem', color: '#c0a878', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(s)}</div>
+              <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(s)}</div>
             </div>
           ))}
           {section === 'traits' && (matches as typeof TRAIT_DEFS).map((t) => (
             <div key={t.id} style={{ ...card(), borderColor: t.color }}>
               <div style={{ fontSize: '1rem', color: t.color }}>
-                {t.name.zh} <span style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic' }}>{t.name.en}</span>
+                {t.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{t.name.en}</span>
               </div>
-              <div style={{ fontSize: '0.82rem', color: '#c0a878', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(t)}</div>
+              <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(t)}</div>
             </div>
           ))}
           {section === 'events' && (matches as typeof HISTORICAL_EVENTS).map((e) => (
             <div key={e.id} style={card()}>
-              <div style={{ fontSize: '1rem', color: '#d4a84a' }}>
-                {e.name.zh} <span style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic' }}>{e.name.en}</span>
-                <span style={{ marginLeft: '0.4rem', color: '#8a7050', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem' }}>
+              <div style={{ fontSize: '1rem', color: '#e6c473' }}>
+                {e.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{e.name.en}</span>
+                <span style={{ marginLeft: '0.4rem', color: '#7a8893', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem' }}>
                   {e.yearMin}{e.yearMax !== e.yearMin ? `–${e.yearMax}` : ''}
                 </span>
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#c0a878', marginTop: '0.4rem', lineHeight: 1.7 }}>{desc(e)}</div>
+              <div style={{ fontSize: '0.85rem', color: '#aab6c0', marginTop: '0.4rem', lineHeight: 1.7 }}>{desc(e)}</div>
             </div>
           ))}
           {section === 'provinces' && (matches as typeof PROVINCES).map((p) => (
             <div key={p.id} style={{ ...card(), borderLeftColor: p.color, borderLeftWidth: 3 }}>
               <div style={{ fontSize: '1rem', color: p.color }}>
-                {p.name.zh} <span style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic' }}>{p.name.en}</span>
+                {p.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{p.name.en}</span>
               </div>
-              <div style={{ fontSize: '0.82rem', color: '#c0a878', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(p)}</div>
+              <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(p)}</div>
               <div style={metaLine}>
                 Cities: {p.cityIds.map((cid) => cities[cid]?.name.zh ?? cid).join(' · ')}
               </div>
@@ -261,8 +261,8 @@ export function EncyclopediaModal({ onClose }: Props) {
 
 function card(): React.CSSProperties {
   return {
-    background: '#1a1410',
-    border: '1px solid #4a3520',
+    background: '#10161e',
+    border: '1px solid #2b3845',
     padding: '0.6rem 0.85rem',
     marginBottom: '0.4rem',
   };
@@ -271,7 +271,7 @@ function card(): React.CSSProperties {
 const metaLine: React.CSSProperties = {
   fontFamily: 'ui-monospace, monospace',
   fontSize: '0.72rem',
-  color: '#8a7050',
+  color: '#7a8893',
   marginTop: '0.25rem',
   letterSpacing: '0.05rem',
 };

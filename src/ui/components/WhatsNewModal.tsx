@@ -40,22 +40,22 @@ export function WhatsNewModal() {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #d4a84a',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid #e6c473',
           width: 'min(560px,100%)', maxHeight: '82vh', overflowY: 'auto',
-          color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1.1rem 1.4rem',
+          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1.1rem 1.4rem',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <div style={{ fontSize: '1.2rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
-            📯 {t('本次更新', "What's new")} <span style={{ fontSize: '0.75rem', color: '#8a7050' }}>v{GAME_VERSION}</span>
+          <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
+            📯 {t('本次更新', "What's new")} <span style={{ fontSize: '0.75rem', color: '#7a8893' }}>v{GAME_VERSION}</span>
           </div>
-          <button onClick={dismiss} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.3rem', cursor: 'pointer' }}>×</button>
+          <button onClick={dismiss} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.3rem', cursor: 'pointer' }}>×</button>
         </div>
         {entries.map((e) => (
           <div key={e.version} style={{ marginTop: '0.8rem' }}>
-            <div style={{ color: '#f0d98a', fontSize: '0.95rem' }}>
+            <div style={{ color: '#f2dd9a', fontSize: '0.95rem' }}>
               v{e.version} · {e.title}
-              <span style={{ color: '#8a7050', fontSize: '0.7rem', marginLeft: 8 }}>{e.date}</span>
+              <span style={{ color: '#7a8893', fontSize: '0.7rem', marginLeft: 8 }}>{e.date}</span>
             </div>
             <ul style={{ margin: '0.4rem 0 0', paddingLeft: '1.2rem', fontSize: '0.82rem', lineHeight: 1.8, color: '#cdb88f' }}>
               {e.items.map((it, i) => <li key={i}>{it}</li>)}
@@ -66,12 +66,12 @@ export function WhatsNewModal() {
           {!showAll && CHANGELOG.length > 1 && (
             <button
               onClick={() => setShowAll(true)}
-              style={{ background: 'transparent', border: '1px solid #4a3520', color: '#8a7050', padding: '0.35rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem' }}
+              style={{ background: 'transparent', border: '1px solid #2b3845', color: '#7a8893', padding: '0.35rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem' }}
             >{t('看全部歷史', 'Full history')}</button>
           )}
           <button
             onClick={dismiss}
-            style={{ flex: 1, background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #d4a84a', color: '#f0d98a', padding: '0.4rem', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem' }}
+            style={{ flex: 1, background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473', color: '#f2dd9a', padding: '0.4rem', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem' }}
           >{t('知道了', 'Got it')}</button>
         </div>
       </div>

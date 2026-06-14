@@ -40,7 +40,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
   const odds = ready ? schemeOdds(schemeId, diplomacy, strategist, targetA, targetB || undefined) : null;
 
   const sel: React.CSSProperties = {
-    background: '#0a0805', border: '1px solid #4a3520', color: '#d4a84a',
+    background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473',
     padding: '0.3rem', fontFamily: 'inherit', fontSize: '0.8rem', minWidth: 130,
   };
 
@@ -52,19 +52,19 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-          width: 'min(560px,100%)', color: '#e8d9b0',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+          width: 'min(560px,100%)', color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.3rem',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.7rem' }}>
           <div>
-            <div style={{ fontSize: '1.2rem', color: '#d4a84a', letterSpacing: '0.25rem' }}>🪄 {t('計略', 'Schemes')}</div>
-            <div style={{ fontSize: '0.7rem', color: '#8a7050' }}>
+            <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.25rem' }}>🪄 {t('計略', 'Schemes')}</div>
+            <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>
               {strategist ? t(`${strategist.name.zh} 運籌(智${strategist.stats.intelligence})`, `${strategist.name.en} plans`) : t('無人運籌', 'No strategist')}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
@@ -76,14 +76,14 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
               style={{
                 flex: 1, padding: '0.4rem 0.3rem', cursor: 'pointer', fontFamily: 'inherit',
                 background: schemeId === d.id ? 'rgba(212,168,74,0.18)' : 'transparent',
-                border: `1px solid ${schemeId === d.id ? '#d4a84a' : '#3a2d20'}`,
-                color: schemeId === d.id ? '#f0d98a' : '#a08a60', fontSize: '0.85rem',
+                border: `1px solid ${schemeId === d.id ? '#e6c473' : '#26323e'}`,
+                color: schemeId === d.id ? '#f2dd9a' : '#a08a60', fontSize: '0.85rem',
               }}
-            >{d.zh}<div style={{ fontSize: '0.6rem', color: '#8a7050' }}>{d.goldCost}g</div></button>
+            >{d.zh}<div style={{ fontSize: '0.6rem', color: '#7a8893' }}>{d.goldCost}g</div></button>
           ))}
         </div>
 
-        <div style={{ fontSize: '0.74rem', color: '#8a7050', marginBottom: 8 }}>{lang === 'en' ? def.hintEn : def.hintZh}</div>
+        <div style={{ fontSize: '0.74rem', color: '#7a8893', marginBottom: 8 }}>{lang === 'en' ? def.hintEn : def.hintZh}</div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
           <select value={targetA} onChange={(e) => { setTargetA(e.target.value); setResult(null); }} style={sel}>
@@ -92,7 +92,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
           </select>
           {def.targets === 2 && (
             <>
-              <span style={{ color: '#8a7050' }}>⚔</span>
+              <span style={{ color: '#7a8893' }}>⚔</span>
               <select value={targetB} onChange={(e) => { setTargetB(e.target.value); setResult(null); }} style={sel}>
                 <option value="">{t('乙(被攻方)…', 'Force B…')}</option>
                 {living.filter((f) => f.id !== targetA).map((f) => <option key={f.id} value={f.id}>{f.name.zh}</option>)}
@@ -107,7 +107,7 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {problem && targetA && <div style={{ fontSize: '0.74rem', color: '#ff9080', marginBottom: 8 }}>{problem}</div>}
-        {result && <div style={{ fontSize: '0.8rem', color: '#f0d98a', marginBottom: 8 }}>{result}</div>}
+        {result && <div style={{ fontSize: '0.8rem', color: '#f2dd9a', marginBottom: 8 }}>{result}</div>}
 
         <button
           disabled={!ready}
@@ -118,8 +118,8 @@ export function SchemesModal({ onClose }: { onClose: () => void }) {
           style={{
             width: '100%', padding: '0.5rem', cursor: ready ? 'pointer' : 'not-allowed',
             background: ready ? 'linear-gradient(180deg,#3a2d18,#2a1f10)' : 'transparent',
-            border: `1px solid ${ready ? '#d4a84a' : '#3a2d20'}`,
-            color: ready ? '#f0d98a' : '#5a4a35', fontFamily: 'inherit', letterSpacing: '0.25rem',
+            border: `1px solid ${ready ? '#e6c473' : '#26323e'}`,
+            color: ready ? '#f2dd9a' : '#5a4a35', fontFamily: 'inherit', letterSpacing: '0.25rem',
           }}
         >{t('施計', 'Execute')}({def.goldCost}g)</button>
       </div>

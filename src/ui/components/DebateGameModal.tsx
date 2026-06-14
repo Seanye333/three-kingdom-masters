@@ -48,12 +48,12 @@ export function DebateGameModal({
   };
 
   const bar = (val: number, color: string) => (
-    <div style={{ height: 14, background: '#2a1f15', border: '1px solid #4a3520', borderRadius: 2, overflow: 'hidden' }}>
+    <div style={{ height: 14, background: '#1b2531', border: '1px solid #2b3845', borderRadius: 2, overflow: 'hidden' }}>
       <div style={{ width: `${val}%`, height: '100%', background: color, transition: 'width 0.3s' }} />
     </div>
   );
   const pips = (n: number) => (
-    <div style={{ fontSize: '0.7rem', color: n >= PRESS_MOMENTUM_COST ? '#d4a84a' : '#6a5238', letterSpacing: '0.15rem' }}>
+    <div style={{ fontSize: '0.7rem', color: n >= PRESS_MOMENTUM_COST ? '#e6c473' : '#6a5238', letterSpacing: '0.15rem' }}>
       {t('勢', 'MO')} {'◆'.repeat(n)}{'◇'.repeat(Math.max(0, PRESS_MOMENTUM_COST - n))}
     </div>
   );
@@ -67,7 +67,7 @@ export function DebateGameModal({
     // Above the 3D battle screen (z-1000) — at its old z-130 it was silently
     // buried whenever the 3D view was up.
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'grid', placeItems: 'center', zIndex: 1100 }}>
-      <div style={{ width: 560, maxWidth: '95vw', background: '#16140f', border: '1px solid #88b7e8', padding: '1.25rem', fontFamily: 'Songti SC, serif', color: '#e8d9b0' }}>
+      <div style={{ width: 560, maxWidth: '95vw', background: '#16140f', border: '1px solid #88b7e8', padding: '1.25rem', fontFamily: 'Songti SC, serif', color: '#e6edf3' }}>
         <div style={{ textAlign: 'center', color: '#88b7e8', letterSpacing: '0.4rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
           舌 {t('戰', 'War of Words')}
         </div>
@@ -76,16 +76,16 @@ export function DebateGameModal({
           <div>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <OfficerPortrait officer={me} size={44} forceColor="#6abf6a" />
-              <div><div style={{ color: '#d4a84a' }}>{nm(me)}</div><div style={{ fontSize: '0.72rem', color: '#c0a878' }}>{t('智', 'INT')} {me.stats.intelligence}</div></div>
+              <div><div style={{ color: '#e6c473' }}>{nm(me)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('智', 'INT')} {me.stats.intelligence}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.aComposure, '#6abf6a')}</div>
             {pips(bout.aMomentum)}
           </div>
-          <div style={{ fontSize: '1.4rem', color: '#8a7050' }}>⟷</div>
+          <div style={{ fontSize: '1.4rem', color: '#7a8893' }}>⟷</div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexDirection: 'row-reverse' }}>
               <OfficerPortrait officer={foe} size={44} forceColor="#c178c7" />
-              <div><div style={{ color: '#d4a84a' }}>{nm(foe)}</div><div style={{ fontSize: '0.72rem', color: '#c0a878' }}>{t('智', 'INT')} {foe.stats.intelligence}</div></div>
+              <div><div style={{ color: '#e6c473' }}>{nm(foe)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('智', 'INT')} {foe.stats.intelligence}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.dComposure, '#c178c7')}</div>
             {pips(bout.dMomentum)}
@@ -104,20 +104,20 @@ export function DebateGameModal({
                   style={{
                     padding: '0.5rem 0.3rem', background: disabled ? '#1a1810' : '#26221a',
                     border: `1px solid ${disabled ? '#2c281c' : '#4a5530'}`,
-                    color: disabled ? '#5a4a36' : '#e8d9b0', cursor: disabled ? 'default' : 'pointer',
+                    color: disabled ? '#5a4a36' : '#e6edf3', cursor: disabled ? 'default' : 'pointer',
                     fontFamily: 'inherit', textAlign: 'center',
                   }}
                   title={lang === 'en' ? m.hint.en : m.hint.zh}
                 >
                   <div style={{ fontSize: '1.3rem', color: disabled ? '#5a4a36' : '#88b7e8' }}>{m.zh}</div>
-                  <div style={{ fontSize: '0.6rem', color: '#8a7050' }}>{lang === 'en' ? m.en : m.hint.zh}</div>
+                  <div style={{ fontSize: '0.6rem', color: '#7a8893' }}>{lang === 'en' ? m.en : m.hint.zh}</div>
                 </button>
               );
             })}
           </div>
         )}
 
-        <div style={{ marginTop: '0.8rem', minHeight: 96, maxHeight: 96, overflow: 'hidden', fontSize: '0.74rem', color: '#c0a878', lineHeight: 1.6 }}>
+        <div style={{ marginTop: '0.8rem', minHeight: 96, maxHeight: 96, overflow: 'hidden', fontSize: '0.74rem', color: '#aab6c0', lineHeight: 1.6 }}>
           {log.map((l, i) => <div key={i} style={{ opacity: 1 - i * 0.12 }}>{l}</div>)}
         </div>
 

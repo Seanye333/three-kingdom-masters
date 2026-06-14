@@ -9,14 +9,14 @@
 }
 
 .modal {
-  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
-  border: 1px solid #5a4530;
+  background: linear-gradient(160deg, #1b2531 0%, #10161e 100%);
+  border: 1px solid #364654;
   border-top: 3px solid #b8442e;  /* vermilion — 印璽紅 */
   width: min(960px, 100%);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
   box-shadow: 0 0 18px rgba(184, 68, 46, 0.15);
 }
@@ -26,25 +26,25 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
 }
 
 .titleZh {
   font-size: 1.5rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
@@ -56,21 +56,21 @@
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
 }
 
 .tab {
   background: none;
-  border: 1px solid #4a3520;
-  color: #8a7050;
+  border: 1px solid #2b3845;
+  color: #7a8893;
   padding: 0.4rem 1rem;
   cursor: pointer;
   font-family: inherit;
 }
 
 .tabActive {
-  border-color: #d4a84a;
-  color: #d4a84a;
+  border-color: #e6c473;
+  color: #e6c473;
   background: rgba(212, 168, 74, 0.1);
 }
 
@@ -87,8 +87,8 @@
 }
 
 .titleCard {
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   padding: 0.85rem;
   display: flex;
   flex-direction: column;
@@ -103,18 +103,18 @@
 
 .titleName {
   font-size: 1.1rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .titleNameEn {
   font-size: 0.75rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .titleDesc {
   font-size: 0.78rem;
-  color: #c0a878;
+  color: #aab6c0;
   line-height: 1.4;
   font-style: italic;
 }
@@ -124,7 +124,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 0.5rem;
-  border-top: 1px solid #3a2d20;
+  border-top: 1px solid #26323e;
   margin-top: 0.4rem;
 }
 
@@ -137,9 +137,9 @@
 }
 
 .appointBtn {
-  background: #3a2d20;
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: #26323e;
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.25rem 0.7rem;
   font-family: inherit;
   font-size: 0.78rem;
@@ -147,7 +147,7 @@
 }
 
 .appointBtn:hover {
-  background: #5a4530;
+  background: #364654;
 }
 
 .revokeBtn {
@@ -161,8 +161,8 @@
 }
 
 .picker {
-  background: #0a0805;
-  border: 1px solid #4a3520;
+  background: #080b0e;
+  border: 1px solid #2b3845;
   margin-top: 0.5rem;
   padding: 0.6rem;
   display: flex;
@@ -174,7 +174,7 @@
 
 .pickerLabel {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
@@ -184,22 +184,22 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.4rem 0.5rem;
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   cursor: pointer;
   font-family: inherit;
-  color: #e8d9b0;
+  color: #e6edf3;
 }
 
 .officerOption:hover {
-  border-color: #d4a84a;
-  background: #2a1f15;
+  border-color: #e6c473;
+  background: #1b2531;
 }
 
 .officerStats {
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .cityPicker {
@@ -210,9 +210,9 @@
 }
 
 .cityChip {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
-  color: #c0a878;
+  background: #10161e;
+  border: 1px solid #26323e;
+  color: #aab6c0;
   font-family: inherit;
   font-size: 0.75rem;
   padding: 0.25rem 0.55rem;
@@ -220,12 +220,12 @@
 }
 
 .cityChip:hover {
-  border-color: #d4a84a;
+  border-color: #e6c473;
 }
 
 .cityChipActive {
-  border-color: #d4a84a;
-  color: #d4a84a;
+  border-color: #e6c473;
+  color: #e6c473;
 }
 
 .rankRow {
@@ -234,29 +234,29 @@
   gap: 0.6rem;
   align-items: center;
   padding: 0.55rem 0.4rem;
-  border-bottom: 1px solid #3a2d20;
+  border-bottom: 1px solid #26323e;
   font-size: 0.85rem;
 }
 
 .rankName {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .rankNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
   font-style: italic;
   margin-left: 0.4rem;
 }
 
 .rankReq {
-  color: #8a7050;
+  color: #7a8893;
   font-family: ui-monospace, monospace;
   font-size: 0.75rem;
 }
 
 .rankStipend {
-  color: #c19a3b;
+  color: #c9a64e;
   font-family: ui-monospace, monospace;
   font-size: 0.75rem;
 }

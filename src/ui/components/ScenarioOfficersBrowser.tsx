@@ -235,7 +235,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('姓名 / 名 / 字', 'Name / 名 / courtesy')}
               style={{
-                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                background: '#10161e', border: '1px solid #2b3845', color: '#e6c473',
                 padding: '0.3rem 0.5rem', fontFamily: 'inherit', flex: 1, maxWidth: 220,
               }}
             />
@@ -244,7 +244,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
               value={statKey}
               onChange={(e) => setStatKey(e.target.value as keyof OfficerStats | 'any')}
               style={{
-                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                background: '#10161e', border: '1px solid #2b3845', color: '#e6c473',
                 padding: '0.3rem', fontFamily: 'inherit',
               }}
             >
@@ -261,7 +261,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
               value={minStat}
               onChange={(e) => setMinStat(Number(e.target.value) || 0)}
               style={{
-                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                background: '#10161e', border: '1px solid #2b3845', color: '#e6c473',
                 padding: '0.3rem', fontFamily: 'ui-monospace, monospace', width: 60,
               }}
             />
@@ -347,7 +347,7 @@ export function ScenarioOfficersBrowser({ scenario, onClose }: Props) {
                   <span className={styles.rowForce}>
                     <span
                       className={styles.rowForceDot}
-                      style={{ background: force?.color ?? '#5a4530' }}
+                      style={{ background: force?.color ?? '#364654' }}
                     />
                     <span className={styles.rowForceText}>
                       {force ? (lang === 'en' ? force.name.en : force.name.zh) : (o.status === 'unsearched' ? t('未發現', 'unsearched') : t('在野', 'free agent'))}

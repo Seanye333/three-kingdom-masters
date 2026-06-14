@@ -43,12 +43,12 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
   }, [items, cat]);
 
   const allChips: CatalogCategory[] = [
-    { key: 'all', zh: '全部', en: 'All', color: '#d4a84a' },
+    { key: 'all', zh: '全部', en: 'All', color: '#e6c473' },
     ...categories,
   ];
 
   const colorFor = (it: CatalogItem) =>
-    it.accent ?? categories.find((c) => c.key === it.category)?.color ?? '#8c7a5a';
+    it.accent ?? categories.find((c) => c.key === it.category)?.color ?? '#7a8893';
 
   return (
     <div
@@ -64,31 +64,31 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--tkm-bg-modal, #1f1610)',
-          border: '1px solid var(--tkm-text-h2, #d4a84a)',
+          background: 'var(--tkm-bg-modal, #141c25)',
+          border: '1px solid var(--tkm-text-h2, #e6c473)',
           width: '900px', maxWidth: '96vw',
           maxHeight: '90vh',
           display: 'flex', flexDirection: 'column',
-          color: 'var(--tkm-text-body, #c9b89a)',
+          color: 'var(--tkm-text-body, #b6c2cc)',
           fontFamily: 'var(--tkm-font-body)',
         }}
       >
         <header style={{
           padding: '1rem 1.25rem',
-          borderBottom: '1px solid var(--tkm-border, #4a3520)',
+          borderBottom: '1px solid var(--tkm-border, #2b3845)',
           display: 'flex', alignItems: 'baseline', gap: '0.75rem',
         }}>
           <div style={{
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.5rem',
-            color: 'var(--tkm-text-h2, #d4a84a)',
+            color: 'var(--tkm-text-h2, #e6c473)',
             letterSpacing: '0.3rem',
           }}>
             {lang === 'en' ? title.en : title.zh}
           </div>
           <div style={{
             fontSize: '0.78rem',
-            color: 'var(--tkm-text-muted, #8c7a5a)',
+            color: 'var(--tkm-text-muted, #7a8893)',
             letterSpacing: '0.2rem',
             flex: 1,
           }}>
@@ -98,7 +98,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
             onClick={onClose}
             style={{
               background: 'transparent', border: 'none',
-              color: 'var(--tkm-text-h2, #d4a84a)',
+              color: 'var(--tkm-text-h2, #e6c473)',
               fontSize: '1.5rem', cursor: 'pointer', padding: '0 0.5rem',
             }}
           >×</button>
@@ -108,7 +108,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
           <div style={{
             display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
             padding: '0.75rem 1rem',
-            borderBottom: '1px solid var(--tkm-border-soft, #3a2818)',
+            borderBottom: '1px solid var(--tkm-border-soft, #1e2832)',
           }}>
             {allChips.map((c) => {
               const active = cat === c.key;
@@ -152,7 +152,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
                 key={it.id}
                 style={{
                   border: `1px solid ${accent}55`,
-                  background: 'var(--tkm-bg-raised, #251c14)',
+                  background: 'var(--tkm-bg-raised, #18212b)',
                   padding: '0.8rem 0.9rem 0.7rem 1.05rem',
                   position: 'relative',
                   overflow: 'hidden',
@@ -174,7 +174,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
                   <span style={{
                     fontFamily: 'var(--tkm-font-zh)',
                     fontSize: '1.25rem',
-                    color: 'var(--tkm-text-h1, #f0e0b0)',
+                    color: 'var(--tkm-text-h1, #eef4f8)',
                     letterSpacing: '0.2rem',
                   }}>
                     {lang === 'en' ? it.en : it.zh}
@@ -230,7 +230,7 @@ export function CatalogModal({ onClose, title, items, categories = [] }: Props) 
 
         <footer style={{
           padding: '0.6rem 1rem',
-          borderTop: '1px solid var(--tkm-border, #4a3520)',
+          borderTop: '1px solid var(--tkm-border, #2b3845)',
           fontSize: '0.72rem',
           color: 'var(--tkm-text-muted)',
           letterSpacing: '0.1rem',

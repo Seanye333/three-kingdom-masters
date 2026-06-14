@@ -88,15 +88,15 @@ export function BattleHistoryModal({ onClose }: Props) {
         {playerForceId && stats.total > 0 && (
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))',
-            gap: '0.5rem', padding: '0.6rem 1rem', borderBottom: '1px solid #4a3520',
+            gap: '0.5rem', padding: '0.6rem 1rem', borderBottom: '1px solid #2b3845',
             background: 'rgba(20,16,12,0.4)',
             fontFamily: '"Songti SC", serif', fontSize: '0.78rem',
           }}>
-            <Stat label="總戰" value={stats.total} color="#c0a878" />
+            <Stat label="總戰" value={stats.total} color="#aab6c0" />
             <Stat label="勝" value={stats.won} color="#7ed68a" />
             <Stat label="敗" value={stats.lost} color="#b8442e" />
-            <Stat label="攻陷" value={stats.conquests} color="#d4a84a" />
-            <Stat label="殲敵" value={stats.killsDealt.toLocaleString()} color="#c19a3b" />
+            <Stat label="攻陷" value={stats.conquests} color="#e6c473" />
+            <Stat label="殲敵" value={stats.killsDealt.toLocaleString()} color="#c9a64e" />
             <Stat label="己損" value={stats.killsTaken.toLocaleString()} color="#8a5a3a" />
           </div>
         )}
@@ -104,7 +104,7 @@ export function BattleHistoryModal({ onClose }: Props) {
         {/* Filter row */}
         <div style={{
           display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center',
-          padding: '0.5rem 1rem', borderBottom: '1px solid #4a3520',
+          padding: '0.5rem 1rem', borderBottom: '1px solid #2b3845',
         }}>
           {(['all', 'won', 'lost', 'conquest'] as const).map((k) => {
             const label = { all: '全部', won: '勝戰', lost: '敗戰', conquest: '攻陷' }[k];
@@ -114,9 +114,9 @@ export function BattleHistoryModal({ onClose }: Props) {
                 key={k}
                 onClick={() => setOutcomeFilter(k)}
                 style={{
-                  background: active ? '#3a2818' : 'transparent',
-                  border: `1px solid ${active ? '#d4a84a' : '#4a3520'}`,
-                  color: active ? '#d4a84a' : '#8a7050',
+                  background: active ? '#1e2832' : 'transparent',
+                  border: `1px solid ${active ? '#e6c473' : '#2b3845'}`,
+                  color: active ? '#e6c473' : '#7a8893',
                   padding: '0.2rem 0.6rem',
                   cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.75rem',
                 }}
@@ -129,8 +129,8 @@ export function BattleHistoryModal({ onClose }: Props) {
             placeholder="搜尋城名/年份…"
             style={{
               flex: 1, minWidth: '140px',
-              background: '#1a1410', border: '1px solid #4a3520',
-              color: '#e8d9b0', padding: '0.25rem 0.5rem',
+              background: '#10161e', border: '1px solid #2b3845',
+              color: '#e6edf3', padding: '0.25rem 0.5rem',
               fontFamily: 'inherit', fontSize: '0.78rem',
             }}
           />
@@ -218,7 +218,7 @@ export function BattleHistoryModal({ onClose }: Props) {
 function Stat({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.2rem' }}>{label}</div>
+      <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.2rem' }}>{label}</div>
       <div style={{ fontSize: '1rem', color, fontFamily: 'ui-monospace, monospace', marginTop: '0.15rem' }}>{value}</div>
     </div>
   );

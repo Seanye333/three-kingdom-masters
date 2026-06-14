@@ -20,7 +20,7 @@ const KIND_LABEL: Record<Kind, { zh: string; en: string }> = {
 
 const KIND_COLOR: Record<Item['kind'], string> = {
   weapon:   '#b8442e',
-  horse:    '#c19a3b',
+  horse:    '#c9a64e',
   treasure: '#88b7e8',
   book:     '#7a9a5a',
 };
@@ -141,13 +141,13 @@ export function ItemsBrowser({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(1000px,100%)',
           height: '88vh',
           display: 'flex',
           flexDirection: 'column',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -155,15 +155,15 @@ export function ItemsBrowser({ onClose }: Props) {
         <header
           style={{
             padding: '1rem 1.5rem',
-            borderBottom: '1px solid #4a3520',
+            borderBottom: '1px solid #2b3845',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'baseline',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.3rem' }}>{t('名品', 'Items')}</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.3rem' }}>{t('名品', 'Items')}</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
               {t(
                 `顯示 ${visible.length} / ${ITEMS.length}`,
                 `${visible.length} of ${ITEMS.length} shown`,
@@ -174,7 +174,7 @@ export function ItemsBrowser({ onClose }: Props) {
             onClick={onClose}
             style={{
               background: 'none', border: 'none',
-              color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer',
+              color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer',
             }}
           >
             ×
@@ -184,7 +184,7 @@ export function ItemsBrowser({ onClose }: Props) {
         <div
           style={{
             display: 'flex', gap: '0.5rem', padding: '0.75rem 1.5rem',
-            borderBottom: '1px solid #4a3520', flexWrap: 'wrap',
+            borderBottom: '1px solid #2b3845', flexWrap: 'wrap',
           }}
         >
           {(['all', 'weapon', 'horse', 'treasure', 'book'] as Kind[]).map((k) => (
@@ -192,9 +192,9 @@ export function ItemsBrowser({ onClose }: Props) {
               key={k}
               onClick={() => setKind(k)}
               style={{
-                background: kind === k ? '#3a2d20' : 'transparent',
-                border: '1px solid ' + (kind === k ? '#d4a84a' : '#4a3520'),
-                color: kind === k ? '#d4a84a' : '#8a7050',
+                background: kind === k ? '#26323e' : 'transparent',
+                border: '1px solid ' + (kind === k ? '#e6c473' : '#2b3845'),
+                color: kind === k ? '#e6c473' : '#7a8893',
                 padding: '0.35rem 1rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',
@@ -202,7 +202,7 @@ export function ItemsBrowser({ onClose }: Props) {
               }}
             >
               {lang === 'en' ? KIND_LABEL[k].en : KIND_LABEL[k].zh}
-              {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#5a4530' }}>{KIND_LABEL[k].en}</span></>}
+              {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#364654' }}>{KIND_LABEL[k].en}</span></>}
             </button>
           ))}
           <input
@@ -210,9 +210,9 @@ export function ItemsBrowser({ onClose }: Props) {
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('依名稱或描述搜尋…', 'Search by name or description…')}
             style={{
-              background: '#1a1410',
-              border: '1px solid #4a3520',
-              color: '#d4a84a',
+              background: '#10161e',
+              border: '1px solid #2b3845',
+              color: '#e6c473',
               padding: '0.3rem 0.5rem',
               fontFamily: 'inherit',
               flex: 1,
@@ -225,10 +225,10 @@ export function ItemsBrowser({ onClose }: Props) {
         <div
           style={{
             display: 'flex', gap: '0.4rem', padding: '0.5rem 1.5rem',
-            borderBottom: '1px solid #4a3520', flexWrap: 'wrap', alignItems: 'center',
+            borderBottom: '1px solid #2b3845', flexWrap: 'wrap', alignItems: 'center',
           }}
         >
-          <span style={{ fontSize: '0.75rem', color: '#8a7050', letterSpacing: '0.1rem', marginRight: '0.3rem' }}>
+          <span style={{ fontSize: '0.75rem', color: '#7a8893', letterSpacing: '0.1rem', marginRight: '0.3rem' }}>
             {t('排序', 'Sort')}
           </span>
           {(['name', 'kind', 'total', 'leadership', 'war', 'intelligence', 'politics', 'charisma', 'origin'] as SortKey[]).map((k) => {
@@ -238,9 +238,9 @@ export function ItemsBrowser({ onClose }: Props) {
                 key={k}
                 onClick={() => handleSort(k)}
                 style={{
-                  background: active ? '#3a2d20' : 'transparent',
-                  border: '1px solid ' + (active ? '#d4a84a' : '#4a3520'),
-                  color: active ? '#d4a84a' : '#8a7050',
+                  background: active ? '#26323e' : 'transparent',
+                  border: '1px solid ' + (active ? '#e6c473' : '#2b3845'),
+                  color: active ? '#e6c473' : '#7a8893',
                   padding: '0.25rem 0.7rem',
                   fontSize: '0.78rem',
                   fontFamily: 'inherit',
@@ -266,7 +266,7 @@ export function ItemsBrowser({ onClose }: Props) {
           }}
         >
           {visible.length === 0 ? (
-            <div style={{ color: '#8a7050', fontStyle: 'italic', padding: '2rem' }}>
+            <div style={{ color: '#7a8893', fontStyle: 'italic', padding: '2rem' }}>
               {t('沒有符合的物品。', 'No items match.')}
             </div>
           ) : (
@@ -291,14 +291,14 @@ function ItemCard({ item }: { item: Item }) {
   return (
     <div
       style={{
-        background: '#1a1410',
+        background: '#10161e',
         border: `1px solid ${color}`,
         padding: '0.7rem 0.85rem',
         boxShadow: `inset 0 0 12px ${color}22`,
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div style={{ fontSize: '0.95rem', color: '#d4a84a', letterSpacing: '0.15rem' }}>
+        <div style={{ fontSize: '0.95rem', color: '#e6c473', letterSpacing: '0.15rem' }}>
           {lang === 'en' ? item.name.en : item.name.zh}
         </div>
         <div
@@ -310,11 +310,11 @@ function ItemCard({ item }: { item: Item }) {
         </div>
       </div>
       {lang === 'both' && (
-        <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic', marginBottom: '0.4rem' }}>
+        <div style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic', marginBottom: '0.4rem' }}>
           {item.name.en}
         </div>
       )}
-      <div style={{ fontSize: '0.78rem', color: '#c0a878', lineHeight: 1.45, marginBottom: '0.5rem' }}>
+      <div style={{ fontSize: '0.78rem', color: '#aab6c0', lineHeight: 1.45, marginBottom: '0.5rem' }}>
         {lang === 'zh' && item.descriptionZh ? item.descriptionZh : item.description}
       </div>
       <div
@@ -331,7 +331,7 @@ function ItemCard({ item }: { item: Item }) {
           ) : null,
         )}
         {item.originCityId && CITY_NAMES_BY_ID[item.originCityId] && (
-          <span style={{ color: '#8a7050', marginLeft: 'auto', fontStyle: 'italic' }}>
+          <span style={{ color: '#7a8893', marginLeft: 'auto', fontStyle: 'italic' }}>
             {lang === 'en' ? 'from' : '出'} {lang === 'en'
               ? CITY_NAMES_BY_ID[item.originCityId].en
               : CITY_NAMES_BY_ID[item.originCityId].zh}

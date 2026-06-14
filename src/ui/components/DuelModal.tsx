@@ -72,10 +72,10 @@ export function DuelModal({ result, onClose }: Props) {
       <div
         style={{
           width: 'min(820px,96vw)',
-          background: 'linear-gradient(160deg,#1a1410,#0a0805)',
-          border: '2px solid #d4a84a',
+          background: 'linear-gradient(160deg,#10161e,#080b0e)',
+          border: '2px solid #e6c473',
           padding: '2rem',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -84,7 +84,7 @@ export function DuelModal({ result, onClose }: Props) {
           style={{
             fontSize: '0.65rem',
             letterSpacing: '0.45rem',
-            color: '#c19a3b',
+            color: '#c9a64e',
             textTransform: 'uppercase',
             textAlign: 'center',
             marginBottom: '1.5rem',
@@ -112,11 +112,11 @@ export function DuelModal({ result, onClose }: Props) {
             }}
           >
             <DuelPortrait id={a?.id} zh={a?.name.zh ?? '?'} color="#b8442e" side="attacker" />
-            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#d4a84a', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
+            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
               {lang === 'en' ? a?.name.en : a?.name.zh}
             </div>
-            {lang === 'both' && <div style={{ fontSize: '0.8rem', color: '#8a7050', fontStyle: 'italic' }}>{a?.name.en}</div>}
-            <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.85rem', color: '#c0a878', marginTop: '0.3rem' }}>
+            {lang === 'both' && <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>{a?.name.en}</div>}
+            <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.85rem', color: '#aab6c0', marginTop: '0.3rem' }}>
               {t('武力', 'War')} {a?.stats.war}
             </div>
           </div>
@@ -125,7 +125,7 @@ export function DuelModal({ result, onClose }: Props) {
           <div
             style={{
               fontSize: '4rem',
-              color: '#d4a84a',
+              color: '#e6c473',
               fontFamily: '"Songti SC", serif',
               textShadow: '0 0 14px rgba(212,168,74,0.6)',
               position: 'relative',
@@ -142,12 +142,12 @@ export function DuelModal({ result, onClose }: Props) {
                   placeItems: 'center',
                 }}
               >
-                <span style={{ color: '#1a1410', fontSize: '5rem' }}>×</span>
+                <span style={{ color: '#10161e', fontSize: '5rem' }}>×</span>
               </div>
             ) : phase === 'standoff' ? (
               '⚔'
             ) : (
-              <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.3rem' }}>
+              <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.3rem' }}>
                 {result.winner === 'attacker' && t('攻方勝', 'Attacker')}
                 {result.winner === 'defender' && t('守方勝', 'Defender')}
                 {result.winner === 'draw' && t('平手', 'Draw')}
@@ -163,11 +163,11 @@ export function DuelModal({ result, onClose }: Props) {
             }}
           >
             <DuelPortrait id={d?.id} zh={d?.name.zh ?? '?'} color="#3a7dd9" side="defender" />
-            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#d4a84a', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
+            <div className="duel-name" style={{ fontSize: '1.6rem', color: '#e6c473', letterSpacing: '0.3rem', marginTop: '0.5rem' }}>
               {lang === 'en' ? d?.name.en : d?.name.zh}
             </div>
-            {lang === 'both' && <div style={{ fontSize: '0.8rem', color: '#8a7050', fontStyle: 'italic' }}>{d?.name.en}</div>}
-            <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.85rem', color: '#c0a878', marginTop: '0.3rem' }}>
+            {lang === 'both' && <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>{d?.name.en}</div>}
+            <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.85rem', color: '#aab6c0', marginTop: '0.3rem' }}>
               {t('武力', 'War')} {d?.stats.war}
             </div>
           </div>
@@ -175,19 +175,19 @@ export function DuelModal({ result, onClose }: Props) {
 
         {phase === 'reveal' && (
           <>
-            <hr style={{ border: 'none', height: 1, background: 'linear-gradient(90deg, transparent, #d4a84a, transparent)', margin: '1.5rem 0' }} />
+            <hr style={{ border: 'none', height: 1, background: 'linear-gradient(90deg, transparent, #e6c473, transparent)', margin: '1.5rem 0' }} />
             <div
               style={{
                 fontSize: '2rem',
                 textAlign: 'center',
-                color: result.winner === 'draw' ? '#c19a3b' : '#d4a84a',
+                color: result.winner === 'draw' ? '#c9a64e' : '#e6c473',
                 letterSpacing: '0.4rem',
                 textShadow: '0 0 14px rgba(212,168,74,0.4)',
               }}
             >
               {result.winner === 'draw' ? t('勢均力敵', 'Stalemate') : t('勝!', 'Victory!')}
             </div>
-            <div style={{ textAlign: 'center', color: '#c0a878', fontStyle: 'italic', marginTop: '0.5rem' }}>
+            <div style={{ textAlign: 'center', color: '#aab6c0', fontStyle: 'italic', marginTop: '0.5rem' }}>
               {result.winner === 'draw'
                 ? t('兩將皆力竭負傷,本場一騎打不分勝負。', 'Both warriors fight to exhaustion, wounded and bloodied. The duel is a draw.')
                 : result.killedId
@@ -204,11 +204,11 @@ export function DuelModal({ result, onClose }: Props) {
               <div style={{ marginTop: '0.75rem', maxHeight: 140, overflowY: 'auto', fontSize: '0.7rem', fontFamily: 'ui-monospace, monospace' }}>
                 {result.rounds.map((r) => (
                   <div key={r.round} style={{ display: 'grid', gridTemplateColumns: '2.5rem 1fr 2.5rem', gap: '0.4rem', alignItems: 'center', padding: '0.15rem 0.3rem', borderBottom: '1px dotted #2a2018' }}>
-                    <span style={{ textAlign: 'right', color: r.roundWinner === 'attacker' ? '#e8987a' : '#8a7050' }}>{r.attackerScore}</span>
+                    <span style={{ textAlign: 'right', color: r.roundWinner === 'attacker' ? '#e8987a' : '#7a8893' }}>{r.attackerScore}</span>
                     <span style={{ textAlign: 'center', color: '#a89878' }}>
                       {t(`第${r.round}合`, `Rd ${r.round}`)} · {lang === 'en' ? r.text.en : r.text.zh}
                     </span>
-                    <span style={{ textAlign: 'left', color: r.roundWinner === 'defender' ? '#8ab7e8' : '#8a7050' }}>{r.defenderScore}</span>
+                    <span style={{ textAlign: 'left', color: r.roundWinner === 'defender' ? '#8ab7e8' : '#7a8893' }}>{r.defenderScore}</span>
                   </div>
                 ))}
               </div>
@@ -224,9 +224,9 @@ export function DuelModal({ result, onClose }: Props) {
               <button
                 onClick={onClose}
                 style={{
-                  background: 'linear-gradient(180deg, #5a4530, #3a2d20)',
-                  border: '1px solid #d4a84a',
-                  color: '#d4a84a',
+                  background: 'linear-gradient(180deg, #364654, #26323e)',
+                  border: '1px solid #e6c473',
+                  color: '#e6c473',
                   padding: '0.5rem 2rem',
                   fontFamily: '"Songti SC", serif',
                   letterSpacing: '0.3rem',
@@ -247,10 +247,10 @@ function StaminaBar({ label, value, color, align }: { label: string; value: numb
   const pct = Math.max(0, Math.min(100, value));
   return (
     <div style={{ textAlign: align }}>
-      <div style={{ fontSize: '0.62rem', color: '#8a7050', letterSpacing: '0.1rem', marginBottom: '0.2rem' }}>
+      <div style={{ fontSize: '0.62rem', color: '#7a8893', letterSpacing: '0.1rem', marginBottom: '0.2rem' }}>
         {label} {pct}
       </div>
-      <div style={{ height: 8, background: '#0a0805', border: '1px solid #3a2d20', position: 'relative' }}>
+      <div style={{ height: 8, background: '#080b0e', border: '1px solid #26323e', position: 'relative' }}>
         <div style={{
           position: 'absolute', top: 0, bottom: 0,
           left: align === 'left' ? 0 : undefined,
@@ -268,17 +268,17 @@ function RollBox({ label, roll, winner }: { label: string; roll: import('../../g
   return (
     <div
       style={{
-        background: '#0a0805',
-        border: `1px solid ${winner ? '#d4a84a' : '#4a3520'}`,
+        background: '#080b0e',
+        border: `1px solid ${winner ? '#e6c473' : '#2b3845'}`,
         padding: '0.6rem 0.85rem',
         fontFamily: 'ui-monospace, monospace',
         boxShadow: winner ? '0 0 10px rgba(212,168,74,0.3)' : undefined,
       }}
     >
-      <div style={{ color: '#d4a84a', fontSize: '0.95rem', fontFamily: '"Songti SC", serif', marginBottom: '0.3rem' }}>
+      <div style={{ color: '#e6c473', fontSize: '0.95rem', fontFamily: '"Songti SC", serif', marginBottom: '0.3rem' }}>
         {label}
       </div>
-      <div style={{ color: '#c0a878' }}>{t('武力', 'War')}: {roll.base}</div>
+      <div style={{ color: '#aab6c0' }}>{t('武力', 'War')}: {roll.base}</div>
       {roll.itemBonus > 0 && <div style={{ color: '#88b7e8' }}>{t('寶物', 'Items')}: +{roll.itemBonus}</div>}
       {roll.skillBonus !== 0 && <div style={{ color: '#3a7dd9' }}>{t('特技', 'Skills')}: +{roll.skillBonus}</div>}
       {roll.traitBonus !== 0 && (
@@ -286,8 +286,8 @@ function RollBox({ label, roll, winner }: { label: string; roll: import('../../g
           {t('性格', 'Traits')}: {roll.traitBonus > 0 ? '+' : ''}{roll.traitBonus}
         </div>
       )}
-      <div style={{ color: '#8a7050' }}>d30: {roll.diceRoll}</div>
-      <div style={{ borderTop: '1px solid #3a2d20', marginTop: '0.3rem', paddingTop: '0.3rem', color: '#d4a84a' }}>
+      <div style={{ color: '#7a8893' }}>d30: {roll.diceRoll}</div>
+      <div style={{ borderTop: '1px solid #26323e', marginTop: '0.3rem', paddingTop: '0.3rem', color: '#e6c473' }}>
         {t('總計', 'Total')}: <strong>{roll.total}</strong>
       </div>
     </div>
@@ -304,7 +304,7 @@ function DuelPortrait({ id, zh, color, side }: { id?: string; zh: string; color:
       <div
         style={{
           width: 120, height: 120, borderRadius: '50%', display: 'inline-block',
-          overflow: 'hidden', border: '2px solid #d4a84a',
+          overflow: 'hidden', border: '2px solid #e6c473',
           boxShadow: `0 0 18px ${color}aa`,
         }}
       >
@@ -325,18 +325,18 @@ function DuelPortrait({ id, zh, color, side }: { id?: string; zh: string; color:
         <radialGradient id={`duel-grad-${side}-${zh.charCodeAt(0)}`} cx="40%" cy="38%" r="65%">
           <stop offset="0%" stopColor={color} stopOpacity="0.95" />
           <stop offset="70%" stopColor={color} stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#0a0805" stopOpacity="1" />
+          <stop offset="100%" stopColor="#080b0e" stopOpacity="1" />
         </radialGradient>
       </defs>
-      <circle cx="60" cy="60" r="56" fill={`url(#duel-grad-${side}-${zh.charCodeAt(0)})`} stroke="#d4a84a" strokeWidth="2" />
+      <circle cx="60" cy="60" r="56" fill={`url(#duel-grad-${side}-${zh.charCodeAt(0)})`} stroke="#e6c473" strokeWidth="2" />
       <text
         x="60" y="78"
         textAnchor="middle"
         fontSize="60"
         fontFamily='"Songti SC","Noto Serif SC",serif'
         fontWeight="bold"
-        fill="#e8d9b0"
-        stroke="#1a1410"
+        fill="#e6edf3"
+        stroke="#10161e"
         strokeWidth="1"
       >
         {s}

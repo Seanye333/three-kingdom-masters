@@ -155,7 +155,7 @@ export function OfficerDetail({
         <PortraitColumn
           officer={officer}
           zh={officer.name.zh}
-          color={force?.color ?? '#5a4530'}
+          color={force?.color ?? '#364654'}
           archetype={inferArchetype(officer)}
           age={age}
         />
@@ -183,7 +183,7 @@ export function OfficerDetail({
               return (
                 <div style={{
                   display: 'inline-block', marginTop: '0.3rem', padding: '0.12rem 0.5rem',
-                  background: 'linear-gradient(180deg, #4a3a1a, #2a2010)', border: '1px solid #d4a84a',
+                  background: 'linear-gradient(180deg, #4a3a1a, #2a2010)', border: '1px solid #e6c473',
                   color: '#f0d890', fontSize: '0.82rem', letterSpacing: '0.15rem', borderRadius: 2,
                 }}>
                   威名 · {lang === 'en' ? prestige.name.en : prestige.name.zh}
@@ -193,7 +193,7 @@ export function OfficerDetail({
             {openWish && (
               <div style={{
                 marginTop: '0.3rem', fontSize: '0.78rem',
-                color: openWish.kind === 'info' ? '#7ed68a' : '#d4a84a',
+                color: openWish.kind === 'info' ? '#7ed68a' : '#e6c473',
                 letterSpacing: '0.1rem',
               }}>
                 📜 {openWish.kind === 'info' ? '一封上書待覽' : '一封書信待覆'}
@@ -323,8 +323,8 @@ export function OfficerDetail({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.5rem', alignItems: 'baseline' }}>
               {officer.level !== undefined && (
                 <div>
-                  <span style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>{t('等級', 'Lv.')} </span>
-                  <span style={{ fontSize: '1.1rem', color: '#d4a84a', fontFamily: 'ui-monospace, monospace' }}>
+                  <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>{t('等級', 'Lv.')} </span>
+                  <span style={{ fontSize: '1.1rem', color: '#e6c473', fontFamily: 'ui-monospace, monospace' }}>
                     {officer.level}
                   </span>
                 </div>
@@ -333,16 +333,16 @@ export function OfficerDetail({
                 const d = DOCTRINE_DEFS[officer.doctrine];
                 return (
                   <div>
-                    <span style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>{t('主義', 'Doctrine')} </span>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>{t('主義', 'Doctrine')} </span>
                     <span
                       title={`${d.zh} · ${d.en}`}
                       style={{
-                        background: '#1a1410', border: `1px solid ${d.color}`, color: d.color,
+                        background: '#10161e', border: `1px solid ${d.color}`, color: d.color,
                         padding: '0.2rem 0.55rem', fontSize: '0.8rem', letterSpacing: '0.1rem',
                         }}
                     >
                       {lang === 'en' ? d.en : d.zh}
-                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{d.en}</span></>}
+                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{d.en}</span></>}
                     </span>
                   </div>
                 );
@@ -352,16 +352,16 @@ export function OfficerDetail({
                 const w = WEAPON_TYPE_DEFS[wt];
                 return (
                   <div>
-                    <span style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>{t('兵裝', 'Weapon')} </span>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>{t('兵裝', 'Weapon')} </span>
                     <span
                       title={`${w.zh} · ${w.en}`}
                       style={{
-                        background: '#1a1410', border: `1px solid ${w.color}`, color: w.color,
+                        background: '#10161e', border: `1px solid ${w.color}`, color: w.color,
                         padding: '0.2rem 0.55rem', fontSize: '0.8rem', letterSpacing: '0.1rem',
                         }}
                     >
                       {lang === 'en' ? w.en : w.zh}
-                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{w.en}</span></>}
+                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{w.en}</span></>}
                     </span>
                   </div>
                 );
@@ -386,7 +386,7 @@ export function OfficerDetail({
                     key={fid}
                     title={fullDesc}
                     style={{
-                      background: '#1a1410', border: '1px solid #88b7e8', color: '#88b7e8',
+                      background: '#10161e', border: '1px solid #88b7e8', color: '#88b7e8',
                       padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                     }}
                   >
@@ -423,11 +423,11 @@ export function OfficerDetail({
                     key={tid}
                     title={tooltip}
                     style={{
-                      background: '#1a1410', border: '1px solid #b8442e', color: '#b8442e',
+                      background: '#10161e', border: '1px solid #b8442e', color: '#b8442e',
                       padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                     }}
                   >
-                    {isTacticSignature(tid) && <span style={{ color: '#d4a84a', marginRight: 2 }}>★</span>}
+                    {isTacticSignature(tid) && <span style={{ color: '#e6c473', marginRight: 2 }}>★</span>}
                     {lang === 'en' ? tac.en : tac.zh}
                     {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a4530', fontStyle: 'italic' }}>{tac.en}</span></>}
                   </span>
@@ -446,18 +446,18 @@ export function OfficerDetail({
                 .filter((r) => r.have.length > 0);
               if (combos.length === 0) return null;
               return (
-                <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: '#8a7050' }}>
-                  <div style={{ color: '#d4a84a', marginBottom: '0.2rem', letterSpacing: '0.15rem' }}>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: '#7a8893' }}>
+                  <div style={{ color: '#e6c473', marginBottom: '0.2rem', letterSpacing: '0.15rem' }}>
                     {t('連環戰法進度', 'Combo Progress')}
                   </div>
                   {combos.map(({ combo, have, miss }) => (
                     <div key={combo.id} style={{ marginBottom: '0.2rem' }}>
-                      <span style={{ color: miss.length === 0 ? '#7ed68a' : '#c0a878' }}>
+                      <span style={{ color: miss.length === 0 ? '#7ed68a' : '#aab6c0' }}>
                         {miss.length === 0 ? '✓' : '◐'} {lang === 'en' ? combo.nameEn : combo.nameZh}
                         {' '}({have.length}/{combo.tactics.length})
                       </span>
                       {miss.length > 0 && (
-                        <span style={{ color: '#8a7050', marginLeft: '0.4rem' }}>
+                        <span style={{ color: '#7a8893', marginLeft: '0.4rem' }}>
                           {t('缺', 'need')}: {miss.map((m) => TACTIC_DEFS[m as keyof typeof TACTIC_DEFS]?.zh ?? m).join('、')}
                         </span>
                       )}
@@ -486,7 +486,7 @@ export function OfficerDetail({
                     key={pid}
                     title={desc}
                     style={{
-                      background: '#1a1410', border: '1px solid #7a9a5a', color: '#7a9a5a',
+                      background: '#10161e', border: '1px solid #7a9a5a', color: '#7a9a5a',
                       padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                     }}
                   >
@@ -597,7 +597,7 @@ export function OfficerDetail({
                   // Skill border + text color by category
                   const color =
                     s.category === 'combat'  ? '#b8442e'
-                    : s.category === 'command' ? '#d4a84a'
+                    : s.category === 'command' ? '#e6c473'
                     : s.category === 'wisdom'  ? '#88b7e8'
                     : s.category === 'civil'   ? '#b8c87a'
                     : '#c178c7';
@@ -607,12 +607,12 @@ export function OfficerDetail({
                       key={`skill-${s.id}`}
                       title={desc}
                       style={{
-                        background: '#1a1410', border: `1px solid ${color}`, color,
+                        background: '#10161e', border: `1px solid ${color}`, color,
                         padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                         }}
                     >
                       {lang === 'en' ? s.name.en : s.name.zh}
-                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{s.name.en}</span></>}
+                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{s.name.en}</span></>}
                     </span>
                   );
                 })}
@@ -631,12 +631,12 @@ export function OfficerDetail({
                       key={`trait-${tr.id}`}
                       title={desc + effectLines}
                       style={{
-                        background: '#1a1410', border: `1px solid ${tr.color}`, color: tr.color,
+                        background: '#10161e', border: `1px solid ${tr.color}`, color: tr.color,
                         padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                         }}
                     >
                       {lang === 'en' ? tr.name.en : tr.name.zh}
-                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{tr.name.en}</span></>}
+                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{tr.name.en}</span></>}
                     </span>
                   );
                 })}
@@ -660,13 +660,13 @@ export function OfficerDetail({
                   return (
                     <span key={tid} title={lang === 'zh' ? tDef.name.zh : tDef.name.en}
                       style={{
-                        background: 'linear-gradient(135deg,#3a2818,#1a1208)',
-                        border: '1px solid #d4a84a', color: '#d4a84a',
+                        background: 'linear-gradient(135deg,#1e2832,#1a1208)',
+                        border: '1px solid #e6c473', color: '#e6c473',
                         padding: '0.3rem 0.6rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                       }}
                     >
                       {lang === 'en' ? tDef.name.en : tDef.name.zh}
-                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{tDef.name.en}</span></>}
+                      {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{tDef.name.en}</span></>}
                     </span>
                   );
                 })}
@@ -687,8 +687,8 @@ export function OfficerDetail({
                 const v = (officerDeeds[k as keyof typeof officerDeeds] as number) ?? 0;
                 if (v === 0) return null;
                 return (
-                  <div key={k} style={{ color: '#c0a878' }}>
-                    <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>{label}</span>{' '}
+                  <div key={k} style={{ color: '#aab6c0' }}>
+                    <span style={{ color: '#7a8893', fontSize: '0.7rem' }}>{label}</span>{' '}
                     <span style={{ fontFamily: 'ui-monospace, monospace' }}>{v.toLocaleString()}</span>
                   </div>
                 );
@@ -716,7 +716,7 @@ export function OfficerDetail({
               <h3 className={styles.sectionTitle}>
                 {t('持有', 'Equipment')} ({officer.equipment.length})
                 {totalStr && (
-                  <span style={{ marginLeft: '0.8rem', fontSize: '0.75rem', color: '#d4a84a', letterSpacing: '0.1rem' }}>
+                  <span style={{ marginLeft: '0.8rem', fontSize: '0.75rem', color: '#e6c473', letterSpacing: '0.1rem' }}>
                     {t('合計', 'Total')}: {totalStr}
                   </span>
                 )}
@@ -727,10 +727,10 @@ export function OfficerDetail({
                   if (!item) return null;
                   const kindColor =
                     item.kind === 'weapon'   ? '#b8442e'
-                    : item.kind === 'horse'    ? '#c19a3b'
-                    : item.kind === 'treasure' ? '#d4a84a'
+                    : item.kind === 'horse'    ? '#c9a64e'
+                    : item.kind === 'treasure' ? '#e6c473'
                     : item.kind === 'book'     ? '#3a7dd9'
-                    : '#5a4530';
+                    : '#364654';
                   const desc = lang === 'zh' && item.descriptionZh ? item.descriptionZh : item.description;
                   const effects = Object.entries(item.effects)
                     .map(([stat, val]) => `${stat.slice(0, 3).toUpperCase()} +${val}`)
@@ -742,21 +742,21 @@ export function OfficerDetail({
                       key={id}
                       title={`${desc}\n${effects}${grantSummary ? '\n' + grantSummary : ''}`}
                       style={{
-                        background: '#1a1410', border: `1px solid ${kindColor}`, color: kindColor,
+                        background: '#10161e', border: `1px solid ${kindColor}`, color: kindColor,
                         padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                         display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                       }}
                     >
                       <span>
                         {lang === 'en' ? item.name.en : item.name.zh}
-                        {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{item.name.en}</span></>}
+                        {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{item.name.en}</span></>}
                       </span>
                       {isPlayerOfficer && (
                         <button
                           onClick={() => unequipItemFn(officer.id, id)}
                           title={t('卸下', 'Unequip')}
                           style={{
-                            background: 'none', border: 'none', color: '#8a7050',
+                            background: 'none', border: 'none', color: '#7a8893',
                             cursor: 'pointer', padding: '0 0.1rem', fontSize: '0.75rem',
                           }}
                         >×</button>
@@ -787,17 +787,17 @@ export function OfficerDetail({
 }
 
 const REL_KIND_LABEL: Record<string, { zh: string; en: string; color: string }> = {
-  'sworn-brothers': { zh: '義兄弟', en: 'Sworn Brothers', color: '#d4a84a' },
+  'sworn-brothers': { zh: '義兄弟', en: 'Sworn Brothers', color: '#e6c473' },
   'rival':          { zh: '宿敵',   en: 'Rival',          color: '#b8442e' },
   'mentor-student': { zh: '師弟',   en: 'Mentor / Student', color: '#3a7dd9' },
-  'master-servant': { zh: '主従',   en: 'Master / Servant', color: '#c19a3b' },
+  'master-servant': { zh: '主従',   en: 'Master / Servant', color: '#c9a64e' },
   'romantic':       { zh: '恋人',   en: 'Romantic',         color: '#c178c7' },
   'enemy':          { zh: '私仇',   en: 'Personal Enemy',   color: '#5a2025' },
   // Family kinds (from FamilyRelation type)
   'spouse':         { zh: '配偶',   en: 'Spouse',          color: '#e8a8c8' },
   'parent':         { zh: '父母',   en: 'Parent',          color: '#88b7e8' },
   'child':          { zh: '子嗣',   en: 'Child',           color: '#7ed68a' },
-  'sibling':        { zh: '兄弟',   en: 'Sibling',         color: '#c19a3b' },
+  'sibling':        { zh: '兄弟',   en: 'Sibling',         color: '#c9a64e' },
 };
 
 function RelationshipsSection({ officerId, officersOverride }: { officerId: string; officersOverride?: Record<string, Officer> }) {
@@ -903,20 +903,20 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
         onClick={() => setDrillOfficerId(entry.otherId)}
         title={lang === 'en' ? `Open ${other.name.en}` : `查看 ${other.name.zh}`}
         style={{
-          background: '#1a1410',
+          background: '#10161e',
           borderLeft: `3px solid ${meta.color}`,
           padding: '0.4rem 0.6rem',
           fontSize: '0.8rem',
           cursor: 'pointer',
           transition: 'background 0.1s',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#2a1f15'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#1a1410'; }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#1b2531'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#10161e'; }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <span>
-            <span style={{ color: '#d4a84a' }}>{lang === 'en' ? other.name.en : other.name.zh}</span>
-            {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>{other.name.en}</span></>}
+            <span style={{ color: '#e6c473' }}>{lang === 'en' ? other.name.en : other.name.zh}</span>
+            {lang === 'both' && <> <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>{other.name.en}</span></>}
           </span>
           <span style={{
             fontSize: '0.65rem', letterSpacing: '0.15rem', textTransform: 'uppercase',
@@ -925,7 +925,7 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
             {lang === 'en' ? meta.en : lang === 'both' ? `${meta.zh} ${meta.en}` : meta.zh}
           </span>
         </div>
-        <div style={{ fontSize: '0.72rem', color: '#c0a878', fontStyle: 'italic', marginTop: '0.2rem' }}>
+        <div style={{ fontSize: '0.72rem', color: '#aab6c0', fontStyle: 'italic', marginTop: '0.2rem' }}>
           {lang === 'en' ? entry.noteEn : lang === 'both' ? `${entry.noteZh} · ${entry.noteEn}` : entry.noteZh}
         </div>
       </div>
@@ -938,7 +938,7 @@ function RelationshipsSection({ officerId, officersOverride }: { officerId: stri
     <section className={styles.statsSection}>
       <h3 className={styles.sectionTitle}>
         {t('因緣', 'Relationships')}
-        <span style={{ marginLeft: '0.6rem', fontSize: '0.7rem', color: '#8a7050' }}>
+        <span style={{ marginLeft: '0.6rem', fontSize: '0.7rem', color: '#7a8893' }}>
           {totalCount}
         </span>
       </h3>
@@ -1009,9 +1009,9 @@ function CampaignChronicleBlock({ officer }: { officer: Officer }) {
     cityNameZhById: Object.fromEntries(Object.values(cities).map((c) => [c.id, c.name.zh])),
   }), [officer, deeds, battleHistory, forces, cities]);
   return (
-    <div style={{ marginTop: '0.6rem', borderTop: '1px dashed #3a2d20', paddingTop: '0.5rem' }}>
+    <div style={{ marginTop: '0.6rem', borderTop: '1px dashed #26323e', paddingTop: '0.5rem' }}>
       <div style={{
-        fontSize: '0.66rem', color: '#c19a3b', letterSpacing: '0.25rem',
+        fontSize: '0.66rem', color: '#c9a64e', letterSpacing: '0.25rem',
         textTransform: 'uppercase', fontFamily: 'ui-monospace, monospace', marginBottom: 4,
       }}>{t('本朝實錄', 'This campaign')}</div>
       {paragraphs.map((p, i) => (
@@ -1038,7 +1038,7 @@ function BiographyBlock({ officer }: { officer: Officer }) {
         <div
           style={{
             fontSize: '0.72rem',
-            color: '#c19a3b',
+            color: '#c9a64e',
             letterSpacing: '0.2rem',
             textTransform: 'uppercase',
             fontFamily: 'ui-monospace, monospace',
@@ -1051,7 +1051,7 @@ function BiographyBlock({ officer }: { officer: Officer }) {
         <div
           style={{
             fontSize: '0.7rem',
-            color: '#8a7050',
+            color: '#7a8893',
             fontFamily: '"Songti SC", serif',
           }}
           title={lang === 'en' ? 'Historical lifespan' : '歷史生卒'}
@@ -1062,12 +1062,12 @@ function BiographyBlock({ officer }: { officer: Officer }) {
       {lang !== 'en' && (
         <div
           style={{
-            background: '#1a1410',
-            borderLeft: '3px solid #d4a84a',
+            background: '#10161e',
+            borderLeft: '3px solid #e6c473',
             padding: '0.6rem 0.85rem',
             fontSize: '0.85rem',
             lineHeight: 1.7,
-            color: '#d4a84a',
+            color: '#e6c473',
             fontFamily: '"Songti SC","Noto Serif SC",serif',
           }}
         >
@@ -1077,12 +1077,12 @@ function BiographyBlock({ officer }: { officer: Officer }) {
       {lang !== 'zh' && (
         <div
           style={{
-            background: '#1a1410',
-            borderLeft: '3px solid #5a4530',
+            background: '#10161e',
+            borderLeft: '3px solid #364654',
             padding: '0.6rem 0.85rem',
             fontSize: '0.82rem',
             lineHeight: 1.6,
-            color: '#c0a878',
+            color: '#aab6c0',
             fontStyle: 'italic',
           }}
         >
@@ -1092,19 +1092,19 @@ function BiographyBlock({ officer }: { officer: Officer }) {
       {bio.quote && (
         <div
           style={{
-            background: '#0a0805',
-            border: '1px dashed #4a3520',
+            background: '#080b0e',
+            border: '1px dashed #2b3845',
             padding: '0.6rem 0.85rem',
             fontSize: '0.85rem',
             lineHeight: 1.6,
-            color: '#e8d9b0',
+            color: '#e6edf3',
             textAlign: 'center',
             fontStyle: 'italic',
           }}
         >
           &ldquo; {lang === 'en' ? bio.quote.en : bio.quote.zh} &rdquo;
           {lang === 'both' && (
-            <div style={{ fontSize: '0.7rem', color: '#8a7050', marginTop: '0.3rem' }}>
+            <div style={{ fontSize: '0.7rem', color: '#7a8893', marginTop: '0.3rem' }}>
               — {bio.quote.en}
             </div>
           )}
@@ -1189,7 +1189,7 @@ function Portrait({
     warrior: '#b8442e',
     strategist: '#3a7dd9',
     civil: '#6abf6a',
-    ruler: '#d4a84a',
+    ruler: '#e6c473',
     lady: '#c178c7',
     sage: '#88b7e8',
   };
@@ -1206,10 +1206,10 @@ function Portrait({
         <radialGradient id={gradId} cx="42%" cy="38%" r="68%">
           <stop offset="0%" stopColor={color} stopOpacity="0.95" />
           <stop offset="60%" stopColor={color} stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#1a1410" stopOpacity="1" />
+          <stop offset="100%" stopColor="#10161e" stopOpacity="1" />
         </radialGradient>
         <linearGradient id={`${gradId}-frame`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#d4a84a" />
+          <stop offset="0%" stopColor="#e6c473" />
           <stop offset="100%" stopColor="#8a6a3a" />
         </linearGradient>
       </defs>
@@ -1236,16 +1236,16 @@ function Portrait({
           <rect x="28" y="14" width="28" height="10" rx="1" fill="#1a3052" stroke="#3a7dd9" strokeWidth="0.6" />
           <path d="M 28 14 L 32 8 L 52 8 L 56 14 Z" fill="#1a3052" opacity="0.7" />
           <line x1="42" y1="8" x2="42" y2="4" stroke="#88b7e8" strokeWidth="0.8" />
-          <circle cx="42" cy="3" r="1" fill="#d4a84a" />
+          <circle cx="42" cy="3" r="1" fill="#e6c473" />
         </g>
       )}
       {archetype === 'sage' && (
         <g>
           {/* Daoist headdress with star */}
           <path d="M 22 22 Q 42 6 62 22 L 58 26 Q 42 12 26 26 Z" fill="#0a1a2a" opacity="0.85" />
-          <path d="M 42 6 L 44 10 L 48 11 L 45 14 L 46 18 L 42 16 L 38 18 L 39 14 L 36 11 L 40 10 Z" fill="#d4a84a" opacity="0.9" />
+          <path d="M 42 6 L 44 10 L 48 11 L 45 14 L 46 18 L 42 16 L 38 18 L 39 14 L 36 11 L 40 10 Z" fill="#e6c473" opacity="0.9" />
           {/* Feathered fan accent */}
-          <path d="M 64 50 Q 76 46 72 60 Q 66 56 64 50 Z" fill="#e8d9b0" opacity="0.7" stroke="#8a7050" strokeWidth="0.3" />
+          <path d="M 64 50 Q 76 46 72 60 Q 66 56 64 50 Z" fill="#e6edf3" opacity="0.7" stroke="#7a8893" strokeWidth="0.3" />
         </g>
       )}
       {archetype === 'civil' && (
@@ -1253,19 +1253,19 @@ function Portrait({
           {/* Tall civil hat */}
           <rect x="32" y="10" width="20" height="14" rx="1" fill="#2a3a2a" stroke="#6abf6a" strokeWidth="0.6" />
           <line x1="42" y1="10" x2="42" y2="6" stroke="#6abf6a" strokeWidth="0.6" />
-          <circle cx="42" cy="5" r="0.8" fill="#d4a84a" />
+          <circle cx="42" cy="5" r="0.8" fill="#e6c473" />
         </g>
       )}
       {archetype === 'ruler' && (
         <g>
           {/* Imperial crown with bead curtain */}
-          <rect x="22" y="14" width="40" height="6" fill="#3a2d20" stroke="#d4a84a" strokeWidth="1" />
-          <rect x="22" y="10" width="40" height="6" fill="#1a1410" stroke="#d4a84a" strokeWidth="0.6" />
+          <rect x="22" y="14" width="40" height="6" fill="#26323e" stroke="#e6c473" strokeWidth="1" />
+          <rect x="22" y="10" width="40" height="6" fill="#10161e" stroke="#e6c473" strokeWidth="0.6" />
           {/* Hanging beads */}
           {[26, 31, 36, 42, 48, 53, 58].map((x, i) => (
             <g key={i}>
-              <line x1={x} y1="20" x2={x} y2="26" stroke="#d4a84a" strokeWidth="0.4" />
-              <circle cx={x} cy="27" r="1.2" fill="#d4a84a" />
+              <line x1={x} y1="20" x2={x} y2="26" stroke="#e6c473" strokeWidth="0.4" />
+              <circle cx={x} cy="27" r="1.2" fill="#e6c473" />
             </g>
           ))}
           {/* Top dragon ornament */}
@@ -1275,15 +1275,15 @@ function Portrait({
       {archetype === 'lady' && (
         <g>
           {/* Hair coil with hairpin and ornament */}
-          <ellipse cx="42" cy="20" rx="22" ry="10" fill="#1a1410" opacity="0.85" />
-          <ellipse cx="42" cy="18" rx="14" ry="6" fill="#2a1f15" />
+          <ellipse cx="42" cy="20" rx="22" ry="10" fill="#10161e" opacity="0.85" />
+          <ellipse cx="42" cy="18" rx="14" ry="6" fill="#1b2531" />
           {/* Hairpin with flower */}
-          <line x1="48" y1="22" x2="58" y2="14" stroke="#d4a84a" strokeWidth="0.6" />
-          <circle cx="58" cy="14" r="2.5" fill="#c178c7" stroke="#d4a84a" strokeWidth="0.4" />
-          <circle cx="58" cy="14" r="1" fill="#d4a84a" />
+          <line x1="48" y1="22" x2="58" y2="14" stroke="#e6c473" strokeWidth="0.6" />
+          <circle cx="58" cy="14" r="2.5" fill="#c178c7" stroke="#e6c473" strokeWidth="0.4" />
+          <circle cx="58" cy="14" r="1" fill="#e6c473" />
           {/* Side hair locks */}
-          <path d="M 22 24 Q 18 38 22 50" fill="none" stroke="#1a1410" strokeWidth="2.5" opacity="0.7" />
-          <path d="M 62 24 Q 66 38 62 50" fill="none" stroke="#1a1410" strokeWidth="2.5" opacity="0.7" />
+          <path d="M 22 24 Q 18 38 22 50" fill="none" stroke="#10161e" strokeWidth="2.5" opacity="0.7" />
+          <path d="M 62 24 Q 66 38 62 50" fill="none" stroke="#10161e" strokeWidth="2.5" opacity="0.7" />
         </g>
       )}
 
@@ -1291,7 +1291,7 @@ function Portrait({
       {isOld && archetype !== 'lady' && (
         <path
           d="M 30 56 Q 42 78 54 56 Q 50 70 42 72 Q 34 70 30 56 Z"
-          fill="#3a2d20"
+          fill="#26323e"
           opacity="0.7"
         />
       )}
@@ -1305,8 +1305,8 @@ function Portrait({
             fontSize="18"
             fontFamily='"Songti SC","Noto Serif SC",serif'
             fontWeight="bold"
-            fill="#e8d9b0"
-            stroke="#1a1410"
+            fill="#e6edf3"
+            stroke="#10161e"
             strokeWidth="0.4"
           >
             {surname.charAt(0)}
@@ -1317,8 +1317,8 @@ function Portrait({
             fontSize="18"
             fontFamily='"Songti SC","Noto Serif SC",serif'
             fontWeight="bold"
-            fill="#e8d9b0"
-            stroke="#1a1410"
+            fill="#e6edf3"
+            stroke="#10161e"
             strokeWidth="0.4"
           >
             {surname.charAt(1)}
@@ -1331,8 +1331,8 @@ function Portrait({
           fontSize="28"
           fontFamily='"Songti SC","Noto Serif SC",serif'
           fontWeight="bold"
-          fill="#e8d9b0"
-          stroke="#1a1410"
+          fill="#e6edf3"
+          stroke="#10161e"
           strokeWidth="0.5"
         >
           {surname}
@@ -1341,7 +1341,7 @@ function Portrait({
 
       {/* Archetype seal in corner */}
       <g transform="translate(64, 64)">
-        <rect x="-7" y="-7" width="14" height="14" fill={acc} stroke="#1a1410" strokeWidth="0.8" rx="1" />
+        <rect x="-7" y="-7" width="14" height="14" fill={acc} stroke="#10161e" strokeWidth="0.8" rx="1" />
         <text
           x="0" y="3"
           textAnchor="middle"
@@ -1382,12 +1382,12 @@ function StatBar({
   const bonusWidthPct = Math.min(100, ((value + bonus) / scaleMax) * 100) - baseWidthPct;
   const fillColor =
     mode === 'loyalty'
-      ? effective >= 80 ? '#3a7dd9' : effective >= 50 ? '#c19a3b' : '#b8442e'
+      ? effective >= 80 ? '#3a7dd9' : effective >= 50 ? '#c9a64e' : '#b8442e'
       : effective >= 130 ? '#ffce4a'
-      : effective >= 100 ? '#d4a84a'
-      : effective >= 80 ? '#c19a3b'
-      : effective >= 60 ? '#8a7050'
-      : '#5a4530';
+      : effective >= 100 ? '#e6c473'
+      : effective >= 80 ? '#c9a64e'
+      : effective >= 60 ? '#7a8893'
+      : '#364654';
   const glow = mode === 'stat' && effective > 100;
   return (
     <div className={styles.statRow}>
@@ -1504,7 +1504,7 @@ function FamilyTreeSection({ officerId, officersOverride }: {
         title={lang === 'en' ? `Open ${o.name.en}` : `查看 ${o.name.zh}`}
         style={{
           display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
-          background: '#1a1410',
+          background: '#10161e',
           border: `1px solid ${color}`,
           padding: '0.35rem 0.55rem',
           minWidth: 75,
@@ -1512,11 +1512,11 @@ function FamilyTreeSection({ officerId, officersOverride }: {
           margin: 2,
           transition: 'background 0.1s',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#2a1f15'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#1a1410'; }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#1b2531'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = '#10161e'; }}
       >
         <span style={{ color, fontSize: '0.62rem', letterSpacing: '0.1rem' }}>{role}</span>
-        <span style={{ color: '#d4a84a', fontSize: '0.82rem', marginTop: 2 }}>
+        <span style={{ color: '#e6c473', fontSize: '0.82rem', marginTop: 2 }}>
           {lang === 'en' ? o.name.en : o.name.zh}
         </span>
         {o.status === 'dead' && (
@@ -1537,7 +1537,7 @@ function FamilyTreeSection({ officerId, officersOverride }: {
       <div style={{
         background: 'linear-gradient(180deg, rgba(212,168,74,0.04) 0%, transparent 100%)',
         padding: '0.6rem 0.4rem',
-        border: '1px solid #4a3520',
+        border: '1px solid #2b3845',
       }}>
         {/* Parents */}
         {parents.length > 0 && (
@@ -1547,15 +1547,15 @@ function FamilyTreeSection({ officerId, officersOverride }: {
         )}
         {/* Vertical line if has parents */}
         {parents.length > 0 && (
-          <div style={{ width: 2, height: 12, background: '#5a4530', margin: '2px auto' }} />
+          <div style={{ width: 2, height: 12, background: '#364654', margin: '2px auto' }} />
         )}
         {/* Self + spouses + siblings */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
           {siblings.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-              {siblings.slice(0, 4).map((s) => node(s, '#c19a3b', t('兄弟', 'Sibling')))}
+              {siblings.slice(0, 4).map((s) => node(s, '#c9a64e', t('兄弟', 'Sibling')))}
               {siblings.length > 4 && (
-                <span style={{ color: '#8a7050', fontSize: '0.72rem', alignSelf: 'center', margin: '0 4px' }}>
+                <span style={{ color: '#7a8893', fontSize: '0.72rem', alignSelf: 'center', margin: '0 4px' }}>
                   +{siblings.length - 4}
                 </span>
               )}
@@ -1565,15 +1565,15 @@ function FamilyTreeSection({ officerId, officersOverride }: {
           <div
             style={{
               display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
-              background: '#3a2818',
-              border: '2px solid #d4a84a',
+              background: '#1e2832',
+              border: '2px solid #e6c473',
               padding: '0.5rem 0.8rem',
               minWidth: 90,
               margin: 2,
               boxShadow: '0 0 12px rgba(212,168,74,0.4)',
             }}
           >
-            <span style={{ color: '#d4a84a', fontSize: '0.62rem', letterSpacing: '0.15rem' }}>
+            <span style={{ color: '#e6c473', fontSize: '0.62rem', letterSpacing: '0.15rem' }}>
               {t('本人', 'Self')}
             </span>
             <span style={{ color: '#ffd47a', fontSize: '0.95rem', marginTop: 2, fontWeight: 600 }}>
@@ -1591,14 +1591,14 @@ function FamilyTreeSection({ officerId, officersOverride }: {
         </div>
         {/* Vertical line down to children */}
         {children.length > 0 && (
-          <div style={{ width: 2, height: 12, background: '#5a4530', margin: '2px auto' }} />
+          <div style={{ width: 2, height: 12, background: '#364654', margin: '2px auto' }} />
         )}
         {/* Children */}
         {children.length > 0 && (
           <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
             {children.slice(0, 8).map((c) => node(c, '#7ed68a', t('子嗣', 'Child')))}
             {children.length > 8 && (
-              <span style={{ color: '#8a7050', fontSize: '0.72rem', alignSelf: 'center', margin: '0 4px' }}>
+              <span style={{ color: '#7a8893', fontSize: '0.72rem', alignSelf: 'center', margin: '0 4px' }}>
                 +{children.length - 8}
               </span>
             )}

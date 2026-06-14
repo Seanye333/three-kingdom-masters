@@ -207,8 +207,8 @@ export function SeasonReportModal() {
                         dismiss();
                       }}
                       style={{
-                        marginLeft: 6, background: 'transparent', border: '1px solid #4a3520',
-                        color: '#d4a84a', cursor: 'pointer', fontSize: '0.7rem',
+                        marginLeft: 6, background: 'transparent', border: '1px solid #2b3845',
+                        color: '#e6c473', cursor: 'pointer', fontSize: '0.7rem',
                         padding: '0 0.35rem', borderRadius: 2, flexShrink: 0,
                       }}
                     >📍 {lang === 'zh' ? cities[e.cityId]!.name.zh : cities[e.cityId]!.name.en}</button>

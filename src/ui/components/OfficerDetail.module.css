@@ -9,8 +9,8 @@
 }
 
 .modal {
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 760px;
   max-width: 95vw;
   max-height: 88vh;
@@ -36,7 +36,7 @@
   height: auto;
   max-height: calc(88vh - 3rem);
   object-fit: contain;
-  border: 1px solid #d4a84a;
+  border: 1px solid #e6c473;
   border-radius: 2px;
   display: block;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
@@ -80,7 +80,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
 }
@@ -106,23 +106,23 @@
 .titleZh {
   font-size: 2rem;
   letter-spacing: 0.4rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #c0a878;
+  color: #aab6c0;
   letter-spacing: 0.05rem;
 }
 
 .courtesy {
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .closeButton {
   background: transparent;
   border: none;
-  color: #8a7050;
+  color: #7a8893;
   font-size: 1.5rem;
   cursor: pointer;
   font-family: inherit;
@@ -130,7 +130,7 @@
 }
 
 .closeButton:hover {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .identity {
@@ -139,8 +139,8 @@
   gap: 0.4rem;
   margin-bottom: 1rem;
   padding: 0.6rem 0.85rem;
-  background: #1a1410;
-  border-left: 3px solid #4a3520;
+  background: #10161e;
+  border-left: 3px solid #2b3845;
 }
 
 .identityRow {
@@ -151,7 +151,7 @@
 }
 
 .idLabel {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
   letter-spacing: 0.15rem;
   text-transform: uppercase;
@@ -159,11 +159,11 @@
 }
 
 .idValue {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .idValueEn {
-  color: #8a7050;
+  color: #7a8893;
   margin-left: 0.4rem;
   font-size: 0.78rem;
 }
@@ -181,8 +181,8 @@
 .youTag {
   font-family: ui-monospace, monospace;
   font-size: 0.65rem;
-  background: #d4a84a;
-  color: #1a1410;
+  background: #e6c473;
+  color: #10161e;
   padding: 0.1rem 0.4rem;
   letter-spacing: 0.1rem;
   margin-left: 0.4rem;
@@ -201,7 +201,7 @@
 }
 
 .muted {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.78rem;
 }
 
@@ -213,7 +213,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.2rem;
   text-transform: uppercase;
-  color: #8a7050;
+  color: #7a8893;
   margin: 0 0 0.5rem 0;
   font-weight: normal;
 }
@@ -228,14 +228,14 @@
 
 .statLabel {
   font-size: 0.8rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .statBarTrack {
   position: relative;
   height: 14px;
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
 }
 
 .statBarFill {
@@ -252,7 +252,7 @@
   bottom: 0;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #e8d9b0;
+  color: #e6edf3;
   line-height: 14px;
   text-shadow: 0 0 3px #000;
 }
@@ -260,9 +260,9 @@
 .footnote {
   margin: 0;
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
-  border-top: 1px dotted #3a2d20;
+  border-top: 1px dotted #26323e;
   padding-top: 0.5rem;
 }
 
@@ -273,8 +273,8 @@
 }
 
 .skillCard {
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   padding: 0.55rem 0.7rem;
   display: flex;
   flex-direction: column;
@@ -288,12 +288,12 @@
 }
 
 .skillName {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1rem;
 }
 
 .skillNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.72rem;
   font-style: italic;
   margin-left: 0.4rem;
@@ -305,20 +305,20 @@
   letter-spacing: 0.1rem;
   text-transform: uppercase;
   padding: 0.1rem 0.4rem;
-  background: #2a1f15;
-  border: 1px solid #4a3520;
-  color: #c0a878;
+  background: #1b2531;
+  border: 1px solid #2b3845;
+  color: #aab6c0;
 }
 
 .skillCategoryCombat   { color: #b8442e; border-color: #5a3025; }
-.skillCategoryCommand  { color: #c19a3b; border-color: #5a4530; }
+.skillCategoryCommand  { color: #c9a64e; border-color: #364654; }
 .skillCategoryWisdom   { color: #88b7e8; border-color: #2c4a6a; }
 .skillCategoryCivil    { color: #6abf6a; border-color: #2a4a2a; }
-.skillCategorySpecial  { color: #d4a84a; border-color: #5a4530; }
+.skillCategorySpecial  { color: #e6c473; border-color: #364654; }
 
 .skillDesc {
   font-size: 0.75rem;
-  color: #c0a878;
+  color: #aab6c0;
   line-height: 1.4;
   font-style: italic;
 }
@@ -327,18 +327,18 @@
   display: inline-flex;
   align-items: baseline;
   gap: 0.3rem;
-  background: #1a1410;
-  border: 1px solid #d4a84a;
+  background: #10161e;
+  border: 1px solid #e6c473;
   padding: 0.2rem 0.6rem;
 }
 
 .rankZh {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.9rem;
 }
 
 .rankEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
   font-style: italic;
 }
@@ -347,13 +347,13 @@
   display: inline-flex;
   align-items: baseline;
   gap: 0.3rem;
-  background: #1a1410;
-  border: 1px solid #c19a3b;
+  background: #10161e;
+  border: 1px solid #c9a64e;
   padding: 0.2rem 0.6rem;
   margin-right: 0.4rem;
 }
 
 .titleBadgeZh {
-  color: #c19a3b;
+  color: #c9a64e;
   font-size: 0.85rem;
 }

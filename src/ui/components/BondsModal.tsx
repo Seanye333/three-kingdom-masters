@@ -35,7 +35,7 @@ export function BondsModal({ onClose }: Props) {
   const hostBanquet = useGameStore((s) => s.hostBanquet);
   const swearBrotherhood = useGameStore((s) => s.swearBrotherhood);
   const year = useGameStore((s) => s.date.year);
-  const playerColor = (playerForceId ? forces[playerForceId]?.color : null) ?? '#d4a84a';
+  const playerColor = (playerForceId ? forces[playerForceId]?.color : null) ?? '#e6c473';
   const [selectedOfficer, setSelectedOfficer] = useState<Officer | null>(null);
   const [aSel, setASel] = useState('');
   const [bSel, setBSel] = useState('');
@@ -78,7 +78,7 @@ export function BondsModal({ onClose }: Props) {
   const handleBanquet = () => {
     const r = hostBanquet(citySel);
     setSocialMsg(r.message);
-    if (r.ok) { playSfx('horn'); floatFx(t('忠誠 ↑ · 好感 ↑', 'Loyalty ↑ · Rapport ↑'), '#d4a84a'); }
+    if (r.ok) { playSfx('horn'); floatFx(t('忠誠 ↑ · 好感 ↑', 'Loyalty ↑ · Rapport ↑'), '#e6c473'); }
     else playSfx('defeat');
   };
 
@@ -153,8 +153,8 @@ export function BondsModal({ onClose }: Props) {
         </header>
 
         {/* 社交 — grow rapport (好感) toward sworn bonds */}
-        <div style={{ border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)', padding: '0.6rem 0.75rem', margin: '0 0 0.8rem' }}>
-          <div style={{ color: '#d4a84a', letterSpacing: '0.2rem', marginBottom: '0.5rem', position: 'relative' }}>
+        <div style={{ border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)', padding: '0.6rem 0.75rem', margin: '0 0 0.8rem' }}>
+          <div style={{ color: '#e6c473', letterSpacing: '0.2rem', marginBottom: '0.5rem', position: 'relative' }}>
             {t('結交養誼', 'Build Rapport')}
             {floater && (
               <span
@@ -180,7 +180,7 @@ export function BondsModal({ onClose }: Props) {
               {myOfficers.map((o) => <option key={o.id} value={o.id}>{oName(o)}</option>)}
             </select>
             {aSel && bSel && aSel !== bSel && (
-              <span style={{ fontSize: '0.75rem', color: '#c0a878' }}>{t('好感', 'Rapport')} {getRapport(rapport, aSel, bSel)}/100</span>
+              <span style={{ fontSize: '0.75rem', color: '#aab6c0' }}>{t('好感', 'Rapport')} {getRapport(rapport, aSel, bSel)}/100</span>
             )}
             <button
               onClick={handleSocialize}
@@ -213,14 +213,14 @@ export function BondsModal({ onClose }: Props) {
             {socialMsg && <span style={{ fontSize: '0.74rem', color: '#7ed68a' }}>{socialMsg}</span>}
           </div>
           {warming.length > 0 && (
-            <div style={{ marginTop: '0.6rem', borderTop: '1px solid #3a2818', paddingTop: '0.5rem' }}>
-              <div style={{ fontSize: '0.7rem', color: '#8a7050', marginBottom: '0.3rem' }}>
+            <div style={{ marginTop: '0.6rem', borderTop: '1px solid #1e2832', paddingTop: '0.5rem' }}>
+              <div style={{ fontSize: '0.7rem', color: '#7a8893', marginBottom: '0.3rem' }}>
                 {t('近誼養成中（同袍共事,好感漸增,滿百義結）', 'Warming ties — serving together raises rapport; a bond forms at 100')}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {warming.map(({ a, b, r }) => (
-                  <span key={`${a.id}|${b.id}`} style={{ fontSize: '0.74rem', color: '#c0a878', border: '1px solid #4a3520', padding: '0.1rem 0.4rem', borderRadius: 2 }}>
-                    {oName(a)}–{oName(b)} <span style={{ color: r >= 80 ? '#7ed68a' : '#d4a84a', fontFamily: 'ui-monospace, monospace' }}>{r}</span>
+                  <span key={`${a.id}|${b.id}`} style={{ fontSize: '0.74rem', color: '#aab6c0', border: '1px solid #2b3845', padding: '0.1rem 0.4rem', borderRadius: 2 }}>
+                    {oName(a)}–{oName(b)} <span style={{ color: r >= 80 ? '#7ed68a' : '#e6c473', fontFamily: 'ui-monospace, monospace' }}>{r}</span>
                   </span>
                 ))}
               </div>
@@ -365,7 +365,7 @@ function OfficerCell({
       <div className={styles.cellFooter}>
         <span
           className={styles.cellDot}
-          style={{ background: force?.color ?? '#5a4530' }}
+          style={{ background: force?.color ?? '#364654' }}
         />
         <span className={styles.cellForce}>
           {force ? (lang === 'en' ? force.name.en : force.name.zh) : (dead ? '亡' : '浪人')}
@@ -377,14 +377,14 @@ function OfficerCell({
 }
 
 const selStyle: CSSProperties = {
-  background: '#2a1f15', color: '#e8d9b0', border: '1px solid #5a4530',
+  background: '#1b2531', color: '#e6edf3', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
   padding: '0.25rem 0.4rem', fontFamily: 'inherit', fontSize: '0.8rem',
 };
 function btnStyle(enabled: boolean): CSSProperties {
   return {
-    background: enabled ? '#3a2818' : '#241c12',
-    color: enabled ? '#d4a84a' : '#5a4a36',
-    border: `1px solid ${enabled ? '#5a4530' : '#3a2c1c'}`,
+    background: enabled ? '#1e2832' : '#241c12',
+    color: enabled ? '#e6c473' : '#5a4a36',
+    border: `1px solid ${enabled ? '#364654' : '#243240'}`,
     padding: '0.3rem 0.6rem', cursor: enabled ? 'pointer' : 'default',
     fontFamily: 'inherit', fontSize: '0.8rem',
   };

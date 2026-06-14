@@ -37,13 +37,13 @@ export function CityRosterModal({ onClose }: { onClose: () => void }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-        width: 'min(720px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+        width: 'min(720px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>🏯 {t('郡縣一覽', 'Cities')} <span style={{ color: '#8a7050', fontSize: '0.8rem' }}>({rows.length})</span></div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🏯 {t('郡縣一覽', 'Cities')} <span style={{ color: '#7a8893', fontSize: '0.8rem' }}>({rows.length})</span></div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
         <input
           value={query}
@@ -52,28 +52,28 @@ export function CityRosterModal({ onClose }: { onClose: () => void }) {
           autoFocus
           style={{
             width: '100%', boxSizing: 'border-box', marginBottom: '0.6rem',
-            background: '#14100a', border: '1px solid #4a3520', borderRadius: 4,
-            color: '#e8d9b0', padding: '0.35rem 0.6rem', fontFamily: 'inherit', fontSize: '0.85rem',
+            background: '#14100a', border: '1px solid #2b3845', borderRadius: 4,
+            color: '#e6edf3', padding: '0.35rem 0.6rem', fontFamily: 'inherit', fontSize: '0.85rem',
           }}
         />
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
           <thead>
-            <tr style={{ color: '#8a7050', borderBottom: '1px solid #4a3520' }}>
+            <tr style={{ color: '#7a8893', borderBottom: '1px solid #2b3845' }}>
               <th style={{ textAlign: 'left', padding: '4px 6px' }}>{t('城', 'City')}</th>
               {cols.map((c) => (
                 <th key={c.key} onClick={() => setSortBy(c.key)} style={{
                   textAlign: 'right', padding: '4px 6px', cursor: 'pointer',
-                  color: sortBy === c.key ? '#f0d98a' : '#8a7050',
+                  color: sortBy === c.key ? '#f2dd9a' : '#7a8893',
                 }}>{t(c.zh, c.en)}{sortBy === c.key ? ' ▾' : ''}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {rows.map((c) => (
-              <tr key={c.id} onClick={() => { selectCity(c.id); onClose(); }} style={{ cursor: 'pointer', borderBottom: '1px solid #2a2014' }}>
-                <td style={{ padding: '3px 6px', color: c.ruined ? '#a06a5a' : '#f0e0b0' }}>{c.name.zh}{c.ruined ? ' 🔥' : ''}</td>
+              <tr key={c.id} onClick={() => { selectCity(c.id); onClose(); }} style={{ cursor: 'pointer', borderBottom: '1px solid #18212b' }}>
+                <td style={{ padding: '3px 6px', color: c.ruined ? '#a06a5a' : '#eef4f8' }}>{c.name.zh}{c.ruined ? ' 🔥' : ''}</td>
                 {cols.map((col) => (
-                  <td key={col.key} style={{ textAlign: 'right', padding: '3px 6px', fontFamily: 'ui-monospace, monospace', color: col.key === 'loyalty' && c.loyalty < 40 ? '#e8704a' : '#c0a878' }}>
+                  <td key={col.key} style={{ textAlign: 'right', padding: '3px 6px', fontFamily: 'ui-monospace, monospace', color: col.key === 'loyalty' && c.loyalty < 40 ? '#e8704a' : '#aab6c0' }}>
                     {(c[col.key] as number).toLocaleString()}
                   </td>
                 ))}
@@ -82,7 +82,7 @@ export function CityRosterModal({ onClose }: { onClose: () => void }) {
           </tbody>
           {rows.length > 0 && (
             <tfoot>
-              <tr style={{ color: '#d4a84a', borderTop: '1px solid #4a3520', fontWeight: 'bold' }}>
+              <tr style={{ color: '#e6c473', borderTop: '1px solid #2b3845', fontWeight: 'bold' }}>
                 <td style={{ padding: '4px 6px' }}>{t('合計', 'Total')}</td>
                 {cols.map((col) => (
                   <td key={col.key} style={{ textAlign: 'right', padding: '4px 6px', fontFamily: 'ui-monospace, monospace' }}>

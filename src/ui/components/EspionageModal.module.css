@@ -9,13 +9,13 @@
 }
 
 .modal {
-  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
-  border: 1px solid #5a4530;
+  background: linear-gradient(160deg, #1b2531 0%, #10161e 100%);
+  border: 1px solid #364654;
   width: min(960px, 100%);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
 }
 
@@ -24,25 +24,25 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
 }
 
 .titleZh {
   font-size: 1.4rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
@@ -69,14 +69,14 @@
 .colLabel {
   font-size: 0.7rem;
   letter-spacing: 0.2rem;
-  color: #8a7050;
+  color: #7a8893;
   text-transform: uppercase;
   margin-bottom: 0.3rem;
 }
 
 .opCard {
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   padding: 0.55rem 0.7rem;
   cursor: pointer;
   display: flex;
@@ -85,17 +85,17 @@
 }
 
 .opCardActive {
-  border-color: #d4a84a;
-  background: #2a1f15;
+  border-color: #e6c473;
+  background: #1b2531;
 }
 
 .opName {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.95rem;
 }
 
 .opNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.72rem;
   font-style: italic;
   margin-left: 0.3rem;
@@ -103,7 +103,7 @@
 
 .opDesc {
   font-size: 0.72rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-style: italic;
   line-height: 1.4;
 }
@@ -113,11 +113,11 @@
   gap: 0.5rem;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   margin-top: 0.2rem;
 }
 
-.opMetaGold { color: #c19a3b; }
+.opMetaGold { color: #c9a64e; }
 .opMetaInt { color: #88b7e8; }
 .opMetaChance { color: #7ed68a; }
 
@@ -128,31 +128,31 @@
 }
 
 .option {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   padding: 0.4rem 0.55rem;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  color: #e8d9b0;
+  color: #e6edf3;
   display: flex;
   justify-content: space-between;
 }
 
 .option:hover {
-  border-color: #d4a84a;
-  background: #2a1f15;
+  border-color: #e6c473;
+  background: #1b2531;
 }
 
 .optionActive {
-  border-color: #d4a84a;
-  background: #2a1f15;
+  border-color: #e6c473;
+  background: #1b2531;
 }
 
 .optionStats {
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .dot {
@@ -172,7 +172,7 @@
 }
 
 .confirmBar {
-  border-top: 1px solid #4a3520;
+  border-top: 1px solid #2b3845;
   padding: 0.85rem 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -181,13 +181,13 @@
 
 .summary {
   font-size: 0.85rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .confirmBtn {
-  background: #3a2d20;
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: #26323e;
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.5rem 1.5rem;
   font-family: inherit;
   cursor: pointer;
@@ -195,7 +195,7 @@
 }
 
 .confirmBtn:hover:not(:disabled) {
-  background: #5a4530;
+  background: #364654;
 }
 
 .confirmBtn:disabled {
@@ -205,7 +205,7 @@
 
 .pending {
   margin-top: 0.5rem;
-  border-top: 1px solid #4a3520;
+  border-top: 1px solid #2b3845;
   padding-top: 0.5rem;
 }
 
@@ -213,8 +213,8 @@
   display: flex;
   justify-content: space-between;
   padding: 0.4rem 0.55rem;
-  background: #0a0805;
-  border: 1px solid #3a2d20;
+  background: #080b0e;
+  border: 1px solid #26323e;
   margin-bottom: 0.3rem;
   font-size: 0.78rem;
 }

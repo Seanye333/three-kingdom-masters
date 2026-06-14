@@ -3300,7 +3300,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
             onClick={() => setShowOverlays(!showOverlays)}
             style={{
               background: showOverlays ? 'rgba(212, 168, 74, 0.2)' : 'transparent',
-              border: '1px solid #5a4530',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
               color: showOverlays ? '#d4a84a' : '#8a7050',
               padding: '0.3rem 0.6rem',
               fontFamily: 'Songti SC, serif', fontSize: '0.7rem', cursor: 'pointer',
@@ -3647,7 +3647,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
           <div style={{
             position: 'absolute', bottom: 14, left: 14,
             background: 'rgba(20, 14, 8, 0.8)',
-            border: '1px solid #5a4530',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             padding: '0.3rem 0.6rem',
             color: '#8a7050', fontFamily: 'Songti SC, serif',
             fontSize: '0.7rem', letterSpacing: '0.15rem',
@@ -3730,7 +3730,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
         <div style={{
           position: 'absolute', bottom: 14, right: 14,
           background: 'rgba(20, 14, 8, 0.82)',
-          border: '1px solid #5a4530', borderRadius: 3,
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
           padding: '0.34rem 0.6rem',
           color: '#b8a274', fontFamily: 'Songti SC, serif',
           fontSize: '0.66rem', lineHeight: 1.55, textAlign: 'right',

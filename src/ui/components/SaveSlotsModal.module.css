@@ -9,19 +9,19 @@
 }
 
 .modal {
-  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
-  border: 1px solid #5a4530;
+  background: linear-gradient(160deg, #1b2531 0%, #10161e 100%);
+  border: 1px solid #364654;
   width: min(640px, 100%);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
 }
 
 .header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -29,20 +29,20 @@
 
 .titleZh {
   font-size: 1.4rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
@@ -64,16 +64,16 @@
 
 .tab {
   background: none;
-  border: 1px solid #4a3520;
-  color: #8a7050;
+  border: 1px solid #2b3845;
+  color: #7a8893;
   padding: 0.4rem 1rem;
   font-family: inherit;
   cursor: pointer;
 }
 
 .tabActive {
-  border-color: #d4a84a;
-  color: #d4a84a;
+  border-color: #e6c473;
+  color: #e6c473;
 }
 
 .newSlot {
@@ -84,17 +84,17 @@
 
 .newSlotInput {
   flex: 1;
-  background: #1a1410;
-  border: 1px solid #4a3520;
-  color: #d4a84a;
+  background: #10161e;
+  border: 1px solid #2b3845;
+  color: #e6c473;
   padding: 0.5rem;
   font-family: inherit;
 }
 
 .actionBtn {
-  background: #3a2d20;
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: #26323e;
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.5rem 1rem;
   font-family: inherit;
   cursor: pointer;
@@ -102,7 +102,7 @@
 }
 
 .actionBtn:hover:not(:disabled) {
-  background: #5a4530;
+  background: #364654;
 }
 
 .actionBtn:disabled {
@@ -115,8 +115,8 @@
   grid-template-columns: 1fr auto auto;
   gap: 0.5rem;
   padding: 0.6rem 0.8rem;
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   margin-bottom: 0.4rem;
   align-items: center;
 }
@@ -129,19 +129,19 @@
 
 .slotLabel {
   font-size: 0.95rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .slotMeta {
   font-family: ui-monospace, monospace;
   font-size: 0.72rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .loadBtn {
-  background: #3a2d20;
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: #26323e;
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.35rem 0.8rem;
   font-family: inherit;
   font-size: 0.8rem;

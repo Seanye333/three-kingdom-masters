@@ -1,20 +1,29 @@
 /* ─── Phase 51: Design tokens — single source of truth ──────────── */
 :root,
 :root[data-theme="parchment"] {
-  /* 古樸棕 — default dark parchment / RTK14 style */
-  --tkm-bg:           #1a1410;
-  --tkm-bg-raised:    #251c14;
-  --tkm-bg-sunken:    #110d09;
-  --tkm-bg-modal:     #1f1610;
+  /* 水墨 — modern ink: cool near-black ground, crisp text, jin-gold + jade
+     accents. (Kept under the "parchment" key so the default selection picks it.) */
+  --tkm-bg:           #0e1216;
+  --tkm-bg-raised:    #18212b;
+  --tkm-bg-sunken:    #0a0e12;
+  --tkm-bg-modal:     #141c25;
 
-  --tkm-border:       #4a3520;
-  --tkm-border-soft:  #3a2818;
-  --tkm-border-gold:  #6a4f2a;
+  --tkm-border:       #2b3845;
+  --tkm-border-soft:  #1e2832;
+  --tkm-border-gold:  #3c4f5e;
 
-  --tkm-text-h1:      #f0e0b0;
-  --tkm-text-h2:      #d4a84a;
-  --tkm-text-body:    #c9b89a;
-  --tkm-text-muted:   #8c7a5a;
+  --tkm-text-h1:      #eef3f7;
+  --tkm-text-h2:      #e6c473;   /* 金 — crisp jin accent */
+  --tkm-text-body:    #b6c2cc;
+  --tkm-text-muted:   #7a8893;
+
+  /* Modern chrome primitives */
+  --tkm-radius:       8px;
+  --tkm-radius-sm:    5px;
+  --tkm-hairline:     rgba(255, 255, 255, 0.08);
+  --tkm-elev-1:       0 2px 10px rgba(0, 0, 0, 0.35);
+  --tkm-elev-2:       0 10px 34px rgba(0, 0, 0, 0.5);
+  --tkm-jade:         #6fbf9f;
 }
 
 :root[data-theme="ink"] {

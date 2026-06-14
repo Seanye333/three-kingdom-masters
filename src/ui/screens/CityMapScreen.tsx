@@ -52,15 +52,15 @@ function hexDistAxial(a: { col: number; row: number }, b: { col: number; row: nu
 /** Building → zh glyph + color (mirrors CityStructureIcon kind). */
 const INSIDE_BUILDING_GLYPH: Record<BuildingId, { glyph: string; color: string }> = {
   barracks: { glyph: '營', color: '#a87858' },
-  market:   { glyph: '市', color: '#d4a84a' },
+  market:   { glyph: '市', color: '#e6c473' },
   granary:  { glyph: '倉', color: '#c8b478' },
   infirmary:{ glyph: '醫', color: '#88c8a8' },
   levee:    { glyph: '堤', color: '#6a98c0' },
   foundry:  { glyph: '鐵', color: '#7a6750' },
   academy:  { glyph: '書', color: '#88b7e8' },
-  temple:   { glyph: '寺', color: '#c19a3b' },
+  temple:   { glyph: '寺', color: '#c9a64e' },
   farm:     { glyph: '田', color: '#b8c87a' },
-  wall:     { glyph: '壁', color: '#5a4530' },
+  wall:     { glyph: '壁', color: '#364654' },
   shipyard: { glyph: '渠', color: '#3a6a98' },
   stable:   { glyph: '廄', color: '#8a6a48' },
   workshop: { glyph: '工', color: '#7d7264' },
@@ -147,10 +147,10 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
     if (!slot.buildingId) continue;
     const pos = preview.slotPositions[slot.slot];
     if (!pos) continue;
-    let range = 0, color = '#d4a84a';
+    let range = 0, color = '#e6c473';
     switch (slot.buildingId) {
-      case 'watchtower':      range = 4; color = '#d4a84a'; break;
-      case 'arrow-platform':  range = 5; color = '#c19a3b'; break;
+      case 'watchtower':      range = 4; color = '#e6c473'; break;
+      case 'arrow-platform':  range = 5; color = '#c9a64e'; break;
       case 'rockfall':        range = 1; color = '#4a3a30'; break;
       case 'caltrops':        range = 1; color = '#7a6750'; break;
       case 'iron-chains':     range = 1; color = '#3a6a98'; break;
@@ -179,7 +179,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
 
   // ── Force banner color ──
   const ownerForce = city.ownerForceId ? forces[city.ownerForceId] : null;
-  const bannerColor = ownerForce?.color ?? '#5a4530';
+  const bannerColor = ownerForce?.color ?? '#364654';
 
   // ── Garrison icon count (capped) ──
   const garrisonIconCount = Math.min(5, Math.floor(city.troops / 5000));
@@ -216,13 +216,13 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
         onClick={(e) => e.stopPropagation()}
         className="tkm-city-enter"
         style={{
-          background: 'var(--tkm-bg-modal, #1f1610)',
-          border: '1px solid var(--tkm-text-h2, #d4a84a)',
+          background: 'var(--tkm-bg-modal, #141c25)',
+          border: '1px solid var(--tkm-text-h2, #e6c473)',
           width: 'min(1200px, 98vw)',
           maxHeight: '96vh',
           display: 'flex',
           flexDirection: 'column',
-          color: 'var(--tkm-text-body, #c9b89a)',
+          color: 'var(--tkm-text-body, #b6c2cc)',
           fontFamily: 'var(--tkm-font-body)',
         }}
       >
@@ -254,7 +254,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
               style={{
                 background: showOverlays ? 'rgba(212, 168, 74, 0.2)' : 'transparent',
                 border: '1px solid var(--tkm-border-soft)',
-                color: showOverlays ? '#d4a84a' : '#8a7050',
+                color: showOverlays ? '#e6c473' : '#7a8893',
                 padding: '0.3rem 0.55rem',
                 fontFamily: 'inherit', fontSize: '0.7rem', cursor: 'pointer',
                 letterSpacing: '0.1rem',
@@ -293,7 +293,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
             padding: '0.5rem',
             background:
               'radial-gradient(circle at 50% 50%, rgba(80, 65, 45, 0.12) 0%, transparent 70%), ' +
-              'linear-gradient(180deg, #1a1408 0%, #0a0805 100%)',
+              'linear-gradient(180deg, #1a1408 0%, #080b0e 100%)',
           }}>
             <svg className="tkm-iso-svg" width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
               <MapDefs />
@@ -305,7 +305,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                 fill="rgba(184, 68, 46, 0.08)" pointerEvents="none" />
               {/* Approach roads from attacker side toward city — dashed amber */}
               {showOverlays && (
-                <g pointerEvents="none" stroke="#d4a84a" strokeWidth="1.2" fill="none"
+                <g pointerEvents="none" stroke="#e6c473" strokeWidth="1.2" fill="none"
                    strokeDasharray="4 4" opacity="0.4">
                   <path d={`M ${HEX_W * 0.5} ${svgHeight * 0.35}
                             Q ${svgWidth * 0.4} ${svgHeight * 0.3}
@@ -359,15 +359,15 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                       points={hexPoints(x, y)}
                       fill={
                         isCityWall ? 'url(#tkmMountainGrad)'
-                        : isInsideBld ? '#3a2818'
+                        : isInsideBld ? '#1e2832'
                         : TERRAIN_FILL_URL[t.terrain]
                       }
                       stroke={
-                        isSel ? '#f0e0b0'
-                        : isSlot ? '#d4a84a'
-                        : isCityWall ? '#d4a84a'
-                        : isInsideBld ? '#c19a3b'
-                        : '#1a1410'
+                        isSel ? '#eef4f8'
+                        : isSlot ? '#e6c473'
+                        : isCityWall ? '#e6c473'
+                        : isInsideBld ? '#c9a64e'
+                        : '#10161e'
                       }
                       strokeWidth={isSel ? 2.5 : isSlot ? 2 : isCityWall || isInsideBld ? 1.8 : 1}
                       opacity={0.94}
@@ -393,26 +393,26 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                         {/* Ground shadow beneath wall — anchors it to the terrain */}
                         <ellipse cx={x + 2} cy={y + 11} rx="15" ry="3" fill="rgba(0,0,0,0.55)" />
                         {/* Crenellated top edge */}
-                        <rect x={x - 12} y={y - 14} width="3" height="3" fill="#d4a84a" />
-                        <rect x={x - 6}  y={y - 14} width="3" height="3" fill="#d4a84a" />
-                        <rect x={x}      y={y - 14} width="3" height="3" fill="#d4a84a" />
-                        <rect x={x + 6}  y={y - 14} width="3" height="3" fill="#d4a84a" />
-                        <rect x={x + 9}  y={y - 14} width="3" height="3" fill="#d4a84a" />
+                        <rect x={x - 12} y={y - 14} width="3" height="3" fill="#e6c473" />
+                        <rect x={x - 6}  y={y - 14} width="3" height="3" fill="#e6c473" />
+                        <rect x={x}      y={y - 14} width="3" height="3" fill="#e6c473" />
+                        <rect x={x + 6}  y={y - 14} width="3" height="3" fill="#e6c473" />
+                        <rect x={x + 9}  y={y - 14} width="3" height="3" fill="#e6c473" />
                         {/* Wall main body */}
-                        <rect x={x - 13} y={y - 11} width="26" height="14" fill="#5a4530" stroke="#3a2818" strokeWidth="0.6" />
+                        <rect x={x - 13} y={y - 11} width="26" height="14" fill="#364654" stroke="#1e2832" strokeWidth="0.6" />
                         {/* Stone block lines */}
-                        <line x1={x - 13} y1={y - 7} x2={x + 13} y2={y - 7} stroke="#3a2818" strokeWidth="0.3" opacity="0.6" />
-                        <line x1={x - 13} y1={y - 3} x2={x + 13} y2={y - 3} stroke="#3a2818" strokeWidth="0.3" opacity="0.6" />
-                        <line x1={x} y1={y - 11} x2={x} y2={y - 7} stroke="#3a2818" strokeWidth="0.3" opacity="0.5" />
-                        <line x1={x - 6} y1={y - 7} x2={x - 6} y2={y - 3} stroke="#3a2818" strokeWidth="0.3" opacity="0.5" />
-                        <line x1={x + 6} y1={y - 7} x2={x + 6} y2={y - 3} stroke="#3a2818" strokeWidth="0.3" opacity="0.5" />
+                        <line x1={x - 13} y1={y - 7} x2={x + 13} y2={y - 7} stroke="#1e2832" strokeWidth="0.3" opacity="0.6" />
+                        <line x1={x - 13} y1={y - 3} x2={x + 13} y2={y - 3} stroke="#1e2832" strokeWidth="0.3" opacity="0.6" />
+                        <line x1={x} y1={y - 11} x2={x} y2={y - 7} stroke="#1e2832" strokeWidth="0.3" opacity="0.5" />
+                        <line x1={x - 6} y1={y - 7} x2={x - 6} y2={y - 3} stroke="#1e2832" strokeWidth="0.3" opacity="0.5" />
+                        <line x1={x + 6} y1={y - 7} x2={x + 6} y2={y - 3} stroke="#1e2832" strokeWidth="0.3" opacity="0.5" />
                         {/* Banner flying over walls (force color) */}
-                        <line x1={x + 7} y1={y - 16} x2={x + 7} y2={y - 22} stroke="#1a1410" strokeWidth="0.8" />
+                        <line x1={x + 7} y1={y - 16} x2={x + 7} y2={y - 22} stroke="#10161e" strokeWidth="0.8" />
                         <path
                           className="tkm-pennant"
                           d={`M ${x + 7} ${y - 22} L ${x + 13} ${y - 20} L ${x + 7} ${y - 18} Z`}
                           fill={bannerColor}
-                          stroke="#1a1410"
+                          stroke="#10161e"
                           strokeWidth="0.4"
                         />
                         {/* Garrison soldier silhouettes — show on the top wall hex only */}
@@ -423,13 +423,13 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                               return (
                                 <g key={i}>
                                   {/* Head */}
-                                  <circle cx={sx} cy={y - 8} r="1.2" fill="#f0e0b0" />
+                                  <circle cx={sx} cy={y - 8} r="1.2" fill="#eef4f8" />
                                   {/* Body */}
                                   <line x1={sx} y1={y - 7} x2={sx} y2={y - 4}
-                                    stroke="#f0e0b0" strokeWidth="1.4" strokeLinecap="round" />
+                                    stroke="#eef4f8" strokeWidth="1.4" strokeLinecap="round" />
                                   {/* Spear */}
                                   <line x1={sx + 1.5} y1={y - 11} x2={sx + 1.5} y2={y - 4}
-                                    stroke="#8a7050" strokeWidth="0.5" />
+                                    stroke="#7a8893" strokeWidth="0.5" />
                                 </g>
                               );
                             })}
@@ -443,18 +443,18 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                         {/* Ground shadow under building — anchors it to the hex */}
                         <ellipse cx={x + 2} cy={y + 11} rx="13" ry="2.8" fill="rgba(0,0,0,0.5)" />
                         <rect x={x - 10} y={y - 11} width="20" height="20"
-                          fill={INSIDE_BUILDING_GLYPH[inside.buildingId]?.color ?? '#5a4530'}
-                          stroke="#1a1410" strokeWidth="0.8" opacity={0.85} />
+                          fill={INSIDE_BUILDING_GLYPH[inside.buildingId]?.color ?? '#364654'}
+                          stroke="#10161e" strokeWidth="0.8" opacity={0.85} />
                         {/* Pointed roof */}
                         <path d={`M ${x - 12} ${y - 11} L ${x} ${y - 17} L ${x + 12} ${y - 11} Z`}
-                          fill="#3a2818" stroke="#1a1410" strokeWidth="0.4" />
+                          fill="#1e2832" stroke="#10161e" strokeWidth="0.4" />
                         <text x={x} y={y + 2} textAnchor="middle"
                           fontSize="11" fill="#fff" fontWeight="bold"
-                          fontFamily="Songti SC, serif" stroke="#1a1410" strokeWidth="0.3">
+                          fontFamily="Songti SC, serif" stroke="#10161e" strokeWidth="0.3">
                           {INSIDE_BUILDING_GLYPH[inside.buildingId]?.glyph ?? '?'}
                         </text>
                         <text x={x} y={y + 13} textAnchor="middle"
-                          fontSize="6" fill="#f0e0b0">
+                          fontSize="6" fill="#eef4f8">
                           Lv {inside.level}
                         </text>
                       </g>
@@ -463,9 +463,9 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                     {isSlot && !slotData?.buildingId && (
                       <>
                         <text x={x} y={y - 2} textAnchor="middle"
-                          fontSize="18" fill="#d4a84a" fontWeight="bold" pointerEvents="none">+</text>
+                          fontSize="18" fill="#e6c473" fontWeight="bold" pointerEvents="none">+</text>
                         <text x={x} y={y + 10} textAnchor="middle"
-                          fontSize="7" fill="#d4a84a" letterSpacing="1" pointerEvents="none">
+                          fontSize="7" fill="#e6c473" letterSpacing="1" pointerEvents="none">
                           {SLOT_POSITIONS[slotIdx!]}
                         </text>
                       </>
@@ -486,7 +486,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
               <text
                 x={svgWidth - HEX_W * 0.6} y={20}
                 textAnchor="end" fontSize="9"
-                fill="#d4a84a" letterSpacing="0.3em"
+                fill="#e6c473" letterSpacing="0.3em"
               >
                 守方 DEFENDER
               </text>
@@ -524,7 +524,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                   這是城邑被攻擊時的真實戰場。地形、地圖大小、特殊地形都與戰術戰鬥一致。
                 </p>
                 <p style={{ marginBottom: '0.5rem' }}>
-                  右側守方邊有 <strong style={{ color: '#d4a84a' }}>8 個亮金邊的建築位</strong>。點擊位來建造箭樓 / 拒馬 / 鐵索等防禦工事。
+                  右側守方邊有 <strong style={{ color: '#e6c473' }}>8 個亮金邊的建築位</strong>。點擊位來建造箭樓 / 拒馬 / 鐵索等防禦工事。
                 </p>
                 <p style={{ marginBottom: '0.5rem' }}>
                   戰時這些建築會出現在六角格上，每回合自動射擊攻方。
@@ -586,16 +586,16 @@ function BuiltStructureIcon({
   const glyph = ZH[buildingId] ?? '?';
   return (
     <g pointerEvents="none">
-      <rect x={x - 10} y={y - 12} width="20" height="20" fill={def.color} stroke="#1a1410" strokeWidth="1" />
-      <rect x={x - 10} y={y - 14} width="3" height="3" fill={def.color} stroke="#1a1410" strokeWidth="0.4" />
-      <rect x={x - 4}  y={y - 14} width="3" height="3" fill={def.color} stroke="#1a1410" strokeWidth="0.4" />
-      <rect x={x + 2}  y={y - 14} width="3" height="3" fill={def.color} stroke="#1a1410" strokeWidth="0.4" />
-      <rect x={x + 7}  y={y - 14} width="3" height="3" fill={def.color} stroke="#1a1410" strokeWidth="0.4" />
+      <rect x={x - 10} y={y - 12} width="20" height="20" fill={def.color} stroke="#10161e" strokeWidth="1" />
+      <rect x={x - 10} y={y - 14} width="3" height="3" fill={def.color} stroke="#10161e" strokeWidth="0.4" />
+      <rect x={x - 4}  y={y - 14} width="3" height="3" fill={def.color} stroke="#10161e" strokeWidth="0.4" />
+      <rect x={x + 2}  y={y - 14} width="3" height="3" fill={def.color} stroke="#10161e" strokeWidth="0.4" />
+      <rect x={x + 7}  y={y - 14} width="3" height="3" fill={def.color} stroke="#10161e" strokeWidth="0.4" />
       <text x={x} y={y + 2} textAnchor="middle" fontSize="11"
-        fill="#fff" fontWeight="bold" fontFamily="Songti SC, serif" stroke="#1a1410" strokeWidth="0.3">
+        fill="#fff" fontWeight="bold" fontFamily="Songti SC, serif" stroke="#10161e" strokeWidth="0.3">
         {glyph}
       </text>
-      <text x={x} y={y + 13} textAnchor="middle" fontSize="7" fill="#f0e0b0"
+      <text x={x} y={y + 13} textAnchor="middle" fontSize="7" fill="#eef4f8"
         fontFamily="ui-monospace, monospace">
         {'★'.repeat(level)}
       </text>
@@ -664,9 +664,9 @@ function SlotEditor({
             disabled={!canUpgrade || city.gold < upgradeCost}
             style={{
               flex: 1,
-              background: 'linear-gradient(180deg, #5a4530, #3a2d20)',
-              border: '1px solid #d4a84a',
-              color: canUpgrade && city.gold >= upgradeCost ? '#d4a84a' : '#5a4530',
+              background: 'linear-gradient(180deg, #364654, #26323e)',
+              border: '1px solid #e6c473',
+              color: canUpgrade && city.gold >= upgradeCost ? '#e6c473' : '#364654',
               padding: '0.4rem 0.55rem',
               fontFamily: 'inherit', fontSize: '0.75rem',
               cursor: canUpgrade && city.gold >= upgradeCost ? 'pointer' : 'not-allowed',
@@ -677,7 +677,7 @@ function SlotEditor({
           <button
             onClick={onDemolish}
             style={{
-              background: 'transparent', border: '1px solid #5a4530',
+              background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
               color: '#b8442e', padding: '0.4rem 0.55rem',
               fontFamily: 'inherit', fontSize: '0.75rem', cursor: 'pointer',
             }}
@@ -708,9 +708,9 @@ function SlotEditor({
               onClick={() => !locked && canAfford && onBuild(id)}
               disabled={locked || !canAfford}
               style={{
-                background: locked ? '#1a1410' : `linear-gradient(135deg, ${def.color}33, #1a1410)`,
-                border: `1px solid ${locked ? '#3a2818' : def.color}`,
-                color: locked ? '#5a4530' : 'var(--tkm-text-h1)',
+                background: locked ? '#10161e' : `linear-gradient(135deg, ${def.color}33, #10161e)`,
+                border: `1px solid ${locked ? '#1e2832' : def.color}`,
+                color: locked ? '#364654' : 'var(--tkm-text-h1)',
                 padding: '0.4rem 0.55rem',
                 fontFamily: 'inherit', fontSize: '0.72rem',
                 cursor: locked || !canAfford ? 'not-allowed' : 'pointer',
@@ -721,13 +721,13 @@ function SlotEditor({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span style={{
                   fontFamily: 'var(--tkm-font-zh)',
-                  color: locked ? '#5a4530' : def.color,
+                  color: locked ? '#364654' : def.color,
                   letterSpacing: '0.1rem',
                 }}>
                   {lang === 'en' ? def.name.en : def.name.zh}
-                  {lang === 'both' && <> <span style={{ fontSize: '0.58rem', color: '#8a7050' }}>{def.name.en}</span></>}
+                  {lang === 'both' && <> <span style={{ fontSize: '0.58rem', color: '#7a8893' }}>{def.name.en}</span></>}
                 </span>
-                <span style={{ fontSize: '0.62rem', color: '#c0a878' }}>
+                <span style={{ fontSize: '0.62rem', color: '#aab6c0' }}>
                   {def.goldCost}g{lockReason && <span style={{ color: '#b8442e' }}> · {lockReason}</span>}
                 </span>
               </div>
@@ -748,7 +748,7 @@ function Chip({ children }: { children: React.ReactNode }) {
       padding: '0.1rem 0.35rem',
       background: 'rgba(212, 168, 74, 0.15)',
       border: '1px solid rgba(212, 168, 74, 0.4)',
-      color: '#d4a84a',
+      color: '#e6c473',
       borderRadius: 2,
       fontSize: '0.62rem',
     }}>

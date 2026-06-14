@@ -216,7 +216,7 @@ export function CustomOfficerCreator({ scenario, onClose, onCreate }: Props) {
         </div>
 
         <div className={styles.footer}>
-          <div style={{ fontSize: '0.8rem', color: '#8a7050' }}>
+          <div style={{ fontSize: '0.8rem', color: '#7a8893' }}>
             {affId === null
               ? 'Your officer will start unattached. Recruit yourself once the scenario begins.'
               : 'You will play as your force from the start.'}

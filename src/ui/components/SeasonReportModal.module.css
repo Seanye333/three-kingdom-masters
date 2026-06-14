@@ -10,8 +10,8 @@
 
 .modal {
   position: relative;
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 600px;
   max-width: 92vw;
   max-height: 80vh;
@@ -53,7 +53,7 @@
   position: absolute;
   left: 0; right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #6a4828 0%, #d4a84a 50%, #6a4828 100%);
+  background: linear-gradient(90deg, #6a4828 0%, #e6c473 50%, #6a4828 100%);
   border-radius: 2px;
   pointer-events: none;
 }
@@ -61,7 +61,7 @@
 .modal::after  { bottom: -2px; }
 
 .header {
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
 }
@@ -74,19 +74,19 @@
 
 .titleZh {
   font-size: 1.75rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.4rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
 
 .empty {
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
   padding: 2rem 0;
   text-align: center;
@@ -109,47 +109,47 @@
   gap: 0.75rem;
   align-items: baseline;
   padding: 0.4rem 0.6rem;
-  background: #1a1410;
-  border-left: 3px solid #4a3520;
+  background: #10161e;
+  border-left: 3px solid #2b3845;
   font-size: 0.875rem;
 }
 
 .kindTag {
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
 }
 
 .text {
-  color: #c0a878;
+  color: #aab6c0;
 }
 
-.kind_income      { border-left-color: #d4a84a; }
+.kind_income      { border-left-color: #e6c473; }
 .kind_command_success { border-left-color: #3a7dd9; }
 .kind_command_failure { border-left-color: #b8442e; }
 .kind_desertion   { border-left-color: #b8442e; }
-.kind_upkeep      { border-left-color: #5a4530; }
+.kind_upkeep      { border-left-color: #364654; }
 .kind_march       { border-left-color: #e09b6c; }
-.kind_battle      { border-left-color: #c19a3b; }
-.kind_conquest    { border-left-color: #d4a84a; background: #2a1f15; }
+.kind_battle      { border-left-color: #c9a64e; }
+.kind_conquest    { border-left-color: #e6c473; background: #1b2531; }
 .kind_defeat      { border-left-color: #b8442e; }
 .kind_death       { border-left-color: #6b3a3a; }
-.kind_succession  { border-left-color: #d4a84a; }
-.kind_dissolution { border-left-color: #6b3a3a; background: #2a1f15; }
+.kind_succession  { border-left-color: #e6c473; }
+.kind_dissolution { border-left-color: #6b3a3a; background: #1b2531; }
 .kind_rebellion   { border-left-color: #b8442e; }
 .kind_harvest     { border-left-color: #5a9b3a; }
 .kind_famine      { border-left-color: #b8442e; }
 .kind_plague      { border-left-color: #6b4a8a; }
-.kind_talent      { border-left-color: #3a7dd9; background: #2a1f15; }
+.kind_talent      { border-left-color: #3a7dd9; background: #1b2531; }
 .kind_in_progress {
-  border-left: 3px dashed #8a7050;
+  border-left: 3px dashed #7a8893;
   background: rgba(26, 20, 16, 0.6);
   opacity: 0.92;
 }
 
 .kind_executed {
-  border-left: 3px solid #d4a84a;
+  border-left: 3px solid #e6c473;
   background: rgba(58, 45, 32, 0.4);
 }
 
@@ -163,11 +163,11 @@
 
 .sectionDivider {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.3rem;
   text-transform: uppercase;
   padding: 0.4rem 0;
-  border-top: 1px dashed #4a3520;
+  border-top: 1px dashed #2b3845;
   margin-bottom: 0.4rem;
   text-align: center;
 }
@@ -177,13 +177,13 @@
   justify-content: flex-end;
   margin-top: 1rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #4a3520;
+  border-top: 1px solid #2b3845;
 }
 
 .closeButton {
-  background: #4a3520;
-  color: #e8d9b0;
-  border: 1px solid #d4a84a;
+  background: #2b3845;
+  color: #e6edf3;
+  border: 1px solid #e6c473;
   padding: 0.5rem 1.5rem;
   font-family: inherit;
   font-size: 0.9rem;
@@ -192,12 +192,12 @@
 }
 
 .closeButton:hover {
-  background: #5a4530;
+  background: #364654;
 }
 
 .closeButton:active {
-  background: #d4a84a;
-  color: #1a1410;
+  background: #e6c473;
+  color: #10161e;
 }
 
 /* ─── Mobile (≤640px): full-screen + tighter density ─── */

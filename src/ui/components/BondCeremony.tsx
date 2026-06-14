@@ -69,7 +69,7 @@ export function BondCeremony({ a, b, titleZh, titleEn, color, year, onDone }: Pr
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)',
             width: 96, height: 96, borderRadius: 10,
             background: `linear-gradient(150deg, ${hexA(color, 0.95)}, ${hexA(color, 0.65)})`,
-            border: '3px solid #f0e0b0', boxShadow: `0 0 26px ${hexA(color, 0.8)}, inset 0 0 14px rgba(0,0,0,0.35)`,
+            border: '3px solid #eef4f8', boxShadow: `0 0 26px ${hexA(color, 0.8)}, inset 0 0 14px rgba(0,0,0,0.35)`,
             display: 'grid', placeItems: 'center', zIndex: 3,
             ...anim('tkmSealStamp 0.85s cubic-bezier(0.2,1.2,0.3,1) both'),
           }}
@@ -87,7 +87,7 @@ export function BondCeremony({ a, b, titleZh, titleEn, color, year, onDone }: Pr
             style={{
               position: 'absolute', left: `calc(50% + ${(i - 5) * 7}px)`, top: '54%',
               width: 4 + (i % 3), height: 4 + (i % 3), borderRadius: '50%',
-              background: i % 2 ? '#f0e0b0' : color, pointerEvents: 'none',
+              background: i % 2 ? '#eef4f8' : color, pointerEvents: 'none',
               animation: `tkmMoteFloat ${1.8 + (i % 4) * 0.4}s ease-out ${0.6 + (i % 5) * 0.18}s infinite`,
             }}
           />
@@ -101,13 +101,13 @@ export function BondCeremony({ a, b, titleZh, titleEn, color, year, onDone }: Pr
           ...anim('tkmCalligraphyReveal 0.9s ease-out 0.35s both'),
         }}
       >
-        <div style={{ fontSize: '2.6rem', color: '#f0d98a', fontFamily: '"Songti SC","Noto Serif SC",serif', textShadow: `0 0 18px ${hexA(color, 0.7)}, 0 2px 6px rgba(0,0,0,0.6)` }}>
+        <div style={{ fontSize: '2.6rem', color: '#f2dd9a', fontFamily: '"Songti SC","Noto Serif SC",serif', textShadow: `0 0 18px ${hexA(color, 0.7)}, 0 2px 6px rgba(0,0,0,0.6)` }}>
           {titleZh}
         </div>
-        <div style={{ fontSize: '0.95rem', color: '#c0a878', fontStyle: 'italic', letterSpacing: '0.2rem', marginTop: '0.4rem' }}>
+        <div style={{ fontSize: '0.95rem', color: '#aab6c0', fontStyle: 'italic', letterSpacing: '0.2rem', marginTop: '0.4rem' }}>
           {lang === 'zh' ? '' : titleEn}
         </div>
-        <div style={{ fontSize: '1.05rem', color: '#e8d9b0', marginTop: '0.6rem', fontFamily: '"Songti SC", serif' }}>
+        <div style={{ fontSize: '1.05rem', color: '#e6edf3', marginTop: '0.6rem', fontFamily: '"Songti SC", serif' }}>
           {(lang === 'en' ? a.name.en : a.name.zh)} <span style={{ color: color }}>&amp;</span> {(lang === 'en' ? b.name.en : b.name.zh)}
         </div>
       </div>
@@ -121,7 +121,7 @@ function Figure({ officer, color, year, lang, style }: { officer: Officer; color
       <div style={{ borderRadius: '50%', boxShadow: `0 0 24px ${hexA(color, 0.7)}`, border: `2px solid ${color}` }}>
         <OfficerPortrait officer={officer} size={104} forceColor={color} year={year} />
       </div>
-      <div style={{ fontSize: '1.05rem', color: '#f0e0b0', fontFamily: '"Songti SC", serif', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+      <div style={{ fontSize: '1.05rem', color: '#eef4f8', fontFamily: '"Songti SC", serif', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
         {lang === 'en' ? officer.name.en : officer.name.zh}
       </div>
     </div>

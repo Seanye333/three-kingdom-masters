@@ -66,12 +66,12 @@ export function DuelGameModal({
   };
 
   const bar = (val: number, color: string) => (
-    <div style={{ height: 14, background: '#2a1f15', border: '1px solid #4a3520', borderRadius: 2, overflow: 'hidden' }}>
+    <div style={{ height: 14, background: '#1b2531', border: '1px solid #2b3845', borderRadius: 2, overflow: 'hidden' }}>
       <div style={{ width: `${val}%`, height: '100%', background: color, transition: 'width 0.3s' }} />
     </div>
   );
   const guardPips = (n: number) => (
-    <div style={{ fontSize: '0.7rem', color: n >= POWER_GUARD_COST ? '#d4a84a' : '#6a5238', letterSpacing: '0.15rem' }}>
+    <div style={{ fontSize: '0.7rem', color: n >= POWER_GUARD_COST ? '#e6c473' : '#6a5238', letterSpacing: '0.15rem' }}>
       {t('氣', 'GD')} {'◆'.repeat(n)}{'◇'.repeat(Math.max(0, POWER_GUARD_COST - n))}
     </div>
   );
@@ -84,8 +84,8 @@ export function DuelGameModal({
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'grid', placeItems: 'center', zIndex: 130 }}>
-      <div style={{ width: 560, maxWidth: '95vw', background: '#1f1810', border: '1px solid #d4a84a', padding: '1.25rem', fontFamily: 'Songti SC, serif', color: '#e8d9b0' }}>
-        <div style={{ textAlign: 'center', color: '#d4a84a', letterSpacing: '0.4rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
+      <div style={{ width: 560, maxWidth: '95vw', background: '#1f1810', border: '1px solid #e6c473', padding: '1.25rem', fontFamily: 'Songti SC, serif', color: '#e6edf3' }}>
+        <div style={{ textAlign: 'center', color: '#e6c473', letterSpacing: '0.4rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
           ⚔ {t('單挑', 'Single Combat')}
         </div>
 
@@ -93,16 +93,16 @@ export function DuelGameModal({
           <div>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <OfficerPortrait officer={attacker} size={44} forceColor="#b8442e" />
-              <div><div style={{ color: '#d4a84a' }}>{nm(attacker)}</div><div style={{ fontSize: '0.72rem', color: '#c0a878' }}>{t('武', 'WAR')} {attacker.stats.war}</div></div>
+              <div><div style={{ color: '#e6c473' }}>{nm(attacker)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {attacker.stats.war}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.aStamina, '#b8442e')}</div>
             {guardPips(bout.aGuard)}
           </div>
-          <div style={{ fontSize: '1.6rem', color: '#8a7050' }}>VS</div>
+          <div style={{ fontSize: '1.6rem', color: '#7a8893' }}>VS</div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexDirection: 'row-reverse' }}>
               <OfficerPortrait officer={defender} size={44} forceColor="#3a7dd9" />
-              <div><div style={{ color: '#d4a84a' }}>{nm(defender)}</div><div style={{ fontSize: '0.72rem', color: '#c0a878' }}>{t('武', 'WAR')} {defender.stats.war}</div></div>
+              <div><div style={{ color: '#e6c473' }}>{nm(defender)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {defender.stats.war}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.dStamina, '#3a7dd9')}</div>
             {guardPips(bout.dGuard)}
@@ -133,15 +133,15 @@ export function DuelGameModal({
                   onClick={() => play(m.id)}
                   disabled={disabled}
                   style={{
-                    padding: '0.5rem 0.3rem', background: disabled ? '#241c12' : '#3a2818',
-                    border: `1px solid ${disabled ? '#3a2c1c' : '#5a4530'}`,
-                    color: disabled ? '#5a4a36' : '#e8d9b0', cursor: disabled ? 'default' : 'pointer',
+                    padding: '0.5rem 0.3rem', background: disabled ? '#241c12' : '#1e2832',
+                    border: `1px solid ${disabled ? '#243240' : '#364654'}`,
+                    color: disabled ? '#5a4a36' : '#e6edf3', cursor: disabled ? 'default' : 'pointer',
                     fontFamily: 'inherit', textAlign: 'center',
                   }}
                   title={lang === 'en' ? m.hint.en : m.hint.zh}
                 >
-                  <div style={{ fontSize: '1.3rem', color: disabled ? '#5a4a36' : '#d4a84a' }}>{m.zh}</div>
-                  <div style={{ fontSize: '0.6rem', color: '#8a7050' }}>{lang === 'en' ? m.en : m.hint.zh}</div>
+                  <div style={{ fontSize: '1.3rem', color: disabled ? '#5a4a36' : '#e6c473' }}>{m.zh}</div>
+                  <div style={{ fontSize: '0.6rem', color: '#7a8893' }}>{lang === 'en' ? m.en : m.hint.zh}</div>
                 </button>
               );
             })}
@@ -149,16 +149,16 @@ export function DuelGameModal({
         )}
 
         {/* Round log */}
-        <div style={{ marginTop: '0.8rem', minHeight: 96, maxHeight: 96, overflow: 'hidden', fontSize: '0.74rem', color: '#c0a878', lineHeight: 1.6 }}>
+        <div style={{ marginTop: '0.8rem', minHeight: 96, maxHeight: 96, overflow: 'hidden', fontSize: '0.74rem', color: '#aab6c0', lineHeight: 1.6 }}>
           {log.map((l, i) => <div key={i} style={{ opacity: 1 - i * 0.12 }}>{l}</div>)}
         </div>
 
         {bout.over && (
           <div style={{ marginTop: '0.6rem', textAlign: 'center' }}>
-            <div style={{ color: bout.killedId ? '#b8442e' : '#d4a84a', fontSize: '1.05rem', letterSpacing: '0.2rem', marginBottom: '0.6rem' }}>{resultText}</div>
+            <div style={{ color: bout.killedId ? '#b8442e' : '#e6c473', fontSize: '1.05rem', letterSpacing: '0.2rem', marginBottom: '0.6rem' }}>{resultText}</div>
             <button
               onClick={() => onComplete({ winner: bout.winner ?? 'draw', killedId: bout.killedId as 'attacker' | 'defender' | undefined })}
-              style={{ padding: '0.45rem 1.6rem', background: '#3a2818', border: '1px solid #d4a84a', color: '#d4a84a', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem' }}
+              style={{ padding: '0.45rem 1.6rem', background: '#1e2832', border: '1px solid #e6c473', color: '#e6c473', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.2rem' }}
             >
               {t('確定', 'Continue')}
             </button>

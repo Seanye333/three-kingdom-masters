@@ -9,8 +9,8 @@
 }
 
 .modal {
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 900px;
   max-width: 96vw;
   max-height: 92vh;
@@ -24,20 +24,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.65rem;
   margin-bottom: 0.75rem;
 }
 
 .titleZh {
   font-size: 1.75rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.4rem;
 }
 
 .titleEn {
   font-size: 0.8rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
@@ -45,7 +45,7 @@
 .closeButton {
   background: transparent;
   border: none;
-  color: #8a7050;
+  color: #7a8893;
   font-size: 1.5rem;
   cursor: pointer;
   font-family: inherit;
@@ -62,16 +62,16 @@
 
 .filterLabel {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.15rem;
   text-transform: uppercase;
   min-width: 40px;
 }
 
 .chip {
-  background: #1a1410;
-  color: #c0a878;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  color: #aab6c0;
+  border: 1px solid #26323e;
   padding: 0.3rem 0.6rem;
   font-family: inherit;
   font-size: 0.78rem;
@@ -79,14 +79,14 @@
 }
 
 .chip:hover {
-  background: #3a2d20;
-  border-color: #d4a84a;
+  background: #26323e;
+  border-color: #e6c473;
 }
 
 .chipActive {
-  background: #3a2d20;
-  border-color: #d4a84a;
-  color: #d4a84a;
+  background: #26323e;
+  border-color: #e6c473;
+  color: #e6c473;
 }
 
 .list {
@@ -99,8 +99,8 @@
 }
 
 .row {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   border-left-width: 3px;
   padding: 0.5rem 0.75rem;
   display: grid;
@@ -109,8 +109,8 @@
 }
 
 .kind_weapon   { border-left-color: #b8442e; }
-.kind_horse    { border-left-color: #c19a3b; }
-.kind_treasure { border-left-color: #d4a84a; }
+.kind_horse    { border-left-color: #c9a64e; }
+.kind_treasure { border-left-color: #e6c473; }
 .kind_book     { border-left-color: #3a7dd9; }
 
 .itemBlock {
@@ -127,12 +127,12 @@
 }
 
 .itemNameZh {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1rem;
 }
 
 .itemNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.75rem;
 }
 
@@ -142,16 +142,16 @@
   padding: 0.05rem 0.4rem;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
-  color: #1a1410;
+  color: #10161e;
 }
 
 .kindTag_weapon   { background: #b8442e; }
-.kindTag_horse    { background: #c19a3b; }
-.kindTag_treasure { background: #d4a84a; }
+.kindTag_horse    { background: #c9a64e; }
+.kindTag_treasure { background: #e6c473; }
 .kindTag_book     { background: #3a7dd9; }
 
 .itemDesc {
-  color: #c0a878;
+  color: #aab6c0;
   font-size: 0.78rem;
   font-style: italic;
   line-height: 1.4;
@@ -167,8 +167,8 @@
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
   color: #88b7e8;
-  background: #2a1f15;
-  border: 1px solid #3a2d20;
+  background: #1b2531;
+  border: 1px solid #26323e;
   padding: 0.1rem 0.4rem;
 }
 
@@ -185,7 +185,7 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
-  color: #e8d9b0;
+  color: #e6edf3;
 }
 
 .colorDot {
@@ -196,17 +196,17 @@
 }
 
 .holderEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
 }
 
 .holderForce {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .unclaimed {
-  color: #5a4530;
+  color: #364654;
   font-style: italic;
   font-size: 0.85rem;
 }
@@ -217,9 +217,9 @@
 }
 
 .actionBtn {
-  background: #4a3520;
-  color: #e8d9b0;
-  border: 1px solid #d4a84a;
+  background: #2b3845;
+  color: #e6edf3;
+  border: 1px solid #e6c473;
   padding: 0.25rem 0.6rem;
   font-family: inherit;
   font-size: 0.75rem;
@@ -227,11 +227,11 @@
 }
 
 .actionBtn:hover {
-  background: #5a4530;
+  background: #364654;
 }
 
 .actionBtnDanger {
-  background: #1a1410;
+  background: #10161e;
   color: #e09b6c;
   border: 1px solid #b8442e;
   padding: 0.25rem 0.6rem;
@@ -248,14 +248,14 @@
   grid-column: 1 / -1;
   margin-top: 0.4rem;
   padding-top: 0.4rem;
-  border-top: 1px dotted #3a2d20;
+  border-top: 1px dotted #26323e;
 }
 
 .pickerLabel {
   font-size: 0.7rem;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
-  color: #8a7050;
+  color: #7a8893;
   margin-bottom: 0.3rem;
 }
 
@@ -266,9 +266,9 @@
 }
 
 .officerBtn {
-  background: #2a1f15;
-  color: #d4a84a;
-  border: 1px solid #3a2d20;
+  background: #1b2531;
+  color: #e6c473;
+  border: 1px solid #26323e;
   padding: 0.3rem 0.5rem;
   font-family: inherit;
   font-size: 0.78rem;
@@ -280,18 +280,18 @@
 }
 
 .officerBtn:hover {
-  background: #3a2d20;
-  border-color: #d4a84a;
+  background: #26323e;
+  border-color: #e6c473;
 }
 
 .officerZh {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .officerStats {
   font-family: ui-monospace, monospace;
   font-size: 0.65rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .officerHas {
@@ -299,7 +299,7 @@
 }
 
 .muted {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.78rem;
   font-style: italic;
 }

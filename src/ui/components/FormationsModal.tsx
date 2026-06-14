@@ -48,11 +48,11 @@ const CATEGORY: Record<string, Category> = {
 };
 
 const CATEGORY_COLOR: Record<Category, string> = {
-  all:     '#d4a84a',
+  all:     '#e6c473',
   attack:  '#b8442e',
   defense: '#88b7e8',
   balance: '#b8c87a',
-  special: '#d4a84a',
+  special: '#e6c473',
   mystic:  '#c178c7',
 };
 
@@ -101,38 +101,38 @@ export function FormationsModal({ onClose }: Props) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--tkm-bg-modal, #1f1610)',
-          border: '1px solid var(--tkm-text-h2, #d4a84a)',
+          background: 'var(--tkm-bg-modal, #141c25)',
+          border: '1px solid var(--tkm-text-h2, #e6c473)',
           width: '900px', maxWidth: '96vw',
           maxHeight: '90vh',
           display: 'flex', flexDirection: 'column',
-          color: 'var(--tkm-text-body, #c9b89a)',
+          color: 'var(--tkm-text-body, #b6c2cc)',
           fontFamily: 'var(--tkm-font-body)',
         }}
       >
         <header
           style={{
             padding: '1rem 1.25rem',
-            borderBottom: '1px solid var(--tkm-border, #4a3520)',
+            borderBottom: '1px solid var(--tkm-border, #2b3845)',
             display: 'flex', alignItems: 'baseline', gap: '0.75rem',
           }}
         >
           <div style={{
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.5rem',
-            color: 'var(--tkm-text-h2, #d4a84a)',
+            color: 'var(--tkm-text-h2, #e6c473)',
             letterSpacing: '0.3rem',
           }}>
             陣形
           </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--tkm-text-muted, #8c7a5a)', letterSpacing: '0.2rem', flex: 1 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--tkm-text-muted, #7a8893)', letterSpacing: '0.2rem', flex: 1 }}>
             {t(`${FORMATIONS.length} 種`, `FORMATIONS · ${FORMATIONS.length}`)}
           </div>
           <button
             onClick={onClose}
             style={{
               background: 'transparent', border: 'none',
-              color: 'var(--tkm-text-h2, #d4a84a)',
+              color: 'var(--tkm-text-h2, #e6c473)',
               fontSize: '1.5rem', cursor: 'pointer', padding: '0 0.5rem',
             }}
           >×</button>
@@ -142,7 +142,7 @@ export function FormationsModal({ onClose }: Props) {
         <div style={{
           display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
           padding: '0.75rem 1rem',
-          borderBottom: '1px solid var(--tkm-border-soft, #3a2818)',
+          borderBottom: '1px solid var(--tkm-border-soft, #1e2832)',
         }}>
           {(Object.keys(CATEGORY_LABEL) as Category[]).map((c) => {
             const active = cat === c;
@@ -172,7 +172,7 @@ export function FormationsModal({ onClose }: Props) {
             <button
               onClick={() => setUsableOnly((v) => !v)}
               style={{
-                background: usableOnly ? '#3a2818' : 'transparent',
+                background: usableOnly ? '#1e2832' : 'transparent',
                 color: usableOnly ? '#7ed68a' : 'var(--tkm-text-body)',
                 border: `1px solid ${usableOnly ? '#7ed68a' : 'var(--tkm-border)'}`,
                 padding: '0.3rem 0.7rem',
@@ -208,7 +208,7 @@ export function FormationsModal({ onClose }: Props) {
                 key={f.id}
                 style={{
                   border: `1px solid ${accent}55`,
-                  background: 'var(--tkm-bg-raised, #251c14)',
+                  background: 'var(--tkm-bg-raised, #18212b)',
                   padding: '0.8rem 0.9rem 0.7rem 1.05rem',
                   position: 'relative',
                   overflow: 'hidden',
@@ -228,7 +228,7 @@ export function FormationsModal({ onClose }: Props) {
                   <span style={{
                     fontFamily: 'var(--tkm-font-zh)',
                     fontSize: '1.3rem',
-                    color: 'var(--tkm-text-h1, #f0e0b0)',
+                    color: 'var(--tkm-text-h1, #eef4f8)',
                     letterSpacing: '0.2rem',
                   }}>
                     {lang === 'en' ? f.name.en : f.name.zh}
@@ -281,7 +281,7 @@ export function FormationsModal({ onClose }: Props) {
 
         <footer style={{
           padding: '0.6rem 1rem',
-          borderTop: '1px solid var(--tkm-border, #4a3520)',
+          borderTop: '1px solid var(--tkm-border, #2b3845)',
           fontSize: '0.72rem',
           color: 'var(--tkm-text-muted)',
           letterSpacing: '0.1rem',
@@ -355,7 +355,7 @@ function FormationDiagram({ formation, accent }: { formation: string; accent: st
               key={`${col},${row}`}
               points={pts.join(' ')}
               fill={filled ? accent : 'none'}
-              stroke={filled ? '#1a1208' : '#3a2818'}
+              stroke={filled ? '#1a1208' : '#1e2832'}
               strokeWidth={filled ? 0.4 : 0.2}
               opacity={filled ? 0.9 : 0.4}
             />

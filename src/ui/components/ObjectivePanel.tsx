@@ -44,18 +44,18 @@ export function ObjectivePanel() {
     return (
       <div
         style={{
-          background: '#1a1410', border: '1px solid #c0504a', borderLeft: '3px solid #c0504a',
-          padding: '0.5rem 0.8rem', fontSize: '0.78rem', color: '#c0a878',
+          background: '#10161e', border: '1px solid #c0504a', borderLeft: '3px solid #c0504a',
+          padding: '0.5rem 0.8rem', fontSize: '0.78rem', color: '#aab6c0',
           fontFamily: '"Songti SC", serif', display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 260,
         }}
       >
-        <div style={{ fontSize: '0.6rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: '0.6rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
           <span>⚔ Hero Mode · 英雄模式</span>
           <span style={{ color: '#c0504a' }}>{'★'.repeat(challenge.star)}</span>
         </div>
         <div style={{ fontSize: '0.95rem', color: tint }}>
           {challenge.name.zh}{' '}
-          <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>{challenge.name.en}</span>
+          <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>{challenge.name.en}</span>
         </div>
         <div style={{ fontSize: '0.7rem', fontFamily: 'ui-monospace, monospace', display: 'flex', justifyContent: 'space-between' }}>
           <span>
@@ -64,7 +64,7 @@ export function ObjectivePanel() {
             {res.status === 'pending' && (res.progress ?? 'in progress…')}
           </span>
           {res.status === 'pending' && (
-            <span style={{ color: yearsLeft <= 1 ? '#c0504a' : '#8a7050' }}>
+            <span style={{ color: yearsLeft <= 1 ? '#c0504a' : '#7a8893' }}>
               期限 {deadline} · 餘 {Math.max(0, yearsLeft)} 年
             </span>
           )}
@@ -79,11 +79,11 @@ export function ObjectivePanel() {
   return (
     <div
       style={{
-        background: '#1a1410',
-        border: '1px solid #4a3520',
+        background: '#10161e',
+        border: '1px solid #2b3845',
         padding: '0.5rem 0.8rem',
         fontSize: '0.78rem',
-        color: '#c0a878',
+        color: '#aab6c0',
         fontFamily: '"Songti SC", serif',
         display: 'flex',
         flexDirection: 'column',
@@ -91,12 +91,12 @@ export function ObjectivePanel() {
         minWidth: 260,
       }}
     >
-      <div style={{ fontSize: '0.6rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase' }}>
+      <div style={{ fontSize: '0.6rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase' }}>
         Objective · 目標
       </div>
-      <div style={{ fontSize: '0.95rem', color: primaryRes.status === 'success' ? '#7ed68a' : primaryRes.status === 'failure' ? '#b8442e' : '#d4a84a' }}>
+      <div style={{ fontSize: '0.95rem', color: primaryRes.status === 'success' ? '#7ed68a' : primaryRes.status === 'failure' ? '#b8442e' : '#e6c473' }}>
         {objective.primary.title.zh}{' '}
-        <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>
+        <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>
           {objective.primary.title.en}
         </span>
       </div>

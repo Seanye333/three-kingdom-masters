@@ -76,18 +76,18 @@ export function ScenicPanel({ siteId, onClose }: Props) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#1a1410', border: `2px solid ${color}`,
-          padding: '1rem 1.2rem', color: '#f0e0b0', fontFamily: 'Songti SC, serif',
+          background: '#10161e', border: `2px solid ${color}`,
+          padding: '1rem 1.2rem', color: '#eef4f8', fontFamily: 'Songti SC, serif',
           minWidth: 360, maxWidth: 470, boxShadow: `0 0 16px ${color}`,
         }}
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>⛰ {site.name.zh}</div>
-            <div style={{ fontSize: '0.72rem', color: '#a89070' }}>{site.name.en} · {t('名所', 'Scenic Site')}</div>
+            <div style={{ fontSize: '0.72rem', color: '#97a4ae' }}>{site.name.en} · {t('名所', 'Scenic Site')}</div>
           </div>
           <button onClick={onClose} style={{
-            background: 'transparent', border: 'none', color: '#a89070',
+            background: 'transparent', border: 'none', color: '#97a4ae',
             fontSize: '1.4rem', cursor: 'pointer', padding: 0,
           }}>×</button>
         </header>
@@ -99,25 +99,25 @@ export function ScenicPanel({ siteId, onClose }: Props) {
         <div style={{ marginTop: '0.7rem', display: 'grid', gridTemplateColumns: '70px 1fr', gap: '0.3rem 0.5rem', fontSize: '0.85rem' }}>
           {hermit && (
             <>
-              <span style={{ color: '#8a7050' }}>{t('賢者', 'Recluse')}</span>
-              <span style={{ color: hermitAvailable ? '#7ed68a' : '#a89070' }}>
+              <span style={{ color: '#7a8893' }}>{t('賢者', 'Recluse')}</span>
+              <span style={{ color: hermitAvailable ? '#7ed68a' : '#97a4ae' }}>
                 {hermit.name.zh}（INT {hermit.stats.intelligence}）
-                {!hermitAvailable && <span style={{ color: '#8a7050' }}> · {t('已出仕', 'already served')}</span>}
+                {!hermitAvailable && <span style={{ color: '#7a8893' }}> · {t('已出仕', 'already served')}</span>}
               </span>
             </>
           )}
           {item && (
             <>
-              <span style={{ color: '#8a7050' }}>{t('寶物', 'Treasure')}</span>
-              <span style={{ color: looted ? '#8a7050' : '#e0c070' }}>
+              <span style={{ color: '#7a8893' }}>{t('寶物', 'Treasure')}</span>
+              <span style={{ color: looted ? '#7a8893' : '#e0c070' }}>
                 {item.name.zh}{looted && ` · ${t('已取', 'taken')}`}
               </span>
             </>
           )}
           {site.gold > 0 && (
             <>
-              <span style={{ color: '#8a7050' }}>{t('資財', 'Gold')}</span>
-              <span style={{ color: looted ? '#8a7050' : '#e0c070' }}>{site.gold}{looted && ` · ${t('已取', 'taken')}`}</span>
+              <span style={{ color: '#7a8893' }}>{t('資財', 'Gold')}</span>
+              <span style={{ color: looted ? '#7a8893' : '#e0c070' }}>{site.gold}{looted && ` · ${t('已取', 'taken')}`}</span>
             </>
           )}
         </div>
@@ -131,8 +131,8 @@ export function ScenicPanel({ siteId, onClose }: Props) {
               value={pickOfficer ?? ''}
               onChange={(e) => setPickOfficer(e.target.value)}
               style={{
-                width: '100%', padding: '0.3rem 0.5rem', background: '#1a1410', color: '#f0e0b0',
-                border: '1px solid #5a4530', fontFamily: 'Songti SC, serif', fontSize: '0.82rem',
+                width: '100%', padding: '0.3rem 0.5rem', background: '#10161e', color: '#eef4f8',
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontFamily: 'Songti SC, serif', fontSize: '0.82rem',
               }}
             >
               {candidates.map(({ officer: o, city }) => (
@@ -150,8 +150,8 @@ export function ScenicPanel({ siteId, onClose }: Props) {
             disabled={!reach.ok || candidates.length === 0 || !pickOfficer || (looted && !hermitAvailable)}
             title={reach.ok ? '' : (reach.reason ?? '')}
             style={{
-              background: '#2a2414', color: reach.ok ? '#e0c070' : '#a89070',
-              border: `1px solid ${reach.ok ? color : '#5a4530'}`,
+              background: '#2a2414', color: reach.ok ? '#e0c070' : '#97a4ae',
+              border: `1px solid ${reach.ok ? color : '#364654'}`,
               padding: '0.4rem 0.9rem',
               cursor: reach.ok && !(looted && !hermitAvailable) ? 'pointer' : 'not-allowed',
               fontFamily: 'Songti SC, serif', fontSize: '0.9rem',

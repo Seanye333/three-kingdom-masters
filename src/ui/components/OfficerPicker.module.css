@@ -9,8 +9,8 @@
 }
 
 .modal {
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 480px;
   max-width: 92vw;
   max-height: 80vh;
@@ -23,20 +23,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
 .titleZh {
   font-size: 1.5rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .titleEn {
   font-size: 0.8rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
@@ -44,7 +44,7 @@
 .closeButton {
   background: transparent;
   border: none;
-  color: #8a7050;
+  color: #7a8893;
   font-size: 1.5rem;
   cursor: pointer;
   font-family: inherit;
@@ -52,26 +52,26 @@
 }
 
 .closeButton:hover {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .meta {
   display: flex;
   gap: 1.5rem;
   font-size: 0.85rem;
-  color: #c0a878;
+  color: #aab6c0;
   margin-bottom: 0.5rem;
 }
 
 .meta strong {
-  color: #d4a84a;
+  color: #e6c473;
   font-weight: normal;
 }
 
 .desc {
   margin: 0 0 1rem 0;
   font-size: 0.875rem;
-  color: #c0a878;
+  color: #aab6c0;
   line-height: 1.5;
   font-style: italic;
 }
@@ -80,13 +80,13 @@
   font-size: 0.7rem;
   letter-spacing: 0.2rem;
   text-transform: uppercase;
-  color: #8a7050;
+  color: #7a8893;
   margin: 0 0 0.5rem 0;
   font-weight: normal;
 }
 
 .empty {
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
   padding: 1.5rem 0;
   text-align: center;
@@ -108,9 +108,9 @@
   grid-template-columns: auto 1fr auto;
   gap: 0.75rem;
   align-items: baseline;
-  background: #1a1410;
-  border: 1px solid #3a2d20;
-  color: #e8d9b0;
+  background: #10161e;
+  border: 1px solid #26323e;
+  color: #e6edf3;
   padding: 0.6rem 0.85rem;
   cursor: pointer;
   font-family: inherit;
@@ -119,28 +119,28 @@
 }
 
 .officerButton:hover {
-  background: #3a2d20;
-  border-color: #d4a84a;
+  background: #26323e;
+  border-color: #e6c473;
 }
 
 .officerNameZh {
   font-size: 1rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .officerNameEn {
   font-size: 0.75rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .officerStat {
   font-family: ui-monospace, monospace;
   font-size: 0.85rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .officerStat strong {
-  color: #d4a84a;
+  color: #e6c473;
   font-weight: normal;
   font-size: 1rem;
 }

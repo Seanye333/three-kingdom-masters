@@ -322,8 +322,8 @@ export function MapScreen() {
   const windZh = WIND_LABEL[weather.wind].zh;
   const mandateInfo = MANDATE_LABEL(mandate);
   const mandateColor =
-    mandateInfo.tone === 'high' ? '#d4a84a' :
-    mandateInfo.tone === 'mid'  ? '#b0a070' : '#b8442e';
+    mandateInfo.tone === 'high' ? '#e6c473' :
+    mandateInfo.tone === 'mid'  ? '#9aa6b0' : '#b8442e';
 
   // 命令臺指令集 — every panel + key action, reachable by keyboard. Cheap to
   // rebuild; only mounted when the palette is open.
@@ -389,7 +389,7 @@ export function MapScreen() {
           <span
             className={styles.season}
             title={`Weather affects fire attacks and march speed. Wind power: ${weather.windPower}.`}
-            style={{ color: '#b0a070' }}
+            style={{ color: '#9aa6b0' }}
           >
             {weatherZh}·{windZh}
           </span>
@@ -411,8 +411,8 @@ export function MapScreen() {
               <span className={styles.playerName}>{playerForce.name.zh}</span>
               <span className={styles.playerNameEn}>{t('', playerForce.name.en)}</span>
               <span style={{ marginLeft: 10, fontSize: '0.82rem', color: '#c8b07a', fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap' }}>
-                <span style={{ color: '#8a7050' }}>{t('金', 'Gold')}</span> <AnimatedNumber value={playerGold} flash />
-                <span style={{ color: '#8a7050', marginLeft: 8 }}>{t('兵', 'Troops')}</span> <AnimatedNumber value={playerTroops} flash />
+                <span style={{ color: '#7a8893' }}>{t('金', 'Gold')}</span> <AnimatedNumber value={playerGold} flash />
+                <span style={{ color: '#7a8893', marginLeft: 8 }}>{t('兵', 'Troops')}</span> <AnimatedNumber value={playerTroops} flash />
               </span>
             </>
           )}
@@ -611,8 +611,8 @@ export function MapScreen() {
               style={{
                 marginRight: 8, cursor: idleCount > 0 ? 'pointer' : 'default',
                 background: idleCount > 0 ? 'rgba(212,168,74,0.18)' : 'rgba(110,174,115,0.14)',
-                border: `1px solid ${idleCount > 0 ? '#d4a84a' : '#6fae73'}`,
-                color: idleCount > 0 ? '#f0d98a' : '#9ad6a8',
+                border: `1px solid ${idleCount > 0 ? '#e6c473' : '#6fae73'}`,
+                color: idleCount > 0 ? '#f2dd9a' : '#9ad6a8',
                 padding: '0.2rem 0.6rem', borderRadius: 4,
                 fontFamily: 'Songti SC, serif', fontSize: '0.8rem', whiteSpace: 'nowrap',
               }}
@@ -725,22 +725,22 @@ export function MapScreen() {
             position: 'fixed',
             bottom: 20,
             right: 20,
-            background: 'linear-gradient(160deg, #2a1f15, #1a1410)',
-            border: '2px solid #d4a84a',
+            background: 'linear-gradient(160deg,#1b2531,#10161e)',
+            border: '2px solid #e6c473',
             padding: '0.7rem 1rem',
-            color: '#d4a84a',
+            color: '#e6c473',
             fontFamily: '"Songti SC", serif',
             cursor: 'pointer',
             zIndex: 980,
           }}
         >
-          <div className="tkm-ach-toast-title" style={{ fontSize: '0.7rem', color: '#c19a3b' }}>
+          <div className="tkm-ach-toast-title" style={{ fontSize: '0.7rem', color: '#c9a64e' }}>
             勳功 UNLOCKED
           </div>
           <div style={{ fontSize: '0.95rem', marginTop: '0.2rem' }}>
             {recentAchievementUnlocks.length} new achievement{recentAchievementUnlocks.length > 1 ? 's' : ''}
           </div>
-          <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>
+          <div style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>
             click to dismiss
           </div>
         </div>
@@ -753,10 +753,10 @@ export function MapScreen() {
             position: 'fixed',
             bottom: recentAchievementUnlocks.length > 0 ? 130 : 20,
             right: 20,
-            background: 'linear-gradient(160deg, #2a1f15, #1a1410)',
-            border: '2px solid #c19a3b',
+            background: 'linear-gradient(160deg,#1b2531,#10161e)',
+            border: '2px solid #c9a64e',
             padding: '0.7rem 1rem',
-            color: '#d4a84a',
+            color: '#e6c473',
             fontFamily: '"Songti SC", serif',
             cursor: 'pointer',
             zIndex: 980,
@@ -765,7 +765,7 @@ export function MapScreen() {
             maxWidth: 280,
           }}
         >
-          <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#c19a3b' }}>
+          <div style={{ fontSize: '0.65rem', letterSpacing: '0.3rem', color: '#c9a64e' }}>
             稱號 EARNED
           </div>
           {recentDeedTitles.slice(-3).map((g, i) => {
@@ -774,16 +774,16 @@ export function MapScreen() {
             if (!o || !titleDef) return null;
             return (
               <div key={i} style={{ fontSize: '0.85rem', marginTop: '0.2rem' }}>
-                {o.name.zh} — <span style={{ color: '#c19a3b' }}>「{titleDef.name.zh}」</span>
+                {o.name.zh} — <span style={{ color: '#c9a64e' }}>「{titleDef.name.zh}」</span>
               </div>
             );
           })}
           {recentDeedTitles.length > 3 && (
-            <div style={{ fontSize: '0.7rem', color: '#8a7050', marginTop: '0.15rem' }}>
+            <div style={{ fontSize: '0.7rem', color: '#7a8893', marginTop: '0.15rem' }}>
               {t(`還有 ${recentDeedTitles.length - 3} 例`, `+${recentDeedTitles.length - 3} more`)}
             </div>
           )}
-          <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic', marginTop: '0.2rem' }}>
+          <div style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic', marginTop: '0.2rem' }}>
             click to dismiss
           </div>
         </div>
@@ -796,7 +796,7 @@ export function MapScreen() {
             position: 'fixed',
             bottom: 20 + (recentAchievementUnlocks.length > 0 ? 110 : 0) + (recentDeedTitles.length > 0 ? 110 : 0),
             right: 20,
-            background: 'linear-gradient(160deg, #2a1f15, #1a1410)',
+            background: 'linear-gradient(160deg,#1b2531,#10161e)',
             border: '2px solid #d96a4a',
             padding: '0.7rem 1rem',
             color: '#e2a07a',
@@ -822,11 +822,11 @@ export function MapScreen() {
             );
           })}
           {recentPrestige.length > 3 && (
-            <div style={{ fontSize: '0.7rem', color: '#8a7050', marginTop: '0.15rem' }}>
+            <div style={{ fontSize: '0.7rem', color: '#7a8893', marginTop: '0.15rem' }}>
               {t(`還有 ${recentPrestige.length - 3} 例`, `+${recentPrestige.length - 3} more`)}
             </div>
           )}
-          <div style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic', marginTop: '0.2rem' }}>
+          <div style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic', marginTop: '0.2rem' }}>
             click to dismiss
           </div>
         </div>
@@ -843,7 +843,7 @@ export function MapScreen() {
             b={b}
             titleZh={c.titleZh}
             titleEn={c.titleEn}
-            color={playerForce?.color ?? '#d4a84a'}
+            color={playerForce?.color ?? '#e6c473'}
             year={date.year}
             onDone={acknowledgeBond}
           />
@@ -858,7 +858,7 @@ export function MapScreen() {
           <PrestigeCeremony
             officer={o}
             titleId={c.titleId}
-            color={playerForce?.color ?? '#d4a84a'}
+            color={playerForce?.color ?? '#e6c473'}
             year={date.year}
             onDone={acknowledgePrestigeCeremony}
           />

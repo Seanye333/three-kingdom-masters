@@ -9,14 +9,14 @@
 }
 
 .modal {
-  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
-  border: 1px solid #5a4530;
+  background: linear-gradient(160deg, #1b2531 0%, #10161e 100%);
+  border: 1px solid #364654;
   border-top: 3px solid #6a8a6a;  /* jade green — 玉璽 */
   width: min(820px, 100%);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
   box-shadow: 0 0 18px rgba(106, 138, 106, 0.15);
 }
@@ -26,25 +26,25 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
 }
 
 .titleZh {
   font-size: 1.4rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
@@ -54,7 +54,7 @@
 
 .rankSummary {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -62,12 +62,12 @@
 
 .rankCurrent {
   font-size: 1.8rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.4rem;
 }
 
 .rankCurrentEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.85rem;
   font-style: italic;
 }
@@ -75,7 +75,7 @@
 .rankDesc {
   flex: 1;
   font-size: 0.78rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-style: italic;
   line-height: 1.5;
 }
@@ -90,8 +90,8 @@
 }
 
 .edictCard {
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   padding: 0.75rem 1rem;
   display: grid;
   grid-template-columns: 1fr 110px;
@@ -106,12 +106,12 @@
 }
 
 .edictName {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1.05rem;
 }
 
 .edictNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.72rem;
   font-style: italic;
   margin-left: 0.4rem;
@@ -119,7 +119,7 @@
 
 .edictDesc {
   font-size: 0.78rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-style: italic;
 }
 
@@ -131,14 +131,14 @@
   font-size: 0.7rem;
 }
 
-.metaGold { color: #c19a3b; }
-.metaRank { color: #d4a84a; }
-.metaCd { color: #8a7050; }
+.metaGold { color: #c9a64e; }
+.metaRank { color: #e6c473; }
+.metaCd { color: #7a8893; }
 
 .issueBtn {
-  background: #3a2d20;
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: #26323e;
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.5rem 0.6rem;
   font-family: inherit;
   cursor: pointer;
@@ -147,7 +147,7 @@
 }
 
 .issueBtn:hover:not(:disabled) {
-  background: #5a4530;
+  background: #364654;
 }
 
 .issueBtn:disabled {
@@ -163,9 +163,9 @@
 }
 
 .targetChip {
-  background: #0a0805;
-  border: 1px solid #3a2d20;
-  color: #c0a878;
+  background: #080b0e;
+  border: 1px solid #26323e;
+  color: #aab6c0;
   font-family: inherit;
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
@@ -173,12 +173,12 @@
 }
 
 .targetChip:hover {
-  border-color: #d4a84a;
+  border-color: #e6c473;
 }
 
 .targetChipActive {
-  border-color: #d4a84a;
-  color: #d4a84a;
+  border-color: #e6c473;
+  color: #e6c473;
 }
 
 .dot {
@@ -191,7 +191,7 @@
 
 .history {
   padding: 0.75rem 1.5rem;
-  border-top: 1px solid #4a3520;
+  border-top: 1px solid #2b3845;
   max-height: 200px;
   overflow-y: auto;
 }
@@ -199,18 +199,18 @@
 .historyTitle {
   font-size: 0.7rem;
   letter-spacing: 0.2rem;
-  color: #8a7050;
+  color: #7a8893;
   text-transform: uppercase;
   margin-bottom: 0.4rem;
 }
 
 .historyItem {
   font-size: 0.78rem;
-  color: #c0a878;
+  color: #aab6c0;
   margin-bottom: 0.2rem;
 }
 
 .historyDate {
   font-family: ui-monospace, monospace;
-  color: #8a7050;
+  color: #7a8893;
 }

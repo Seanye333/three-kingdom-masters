@@ -31,13 +31,13 @@ export function WishesModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15 0%,#1a1410 100%)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531 0%,#10161e 100%)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           borderTop: '3px solid #e8c878',  // parchment yellow — 紙卷
           width: 'min(620px,100%)',
           maxHeight: '88vh',
           overflow: 'auto',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
           boxShadow: '0 0 16px rgba(232,200,120,0.12)',
         }}
@@ -48,13 +48,13 @@ export function WishesModal({ onClose }: Props) {
             display: 'flex',
             justifyContent: 'space-between',
             padding: '1rem 1.5rem',
-            borderBottom: '1px solid #4a3520',
+            borderBottom: '1px solid #2b3845',
             alignItems: 'baseline',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>書信</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>書信</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
               Officer Letters
             </div>
           </div>
@@ -66,7 +66,7 @@ export function WishesModal({ onClose }: Props) {
                     for (const w of wishes.filter((x) => x.kind !== 'info')) grant(w.id);
                   }}
                   style={{
-                    background: '#3a2d20', border: '1px solid #7ed68a', color: '#7ed68a',
+                    background: '#26323e', border: '1px solid #7ed68a', color: '#7ed68a',
                     padding: '0.3rem 0.7rem', fontFamily: 'inherit', cursor: 'pointer', fontSize: '0.8rem',
                   }}
                 >全部準許</button>
@@ -83,7 +83,7 @@ export function WishesModal({ onClose }: Props) {
             )}
             <button
               onClick={onClose}
-              style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}
             >
               ×
             </button>
@@ -106,21 +106,21 @@ export function WishesModal({ onClose }: Props) {
                 <div
                   key={w.id}
                   style={{
-                    background: isInfo ? '#15201a' : '#1a1410',
-                    border: `1px solid ${isInfo ? '#3a5a4a' : '#4a3520'}`,
+                    background: isInfo ? '#15201a' : '#10161e',
+                    border: `1px solid ${isInfo ? '#3a5a4a' : '#2b3845'}`,
                     padding: '0.75rem 1rem',
                     marginBottom: '0.5rem',
                     display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
                   }}
                 >
                   {o && (
-                    <div style={{ flexShrink: 0, border: '1px solid #5a4530', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ flexShrink: 0, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden' }}>
                       <OfficerAvatar officer={o} size={56} />
                     </div>
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <div style={{ fontSize: '0.9rem', color: isInfo ? '#7ed68a' : '#d4a84a' }}>
+                    <div style={{ fontSize: '0.9rem', color: isInfo ? '#7ed68a' : '#e6c473' }}>
                       {isInfo && <span style={{ marginRight: '0.4rem', letterSpacing: '0.2rem' }}>上書</span>}
                       {o?.name.zh} {o?.name.en}
                       {grievance >= 2 && (
@@ -129,14 +129,14 @@ export function WishesModal({ onClose }: Props) {
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: '#8a7050' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>
                       剩 {seasonsLeft} 季
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#c0a878', marginTop: '0.2rem', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: '0.8rem', color: '#aab6c0', marginTop: '0.2rem', lineHeight: 1.5 }}>
                     {w.text.zh}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic', marginTop: '0.2rem' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic', marginTop: '0.2rem' }}>
                     {w.text.en}
                   </div>
                   {!isInfo && (
@@ -144,7 +144,7 @@ export function WishesModal({ onClose }: Props) {
                       style={{
                         fontFamily: 'ui-monospace, monospace',
                         fontSize: '0.7rem',
-                        color: '#8a7050',
+                        color: '#7a8893',
                         marginTop: '0.3rem',
                       }}
                     >
@@ -171,7 +171,7 @@ export function WishesModal({ onClose }: Props) {
                         <button
                           onClick={() => grant(w.id)}
                           style={{
-                            background: '#3a2d20', border: '1px solid #7ed68a', color: '#7ed68a',
+                            background: '#26323e', border: '1px solid #7ed68a', color: '#7ed68a',
                             padding: '0.3rem 0.8rem', fontFamily: 'inherit', cursor: 'pointer',
                           }}
                         >

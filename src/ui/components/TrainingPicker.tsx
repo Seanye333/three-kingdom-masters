@@ -59,7 +59,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
             <div className={styles.titleZh}>{t('武將培訓', 'Officer Training')}</div>
             <button className={styles.closeButton} onClick={onClose}>×</button>
           </header>
-          <div style={{ padding: '1rem 1.25rem', color: '#c0a878' }}>
+          <div style={{ padding: '1rem 1.25rem', color: '#aab6c0' }}>
             {t('此城尚無書院,也無可任教武將。', 'No academy in this city, and no officer here can teach.')}
           </div>
         </div>
@@ -119,13 +119,13 @@ export function TrainingPicker({ cityId, onClose }: Props) {
           <button className={styles.closeButton} onClick={onClose}>×</button>
         </header>
 
-        <div style={{ padding: '0.5rem 1.25rem', background: '#1a1410', borderBottom: '1px solid #4a3520' }}>
-          <div style={{ fontSize: '0.7rem', color: '#8a7050', marginBottom: '0.3rem' }}>
+        <div style={{ padding: '0.5rem 1.25rem', background: '#10161e', borderBottom: '1px solid #2b3845' }}>
+          <div style={{ fontSize: '0.7rem', color: '#7a8893', marginBottom: '0.3rem' }}>
             {t('選武將', 'Pick officer')}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
             {eligibleOfficers.length === 0 && (
-              <span style={{ color: '#8a7050', fontStyle: 'italic', fontSize: '0.78rem' }}>
+              <span style={{ color: '#7a8893', fontStyle: 'italic', fontSize: '0.78rem' }}>
                 {t('無閒置武將', 'No idle officers')}
               </span>
             )}
@@ -134,16 +134,16 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                 key={o.id}
                 onClick={() => { setPickedOfficer(o); setFeedback(null); }}
                 style={{
-                  background: pickedOfficer?.id === o.id ? '#3a2d20' : 'transparent',
-                  border: '1px solid ' + (pickedOfficer?.id === o.id ? '#d4a84a' : '#4a3520'),
-                  color: pickedOfficer?.id === o.id ? '#d4a84a' : '#c0a878',
+                  background: pickedOfficer?.id === o.id ? '#26323e' : 'transparent',
+                  border: '1px solid ' + (pickedOfficer?.id === o.id ? '#e6c473' : '#2b3845'),
+                  color: pickedOfficer?.id === o.id ? '#e6c473' : '#aab6c0',
                   padding: '0.25rem 0.6rem',
                   fontFamily: 'inherit', fontSize: '0.8rem',
                   letterSpacing: '0.1rem', cursor: 'pointer',
                 }}
               >
                 {lang === 'en' ? o.name.en : o.name.zh}
-                <span style={{ marginLeft: 4, fontSize: '0.65rem', color: '#8a7050' }}>
+                <span style={{ marginLeft: 4, fontSize: '0.65rem', color: '#7a8893' }}>
                   ({(o.policies ?? []).length})
                 </span>
               </button>
@@ -153,8 +153,8 @@ export function TrainingPicker({ cityId, onClose }: Props) {
 
         {pickedOfficer && (
           <>
-            <div style={{ padding: '0.5rem 1.25rem', fontSize: '0.78rem', color: '#c0a878' }}>
-              {t('費用', 'Cost')}: <strong style={{ color: city.gold >= cost ? '#d4a84a' : '#b8442e' }}>{cost} {t('金', 'gold')}</strong>
+            <div style={{ padding: '0.5rem 1.25rem', fontSize: '0.78rem', color: '#aab6c0' }}>
+              {t('費用', 'Cost')}: <strong style={{ color: city.gold >= cost ? '#e6c473' : '#b8442e' }}>{cost} {t('金', 'gold')}</strong>
               {' · '}{t('書院', 'Academy')}: lv{academyLevel(city, buildings)}
               {(() => {
                 const lvl = academyLevel(city, buildings);
@@ -162,22 +162,22 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                 const cap = academyCapacity(lvl);
                 const inUse = trainingsInCity(cityId, pendingTrainings);
                 const full = inUse >= cap;
-                return <> · {t('容量', 'Slots')}: <span style={{ color: full ? '#b8442e' : '#c0a878' }}>{inUse}/{cap}</span></>;
+                return <> · {t('容量', 'Slots')}: <span style={{ color: full ? '#b8442e' : '#aab6c0' }}>{inUse}/{cap}</span></>;
               })()}
               {' · '}{t('知力', 'Int')}: {pickedOfficer.stats.intelligence}{pickedOfficer.stats.intelligence >= 80 && <span style={{ color: '#7ed68a' }}> ({t('俊才 −1 季', 'genius −1')})</span>}
               {' · '}{t('政策', 'Policies')}: {(pickedOfficer.policies ?? []).length}
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem 1.25rem 0', borderBottom: '1px solid #4a3520' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem 1.25rem 0', borderBottom: '1px solid #2b3845' }}>
               {(['policy', 'tactic'] as const).map((m) => (
                 <button
                   key={m}
                   onClick={() => { setMode(m); setFeedback(null); }}
                   style={{
-                    background: mode === m ? '#3a2d20' : 'transparent',
-                    border: '1px solid ' + (mode === m ? '#d4a84a' : '#4a3520'),
-                    borderBottom: mode === m ? '1px solid #2a1f15' : '1px solid #4a3520',
-                    color: mode === m ? '#d4a84a' : '#8a7050',
+                    background: mode === m ? '#26323e' : 'transparent',
+                    border: '1px solid ' + (mode === m ? '#e6c473' : '#2b3845'),
+                    borderBottom: mode === m ? '1px solid #1b2531' : '1px solid #2b3845',
+                    color: mode === m ? '#e6c473' : '#7a8893',
                     padding: '0.3rem 0.8rem',
                     fontFamily: 'inherit', fontSize: '0.78rem',
                     letterSpacing: '0.1rem', cursor: 'pointer',
@@ -214,12 +214,12 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                 };
                 return (
                   <>
-                    <div style={{ fontSize: '0.72rem', color: '#c0a878', marginBottom: '0.3rem' }}>
-                      {t('戰法費用', 'Tactic cost')}: <strong style={{ color: city.gold >= tCost ? '#d4a84a' : '#b8442e' }}>{tCost} {t('金', 'gold')}</strong>
+                    <div style={{ fontSize: '0.72rem', color: '#aab6c0', marginBottom: '0.3rem' }}>
+                      {t('戰法費用', 'Tactic cost')}: <strong style={{ color: city.gold >= tCost ? '#e6c473' : '#b8442e' }}>{tCost} {t('金', 'gold')}</strong>
                       {' · '}{t('已通', 'Known')}: {(pickedOfficer.tactics ?? []).length}
                     </div>
                     {tAvail.length === 0 && (
-                      <div style={{ color: '#8a7050', fontStyle: 'italic', fontSize: '0.78rem' }}>
+                      <div style={{ color: '#7a8893', fontStyle: 'italic', fontSize: '0.78rem' }}>
                         {t('無可學戰法 — 需先學前置。', 'No tactics available — need to study prerequisites.')}
                       </div>
                     )}
@@ -233,11 +233,11 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                             const td = TACTIC_DEFS[tid];
                             const tier = tacticTier(tid);
                             const tierLabel = tier === 1 ? t('基', 'B') : tier === 2 ? t('進', 'A') : t('簽名', 'Sig');
-                            const tierColor = tier === 1 ? '#7a9a5a' : tier === 2 ? '#d4a84a' : '#b8442e';
+                            const tierColor = tier === 1 ? '#7a9a5a' : tier === 2 ? '#e6c473' : '#b8442e';
                             const acadDur = tacticDurationSeasons(pickedOfficer, city, tid, buildings);
                             const mentors = eligibleTacticMentors(pickedOfficer, tid, officers, city, pendingTrainings, family);
                             return (
-                              <div key={tid} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', borderBottom: '1px dotted #3a2d20', padding: '0.15rem 0' }}>
+                              <div key={tid} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', borderBottom: '1px dotted #26323e', padding: '0.15rem 0' }}>
                                 <span style={{
                                   minWidth: 110, padding: '0.15rem 0.4rem',
                                   border: `1px solid ${tierColor}`, color: tierColor, fontSize: '0.78rem',
@@ -250,7 +250,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                                     onClick={() => handleAcadTactic(tid)}
                                     disabled={city.gold < tCost}
                                     style={{
-                                      background: '#1a1410', border: '1px solid #88b7e8', color: '#88b7e8',
+                                      background: '#10161e', border: '1px solid #88b7e8', color: '#88b7e8',
                                       padding: '0.2rem 0.5rem', fontFamily: 'inherit', fontSize: '0.72rem',
                                       cursor: city.gold >= tCost ? 'pointer' : 'not-allowed',
                                       opacity: city.gold >= tCost ? 1 : 0.5,
@@ -267,9 +267,9 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                                       key={m.id}
                                       onClick={() => handleMentTactic(tid, m.id)}
                                       style={{
-                                        background: '#1a1410',
-                                        border: `1px solid ${isParent ? '#d4a84a' : '#7ed68a'}`,
-                                        color: isParent ? '#d4a84a' : '#7ed68a',
+                                        background: '#10161e',
+                                        border: `1px solid ${isParent ? '#e6c473' : '#7ed68a'}`,
+                                        color: isParent ? '#e6c473' : '#7ed68a',
                                         padding: '0.2rem 0.5rem', fontFamily: 'inherit', fontSize: '0.72rem',
                                         cursor: 'pointer',
                                       }}
@@ -282,7 +282,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                             );
                           })}
                           {tAvail.length > 60 && (
-                            <div style={{ color: '#8a7050', fontSize: '0.7rem' }}>
+                            <div style={{ color: '#7a8893', fontSize: '0.7rem' }}>
                               +{tAvail.length - 60} {t('項可學戰法', 'more')}
                             </div>
                           )}
@@ -290,7 +290,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                       </>
                     )}
                     {tLocked.length > 0 && (
-                      <div style={{ fontSize: '0.7rem', color: '#8a7050', margin: '0.6rem 0 0.3rem' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#7a8893', margin: '0.6rem 0 0.3rem' }}>
                         🔒 {t('需先學前置', 'Locked')} ({tLocked.length})
                       </div>
                     )}
@@ -298,7 +298,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                 );
               })()}
               {mode === 'policy' && available.length === 0 && (
-                <div style={{ color: '#8a7050', fontStyle: 'italic', fontSize: '0.78rem', padding: '0.5rem 0' }}>
+                <div style={{ color: '#7a8893', fontStyle: 'italic', fontSize: '0.78rem', padding: '0.5rem 0' }}>
                   {t('此武將已掌握所有基礎政策,先學進階前置才能繼續。', 'Officer already knows all base policies — needs upstream learnings to unlock more.')}
                 </div>
               )}
@@ -314,20 +314,20 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                       const acadDur = trainingDurationSeasons(pickedOfficer, city, pid, buildings);
                       const tierLabel = tier === 1
                         ? t('基礎', 'Base') : tier === 2 ? t('進階', 'Adv') : t('高階', 'High');
-                      const tierColor = tier === 1 ? '#7a9a5a' : tier === 2 ? '#d4a84a' : '#b8442e';
+                      const tierColor = tier === 1 ? '#7a9a5a' : tier === 2 ? '#e6c473' : '#b8442e';
                       const mentors = eligibleMentors(pickedOfficer, pid, officers, city, pendingTrainings, family);
                       const wished = officerWishes.some(
                         (w) => w.officerId === pickedOfficer.id && w.kind === 'learn-policy' && w.targetId === pid,
                       );
                       const discountedCost = wished ? Math.floor(cost / 2) : cost;
                       return (
-                        <div key={pid} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', padding: '0.2rem 0', borderBottom: '1px dotted #3a2d20' }}>
+                        <div key={pid} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', padding: '0.2rem 0', borderBottom: '1px dotted #26323e' }}>
                           <span style={{
                             minWidth: 100, padding: '0.15rem 0.4rem',
                             border: `1px solid ${tierColor}`, color: tierColor,
                             fontSize: '0.8rem',
                           }}>
-                            {wished && <span title={t('武將夙願 — 半價學費,完成後忠誠 +14', 'Officer wish — half tuition, +14 loyalty on completion')} style={{ color: '#d4a84a', marginRight: 4 }}>★</span>}
+                            {wished && <span title={t('武將夙願 — 半價學費,完成後忠誠 +14', 'Officer wish — half tuition, +14 loyalty on completion')} style={{ color: '#e6c473', marginRight: 4 }}>★</span>}
                             {lang === 'en' ? p?.en : p?.zh}
                             <span style={{ marginLeft: 4, fontSize: '0.6rem', opacity: 0.7 }}>· {tierLabel}</span>
                           </span>
@@ -340,7 +340,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                                 `Academy training — ${discountedCost} gold${wished ? ' (wish discount)' : ''} · ${acadDur === 0 ? 'instant' : `${acadDur} season${acadDur > 1 ? 's' : ''}`}`,
                               )}
                               style={{
-                                background: '#1a1410', border: '1px solid #88b7e8', color: '#88b7e8',
+                                background: '#10161e', border: '1px solid #88b7e8', color: '#88b7e8',
                                 padding: '0.2rem 0.5rem', fontFamily: 'inherit', fontSize: '0.72rem',
                                 cursor: city.gold >= discountedCost ? 'pointer' : 'not-allowed',
                                 opacity: city.gold >= discountedCost ? 1 : 0.5,
@@ -352,7 +352,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                           {mentors.slice(0, 3).map((m) => {
                             const isParent = isParentMentor(m, pickedOfficer, family);
                             const dur = mentorDurationSeasons(pickedOfficer, city, pid, m, family);
-                            const color = isParent ? '#d4a84a' : '#7ed68a';
+                            const color = isParent ? '#e6c473' : '#7ed68a';
                             return (
                               <button
                                 key={m.id}
@@ -366,7 +366,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                                     : `Taught by ${m.name.en} — free · ${dur} season${dur > 1 ? 's' : ''}`,
                                 )}
                                 style={{
-                                  background: '#1a1410',
+                                  background: '#10161e',
                                   border: `1px solid ${color}`,
                                   color,
                                   padding: '0.2rem 0.5rem', fontFamily: 'inherit', fontSize: '0.72rem',
@@ -378,10 +378,10 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                             );
                           })}
                           {mentors.length > 3 && (
-                            <span style={{ fontSize: '0.65rem', color: '#8a7050' }}>+{mentors.length - 3}</span>
+                            <span style={{ fontSize: '0.65rem', color: '#7a8893' }}>+{mentors.length - 3}</span>
                           )}
                           {!hasAcademy && mentors.length === 0 && (
-                            <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>
+                            <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>
                               {t('無師可請', 'No mentor available')}
                             </span>
                           )}
@@ -394,7 +394,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
 
               {mode === 'policy' && locked.length > 0 && (
                 <>
-                  <div style={{ fontSize: '0.7rem', color: '#8a7050', letterSpacing: '0.15rem', margin: '0.6rem 0 0.3rem' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#7a8893', letterSpacing: '0.15rem', margin: '0.6rem 0 0.3rem' }}>
                     🔒 {t('需先學前置', 'Locked — need prerequisite')} ({locked.length})
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
@@ -415,7 +415,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                           style={{
                             background: 'rgba(90, 70, 60, 0.4)',
                             border: '1px dashed rgba(138, 112, 80, 0.6)',
-                            color: '#8a7050',
+                            color: '#7a8893',
                             padding: '0.3rem 0.55rem', fontSize: '0.78rem',
                             letterSpacing: '0.1rem',
                           }}
@@ -428,7 +428,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
                       );
                     })}
                     {locked.length > 30 && (
-                      <span style={{ color: '#8a7050', fontSize: '0.7rem', alignSelf: 'center' }}>
+                      <span style={{ color: '#7a8893', fontSize: '0.7rem', alignSelf: 'center' }}>
                         +{locked.length - 30} {t('項', 'more')}
                       </span>
                     )}
@@ -440,7 +440,7 @@ export function TrainingPicker({ cityId, onClose }: Props) {
         )}
 
         {feedback && (
-          <div style={{ padding: '0.5rem 1.25rem', color: '#d4a84a', fontSize: '0.85rem', textAlign: 'center' }}>
+          <div style={{ padding: '0.5rem 1.25rem', color: '#e6c473', fontSize: '0.85rem', textAlign: 'center' }}>
             {feedback}
           </div>
         )}

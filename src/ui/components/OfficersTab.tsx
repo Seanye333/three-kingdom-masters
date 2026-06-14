@@ -238,9 +238,9 @@ export function OfficersTab({ onClose }: Props) {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Name / 名 / courtesy"
               style={{
-                background: '#1a1410',
-                border: '1px solid #4a3520',
-                color: '#d4a84a',
+                background: '#10161e',
+                border: '1px solid #2b3845',
+                color: '#e6c473',
                 padding: '0.3rem 0.5rem',
                 fontFamily: 'inherit',
                 flex: 1,
@@ -252,7 +252,7 @@ export function OfficersTab({ onClose }: Props) {
               value={statKey}
               onChange={(e) => setStatKey(e.target.value as keyof OfficerStats | 'any')}
               style={{
-                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                background: '#10161e', border: '1px solid #2b3845', color: '#e6c473',
                 padding: '0.3rem', fontFamily: 'inherit',
               }}
             >
@@ -269,7 +269,7 @@ export function OfficersTab({ onClose }: Props) {
               value={minStat}
               onChange={(e) => setMinStat(Number(e.target.value) || 0)}
               style={{
-                background: '#1a1410', border: '1px solid #4a3520', color: '#d4a84a',
+                background: '#10161e', border: '1px solid #2b3845', color: '#e6c473',
                 padding: '0.3rem', fontFamily: 'ui-monospace, monospace', width: 60,
               }}
             />
@@ -347,8 +347,8 @@ export function OfficersTab({ onClose }: Props) {
                 }
                 forceColor={
                   o.forceId
-                    ? forces[o.forceId]?.color ?? '#5a4530'
-                    : '#5a4530'
+                    ? forces[o.forceId]?.color ?? '#364654'
+                    : '#364654'
                 }
                 locationName={
                   o.locationCityId

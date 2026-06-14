@@ -125,11 +125,11 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--tkm-bg-modal, #1f1610)',
-          border: '1px solid var(--tkm-text-h2, #d4a84a)',
+          background: 'var(--tkm-bg-modal, #141c25)',
+          border: '1px solid var(--tkm-text-h2, #e6c473)',
           width: 720, maxWidth: '96vw',
           padding: '1.5rem',
-          color: 'var(--tkm-text-body, #c9b89a)',
+          color: 'var(--tkm-text-body, #b6c2cc)',
           fontFamily: 'var(--tkm-font-body)',
           position: 'relative',
         }}
@@ -139,7 +139,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
           <div style={{
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.8rem',
-            color: 'var(--tkm-text-h2, #d4a84a)',
+            color: 'var(--tkm-text-h2, #e6c473)',
             letterSpacing: '0.4rem',
           }}>
             {city?.name.zh ?? '?'} 之戰
@@ -208,8 +208,8 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
             key={step}
             style={{
               animation: 'tkmFadeIn 0.45s ease-out',
-              background: 'var(--tkm-bg-raised, #251c14)',
-              border: '1px solid var(--tkm-border-soft, #3a2818)',
+              background: 'var(--tkm-bg-raised, #18212b)',
+              border: '1px solid var(--tkm-border-soft, #1e2832)',
               padding: '0.9rem 1.1rem',
               minHeight: 90,
             }}
@@ -217,7 +217,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
             <div style={{
               fontFamily: 'var(--tkm-font-zh)',
               fontSize: '1.15rem',
-              color: 'var(--tkm-text-h2, #d4a84a)',
+              color: 'var(--tkm-text-h2, #e6c473)',
               letterSpacing: '0.25rem',
               marginBottom: '0.3rem',
             }}>
@@ -234,7 +234,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
             </div>
             <div style={{
               fontSize: '0.95rem',
-              color: 'var(--tkm-text-h1, #f0e0b0)',
+              color: 'var(--tkm-text-h1, #eef4f8)',
               lineHeight: 1.6,
             }}>
               {currentPhase.text}
@@ -247,8 +247,8 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
           <div
             style={{
               animation: 'tkmFadeIn 0.6s ease-out',
-              background: 'var(--tkm-bg-raised, #251c14)',
-              border: '1px solid var(--tkm-text-h2, #d4a84a)',
+              background: 'var(--tkm-bg-raised, #18212b)',
+              border: '1px solid var(--tkm-text-h2, #e6c473)',
               padding: '1rem 1.2rem',
             }}
           >
@@ -442,7 +442,7 @@ function BattlefieldStrip({
         <div style={{
           position: 'absolute', left: '50%', top: '30%',
           transform: 'translate(-50%, -50%)',
-          fontSize: '2.2rem', color: 'var(--tkm-warn, #d4a84a)',
+          fontSize: '2.2rem', color: 'var(--tkm-warn, #e6c473)',
         }}>
           <span className="tkm-clash">⚔</span>
         </div>
@@ -476,7 +476,7 @@ function ArmyPanel({
 }) {
   const moraleColor =
     morale >= 60 ? 'var(--tkm-success, #b8c87a)' :
-    morale >= 30 ? 'var(--tkm-warn, #d4a84a)' :
+    morale >= 30 ? 'var(--tkm-warn, #e6c473)' :
     'var(--tkm-danger, #b8442e)';
   return (
     <div style={{
@@ -493,7 +493,7 @@ function ArmyPanel({
           <div style={{
             fontFamily: 'var(--tkm-font-zh)',
             fontSize: '1.15rem',
-            color: 'var(--tkm-text-h1, #f0e0b0)',
+            color: 'var(--tkm-text-h1, #eef4f8)',
             letterSpacing: '0.2rem',
           }}>
             {officer.name.zh}

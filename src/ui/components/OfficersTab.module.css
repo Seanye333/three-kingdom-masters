@@ -9,8 +9,8 @@
 }
 
 .modal {
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 1080px;
   max-width: 96vw;
   max-height: 92vh;
@@ -23,20 +23,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.65rem;
   margin-bottom: 0.75rem;
 }
 
 .titleZh {
   font-size: 1.75rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.4rem;
 }
 
 .titleEn {
   font-size: 0.8rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
@@ -44,7 +44,7 @@
 .closeButton {
   background: transparent;
   border: none;
-  color: #8a7050;
+  color: #7a8893;
   font-size: 1.5rem;
   cursor: pointer;
   font-family: inherit;
@@ -52,7 +52,7 @@
 }
 
 .closeButton:hover {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .controls {
@@ -73,7 +73,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.15rem;
   text-transform: uppercase;
-  color: #8a7050;
+  color: #7a8893;
   min-width: 50px;
 }
 
@@ -81,9 +81,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: #1a1410;
-  color: #c0a878;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  color: #aab6c0;
+  border: 1px solid #26323e;
   padding: 0.3rem 0.65rem;
   font-family: inherit;
   font-size: 0.78rem;
@@ -91,14 +91,14 @@
 }
 
 .chip:hover {
-  background: #3a2d20;
-  border-color: #d4a84a;
+  background: #26323e;
+  border-color: #e6c473;
 }
 
 .chipActive {
-  border-color: #d4a84a;
-  background: #3a2d20;
-  color: #d4a84a;
+  border-color: #e6c473;
+  background: #26323e;
+  color: #e6c473;
 }
 
 .chipDot {
@@ -114,14 +114,14 @@
   gap: 0.35rem;
   align-items: stretch;
   padding: 0.4rem 0.35rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   font-size: 0.65rem;
   letter-spacing: 0.15rem;
   text-transform: uppercase;
-  color: #8a7050;
+  color: #7a8893;
   position: sticky;
   top: 0;
-  background: #2a1f15;
+  background: #1b2531;
   z-index: 2;
 }
 
@@ -147,15 +147,15 @@
 }
 
 .sortHeader:hover {
-  background: #1a1410;
-  color: #c0a878;
-  border-color: #3a2d20;
+  background: #10161e;
+  color: #aab6c0;
+  border-color: #26323e;
 }
 
 .sortHeaderActive {
-  background: #3a2d20;
-  color: #d4a84a;
-  border-color: #d4a84a;
+  background: #26323e;
+  color: #e6c473;
+  border-color: #e6c473;
 }
 
 .sortArrow {
@@ -179,12 +179,12 @@
   gap: 0.35rem;
   align-items: center;
   padding: 0.4rem 0.65rem;
-  border-bottom: 1px dotted #3a2d20;
+  border-bottom: 1px dotted #26323e;
   font-size: 0.85rem;
 }
 
 .row:hover {
-  background: #1a1410;
+  background: #10161e;
 }
 
 .rowMine {
@@ -199,17 +199,17 @@
 }
 
 .rowNameZh {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.95rem;
 }
 
 .rowNameEn {
-  color: #c0a878;
+  color: #aab6c0;
   font-size: 0.78rem;
 }
 
 .rowCourtesy {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
 }
 
@@ -229,16 +229,16 @@
 
 .rowForceText {
   font-size: 0.78rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .rowLocation {
-  color: #8a7050;
+  color: #7a8893;
   margin-left: 0.25rem;
 }
 
 .rowTask {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .rowCaptive {
@@ -252,10 +252,10 @@
   padding: 0.15rem;
 }
 
-.statEpic { color: #d4a84a; font-weight: bold; }
-.statHigh { color: #c0a878; }
-.statMid  { color: #8a7050; }
-.statLow  { color: #5a4530; }
+.statEpic { color: #e6c473; font-weight: bold; }
+.statHigh { color: #aab6c0; }
+.statMid  { color: #7a8893; }
+.statLow  { color: #364654; }
 
 .statTop {
   background: rgba(212, 168, 74, 0.12);
@@ -267,12 +267,12 @@
   text-align: center;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.05rem;
   white-space: nowrap;
 }
-.kitCount { color: #c0a878; }
-.kitCountStrong { color: #d4a84a; font-weight: bold; }
+.kitCount { color: #aab6c0; }
+.kitCountStrong { color: #e6c473; font-weight: bold; }
 
 .rowMeta {
   text-align: center;
@@ -285,18 +285,18 @@
 }
 
 .rowAge {
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .rowLoyalty {
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .empty {
   list-style: none;
   text-align: center;
   padding: 2rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
@@ -312,8 +312,8 @@
     grid-template-columns: none !important;
     gap: 0.4rem 0.3rem !important;
     padding: 0.65rem 0.7rem !important;
-    background: var(--tkm-bg-raised, #251c14);
-    border: 1px solid var(--tkm-border-soft, #3a2818);
+    background: var(--tkm-bg-raised, #18212b);
+    border: 1px solid var(--tkm-border-soft, #1e2832);
     margin-bottom: 0.45rem;
     align-items: center !important;
   }
@@ -339,7 +339,7 @@
     flex: 1 1 18% !important;
     text-align: center;
     padding: 0.3rem 0 !important;
-    background: var(--tkm-bg-sunken, #110d09);
+    background: var(--tkm-bg-sunken, #0a0e12);
     border-radius: 3px;
     font-family: var(--tkm-font-mono, ui-monospace, monospace);
     font-size: 0.85rem !important;
@@ -348,14 +348,14 @@
     flex: 1 1 100% !important;
     text-align: right;
     font-size: 0.72rem;
-    color: var(--tkm-text-muted, #8c7a5a);
+    color: var(--tkm-text-muted, #7a8893);
   }
 
   .kitCell {
     flex: 1 1 100% !important;
     text-align: right;
     font-size: 0.7rem;
-    color: var(--tkm-text-muted, #8c7a5a);
+    color: var(--tkm-text-muted, #7a8893);
   }
 
   /* Filter / sort chip rows */

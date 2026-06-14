@@ -54,13 +54,13 @@ export function ForgingModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           borderTop: '3px solid #f55a20',  // ember orange — 炉火
           width: 'min(820px,100%)',
           maxHeight: '90vh',
           display: 'flex', flexDirection: 'column',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
           boxShadow: '0 0 16px rgba(245,90,32,0.15)',
         }}
@@ -69,18 +69,18 @@ export function ForgingModal({ onClose }: Props) {
         <header
           style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-            padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520',
+            padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>鍛造</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>Forge & Smithy</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>鍛造</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Forge & Smithy</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
 
-        <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid #4a3520' }}>
-          <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+        <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid #2b3845' }}>
+          <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
             Foundry City
           </div>
           {foundryCities.length === 0 ? (
@@ -96,14 +96,14 @@ export function ForgingModal({ onClose }: Props) {
                     key={c.id}
                     onClick={() => setPickedCityId(c.id)}
                     style={{
-                      background: pickedCityId === c.id ? '#3a2d20' : '#1a1410',
-                      border: `1px solid ${pickedCityId === c.id ? '#d4a84a' : '#4a3520'}`,
-                      color: pickedCityId === c.id ? '#d4a84a' : '#c0a878',
+                      background: pickedCityId === c.id ? '#26323e' : '#10161e',
+                      border: `1px solid ${pickedCityId === c.id ? '#e6c473' : '#2b3845'}`,
+                      color: pickedCityId === c.id ? '#e6c473' : '#aab6c0',
                       padding: '0.3rem 0.7rem',
                       fontFamily: 'inherit', cursor: 'pointer', fontSize: '0.85rem',
                     }}
                   >
-                    {c.name.zh} <span style={{ fontSize: '0.7rem', color: '#8a7050' }}>Lv{lvl}</span>
+                    {c.name.zh} <span style={{ fontSize: '0.7rem', color: '#7a8893' }}>Lv{lvl}</span>
                   </button>
                 );
               })}
@@ -114,8 +114,8 @@ export function ForgingModal({ onClose }: Props) {
         <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1 }}>
           {pickedCity && (
             <>
-              <div style={{ fontSize: '0.78rem', color: '#8a7050', marginBottom: '0.5rem' }}>
-                Treasury at {pickedCity.name.en}: <strong style={{ color: '#c19a3b' }}>{pickedCity.gold}g</strong> ·
+              <div style={{ fontSize: '0.78rem', color: '#7a8893', marginBottom: '0.5rem' }}>
+                Treasury at {pickedCity.name.en}: <strong style={{ color: '#c9a64e' }}>{pickedCity.gold}g</strong> ·
                 Items here: {itemsInCity.length}
               </div>
               {FORGE_RECIPES.map((r) => {
@@ -128,17 +128,17 @@ export function ForgingModal({ onClose }: Props) {
                   <div
                     key={r.id}
                     style={{
-                      background: '#1a1410',
-                      border: '1px solid ' + (canForge ? '#d4a84a' : '#4a3520'),
+                      background: '#10161e',
+                      border: '1px solid ' + (canForge ? '#e6c473' : '#2b3845'),
                       padding: '0.7rem 0.85rem',
                       marginBottom: '0.4rem',
                       opacity: canForge ? 1 : 0.65,
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <div style={{ color: '#d4a84a', fontSize: '1rem' }}>
+                      <div style={{ color: '#e6c473', fontSize: '1rem' }}>
                         → {result?.name.zh}{' '}
-                        <span style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic' }}>
+                        <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>
                           {result?.name.en}
                         </span>
                       </div>
@@ -146,9 +146,9 @@ export function ForgingModal({ onClose }: Props) {
                         onClick={() => handle(r.id)}
                         disabled={!canForge}
                         style={{
-                          background: '#3a2d20',
-                          border: '1px solid ' + (canForge ? '#d4a84a' : '#4a3520'),
-                          color: canForge ? '#d4a84a' : '#6a5238',
+                          background: '#26323e',
+                          border: '1px solid ' + (canForge ? '#e6c473' : '#2b3845'),
+                          color: canForge ? '#e6c473' : '#6a5238',
                           padding: '0.3rem 0.8rem',
                           fontFamily: 'inherit', cursor: canForge ? 'pointer' : 'not-allowed',
                         }}
@@ -156,17 +156,17 @@ export function ForgingModal({ onClose }: Props) {
                         鍛 Forge
                       </button>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#c0a878', fontStyle: 'italic', marginTop: '0.3rem' }}>
+                    <div style={{ fontSize: '0.78rem', color: '#aab6c0', fontStyle: 'italic', marginTop: '0.3rem' }}>
                       {desc(r)}
                     </div>
-                    <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.72rem', color: '#8a7050', marginTop: '0.3rem' }}>
+                    <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.72rem', color: '#7a8893', marginTop: '0.3rem' }}>
                       Ingredients: {r.ingredients.map((id) => (
                         <span key={id} style={{ color: itemsInCity.includes(id) ? '#7ed68a' : '#b8442e', marginRight: '0.5rem' }}>
                           {ITEMS_BY_ID[id]?.name.zh ?? id} {itemsInCity.includes(id) ? '✓' : '✗'}
                         </span>
                       ))}
                     </div>
-                    <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.72rem', color: '#8a7050', marginTop: '0.2rem' }}>
+                    <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.72rem', color: '#7a8893', marginTop: '0.2rem' }}>
                       {r.goldCost}g · req Foundry Lv{r.minFoundryLevel}
                     </div>
                   </div>

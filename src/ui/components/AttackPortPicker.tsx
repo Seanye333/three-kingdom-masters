@@ -127,8 +127,8 @@ export function AttackPortPicker({ portId, onClose, onCommit }: Props) {
             margin: '0.8rem 0',
             padding: '0.5rem 0.8rem',
             background: 'rgba(40, 28, 18, 0.6)',
-            border: '1px solid #5a4530',
-            color: '#f0e0b0',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+            color: '#eef4f8',
             fontFamily: 'Songti SC, serif',
             fontSize: '0.85rem',
           }}>

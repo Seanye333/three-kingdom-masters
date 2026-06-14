@@ -17,7 +17,7 @@ interface Todo {
 
 const TONE_COLOR: Record<Tone, { fg: string; border: string; bg: string }> = {
   urgent: { fg: '#ffb088', border: '#e0603a', bg: 'rgba(200,60,40,0.12)' },
-  warn:   { fg: '#f0d98a', border: '#d4a84a', bg: 'rgba(212,168,74,0.10)' },
+  warn:   { fg: '#f2dd9a', border: '#e6c473', bg: 'rgba(212,168,74,0.10)' },
   info:   { fg: '#9ad6c8', border: '#5a8a7a', bg: 'rgba(90,138,122,0.10)' },
 };
 
@@ -166,15 +166,15 @@ export function ToDoModal({ onClose, onOpenLetters }: { onClose: () => void; onO
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-        width: 'min(560px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+        width: 'min(560px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
             📋 {t('待辦', 'To-Do')} {urgent > 0 && <span style={{ color: '#ffb088', fontSize: '0.8rem' }}>· {urgent} {t('急', 'urgent')}</span>}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
 
         {todos.length === 0 ? (
@@ -199,9 +199,9 @@ export function ToDoModal({ onClose, onOpenLetters }: { onClose: () => void; onO
                   <span style={{ fontSize: '1.2rem' }}>{td.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ color: c.fg, fontSize: '0.9rem' }}>{t(td.zh, td.en)}</div>
-                    {td.sub && <div style={{ color: '#8a7050', fontSize: '0.74rem' }}>{td.sub}</div>}
+                    {td.sub && <div style={{ color: '#7a8893', fontSize: '0.74rem' }}>{td.sub}</div>}
                   </div>
-                  {td.onClick && <span style={{ color: '#6a5a45', fontSize: '0.9rem' }}>›</span>}
+                  {td.onClick && <span style={{ color: '#5f6c76', fontSize: '0.9rem' }}>›</span>}
                 </div>
               );
             })}

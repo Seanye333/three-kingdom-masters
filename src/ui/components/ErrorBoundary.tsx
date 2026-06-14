@@ -35,9 +35,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div
           style={{
-            background: '#2a1f15',
+            background: '#1b2531',
             border: '1px solid #b8442e',
-            color: '#e8d9b0',
+            color: '#e6edf3',
             padding: '1rem 1.5rem',
             margin: '1rem',
             fontFamily: '"Songti SC", serif',
@@ -46,16 +46,16 @@ export class ErrorBoundary extends Component<Props, State> {
           <div style={{ fontSize: '1.1rem', color: '#b8442e', letterSpacing: '0.2rem' }}>
             ⚠ {this.props.fallbackLabel ?? 'A panel crashed'}
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#c0a878', marginTop: '0.5rem', fontFamily: 'ui-monospace, monospace' }}>
+          <div style={{ fontSize: '0.78rem', color: '#aab6c0', marginTop: '0.5rem', fontFamily: 'ui-monospace, monospace' }}>
             {this.state.error.message}
           </div>
           <div style={{ marginTop: '0.7rem' }}>
             <button
               onClick={() => this.setState({ error: null })}
               style={{
-                background: '#3a2d20',
-                border: '1px solid #d4a84a',
-                color: '#d4a84a',
+                background: '#26323e',
+                border: '1px solid #e6c473',
+                color: '#e6c473',
                 padding: '0.3rem 0.8rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',
@@ -68,8 +68,8 @@ export class ErrorBoundary extends Component<Props, State> {
               onClick={() => window.location.reload()}
               style={{
                 background: 'none',
-                border: '1px solid #5a4530',
-                color: '#c0a878',
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+                color: '#aab6c0',
                 padding: '0.3rem 0.8rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',

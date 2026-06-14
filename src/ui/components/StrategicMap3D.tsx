@@ -5071,7 +5071,7 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, fogCityId
         return (
           <Html position={[hoverTile.x, hoverTile.topY + 0.35, hoverTile.z]} center distanceFactor={9} zIndexRange={[30, 20]} style={{ pointerEvents: 'none' }}>
             <div style={{
-              background: 'rgba(20, 14, 8, 0.88)', border: '1px solid #5a4530', borderRadius: 3,
+              background: 'rgba(20, 14, 8, 0.88)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
               padding: '2px 7px', fontFamily: 'Songti SC, serif', fontSize: '11px',
               color: '#e8d9b0', whiteSpace: 'nowrap', letterSpacing: '0.5px',
             }}>
@@ -6179,7 +6179,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
             {rings.map((r, i) => (
               <Html key={`l${i}`} position={[wx + r.rpx * PIXEL_TO_WORLD * 0.7071, 0.25, wz - r.rpx * PIXEL_TO_WORLD * 0.7071]} center distanceFactor={11} zIndexRange={[26, 16]} style={{ pointerEvents: 'none' }}>
                 <div style={{
-                  background: 'rgba(20,14,8,0.82)', border: '1px solid #5a4530', borderRadius: 3,
+                  background: 'rgba(20,14,8,0.82)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
                   padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: 10, color: '#f0d98a',
                   whiteSpace: 'nowrap',
                 }}>{r.zh}</div>
@@ -6357,7 +6357,7 @@ function CitySearchBox({ onJump, compact }: {
         style={{
           width: 34, height: 34, borderRadius: '50%',
           background: 'rgba(20, 14, 8, 0.88)', color: '#c0a878',
-          border: '1px solid #5a4530', cursor: 'pointer', fontSize: 15,
+          border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontSize: 15,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
         title={t('尋城', 'Find city')}
@@ -6371,7 +6371,7 @@ function CitySearchBox({ onJump, compact }: {
           onClick={() => { setOpen(false); setQ(''); }}
           style={{
             width: 30, background: 'rgba(20, 14, 8, 0.88)', color: '#c0a878',
-            border: '1px solid #5a4530', cursor: 'pointer', fontSize: 13, order: 2,
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer', fontSize: 13, order: 2,
           }}
         >✕</button>
       )}
@@ -6388,14 +6388,14 @@ function CitySearchBox({ onJump, compact }: {
         style={{
           width: compact ? 'min(56vw, 210px)' : 138,
           background: 'rgba(20, 14, 8, 0.88)', color: '#e8d9b0',
-          border: '1px solid #5a4530', padding: '0.3rem 0.5rem', outline: 'none',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.5rem', outline: 'none',
           fontFamily: 'inherit', fontSize: '0.75rem',
         }}
       />
       {matches.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', right: 0, marginTop: 2, minWidth: 170,
-          background: 'rgba(20, 14, 8, 0.96)', border: '1px solid #5a4530',
+          background: 'rgba(20, 14, 8, 0.96)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.6)', zIndex: 30,
         }}>
           {matches.map((c) => {
@@ -6479,7 +6479,7 @@ function ArmyOrdersHint() {
       <button
         onClick={() => selectArmy(null)}
         style={{
-          background: 'transparent', border: '1px solid #5a4530', color: '#c0a878',
+          background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#c0a878',
           padding: '0.15rem 0.5rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem',
         }}
       >✕ {t('取消', 'Cancel')}</button>
@@ -6826,7 +6826,7 @@ export function StrategicMap3D() {
             onClick={() => setObjOpen(true)}
             style={{
               pointerEvents: 'auto', background: 'rgba(20, 14, 8, 0.88)', color: '#d4a84a',
-              border: '1px solid #5a4530', padding: '0.3rem 0.55rem', cursor: 'pointer',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.55rem', cursor: 'pointer',
               fontFamily: 'Songti SC, serif', fontSize: '0.75rem',
             }}
           >🎯 {t('目標', 'Goal')}</button>
@@ -6859,12 +6859,12 @@ export function StrategicMap3D() {
       }}>
         <span style={{
           background: 'rgba(20, 14, 8, 0.85)', color: '#d4a84a',
-          border: '1px solid #5a4530', padding: '0.3rem 0.7rem',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.7rem',
           fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
         }}>{SEASON_ZH[season]} {season}</span>
         <span style={{
           background: 'rgba(20, 14, 8, 0.85)', color: '#a8c4e0',
-          border: '1px solid #5a4530', padding: '0.3rem 0.7rem',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.7rem',
           fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
         }}>{WEATHER_ZH[weather.kind]}{weather.windPower >= 2 ? ` ${weather.windPower}` : ''}</span>
       </div>
@@ -6874,7 +6874,7 @@ export function StrategicMap3D() {
         <div style={{
           position: 'absolute', top: 12, right: 12, zIndex: 10,
           background: 'rgba(20, 14, 8, 0.85)', color: '#a89070',
-          border: '1px solid #5a4530',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           padding: '0.3rem 0.6rem',
           fontFamily: 'Songti SC, serif', fontSize: '0.72rem',
           pointerEvents: 'none',
@@ -6915,7 +6915,7 @@ export function StrategicMap3D() {
         flexWrap: 'wrap',
         maxWidth: 'calc(100vw - 24px)',
         background: 'rgba(20, 14, 8, 0.88)',
-        border: '1px solid #5a4530',
+        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
         padding: 4,
         boxShadow: '0 0 8px rgba(0,0,0,0.6)',
       }}>
@@ -6941,7 +6941,7 @@ export function StrategicMap3D() {
           style={{
             marginLeft: 8,
             background: '#3a2818', color: '#a89070',
-            border: '1px solid #5a4530',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             padding: '0.3rem 0.55rem',
             cursor: 'pointer',
             fontFamily: 'Songti SC, serif',
@@ -6981,7 +6981,7 @@ export function StrategicMap3D() {
           onClick={exportSnapshot}
           style={{
             marginLeft: 8, background: '#241c12', color: '#c0a878',
-            border: '1px solid #5a4530', padding: '0.3rem 0.55rem',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.55rem',
             cursor: 'pointer', fontFamily: 'Songti SC, serif', fontSize: '0.78rem',
           }}
           title={t('把當前天下大勢存成 PNG', 'Save the current realm view as a PNG')}

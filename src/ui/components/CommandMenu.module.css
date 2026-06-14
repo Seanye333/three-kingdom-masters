@@ -11,7 +11,7 @@
 
 .marchButton:hover:not(:disabled) {
   background: #3a1f1a;
-  border-color: #d4a84a;
+  border-color: #e6c473;
 }
 
 .marchButton .cmdLabelZh {
@@ -24,9 +24,9 @@
   grid-template-rows: auto auto;
   column-gap: 0.5rem;
   align-items: baseline;
-  background: #1a1410;
-  border: 1px solid #4a3520;
-  color: #e8d9b0;
+  background: #10161e;
+  border: 1px solid #2b3845;
+  color: #e6edf3;
   padding: 0.5rem 0.6rem;
   cursor: pointer;
   font-family: inherit;
@@ -35,8 +35,8 @@
 }
 
 .cmdButton:hover:not(:disabled) {
-  background: #3a2d20;
-  border-color: #d4a84a;
+  background: #26323e;
+  border-color: #e6c473;
 }
 
 .cmdButton:disabled {
@@ -45,14 +45,14 @@
 }
 
 .cmdLabelZh {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.95rem;
   grid-row: 1;
   grid-column: 1;
 }
 
 .cmdLabelEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
   letter-spacing: 0.05rem;
   grid-row: 2;
@@ -64,13 +64,13 @@
   grid-column: 2;
   font-family: ui-monospace, monospace;
   font-size: 0.8rem;
-  color: #c0a878;
+  color: #aab6c0;
   align-self: center;
 }
 
 .activeCmd {
-  background: #1a1410;
-  border: 1px solid #d4a84a;
+  background: #10161e;
+  border: 1px solid #e6c473;
   padding: 0.6rem 0.75rem;
 }
 
@@ -88,19 +88,19 @@
 }
 
 .activeLabel {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.9rem;
 }
 
 .activeOfficer {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.75rem;
 }
 
 .cancelButton {
   background: transparent;
-  border: 1px solid #4a3520;
-  color: #8a7050;
+  border: 1px solid #2b3845;
+  color: #7a8893;
   width: 24px;
   height: 24px;
   cursor: pointer;

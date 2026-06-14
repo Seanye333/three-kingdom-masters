@@ -29,10 +29,10 @@ function rarityTier(item: Item): 'legendary' | 'rare' | 'uncommon' | 'common' {
 }
 
 const RARITY_COLOR: Record<ReturnType<typeof rarityTier>, string> = {
-  legendary: '#d4a84a',
+  legendary: '#e6c473',
   rare:      '#c178c7',
   uncommon:  '#88b7e8',
-  common:    '#8a7050',
+  common:    '#7a8893',
 };
 const RARITY_LABEL_ZH: Record<ReturnType<typeof rarityTier>, string> = {
   legendary: '神品', rare: '逸品', uncommon: '上品', common: '常品',
@@ -225,7 +225,7 @@ export function ArmouryModal({ onClose }: Props) {
                       <div className={styles.holderName}>
                         <span
                           className={styles.colorDot}
-                          style={{ background: holderForce?.color ?? '#5a4530' }}
+                          style={{ background: holderForce?.color ?? '#364654' }}
                         />
                         <span>
                           {holder.name.zh}{' '}
@@ -294,7 +294,7 @@ export function ArmouryModal({ onClose }: Props) {
                               onClick={() => handleAssign(item.id, o.id)}
                             >
                               <span className={styles.officerZh}>
-                                {idx === 0 && <span style={{ color: '#d4a84a' }}>★ </span>}
+                                {idx === 0 && <span style={{ color: '#e6c473' }}>★ </span>}
                                 {o.name.zh}
                               </span>
                               <span className={styles.officerStats}>

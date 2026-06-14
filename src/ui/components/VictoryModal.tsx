@@ -66,7 +66,7 @@ export function VictoryModal() {
           }}>
             <div style={{
               fontFamily: '"Ma Shan Zheng", "Songti SC", serif',
-              color: '#d4a84a', letterSpacing: '0.3em', marginBottom: 6,
+              color: '#e6c473', letterSpacing: '0.3em', marginBottom: 6,
             }}>本局戰史 · The Chronicle</div>
             {(() => {
               const ICON: Record<string, string> = {

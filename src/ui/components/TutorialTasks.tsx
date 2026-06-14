@@ -64,7 +64,7 @@ export function TutorialTasks() {
     <div style={{
       position: 'absolute', right: 12, top: 96, zIndex: 12, width: 215,
       background: 'rgba(20, 14, 8, 0.92)', border: '1px solid #5a8a50', borderRadius: 4,
-      fontFamily: '"Songti SC","Noto Serif SC",serif', color: '#e8d9b0',
+      fontFamily: '"Songti SC","Noto Serif SC",serif', color: '#e6edf3',
       boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
     }}>
       <div
@@ -75,8 +75,8 @@ export function TutorialTasks() {
           🎓 {t('新手五事', 'First steps')} {doneCount}/{tasks.length}
         </span>
         <span style={{ display: 'flex', gap: 6 }}>
-          <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>{collapsed ? '▸' : '▾'}</span>
-          <span onClick={(e) => { e.stopPropagation(); markDismissed(); }} style={{ color: '#8a7050', cursor: 'pointer', fontSize: '0.75rem' }}>✕</span>
+          <span style={{ color: '#7a8893', fontSize: '0.7rem' }}>{collapsed ? '▸' : '▾'}</span>
+          <span onClick={(e) => { e.stopPropagation(); markDismissed(); }} style={{ color: '#7a8893', cursor: 'pointer', fontSize: '0.75rem' }}>✕</span>
         </span>
       </div>
       {!collapsed && (
@@ -88,7 +88,7 @@ export function TutorialTasks() {
           ) : tasks.map((task, i) => (
             <div key={i} title={task.hint} style={{
               fontSize: '0.74rem', lineHeight: 1.9,
-              color: task.done ? '#9ed68a' : '#c0a878',
+              color: task.done ? '#9ed68a' : '#aab6c0',
               textDecoration: task.done ? 'line-through' : 'none',
             }}>
               {task.done ? '☑' : '☐'} {t(task.zh, task.en)}

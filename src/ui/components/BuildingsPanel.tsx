@@ -30,8 +30,8 @@ export function BuildingsPanel({ cityId }: Props) {
   const specialty = citySpecialty(cityId);
 
   return (
-    <div style={{ background: '#1a1410', border: '1px solid #4a3520', padding: '0.6rem', marginTop: '0.6rem' }}>
-      <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+    <div style={{ background: '#10161e', border: '1px solid #2b3845', padding: '0.6rem', marginTop: '0.6rem' }}>
+      <div style={{ fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
         {t('建設', 'Buildings')}
       </div>
       {specialty && (
@@ -46,7 +46,7 @@ export function BuildingsPanel({ cityId }: Props) {
           <span style={{ color: '#9a8a60', fontSize: '0.66rem' }}>{specialty.noteZh}</span>
         </div>
       )}
-      <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.7rem', color: '#c0a878', marginBottom: '0.5rem' }}>
+      <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.7rem', color: '#aab6c0', marginBottom: '0.5rem' }}>
         {t('徵兵', 'Recruit')} ×{bonuses.recruitMul.toFixed(2)} · {t('商業', 'Commerce')} ×{bonuses.commerceMul.toFixed(2)} · {t('糧草', 'Food')} ×{bonuses.agricultureMul.toFixed(2)} · {t('民忠', 'Loyalty')} +{bonuses.loyaltyPerSeason}/{t('季', 'season')} · {t('守備', 'Defense')} +{bonuses.defenseAdd}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.3rem' }}>
@@ -65,9 +65,9 @@ export function BuildingsPanel({ cityId }: Props) {
               onClick={() => startBuilding(cityId, d.id as BuildingId)}
               disabled={!canBuild}
               style={{
-                background: '#0a0805',
-                border: '1px solid ' + (canBuild ? '#d4a84a' : '#3a2d20'),
-                color: canBuild ? '#d4a84a' : '#8a7050',
+                background: '#080b0e',
+                border: '1px solid ' + (canBuild ? '#e6c473' : '#26323e'),
+                color: canBuild ? '#e6c473' : '#7a8893',
                 padding: '0.4rem 0.5rem',
                 fontFamily: 'inherit',
                 textAlign: 'left',
@@ -79,7 +79,7 @@ export function BuildingsPanel({ cityId }: Props) {
               <div style={{ fontSize: '0.78rem' }}>
                 {lang === 'en' ? d.name.en : lang === 'both' ? `${d.name.zh} ${d.name.en}` : d.name.zh} {lvl > 0 && `Lv.${lvl}`}
               </div>
-              <div style={{ fontSize: '0.65rem', color: '#8a7050' }}>
+              <div style={{ fontSize: '0.65rem', color: '#7a8893' }}>
                 {inProgress
                   ? t(`建造中 (${b?.progress ?? 0}/${d.seasonsPerLevel}季)`, `building (${b?.progress ?? 0}/${d.seasonsPerLevel}s)`)
                   : lvl >= d.maxLevel
@@ -92,8 +92,8 @@ export function BuildingsPanel({ cityId }: Props) {
       </div>
 
       {/* Auto-build queue */}
-      <div style={{ marginTop: '0.5rem', borderTop: '1px dotted #3a2d20', paddingTop: '0.4rem' }}>
-        <div style={{ fontSize: '0.65rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+      <div style={{ marginTop: '0.5rem', borderTop: '1px dotted #26323e', paddingTop: '0.4rem' }}>
+        <div style={{ fontSize: '0.65rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
           {t('自動建造佇列', 'Auto-Build Queue')} {autoQueue.length > 0 && `(${autoQueue.length})`}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>
@@ -105,9 +105,9 @@ export function BuildingsPanel({ cityId }: Props) {
                 key={i}
                 onClick={() => setAutoBuildQueue(cityId, autoQueue.filter((_, j) => j !== i))}
                 style={{
-                  background: '#0a0805',
-                  border: '1px solid #3a2d20',
-                  color: '#c0a878',
+                  background: '#080b0e',
+                  border: '1px solid #26323e',
+                  color: '#aab6c0',
                   padding: '0.15rem 0.4rem',
                   fontSize: '0.7rem',
                   cursor: 'pointer',
@@ -125,8 +125,8 @@ export function BuildingsPanel({ cityId }: Props) {
               onClick={() => setAutoBuildQueue(cityId, [...autoQueue, d.id as BuildingId])}
               style={{
                 background: 'transparent',
-                border: '1px dashed #3a2d20',
-                color: '#8a7050',
+                border: '1px dashed #26323e',
+                color: '#7a8893',
                 padding: '0.15rem 0.4rem',
                 fontSize: '0.65rem',
                 cursor: 'pointer',

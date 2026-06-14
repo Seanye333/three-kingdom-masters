@@ -9,19 +9,19 @@
 }
 
 .modal {
-  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
-  border: 2px solid #d4a84a;
+  background: linear-gradient(160deg, #1b2531 0%, #10161e 100%);
+  border: 2px solid #e6c473;
   width: min(820px, 100%);
   max-height: 92vh;
   display: flex;
   flex-direction: column;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
 }
 
 .header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -29,20 +29,20 @@
 
 .titleZh {
   font-size: 1.5rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.3rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
@@ -68,7 +68,7 @@
 .sectionLabel {
   font-size: 0.7rem;
   letter-spacing: 0.2rem;
-  color: #8a7050;
+  color: #7a8893;
   text-transform: uppercase;
 }
 
@@ -78,17 +78,17 @@
   gap: 0.5rem;
   align-items: center;
   padding: 0.5rem 0.65rem;
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
 }
 
 .unitName {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.95rem;
 }
 
 .unitNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.72rem;
   font-style: italic;
   margin-left: 0.3rem;
@@ -97,13 +97,13 @@
 .unitStat {
   font-family: ui-monospace, monospace;
   font-size: 0.75rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .typeSelect {
-  background: #0a0805;
-  border: 1px solid #4a3520;
-  color: #d4a84a;
+  background: #080b0e;
+  border: 1px solid #2b3845;
+  color: #e6c473;
   padding: 0.3rem;
   font-family: inherit;
   font-size: 0.85rem;
@@ -111,9 +111,9 @@
 
 .troopInput {
   width: 100%;
-  background: #0a0805;
-  border: 1px solid #4a3520;
-  color: #d4a84a;
+  background: #080b0e;
+  border: 1px solid #2b3845;
+  color: #e6c473;
   padding: 0.3rem 0.4rem;
   font-family: ui-monospace, monospace;
   font-size: 0.85rem;
@@ -126,8 +126,8 @@
 }
 
 .formCard {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   padding: 0.55rem 0.7rem;
   cursor: pointer;
   display: flex;
@@ -136,21 +136,21 @@
 }
 
 .formCard:hover {
-  border-color: #d4a84a;
+  border-color: #e6c473;
 }
 
 .formCardActive {
-  border-color: #d4a84a;
-  background: #2a1f15;
+  border-color: #e6c473;
+  background: #1b2531;
 }
 
 .formName {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.95rem;
 }
 
 .formNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
   font-style: italic;
   margin-left: 0.3rem;
@@ -158,7 +158,7 @@
 
 .formDesc {
   font-size: 0.7rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-style: italic;
   line-height: 1.4;
 }
@@ -170,36 +170,36 @@
 }
 
 .ctxCard {
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   padding: 0.5rem 0.6rem;
 }
 
 .ctxLabel {
   font-size: 0.65rem;
   letter-spacing: 0.15rem;
-  color: #8a7050;
+  color: #7a8893;
   text-transform: uppercase;
   margin-bottom: 0.2rem;
 }
 
 .ctxValue {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1rem;
 }
 
 .footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #4a3520;
+  border-top: 1px solid #2b3845;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .engageBtn {
-  background: linear-gradient(180deg, #5a4530, #3a2d20);
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: linear-gradient(180deg, #364654, #26323e);
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.65rem 2rem;
   font-family: inherit;
   font-size: 1rem;
@@ -219,8 +219,8 @@
 
 .cancelBtn {
   background: none;
-  border: 1px solid #5a4530;
-  color: #c0a878;
+  border: 1px solid #364654;
+  color: #aab6c0;
   padding: 0.5rem 1rem;
   font-family: inherit;
   cursor: pointer;

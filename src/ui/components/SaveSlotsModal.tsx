@@ -81,14 +81,14 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <label style={{ fontSize: 11, color: '#a89070' }}>
+            <label style={{ fontSize: 11, color: '#97a4ae' }}>
               {t('排序', 'Sort')}：
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
                 style={{
-                  marginLeft: 4, background: '#1a1410',
-                  color: '#f0e0b0', border: '1px solid #5a4530',
+                  marginLeft: 4, background: '#10161e',
+                  color: '#eef4f8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
                   padding: '2px 4px', fontSize: 11,
                 }}
               >
@@ -126,7 +126,7 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
               const isRenaming = renamingId === s.id;
               return (
                 <div key={s.id} className={styles.slotRow} style={{
-                  borderLeft: `4px solid ${s.forceColor ?? '#5a4530'}`,
+                  borderLeft: `4px solid ${s.forceColor ?? '#364654'}`,
                   paddingLeft: 10,
                 }}>
                   {/* 縮略圖 — the realm as it stood when this save was cut. */}
@@ -137,7 +137,7 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                       viewBox="0 0 1000 720"
                       style={{
                         flexShrink: 0, marginRight: 10, borderRadius: 3,
-                        background: '#10202e', border: '1px solid #3a2d20',
+                        background: '#10202e', border: '1px solid #26323e',
                       }}
                     >
                       {s.mapDots.map(([x, y, color], i) => (
@@ -157,8 +157,8 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                         }}
                         onBlur={() => commitRename(s.id)}
                         style={{
-                          background: '#1a1410', color: '#f0e0b0',
-                          border: '1px solid #d4a84a',
+                          background: '#10161e', color: '#eef4f8',
+                          border: '1px solid #e6c473',
                           padding: '2px 6px', fontSize: 13,
                           fontFamily: 'Songti SC, serif',
                           width: '100%',
@@ -172,11 +172,11 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                       >{s.label}</span>
                     )}
                     <span className={styles.slotMeta}>
-                      <strong style={{ color: s.forceColor ?? '#d4a84a' }}>
+                      <strong style={{ color: s.forceColor ?? '#e6c473' }}>
                         {s.playerForceName}
                       </strong>
                       {s.scenarioId && (
-                        <> · <span style={{ color: '#a89070' }}>{scenarioName(s.scenarioId)}</span></>
+                        <> · <span style={{ color: '#97a4ae' }}>{scenarioName(s.scenarioId)}</span></>
                       )}
                       {' · '}{s.year} {s.season}
                       {s.cityCount !== undefined && (
@@ -197,7 +197,7 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                         if (confirm(t(`覆蓋「${s.label}」？`, `Overwrite "${s.label}"?`))) doSave(s.id);
                       }}
                       title={t('用當前進度覆蓋此存檔', 'Overwrite this save with current state')}
-                      style={{ background: '#5a4530' }}
+                      style={{ background: '#364654' }}
                     >{t('覆蓋', 'Overwrite')}</button>
                   )}
                   <button

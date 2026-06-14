@@ -43,26 +43,26 @@ export function ProvinceModal({ onClose }: { onClose: () => void }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-        width: 'min(620px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+        width: 'min(620px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>🗺 {t('州域', 'Provinces')}</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🗺 {t('州域', 'Provinces')}</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {rows.map((r) => {
             const frac = r.held > 0 ? r.mine / r.held : 0;
             return (
               <div key={r.id} style={{
-                padding: '0.5rem 0.7rem', borderRadius: 5, background: '#1a140d',
-                border: `1px solid ${r.mine > 0 ? '#4a3520' : '#2a2014'}`,
+                padding: '0.5rem 0.7rem', borderRadius: 5, background: '#141c25',
+                border: `1px solid ${r.mine > 0 ? '#2b3845' : '#18212b'}`,
                 borderLeft: `4px solid ${r.color}`,
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ color: '#f0e0b0', fontSize: '0.95rem' }}>{r.name}
-                    <span style={{ color: '#8a7050', fontSize: '0.76rem' }}> · {t(`控 ${r.mine}/${r.held}`, `${r.mine}/${r.held} held`)}</span>
+                  <span style={{ color: '#eef4f8', fontSize: '0.95rem' }}>{r.name}
+                    <span style={{ color: '#7a8893', fontSize: '0.76rem' }}> · {t(`控 ${r.mine}/${r.held}`, `${r.mine}/${r.held} held`)}</span>
                   </span>
                   {r.dominant && (
                     <span style={{ color: r.dominant.color, fontSize: '0.78rem' }}>
@@ -71,11 +71,11 @@ export function ProvinceModal({ onClose }: { onClose: () => void }) {
                   )}
                 </div>
                 {/* control bar — player share of the held cities */}
-                <div style={{ height: 4, background: '#2a2014', borderRadius: 2, margin: '4px 0', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${frac * 100}%`, background: frac >= 0.5 ? '#7ed68a' : '#d4a84a' }} />
+                <div style={{ height: 4, background: '#18212b', borderRadius: 2, margin: '4px 0', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${frac * 100}%`, background: frac >= 0.5 ? '#7ed68a' : '#e6c473' }} />
                 </div>
                 {r.mine > 0 && (
-                  <div style={{ fontSize: '0.74rem', color: '#c0a878', display: 'flex', gap: 14, fontFamily: 'ui-monospace, monospace' }}>
+                  <div style={{ fontSize: '0.74rem', color: '#aab6c0', display: 'flex', gap: 14, fontFamily: 'ui-monospace, monospace' }}>
                     <span>⚔ {num(r.troops)}</span>
                     <span>🪙 {num(r.gold)}</span>
                     <span>🌾 {num(r.food)}</span>

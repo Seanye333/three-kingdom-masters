@@ -3,7 +3,7 @@ import { CatalogModal, type CatalogItem, type CatalogCategory } from './CatalogM
 
 const CATEGORIES: CatalogCategory[] = [
   { key: 'combat',  zh: '武勇', en: 'Combat',   color: '#b8442e' },
-  { key: 'command', zh: '統率', en: 'Command',  color: '#d4a84a' },
+  { key: 'command', zh: '統率', en: 'Command',  color: '#e6c473' },
   { key: 'wisdom',  zh: '智謀', en: 'Wisdom',   color: '#88b7e8' },
   { key: 'civil',   zh: '文政', en: 'Civil',    color: '#b8c87a' },
 ];

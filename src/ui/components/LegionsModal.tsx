@@ -64,7 +64,7 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
   };
 
   const box: React.CSSProperties = {
-    background: '#1a1410', border: '1px solid #4a3520', padding: '0.6rem 0.8rem', marginBottom: '0.6rem',
+    background: '#10161e', border: '1px solid #2b3845', padding: '0.6rem 0.8rem', marginBottom: '0.6rem',
   };
 
   return (
@@ -75,19 +75,19 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(640px,100%)', maxHeight: '88vh', overflowY: 'auto',
-          color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.4rem',
+          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.4rem',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
           <div>
-            <div style={{ fontSize: '1.3rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>⚔ {t('軍團府', 'Legions')}</div>
-            <div style={{ fontSize: '0.75rem', color: '#8a7050' }}>
+            <div style={{ fontSize: '1.3rem', color: '#e6c473', letterSpacing: '0.2rem' }}>⚔ {t('軍團府', 'Legions')}</div>
+            <div style={{ fontSize: '0.75rem', color: '#7a8893' }}>
               {t('劃城設督,授以方略 — 軍團每旬自行募兵發兵(內政請配合委任太守)', 'Assign cities to a marshal with a directive — the legion recruits and marches itself each tick')}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
 
         {/* Active legions */}
@@ -97,13 +97,13 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
           return (
             <div key={l.id} style={{ ...box, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
               <div style={{ fontSize: '0.85rem' }}>
-                <div style={{ color: '#d4a84a' }}>
+                <div style={{ color: '#e6c473' }}>
                   {l.name} · {t('都督', 'Marshal')} {cmd?.name.zh ?? '?'}
                   <span style={{ color: l.directive.kind === 'conquer' ? '#ff9080' : '#9ed68a', marginLeft: 8 }}>
                     {l.directive.kind === 'conquer' ? `${t('攻略', 'Conquer')} ${tgt?.name.zh ?? '?'}` : t('固守', 'Hold')}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.7rem', color: '#8a7050' }}>
+                <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>
                   {l.cityIds.map((cid) => cities[cid]?.name.zh ?? cid).join('、')}
                 </div>
               </div>
@@ -117,8 +117,8 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
 
         {/* Builder */}
         <div style={box}>
-          <div style={{ fontSize: '0.72rem', letterSpacing: '0.2rem', color: '#c19a3b', marginBottom: 6 }}>{t('新設軍團', 'NEW LEGION')}</div>
-          <div style={{ fontSize: '0.72rem', color: '#8a7050', marginBottom: 4 }}>{t('① 劃撥城池(未入他團者)', '1. Assign cities')}</div>
+          <div style={{ fontSize: '0.72rem', letterSpacing: '0.2rem', color: '#c9a64e', marginBottom: 6 }}>{t('新設軍團', 'NEW LEGION')}</div>
+          <div style={{ fontSize: '0.72rem', color: '#7a8893', marginBottom: 4 }}>{t('① 劃撥城池(未入他團者)', '1. Assign cities')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
             {ownCities.filter((c) => !assigned.has(c.id)).map((c) => {
               const on = picked.has(c.id);
@@ -132,8 +132,8 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
                   })}
                   style={{
                     background: on ? 'rgba(212,168,74,0.22)' : 'transparent',
-                    border: `1px solid ${on ? '#d4a84a' : '#3a2d20'}`,
-                    color: on ? '#f0d98a' : '#a08a60',
+                    border: `1px solid ${on ? '#e6c473' : '#26323e'}`,
+                    color: on ? '#f2dd9a' : '#a08a60',
                     padding: '0.18rem 0.5rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.75rem',
                   }}
                 >{c.name.zh}</button>
@@ -170,8 +170,8 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
               disabled={!canCreate}
               style={{
                 background: canCreate ? 'linear-gradient(180deg,#3a2d18,#2a1f10)' : 'transparent',
-                border: `1px solid ${canCreate ? '#d4a84a' : '#3a2d20'}`,
-                color: canCreate ? '#f0d98a' : '#5a4a35',
+                border: `1px solid ${canCreate ? '#e6c473' : '#26323e'}`,
+                color: canCreate ? '#f2dd9a' : '#5a4a35',
                 padding: '0.3rem 0.9rem', cursor: canCreate ? 'pointer' : 'not-allowed',
                 fontFamily: 'inherit', letterSpacing: '0.15rem',
               }}
@@ -184,6 +184,6 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
 }
 
 const sel: React.CSSProperties = {
-  background: '#0a0805', border: '1px solid #4a3520', color: '#d4a84a',
+  background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473',
   padding: '0.2rem', fontFamily: 'inherit', fontSize: '0.75rem', maxWidth: 150,
 };

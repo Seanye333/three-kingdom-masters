@@ -52,9 +52,9 @@ export function CommandPalette({ commands, onClose }: { commands: PaletteCommand
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'grid', placeItems: 'start center', zIndex: 950, padding: '12vh 1rem 1rem' }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#2a1f15,#15110b)', border: '1px solid #5a4530',
+        background: 'linear-gradient(160deg,#1b2531,#0e141b)', border: '1px solid rgba(255,255,255,0.1)',
         width: 'min(520px,100%)', maxHeight: '70vh', display: 'flex', flexDirection: 'column',
-        color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif', borderRadius: 6,
+        color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', borderRadius: 10,
         boxShadow: '0 18px 50px rgba(0,0,0,0.6)', overflow: 'hidden',
       }}>
         <input
@@ -64,13 +64,13 @@ export function CommandPalette({ commands, onClose }: { commands: PaletteCommand
           onKeyDown={onKeyDown}
           placeholder={t('命令臺 — 鍵入面板或指令…', 'Command — type a panel or action…')}
           style={{
-            background: '#14100a', border: 'none', borderBottom: '1px solid #4a3520',
-            color: '#f0e0b0', padding: '0.7rem 0.9rem', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none',
+            background: '#14100a', border: 'none', borderBottom: '1px solid #2b3845',
+            color: '#eef4f8', padding: '0.7rem 0.9rem', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none',
           }}
         />
         <div ref={listRef} style={{ overflowY: 'auto' }}>
           {filtered.length === 0 ? (
-            <div style={{ color: '#8a7050', fontSize: '0.85rem', padding: '1rem' }}>{t('無相符指令', 'No matching command')}</div>
+            <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1rem' }}>{t('無相符指令', 'No matching command')}</div>
           ) : filtered.map((c, i) => (
             <div
               key={c.id}
@@ -80,15 +80,15 @@ export function CommandPalette({ commands, onClose }: { commands: PaletteCommand
                 display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10,
                 padding: '0.5rem 0.9rem', cursor: 'pointer',
                 background: i === cursor ? 'rgba(212,168,74,0.16)' : 'transparent',
-                borderLeft: `3px solid ${i === cursor ? '#d4a84a' : 'transparent'}`,
+                borderLeft: `3px solid ${i === cursor ? '#e6c473' : 'transparent'}`,
               }}
             >
-              <span style={{ color: i === cursor ? '#f0d98a' : '#d4c4a0', fontSize: '0.9rem' }}>{t(c.zh, c.en)}</span>
-              {c.hint && <span style={{ color: '#8a7050', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>{c.hint}</span>}
+              <span style={{ color: i === cursor ? '#f2dd9a' : '#cdd8e0', fontSize: '0.9rem' }}>{t(c.zh, c.en)}</span>
+              {c.hint && <span style={{ color: '#7a8893', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>{c.hint}</span>}
             </div>
           ))}
         </div>
-        <div style={{ borderTop: '1px solid #3a2c1c', padding: '0.35rem 0.9rem', color: '#6a5a45', fontSize: '0.7rem', display: 'flex', gap: 12 }}>
+        <div style={{ borderTop: '1px solid #243240', padding: '0.35rem 0.9rem', color: '#5f6c76', fontSize: '0.7rem', display: 'flex', gap: 12 }}>
           <span>↑↓ {t('選擇', 'move')}</span>
           <span>↵ {t('執行', 'run')}</span>
           <span>esc {t('關閉', 'close')}</span>

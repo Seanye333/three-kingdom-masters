@@ -90,16 +90,16 @@ export function BuildStockadePicker({ onClose }: Props) {
                 title={lang === 'en' ? b.descEn : b.descZh}
                 style={{
                   flex: '1 1 30%', minWidth: 90, padding: '0.4rem 0.5rem',
-                  background: on ? 'rgba(212,168,74,0.16)' : '#1a1410',
-                  border: `1px solid ${on ? b.color : '#3a2d20'}`,
-                  color: on ? '#f0e0b0' : '#a08a60', cursor: 'pointer',
+                  background: on ? 'rgba(212,168,74,0.16)' : '#10161e',
+                  border: `1px solid ${on ? b.color : '#26323e'}`,
+                  color: on ? '#eef4f8' : '#a08a60', cursor: 'pointer',
                   fontFamily: 'Songti SC, serif', textAlign: 'left',
                 }}
               >
                 <div style={{ fontSize: '0.85rem', color: on ? b.color : undefined }}>
                   {lang === 'en' ? b.en : b.zh} <span style={{ float: 'right', opacity: 0.8 }}>{b.cost}g</span>
                 </div>
-                <div style={{ fontSize: '0.58rem', color: '#8a7050', marginTop: 2, lineHeight: 1.25 }}>
+                <div style={{ fontSize: '0.58rem', color: '#7a8893', marginTop: 2, lineHeight: 1.25 }}>
                   {lang === 'en' ? b.descEn : b.descZh}
                 </div>
               </button>
@@ -114,8 +114,8 @@ export function BuildStockadePicker({ onClose }: Props) {
             onChange={(e) => setLabel(e.target.value)}
             style={{
               width: '100%', padding: '0.4rem 0.6rem',
-              background: '#1a1410', color: '#f0e0b0',
-              border: '1px solid #5a4530',
+              background: '#10161e', color: '#eef4f8',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
               fontFamily: 'Songti SC, serif',
             }}
           />

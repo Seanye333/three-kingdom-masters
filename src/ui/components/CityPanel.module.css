@@ -1,8 +1,8 @@
 .root {
   width: 320px;
   min-width: 320px;
-  background: #2a1f15;
-  border: 1px solid #4a3520;
+  background: #1b2531;
+  border: 1px solid #2b3845;
   padding: 1.25rem;
   overflow-y: auto;
   max-height: 100%;
@@ -10,27 +10,27 @@
 }
 
 .empty {
-  color: #8a7050;
+  color: #7a8893;
   text-align: center;
   padding: 2rem 1rem;
   font-style: italic;
 }
 
 .header {
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
 }
 
 .nameZh {
   font-size: 1.75rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .nameEn {
   font-size: 0.8rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
   margin-bottom: 0.5rem;
@@ -40,12 +40,12 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-size: 0.875rem;
 }
 
 .ownerEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.75rem;
 }
 
@@ -57,7 +57,7 @@
 }
 
 .neutral {
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
@@ -65,14 +65,14 @@
   margin-left: auto;
   font-family: ui-monospace, monospace;
   font-size: 0.65rem;
-  color: #1a1410;
-  background: #d4a84a;
+  color: #10161e;
+  background: #e6c473;
   padding: 0.1rem 0.4rem;
   letter-spacing: 0.1rem;
 }
 
 .officerTask {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .section {
@@ -83,7 +83,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.2rem;
   text-transform: uppercase;
-  color: #8a7050;
+  color: #7a8893;
   margin: 0 0 0.5rem 0;
   font-weight: normal;
 }
@@ -93,7 +93,7 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 0.25rem 0;
-  border-bottom: 1px dotted #3a2d20;
+  border-bottom: 1px dotted #26323e;
 }
 
 .statRow:last-child {
@@ -101,17 +101,17 @@
 }
 
 .statLabel {
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .statZh {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.75rem;
   margin-left: 0.25rem;
 }
 
 .statValue {
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: ui-monospace, monospace;
 }
 
@@ -128,20 +128,20 @@
 
 .barValue {
   font-family: ui-monospace, monospace;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-size: 0.8rem;
 }
 
 .barTrack {
   height: 6px;
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   overflow: hidden;
 }
 
 .barFill {
   height: 100%;
-  background: linear-gradient(90deg, #8a6530, #d4a84a);
+  background: linear-gradient(90deg, #8a6530, #e6c473);
   transition: width 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
@@ -160,28 +160,28 @@
   gap: 0.5rem;
   align-items: baseline;
   padding: 0.35rem 0.5rem;
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
 }
 
 .officerNameZh {
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.95rem;
 }
 
 .officerNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
 }
 
 .officerStats {
-  color: #c0a878;
+  color: #aab6c0;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
 }
 
 .muted {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.85rem;
   font-style: italic;
 }

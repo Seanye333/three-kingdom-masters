@@ -28,16 +28,16 @@ export function ConvoyModal({ onClose }: { onClose: () => void }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-        width: 'min(560px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+        width: 'min(560px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>🐂 {t('輜重', 'Convoys')} <span style={{ color: '#8a7050', fontSize: '0.8rem' }}>({rows.length})</span></div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🐂 {t('輜重', 'Convoys')} <span style={{ color: '#7a8893', fontSize: '0.8rem' }}>({rows.length})</span></div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
         {rows.length === 0 ? (
-          <div style={{ color: '#8a7050', fontSize: '0.85rem', padding: '1.4rem 0', textAlign: 'center' }}>
+          <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1.4rem 0', textAlign: 'center' }}>
             {t('途中並無輜重車隊。', 'No convoys in transit.')}
           </div>
         ) : (
@@ -46,13 +46,13 @@ export function ConvoyModal({ onClose }: { onClose: () => void }) {
               const from = cities[c.fromCityId];
               const to = cities[c.toCityId];
               return (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.5rem 0.7rem', background: '#1a140d', border: '1px solid #3a2c1c', borderRadius: 5 }}>
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.5rem 0.7rem', background: '#141c25', border: '1px solid #243240', borderRadius: 5 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: '#f0e0b0', fontSize: '0.88rem' }}>
-                      {from?.name.zh ?? '?'} <span style={{ color: '#8a7050' }}>→</span> {to?.name.zh ?? '?'}
-                      <span style={{ color: '#8a7050', fontSize: '0.74rem' }}> · {t(`${c.seasonsRemaining}/${c.totalSeasons} 季`, `${c.seasonsRemaining}/${c.totalSeasons}s`)}</span>
+                    <div style={{ color: '#eef4f8', fontSize: '0.88rem' }}>
+                      {from?.name.zh ?? '?'} <span style={{ color: '#7a8893' }}>→</span> {to?.name.zh ?? '?'}
+                      <span style={{ color: '#7a8893', fontSize: '0.74rem' }}> · {t(`${c.seasonsRemaining}/${c.totalSeasons} 季`, `${c.seasonsRemaining}/${c.totalSeasons}s`)}</span>
                     </div>
-                    <div style={{ color: '#c0a878', fontSize: '0.76rem', fontFamily: 'ui-monospace, monospace' }}>{cargoText(c)}</div>
+                    <div style={{ color: '#aab6c0', fontSize: '0.76rem', fontFamily: 'ui-monospace, monospace' }}>{cargoText(c)}</div>
                   </div>
                   <button
                     onClick={() => recallConvoy(c.id)}

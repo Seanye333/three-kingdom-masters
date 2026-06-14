@@ -90,20 +90,20 @@ export function CityPanel() {
           const province = provinceId ? PROVINCES_BY_ID[provinceId] : null;
           return (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.4rem', fontSize: '0.72rem' }}>
-              <span style={{ background: '#1a1410', border: `1px solid ${terrain.color}`, color: terrain.color, padding: '0.15rem 0.4rem', letterSpacing: '0.1rem' }}>
+              <span style={{ background: '#10161e', border: `1px solid ${terrain.color}`, color: terrain.color, padding: '0.15rem 0.4rem', letterSpacing: '0.1rem' }}>
                 {lang === 'en' ? terrain.en : terrain.zh}
-                {lang === 'both' && <> <span style={{ fontSize: '0.6rem', color: '#8a7050', fontStyle: 'italic' }}>{terrain.en}</span></>}
+                {lang === 'both' && <> <span style={{ fontSize: '0.6rem', color: '#7a8893', fontStyle: 'italic' }}>{terrain.en}</span></>}
               </span>
               {city.port && (
-                <span style={{ background: '#1a1410', border: '1px solid #88b7e8', color: '#88b7e8', padding: '0.15rem 0.4rem', letterSpacing: '0.1rem' }}>
+                <span style={{ background: '#10161e', border: '1px solid #88b7e8', color: '#88b7e8', padding: '0.15rem 0.4rem', letterSpacing: '0.1rem' }}>
                   {lang === 'en' ? 'Port' : '港'}
                   {lang === 'both' && <> <span style={{ fontSize: '0.6rem', color: '#5a7090', fontStyle: 'italic' }}>Port</span></>}
                 </span>
               )}
               {province && (
-                <span style={{ background: '#1a1410', border: `1px solid ${province.color}`, color: province.color, padding: '0.15rem 0.4rem', letterSpacing: '0.1rem' }}>
+                <span style={{ background: '#10161e', border: `1px solid ${province.color}`, color: province.color, padding: '0.15rem 0.4rem', letterSpacing: '0.1rem' }}>
                   {lang === 'en' ? province.name.en : province.name.zh}
-                  {lang === 'both' && <> <span style={{ fontSize: '0.6rem', color: '#8a7050', fontStyle: 'italic' }}>{province.name.en}</span></>}
+                  {lang === 'both' && <> <span style={{ fontSize: '0.6rem', color: '#7a8893', fontStyle: 'italic' }}>{province.name.en}</span></>}
                 </span>
               )}
             </div>
@@ -227,12 +227,12 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
   const goldAmts = [500, 2000, Math.floor(city.gold / 2)].filter((a) => a >= 200);
   const troopAmts = [1000, 3000, Math.floor((city.troops - 100) / 2)].filter((a) => a >= 500);
   const btn: CSSProperties = {
-    background: '#2a1f15', border: '1px solid #3a2d20', color: '#d4a84a',
+    background: '#1b2531', border: '1px solid #26323e', color: '#e6c473',
     padding: '0.2rem 0.55rem', fontFamily: 'inherit', fontSize: '0.72rem', cursor: 'pointer',
   };
   const row = (label: string, amts: number[], have: number, cargo: 'food' | 'gold' | 'troops') => (
     <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
-      <span style={{ fontSize: '0.72rem', color: '#8a7050', minWidth: '2.2rem' }}>{label}</span>
+      <span style={{ fontSize: '0.72rem', color: '#7a8893', minWidth: '2.2rem' }}>{label}</span>
       {amts.map((a) => (
         <button
           key={a}
@@ -259,7 +259,7 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
           <select
             value={dest?.id ?? ''}
             onChange={(e) => setDestId(e.target.value)}
-            style={{ background: '#0a0805', border: '1px solid #4a3520', color: '#d4a84a', padding: '0.25rem', fontFamily: 'inherit', fontSize: '0.78rem' }}
+            style={{ background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473', padding: '0.25rem', fontFamily: 'inherit', fontSize: '0.78rem' }}
           >
             {dests.map((c) => (
               <option key={c.id} value={c.id}>
@@ -276,7 +276,7 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
               <button
                 onClick={() => setStandingRoute(cityId, dest.id, !active)}
                 title={t('常運糧道 — 每季自動把餘糧運往此城', 'Standing route — auto-ship surplus grain here each season')}
-                style={{ ...btn, alignSelf: 'flex-start', background: active ? 'rgba(126,214,138,0.18)' : '#2a1f15', borderColor: active ? '#6fae73' : '#3a2d20', color: active ? '#9ad6a8' : '#d4a84a' }}
+                style={{ ...btn, alignSelf: 'flex-start', background: active ? 'rgba(126,214,138,0.18)' : '#1b2531', borderColor: active ? '#6fae73' : '#26323e', color: active ? '#9ad6a8' : '#e6c473' }}
               >
                 {active ? t('↻ 常運中(點此取消)', '↻ Standing route on') : t('↻ 設為常運糧道', '↻ Make standing route')}
               </button>
@@ -286,10 +286,10 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
             {adjacent ? t('鄰城近運,損耗極低', 'adjacent — minimal loss') : t('遠運按路程耗糧,需數季', 'loss & time scale with the haul')}
             {woodenOx && t(' · 木牛流馬減半', ' · Wooden Ox halves loss')}
           </span>
-          <span style={{ fontSize: '0.66rem', color: '#8a7050' }}>
+          <span style={{ fontSize: '0.66rem', color: '#7a8893' }}>
             {t('⚔ 隨車運兵即為護糧 — 經敵境恐遭劫,押運足則可拒', '⚔ Troops sent along escort the load — raids near enemy ground need a strong escort')}
           </span>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: cautious ? '#9ad6a8' : '#8a7050', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: cautious ? '#9ad6a8' : '#7a8893', cursor: 'pointer' }}>
             <input type="checkbox" checked={cautious} onChange={(e) => setCautious(e.target.checked)} />
             {t('謹慎避敵(+1 季,遇劫減半)', 'Cautious back-roads (+1 season, far fewer raids)')}
           </label>
@@ -340,8 +340,8 @@ function OfficerListItem({
             title={t('移送至相鄰城池 (50金)', 'Transfer to adjacent city (50g)')}
             style={{
               background: 'transparent',
-              border: '1px solid #4a3520',
-              color: cityGold >= 50 ? '#d4a84a' : '#5a4530',
+              border: '1px solid #2b3845',
+              color: cityGold >= 50 ? '#e6c473' : '#364654',
               padding: '0.05rem 0.4rem',
               fontFamily: 'inherit',
               fontSize: '0.65rem',
@@ -362,8 +362,8 @@ function OfficerListItem({
             gridColumn: '1 / -1',
             marginTop: '0.25rem',
             padding: '0.3rem',
-            background: '#1a1410',
-            border: '1px solid #4a3520',
+            background: '#10161e',
+            border: '1px solid #2b3845',
             display: 'flex',
             flexWrap: 'wrap',
             gap: '0.25rem',
@@ -372,7 +372,7 @@ function OfficerListItem({
           {adjacent.length === 0 ? (
             <span
               style={{
-                color: '#8a7050',
+                color: '#7a8893',
                 fontSize: '0.7rem',
                 fontStyle: 'italic',
               }}
@@ -388,9 +388,9 @@ function OfficerListItem({
                   setTransferOpen(false);
                 }}
                 style={{
-                  background: '#2a1f15',
-                  border: '1px solid #3a2d20',
-                  color: '#d4a84a',
+                  background: '#1b2531',
+                  border: '1px solid #26323e',
+                  color: '#e6c473',
                   padding: '0.2rem 0.5rem',
                   fontFamily: 'inherit',
                   fontSize: '0.75rem',
@@ -448,8 +448,8 @@ function CityMiniMap({
       onClick={onClick}
       style={{
         width: '100%',
-        background: 'linear-gradient(180deg, #2a1f15, #1a1408)',
-        border: '1px solid #d4a84a',
+        background: 'linear-gradient(180deg, #1b2531, #1a1408)',
+        border: '1px solid #e6c473',
         padding: '0.5rem',
         margin: '0 0 0.5rem 0',
         cursor: 'pointer',
@@ -462,8 +462,8 @@ function CityMiniMap({
     >
       <svg width="80" height="80" viewBox="0 0 160 160" style={{ flexShrink: 0 }}>
         {/* City walls in center */}
-        <rect x="62" y="62" width="36" height="36" fill="#5a4530" stroke="#d4a84a" strokeWidth="2" rx="2" />
-        <text x="80" y="86" textAnchor="middle" fontSize="14" fill="#f0e0b0" fontFamily="Songti SC, serif">
+        <rect x="62" y="62" width="36" height="36" fill="#364654" stroke="#e6c473" strokeWidth="2" rx="2" />
+        <text x="80" y="86" textAnchor="middle" fontSize="14" fill="#eef4f8" fontFamily="Songti SC, serif">
           {city.name.zh[0]}
         </text>
         {/* 8 slot dots */}
@@ -474,8 +474,8 @@ function CityMiniMap({
             <g key={idx}>
               <circle
                 cx={p.x} cy={p.y} r="9"
-                fill={built ? '#d4a84a' : 'none'}
-                stroke={built ? '#f0e0b0' : '#5a4530'}
+                fill={built ? '#e6c473' : 'none'}
+                stroke={built ? '#eef4f8' : '#364654'}
                 strokeWidth="1.2"
                 strokeDasharray={built ? undefined : '2 2'}
               />
@@ -498,16 +498,16 @@ function CityMiniMapText({ builtCount, wallTier }: { builtCount: number; wallTie
   return (
     <div style={{ textAlign: 'left', flex: 1 }}>
       <div style={{
-        color: '#f0d98a', fontSize: '0.95rem',
+        color: '#f2dd9a', fontSize: '0.95rem',
         letterSpacing: '0.2rem', fontWeight: 'bold',
         fontFamily: 'var(--tkm-font-zh)',
       }}>
         ⛩ {t('進城 · 城邑地圖', 'Enter City · City Map')}
       </div>
-      <div style={{ color: '#c0a878', fontSize: '0.68rem', letterSpacing: '0.1rem', marginTop: '0.15rem' }}>
+      <div style={{ color: '#aab6c0', fontSize: '0.68rem', letterSpacing: '0.1rem', marginTop: '0.15rem' }}>
         {builtCount}/8 {t('建築', 'buildings')} · {t('城壁', 'Wall')} Tier {wallTier}
       </div>
-      <div style={{ color: '#8a7050', fontSize: '0.6rem', marginTop: '0.15rem' }}>
+      <div style={{ color: '#7a8893', fontSize: '0.6rem', marginTop: '0.15rem' }}>
         {t('點擊進城建造 箭樓 / 拒馬 / 鐵索 …', 'Tap to enter — build towers / caltrops / chains …')}
       </div>
     </div>
@@ -526,7 +526,7 @@ function Bar({ label, zh, value, cap = 100 }: { label: string; zh: string; value
         </span>
         <span className={styles.barValue}>
           <AnimatedNumber value={value} flash /> / {cap}
-          {atCap && <span style={{ marginLeft: 4, color: '#d4a84a' }}>★</span>}
+          {atCap && <span style={{ marginLeft: 4, color: '#e6c473' }}>★</span>}
         </span>
       </div>
       <div className={styles.barTrack}>
@@ -534,7 +534,7 @@ function Bar({ label, zh, value, cap = 100 }: { label: string; zh: string; value
           className={styles.barFill}
           style={{
             width: `${Math.min(100, (value / cap) * 100)}%`,
-            background: atCap ? 'linear-gradient(90deg, #d4a84a, #f0e0b0)' : undefined,
+            background: atCap ? 'linear-gradient(90deg, #e6c473, #eef4f8)' : undefined,
           }}
         />
       </div>
@@ -562,7 +562,7 @@ function CitySizeBadge({ city }: { city: import('../../game/types').City }) {
         }}>
           {lang === 'en' ? size.name.en : size.name.zh}
         </span>
-        <div style={{ fontSize: '0.7rem', color: '#8a7050', letterSpacing: '0.1rem' }}>
+        <div style={{ fontSize: '0.7rem', color: '#7a8893', letterSpacing: '0.1rem' }}>
           {lang === 'both' && <div>{size.name.en}</div>}
           <div>
             {t('上限', 'Cap')} {size.statCap} · {t('建設位', 'Slots')} {size.buildingSlots} · {size.troopCap.toLocaleString()} {t('兵', 'troops')}
@@ -573,7 +573,7 @@ function CitySizeBadge({ city }: { city: import('../../game/types').City }) {
         <div style={{
           marginTop: '0.4rem',
           fontSize: '0.65rem',
-          color: '#8a7050',
+          color: '#7a8893',
           letterSpacing: '0.05rem',
         }}>
           → <span style={{ color: next.def.color }}>{lang === 'en' ? next.def.name.en : next.def.name.zh}</span>
@@ -606,7 +606,7 @@ function PolicyEffectsSection({
               padding: '0.18rem 0.45rem',
               background: 'rgba(212, 168, 74, 0.12)',
               border: '1px solid rgba(212, 168, 74, 0.4)',
-              color: '#d4a84a',
+              color: '#e6c473',
               borderRadius: '2px',
               letterSpacing: '0.05rem',
               fontFamily: 'var(--tkm-font-zh)',
@@ -626,7 +626,7 @@ function PolicyEffectsSection({
                 padding: '0.18rem 0.45rem',
                 background: 'rgba(90, 70, 60, 0.4)',
                 border: '1px dashed rgba(138, 112, 80, 0.6)',
-                color: '#8a7050',
+                color: '#7a8893',
                 borderRadius: '2px',
                 letterSpacing: '0.05rem',
                 fontFamily: 'var(--tkm-font-zh)',
@@ -639,7 +639,7 @@ function PolicyEffectsSection({
         })}
       </div>
       <div style={{
-        marginTop: '0.4rem', fontSize: '0.65rem', color: '#8a7050',
+        marginTop: '0.4rem', fontSize: '0.65rem', color: '#7a8893',
         letterSpacing: '0.1rem',
       }}>
         {cityOfficers.length} {t('武將在城 · 政策由其個人專業聚合而成', 'officers stationed · policies emerge from their personal specialties')}
@@ -677,8 +677,8 @@ function RuinControls({ cityId }: { cityId: EntityId }) {
           onClick={() => { const r = rebuildCity(cityId); setMsg(r.message); }}
           disabled={!afford}
           style={{
-            background: '#1a2a1a', color: afford ? '#7ed68a' : '#8a7050',
-            border: '1px solid ' + (afford ? '#5a7a3a' : '#3a2d20'),
+            background: '#1a2a1a', color: afford ? '#7ed68a' : '#7a8893',
+            border: '1px solid ' + (afford ? '#5a7a3a' : '#26323e'),
             padding: '0.4rem 0.8rem', cursor: afford ? 'pointer' : 'not-allowed',
             fontFamily: 'inherit', fontSize: '0.82rem', opacity: afford ? 1 : 0.6,
           }}
@@ -716,7 +716,7 @@ function RuinControls({ cityId }: { cityId: EntityId }) {
           <button
             onClick={() => setConfirming(false)}
             style={{
-              background: 'transparent', color: '#a89070', border: '1px solid #5a4530',
+              background: 'transparent', color: '#97a4ae', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
               padding: '0.35rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem',
             }}
           >{t('取消', 'Cancel')}</button>

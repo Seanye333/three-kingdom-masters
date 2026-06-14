@@ -37,7 +37,7 @@ export function PortPanel({ portId, onClose }: Props) {
   const owner = port.ownerForceId ? forces[port.ownerForceId] : null;
   const isMine = port.ownerForceId === playerForceId;
   const linkedCity = cities[port.linkedCityId];
-  const ownerColor = owner?.color ?? '#5a4530';
+  const ownerColor = owner?.color ?? '#364654';
   const hpPct = Math.max(0, Math.min(1, port.hp / port.maxHp));
   const tier = port.navalTier ?? 1;
   const upgradeCost = portUpgradeCost(tier);
@@ -69,10 +69,10 @@ export function PortPanel({ portId, onClose }: Props) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#1a1410',
+          background: '#10161e',
           border: `2px solid ${ownerColor}`,
           padding: '1rem 1.2rem',
-          color: '#f0e0b0',
+          color: '#eef4f8',
           fontFamily: 'Songti SC, serif',
           minWidth: 320,
           maxWidth: 420,
@@ -84,45 +84,45 @@ export function PortPanel({ portId, onClose }: Props) {
             <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
               ⚓ {port.name.zh}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#a89070' }}>{port.name.en}</div>
+            <div style={{ fontSize: '0.75rem', color: '#97a4ae' }}>{port.name.en}</div>
           </div>
           <button onClick={onClose} style={{
-            background: 'transparent', border: 'none', color: '#a89070',
+            background: 'transparent', border: 'none', color: '#97a4ae',
             fontSize: '1.4rem', cursor: 'pointer', padding: 0,
           }}>×</button>
         </header>
 
         <div style={{ marginTop: '0.7rem', display: 'grid', gridTemplateColumns: '90px 1fr', gap: '0.3rem 0.5rem', fontSize: '0.85rem' }}>
-          <span style={{ color: '#8a7050' }}>{t('歸屬', 'Owner')}</span>
+          <span style={{ color: '#7a8893' }}>{t('歸屬', 'Owner')}</span>
           <span style={{ color: ownerColor, fontWeight: 'bold' }}>
             {owner?.name.zh ?? t('無主', 'Neutral')}
             {isMine && <span style={{ color: '#7ed68a', marginLeft: 6 }}>{t('（自軍）', '(yours)')}</span>}
           </span>
 
-          <span style={{ color: '#8a7050' }}>HP</span>
+          <span style={{ color: '#7a8893' }}>HP</span>
           <span>
-            <div style={{ height: 8, background: '#3a2818', border: '1px solid #5a4530', position: 'relative', width: '100%' }}>
+            <div style={{ height: 8, background: '#1e2832', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', position: 'relative', width: '100%' }}>
               <div style={{
                 height: '100%',
                 width: `${Math.round(hpPct * 100)}%`,
                 background: hpPct > 0.5 ? '#7ed68a' : '#b8442e',
               }} />
             </div>
-            <span style={{ fontSize: '0.72rem', color: '#a89070' }}>
+            <span style={{ fontSize: '0.72rem', color: '#97a4ae' }}>
               {port.hp.toLocaleString()} / {port.maxHp.toLocaleString()}
             </span>
           </span>
 
-          <span style={{ color: '#8a7050' }}>{t('船塢', 'Dockyard')}</span>
+          <span style={{ color: '#7a8893' }}>{t('船塢', 'Dockyard')}</span>
           <span style={{ color: '#88b7e8', fontWeight: 'bold' }}>
             {'★'.repeat(tier)}<span style={{ color: '#3a5a7a' }}>{'★'.repeat(PORT_MAX_NAVAL_TIER - tier)}</span>
-            <span style={{ color: '#8a7050', fontSize: '0.72rem', marginLeft: 6 }}>{t(`${tier} 級`, `Tier ${tier}`)}</span>
+            <span style={{ color: '#7a8893', fontSize: '0.72rem', marginLeft: 6 }}>{t(`${tier} 級`, `Tier ${tier}`)}</span>
           </span>
 
-          <span style={{ color: '#8a7050' }}>{t('關聯城', 'Linked city')}</span>
+          <span style={{ color: '#7a8893' }}>{t('關聯城', 'Linked city')}</span>
           <span>{linkedCity?.name.zh ?? '?'}</span>
 
-          <span style={{ color: '#8a7050' }}>{t('海路', 'Sea routes')}</span>
+          <span style={{ color: '#7a8893' }}>{t('海路', 'Sea routes')}</span>
           <span style={{ fontSize: '0.78rem' }}>
             {port.connectedPortIds.map((id) => ports[id]?.name.zh ?? id).join(' · ')}
           </span>
@@ -171,7 +171,7 @@ export function PortPanel({ portId, onClose }: Props) {
                 disabled={playerCapitalGold < upgradeCost}
                 title={t('擴建船塢:解鎖更大戰船、造船更快、港防更固', 'Upgrade dockyard: unlock heavier hulls, faster builds, tougher port')}
                 style={{
-                  background: '#13243a', color: '#d4a84a', border: '1px solid #d4a84a',
+                  background: '#13243a', color: '#e6c473', border: '1px solid #e6c473',
                   padding: '0.3rem 0.6rem', fontSize: '0.74rem', fontFamily: 'Songti SC, serif',
                   cursor: playerCapitalGold >= upgradeCost ? 'pointer' : 'not-allowed',
                   opacity: playerCapitalGold >= upgradeCost ? 1 : 0.5, marginBottom: '0.35rem',
@@ -198,9 +198,9 @@ export function PortPanel({ portId, onClose }: Props) {
                         ? `${desc(sc)}\n${t('戰力', 'Strength')} ${sc.combatStrength} · ${t('載量', 'Capacity')} ${sc.capacity} · ${seasons} ${t('季', 'seasons')}`
                         : t(`需 ${SHIP_MIN_TIER[sc.id]} 級船塢`, `Needs Tier ${SHIP_MIN_TIER[sc.id]} dockyard`)}
                       style={{
-                        background: enabled ? '#1a2a3a' : '#1a1410',
+                        background: enabled ? '#1a2a3a' : '#10161e',
                         color: enabled ? '#88b7e8' : '#5a6a78',
-                        border: '1px solid ' + (tierOk ? '#3a5a7a' : '#3a2d20'),
+                        border: '1px solid ' + (tierOk ? '#3a5a7a' : '#26323e'),
                         padding: '0.25rem 0.5rem',
                         fontSize: '0.72rem',
                         fontFamily: 'Songti SC, serif',
@@ -226,8 +226,8 @@ export function PortPanel({ portId, onClose }: Props) {
                 disabled={!reach.ok}
                 style={{
                   background: '#3a1a1a',
-                  color: reach.ok ? '#ff8060' : '#a89070',
-                  border: `1px solid ${reach.ok ? '#b8442e' : '#5a4530'}`,
+                  color: reach.ok ? '#ff8060' : '#97a4ae',
+                  border: `1px solid ${reach.ok ? '#b8442e' : '#364654'}`,
                   padding: '0.4rem 0.8rem',
                   cursor: reach.ok ? 'pointer' : 'not-allowed',
                   fontFamily: 'Songti SC, serif', fontSize: '0.85rem',

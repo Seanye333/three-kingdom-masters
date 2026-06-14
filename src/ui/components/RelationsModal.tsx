@@ -29,7 +29,7 @@ export function RelationsModal({ onClose }: { onClose: () => void }) {
   }, [forces, cities]);
 
   const cellFor = (aId: string, bId: string) => {
-    if (aId === bId) return { bg: 'rgba(90,69,48,0.35)', label: '—', color: '#5a4530', title: '' };
+    if (aId === bId) return { bg: 'rgba(90,69,48,0.35)', label: '—', color: '#364654', title: '' };
     const rel = getRelation(diplomacy, aId, bId);
     const score = rel.score;
     if (rel.status === 'allied') {
@@ -40,8 +40,8 @@ export function RelationsModal({ onClose }: { onClose: () => void }) {
     }
     // Neutral — tint by score: hostile reds below, warming golds above.
     if (score <= -30) return { bg: 'rgba(184,68,46,0.30)', label: '惡', color: '#e08070', title: `${t('交惡', 'Hostile')} · ${score}` };
-    if (score >= 30) return { bg: 'rgba(212,168,74,0.20)', label: '善', color: '#d4a84a', title: `${t('友好', 'Cordial')} · ${score}` };
-    return { bg: 'rgba(40,32,24,0.45)', label: '中', color: '#8a7050', title: `${t('中立', 'Neutral')} · ${score}` };
+    if (score >= 30) return { bg: 'rgba(212,168,74,0.20)', label: '善', color: '#e6c473', title: `${t('友好', 'Cordial')} · ${score}` };
+    return { bg: 'rgba(40,32,24,0.45)', label: '中', color: '#7a8893', title: `${t('中立', 'Neutral')} · ${score}` };
   };
 
   const name = (f: { name: { zh: string; en: string } }) => (lang === 'en' ? f.name.en : f.name.zh);
@@ -60,19 +60,19 @@ export function RelationsModal({ onClose }: { onClose: () => void }) {
           maxWidth: '94vw', maxHeight: '88vh', overflow: 'auto',
           background: 'linear-gradient(180deg, #221a10, #1a140c)',
           border: '1px solid #8a6f3a', padding: '1rem 1.2rem',
-          fontFamily: 'Songti SC, serif', color: '#e8d9b0',
+          fontFamily: 'Songti SC, serif', color: '#e6edf3',
         }}
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.7rem' }}>
           <div>
-            <span style={{ fontSize: '1.25rem', letterSpacing: '0.35rem', color: '#f0d98a' }}>{t('邦 交', 'Relations')}</span>
-            <span style={{ marginLeft: '0.8rem', fontSize: '0.7rem', color: '#8a7050' }}>
+            <span style={{ fontSize: '1.25rem', letterSpacing: '0.35rem', color: '#f2dd9a' }}>{t('邦 交', 'Relations')}</span>
+            <span style={{ marginLeft: '0.8rem', fontSize: '0.7rem', color: '#7a8893' }}>
               <span style={{ color: '#9ed68a' }}>盟 {t('同盟', 'allied')}</span> ·{' '}
               <span style={{ color: '#88b7e8' }}>約 {t('互不侵犯', 'pact')}</span> ·{' '}
-              <span style={{ color: '#d4a84a' }}>善</span>/<span style={{ color: '#8a7050' }}>中</span>/<span style={{ color: '#e08070' }}>惡</span>
+              <span style={{ color: '#e6c473' }}>善</span>/<span style={{ color: '#7a8893' }}>中</span>/<span style={{ color: '#e08070' }}>惡</span>
             </span>
           </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#a89070', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#97a4ae', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </header>
 
         <table style={{ borderCollapse: 'collapse', fontSize: '0.78rem' }}>
@@ -82,7 +82,7 @@ export function RelationsModal({ onClose }: { onClose: () => void }) {
               {living.map(({ force }) => (
                 <th key={force.id} style={{
                   padding: '0.25rem 0.3rem', fontWeight: 'normal',
-                  color: force.id === playerForceId ? '#f0d98a' : force.color,
+                  color: force.id === playerForceId ? '#f2dd9a' : force.color,
                   writingMode: living.length > 8 ? ('vertical-rl' as const) : undefined,
                   whiteSpace: 'nowrap', fontSize: '0.72rem',
                 }}>{name(force)}</th>
@@ -94,7 +94,7 @@ export function RelationsModal({ onClose }: { onClose: () => void }) {
               <tr key={row.id}>
                 <th style={{
                   textAlign: 'right', padding: '0.2rem 0.5rem', fontWeight: 'normal',
-                  color: row.id === playerForceId ? '#f0d98a' : row.color, whiteSpace: 'nowrap',
+                  color: row.id === playerForceId ? '#f2dd9a' : row.color, whiteSpace: 'nowrap',
                 }}>
                   {row.id === playerForceId ? '★ ' : ''}{name(row)}
                   <span style={{ color: '#5a4a35', fontSize: '0.62rem' }}> {cityCount}{t('城', '')}</span>
@@ -104,7 +104,7 @@ export function RelationsModal({ onClose }: { onClose: () => void }) {
                   return (
                     <td key={col.id} title={cell.title} style={{
                       background: cell.bg, color: cell.color,
-                      border: '1px solid #2a2014', textAlign: 'center',
+                      border: '1px solid #18212b', textAlign: 'center',
                       minWidth: 30, height: 28, cursor: 'default',
                     }}>{cell.label}</td>
                   );

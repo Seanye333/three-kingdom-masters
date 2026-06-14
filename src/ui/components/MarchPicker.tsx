@@ -221,7 +221,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
                     >
                       <span
                         className={styles.colorDot}
-                        style={{ background: f?.color ?? '#5a4530' }}
+                        style={{ background: f?.color ?? '#364654' }}
                       />
                       <span className={styles.targetText}>
                         <span className={styles.targetNameZh}>
@@ -258,26 +258,26 @@ export function MarchPicker({ cityId, onClose }: Props) {
               {/* source */}
               <span style={{
                 display: 'inline-block', width: 9, height: 9, borderRadius: '50%',
-                background: source.ownerForceId ? (forces[source.ownerForceId]?.color ?? '#5a4530') : '#5a4530',
+                background: source.ownerForceId ? (forces[source.ownerForceId]?.color ?? '#364654') : '#364654',
                 border: '1px solid #000',
               }} title={source.name.zh} />
               {routeInfo.cells.map((f, i) => (
                 <span key={i} style={{
                   display: 'inline-block', width: 7, height: 7,
                   transform: 'rotate(45deg)',
-                  background: f ? (forces[f]?.color ?? '#5a4530') : '#3a2d20',
+                  background: f ? (forces[f]?.color ?? '#364654') : '#26323e',
                   outline: f && f !== routeInfo.myForce ? '1px solid #b8442e' : 'none',
                 }} title={f ? (forces[f]?.name.zh ?? '無主') : '無主'} />
               ))}
               {/* arrow + target */}
-              <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>▸</span>
+              <span style={{ color: '#7a8893', fontSize: '0.7rem' }}>▸</span>
               <span style={{
                 display: 'inline-block', width: 10, height: 10, borderRadius: '50%',
-                background: targetForce?.color ?? '#5a4530',
+                background: targetForce?.color ?? '#364654',
                 border: '1px solid #fff4d0',
               }} title={target.name.zh} />
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#c0a878', marginTop: '0.2rem' }}>
+            <div style={{ fontSize: '0.72rem', color: '#aab6c0', marginTop: '0.2rem' }}>
               {t(`耗時 ${routeInfo.seasons} 季`, `${routeInfo.seasons} season(s)`)}
               {routeInfo.hostileCells > 0 && (
                 <span style={{ color: '#e08850', marginLeft: 8 }}>
@@ -296,17 +296,17 @@ export function MarchPicker({ cityId, onClose }: Props) {
           const ratio = troops / Math.max(1, defEff);
           const verdict = ratio >= 2 ? { zh: '勝算極大', en: 'Overwhelming', c: '#7ed68a' }
             : ratio >= 1.3 ? { zh: '兵勢佔優', en: 'Favoured', c: '#a8d67e' }
-            : ratio >= 0.8 ? { zh: '勝負難料', en: 'Toss-up', c: '#d4a84a' }
+            : ratio >= 0.8 ? { zh: '勝負難料', en: 'Toss-up', c: '#e6c473' }
             : ratio >= 0.5 ? { zh: '略居下風', en: 'Outmatched', c: '#e0a070' }
             : { zh: '兵力懸殊', en: 'Hopeless', c: '#e0707a' };
           return (
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>{t('敵情', 'Enemy Intel')}</h3>
-              <div style={{ fontSize: '0.76rem', color: '#c0a878', display: 'flex', flexWrap: 'wrap', gap: '0.2rem 1rem' }}>
-                <span>{t('守軍', 'Garrison')} <strong style={{ color: '#e8d9b0' }}>{enemyIntel.garrison.toLocaleString()}</strong></span>
-                <span>{t('城防', 'Defense')} <strong style={{ color: '#e8d9b0' }}>{enemyIntel.defense}</strong></span>
-                <span>{t('城壁', 'Wall')} <strong style={{ color: '#e8d9b0' }}>{'★'.repeat(enemyIntel.wallTier)}</strong></span>
-                <span>{t('守將', 'Captain')} <strong style={{ color: '#e8d9b0' }}>{enemyIntel.captain ? enemyIntel.captain.name.zh : t('無', 'none')}</strong>
+              <div style={{ fontSize: '0.76rem', color: '#aab6c0', display: 'flex', flexWrap: 'wrap', gap: '0.2rem 1rem' }}>
+                <span>{t('守軍', 'Garrison')} <strong style={{ color: '#e6edf3' }}>{enemyIntel.garrison.toLocaleString()}</strong></span>
+                <span>{t('城防', 'Defense')} <strong style={{ color: '#e6edf3' }}>{enemyIntel.defense}</strong></span>
+                <span>{t('城壁', 'Wall')} <strong style={{ color: '#e6edf3' }}>{'★'.repeat(enemyIntel.wallTier)}</strong></span>
+                <span>{t('守將', 'Captain')} <strong style={{ color: '#e6edf3' }}>{enemyIntel.captain ? enemyIntel.captain.name.zh : t('無', 'none')}</strong>
                   {enemyIntel.captain && <span className={styles.muted}> (W{enemyIntel.captain.stats.war}/L{enemyIntel.captain.stats.leadership})</span>}
                 </span>
               </div>
@@ -425,7 +425,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
                 className={styles.confirmButton}
                 onClick={handleTactical}
                 disabled={!valid}
-                style={{ background: '#3a2d20', borderColor: '#88b7e8', color: '#88b7e8' }}
+                style={{ background: '#26323e', borderColor: '#88b7e8', color: '#88b7e8' }}
                 title={t('以回合制戰術戰鬥決勝', 'Resolve as turn-based tactical battle')}
               >
                 {t('戰術', 'Tactical')}

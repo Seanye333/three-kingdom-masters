@@ -2,8 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #1a1410;
-  color: #e8d9b0;
+  background: var(--tkm-bg, #0e1216);
+  color: var(--tkm-text-body, #b6c2cc);
 }
 
 .topBar {
@@ -12,44 +12,48 @@
   flex-wrap: nowrap;
   gap: 0.5rem;
   padding: 0.55rem 1rem;
-  background: linear-gradient(180deg, #2a1f15 0%, #241a12 100%);
-  border-bottom: 1px solid var(--tkm-border-gold, #6a4f2a);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  /* Glassy ink bar — the map glides faintly beneath it. */
+  background: linear-gradient(180deg, rgba(22, 30, 40, 0.82) 0%, rgba(14, 19, 26, 0.88) 100%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  box-shadow: var(--tkm-elev-1, 0 2px 10px rgba(0, 0, 0, 0.35));
   overflow-x: auto;
   scrollbar-width: thin;
 }
 .topBar::-webkit-scrollbar { height: 4px; }
-.topBar::-webkit-scrollbar-thumb { background: var(--tkm-border, #4a3520); }
+.topBar::-webkit-scrollbar-thumb { background: var(--tkm-border, #2b3845); border-radius: 2px; }
 
 .backButton,
 .advanceButton {
-  background: var(--tkm-bg-raised, #251c14);
-  color: var(--tkm-text-h1, #f0e0b0);
-  border: 1px solid var(--tkm-text-h2, #d4a84a);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--tkm-text-h1, #eef3f7);
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
   padding: 0.4rem 0.85rem;
+  border-radius: var(--tkm-radius-sm, 5px);
   font-family: inherit;
   font-size: 0.82rem;
   cursor: pointer;
   letter-spacing: 0.1rem;
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
   white-space: nowrap;
 }
 
 .backButton {
-  border-color: var(--tkm-border, #4a3520);
-  color: var(--tkm-text-body, #c9b89a);
+  color: var(--tkm-text-muted, #7a8893);
 }
 
 .backButton:hover {
-  background: var(--tkm-bg-raised, #251c14);
-  color: var(--tkm-text-h1, #f0e0b0);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--tkm-text-h1, #eef3f7);
 }
 
 .forcesButton {
   background: transparent;
-  color: var(--tkm-text-body, #c9b89a);
-  border: 1px solid var(--tkm-border, #4a3520);
+  color: var(--tkm-text-body, #b6c2cc);
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
   padding: 0.35rem 0.7rem;
+  border-radius: var(--tkm-radius-sm, 5px);
   font-family: inherit;
   font-size: 0.82rem;
   cursor: pointer;
@@ -59,26 +63,29 @@
 }
 
 .forcesButton:hover {
-  background: var(--tkm-bg-raised, #251c14);
-  border-color: var(--tkm-text-h2, #d4a84a);
-  color: var(--tkm-text-h1, #f0e0b0);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--tkm-text-h2, #e6c473);
+  color: var(--tkm-text-h1, #eef3f7);
 }
 
+/* 過旬 — the primary action: a quiet jin-gold call to action. */
 .advanceButton {
   margin-left: auto;
-  background: linear-gradient(180deg, #4a3520 0%, #2a1f15 100%);
+  background: linear-gradient(180deg, rgba(230, 196, 115, 0.16) 0%, rgba(230, 196, 115, 0.06) 100%);
+  border-color: rgba(230, 196, 115, 0.5);
+  color: var(--tkm-text-h2, #e6c473);
   font-weight: bold;
-  box-shadow: 0 0 10px rgba(212, 168, 74, 0.15);
 }
 
 .advanceButton:hover {
-  background: linear-gradient(180deg, #5a4530 0%, #3a2818 100%);
-  box-shadow: 0 0 16px rgba(212, 168, 74, 0.35);
+  background: linear-gradient(180deg, rgba(230, 196, 115, 0.28) 0%, rgba(230, 196, 115, 0.12) 100%);
+  border-color: var(--tkm-text-h2, #e6c473);
+  box-shadow: 0 0 16px rgba(230, 196, 115, 0.25);
 }
 
 .advanceButton:active {
-  background: var(--tkm-text-h2, #d4a84a);
-  color: var(--tkm-bg, #1a1410);
+  background: var(--tkm-text-h2, #e6c473);
+  color: var(--tkm-bg, #0e1216);
 }
 
 .dateBlock {
@@ -86,15 +93,15 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0.15rem 0.9rem;
-  border-left: 1px solid var(--tkm-border-soft, #3a2818);
-  border-right: 1px solid var(--tkm-border-soft, #3a2818);
+  border-left: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  border-right: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
   line-height: 1.3;
   min-width: 130px;
 }
 
 .year {
   font-size: 1.05rem;
-  color: var(--tkm-text-h2, #d4a84a);
+  color: var(--tkm-text-h2, #e6c473);
   font-weight: bold;
   font-family: var(--tkm-font-mono, ui-monospace, monospace);
   letter-spacing: 0.05rem;
@@ -102,12 +109,12 @@
 
 .season {
   font-size: 0.72rem;
-  color: var(--tkm-text-muted, #8c7a5a);
+  color: var(--tkm-text-muted, #7a8893);
   letter-spacing: 0.08rem;
 }
 
 .seasonZh {
-  color: var(--tkm-text-body, #c9b89a);
+  color: var(--tkm-text-body, #b6c2cc);
   margin-left: 0.2rem;
 }
 
@@ -116,7 +123,7 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.15rem 0.6rem;
-  border-right: 1px solid var(--tkm-border-soft, #3a2818);
+  border-right: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
 }
 
 .colorDot {
@@ -130,19 +137,19 @@
 
 .playerName {
   font-size: 0.95rem;
-  color: var(--tkm-text-h2, #d4a84a);
+  color: var(--tkm-text-h2, #e6c473);
   letter-spacing: 0.1rem;
 }
 
 .playerNameEn {
   font-size: 0.7rem;
-  color: var(--tkm-text-muted, #8c7a5a);
+  color: var(--tkm-text-muted, #7a8893);
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
 
 .orderBlock {
-  color: var(--tkm-text-muted, #8c7a5a);
+  color: var(--tkm-text-muted, #7a8893);
   font-size: 0.78rem;
   letter-spacing: 0.05rem;
   padding: 0 0.6rem;
@@ -150,7 +157,7 @@
 }
 
 .orderBlock strong {
-  color: var(--tkm-text-h2, #d4a84a);
+  color: var(--tkm-text-h2, #e6c473);
   font-weight: normal;
   font-family: var(--tkm-font-mono, ui-monospace, monospace);
   font-size: 0.95rem;
@@ -167,13 +174,15 @@
 
 .mapWrap {
   flex: 1;
-  background: #0f0a07;
-  border: 1px solid #4a3520;
+  background: var(--tkm-bg-sunken, #0a0e12);
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  border-radius: var(--tkm-radius, 8px);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: auto;
   padding: 0.5rem;
+  box-shadow: var(--tkm-elev-1, 0 2px 10px rgba(0, 0, 0, 0.35)) inset;
 }
 
 @media (max-width: 640px) {

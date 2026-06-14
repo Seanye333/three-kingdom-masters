@@ -73,7 +73,7 @@ export function ForceCompareModal({ onClose }: { onClose: () => void }) {
     const r = score(me) / Math.max(1, score(rival));
     if (r >= 1.5) return { zh: '我強敵弱', en: 'You dominate', color: '#7ed68a' };
     if (r >= 1.12) return { zh: '我佔上風', en: 'You lead', color: '#a8d67e' };
-    if (r > 0.89) return { zh: '勢均力敵', en: 'Evenly matched', color: '#d4a84a' };
+    if (r > 0.89) return { zh: '勢均力敵', en: 'Evenly matched', color: '#e6c473' };
     if (r > 0.66) return { zh: '敵佔上風', en: 'They lead', color: '#e0a070' };
     return { zh: '敵強我弱', en: 'They dominate', color: '#e0707a' };
   }, [me, rival]);
@@ -81,25 +81,25 @@ export function ForceCompareModal({ onClose }: { onClose: () => void }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-        width: 'min(600px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+        width: 'min(600px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>⚖ {t('較量', 'Compare')}</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>⚖ {t('較量', 'Compare')}</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
 
         {!me ? (
-          <div style={{ color: '#8a7050', fontSize: '0.85rem', padding: '1.5rem 0' }}>{t('觀戰模式無從較量。', 'No force to compare in spectator mode.')}</div>
+          <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1.5rem 0' }}>{t('觀戰模式無從較量。', 'No force to compare in spectator mode.')}</div>
         ) : rivals.length === 0 ? (
-          <div style={{ color: '#8a7050', fontSize: '0.85rem', padding: '1.5rem 0' }}>{t('天下已定,別無對手。', 'No rivals left — the realm is yours.')}</div>
+          <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1.5rem 0' }}>{t('天下已定,別無對手。', 'No rivals left — the realm is yours.')}</div>
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: '0.7rem' }}>
-              <span style={{ color: me.color, fontSize: '0.95rem' }}>■ {me.name}{me.ruler ? ` · ${me.ruler}` : ''} <span style={{ color: '#8a7050' }}>(我)</span></span>
-              <span style={{ color: '#8a7050' }}>{t('對', 'vs')}</span>
-              <select value={rivalId} onChange={(e) => setRivalId(e.target.value)} style={{ background: '#0a0805', border: '1px solid #4a3520', color: '#d4a84a', padding: '0.25rem 0.4rem', fontFamily: 'inherit', maxWidth: '50%' }}>
+              <span style={{ color: me.color, fontSize: '0.95rem' }}>■ {me.name}{me.ruler ? ` · ${me.ruler}` : ''} <span style={{ color: '#7a8893' }}>(我)</span></span>
+              <span style={{ color: '#7a8893' }}>{t('對', 'vs')}</span>
+              <select value={rivalId} onChange={(e) => setRivalId(e.target.value)} style={{ background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473', padding: '0.25rem 0.4rem', fontFamily: 'inherit', maxWidth: '50%' }}>
                 {rivals.map((r) => (
                   <option key={r.fid} value={r.fid}>{r.name}{r.ruler ? ` · ${r.ruler}` : ''}</option>
                 ))}
@@ -120,15 +120,15 @@ export function ForceCompareModal({ onClose }: { onClose: () => void }) {
                     return (
                       <div key={m.key}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 2 }}>
-                          <span style={{ color: mv >= rv ? '#f0d98a' : '#a89070' }}>{fmt(mv)}</span>
-                          <span style={{ color: '#8a7050' }}>{t(m.zh, m.en)}</span>
-                          <span style={{ color: rv > mv ? '#f0d98a' : '#a89070' }}>{fmt(rv)}</span>
+                          <span style={{ color: mv >= rv ? '#f2dd9a' : '#97a4ae' }}>{fmt(mv)}</span>
+                          <span style={{ color: '#7a8893' }}>{t(m.zh, m.en)}</span>
+                          <span style={{ color: rv > mv ? '#f2dd9a' : '#97a4ae' }}>{fmt(rv)}</span>
                         </div>
                         <div style={{ display: 'flex', gap: 3, alignItems: 'center', height: 12 }}>
                           <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
                             <div style={{ width: `${(mv / max) * 100}%`, height: '100%', background: me.color, borderRadius: '3px 0 0 3px', opacity: 0.85 }} />
                           </div>
-                          <div style={{ width: 1, height: '100%', background: '#5a4530' }} />
+                          <div style={{ width: 1, height: '100%', background: '#364654' }} />
                           <div style={{ flex: 1 }}>
                             <div style={{ width: `${(rv / max) * 100}%`, height: '100%', background: rival.color, borderRadius: '0 3px 3px 0', opacity: 0.85 }} />
                           </div>

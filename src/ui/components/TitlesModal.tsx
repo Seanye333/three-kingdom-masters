@@ -317,7 +317,7 @@ function CivicTab({
                             onClick={() => onAppoint(o.id, 'prefect', c.id)}
                           >
                             <span>
-                              {recommended && <span style={{ color: '#d4a84a' }}>★ </span>}
+                              {recommended && <span style={{ color: '#e6c473' }}>★ </span>}
                               {o.name.zh} {o.name.en}
                             </span>
                             <span className={styles.officerStats}>
@@ -385,7 +385,7 @@ function CivicTab({
                     onClick={() => onAppoint(o.id, t.id)}
                   >
                     <span>
-                      {recommended && <span style={{ color: '#d4a84a' }}>★ </span>}
+                      {recommended && <span style={{ color: '#e6c473' }}>★ </span>}
                       {o.name.zh} {o.name.en}
                     </span>
                     <span className={styles.officerStats}>
@@ -421,7 +421,7 @@ function MilitaryTab({
             key={o.id}
             className={styles.officerOption}
             onClick={() => setSelectedId(o.id === selectedId ? null : o.id)}
-            style={o.id === selectedId ? { borderColor: '#d4a84a', background: '#2a1f15' } : undefined}
+            style={o.id === selectedId ? { borderColor: '#e6c473', background: '#1b2531' } : undefined}
           >
             <span>
               {o.name.zh} {o.name.en} — <span className={styles.rankName}>{o.rank}</span>
@@ -528,7 +528,7 @@ function HistoryTab({
             const yearLabel = `${h.year} 年${SEASON_ZH[h.season]}`;
             return (
               <div key={i} className={styles.holderRow}
-                style={{ borderBottom: '1px solid #2a1f15', padding: '0.35rem 0' }}>
+                style={{ borderBottom: '1px solid #1b2531', padding: '0.35rem 0' }}>
                 <span className={styles.holder}>
                   <span className={styles.officerStats} style={{ marginRight: '0.6rem' }}>{yearLabel}</span>
                   {filter === 'all' && f && (
@@ -540,7 +540,7 @@ function HistoryTab({
                   <strong>{o.name.zh}</strong>{' '}
                   <span className={styles.officerStats}>{o.name.en}</span>
                   {' 為 '}
-                  <span style={{ color: '#d4a84a' }}>{def.name.zh}</span>
+                  <span style={{ color: '#e6c473' }}>{def.name.zh}</span>
                   {h.reason && h.kind === 'revoke' && (
                     <span className={styles.officerStats} style={{ marginLeft: '0.5rem' }}>
                       ({REASON_ZH[h.reason]})

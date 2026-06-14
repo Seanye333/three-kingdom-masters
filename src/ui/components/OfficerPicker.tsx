@@ -100,7 +100,7 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
         <h3 className={styles.sectionTitle}>
           {t('選擇武將(可多選)', 'Select officers (multiple)')}
           {picked.size > 0 && (
-            <span style={{ marginLeft: 8, fontSize: '0.8rem', color: '#d4a84a' }}>
+            <span style={{ marginLeft: 8, fontSize: '0.8rem', color: '#e6c473' }}>
               {t(`已選 ${picked.size}`, `${picked.size} picked`)}
               {def.goldCost > 0 ? t(` · 共 ${totalCost}金`, ` · ${totalCost}g`) : ''}
             </span>
@@ -140,12 +140,12 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
                       }
                       style={{
                         ...(blocked ? { opacity: 0.45, cursor: 'not-allowed', filter: 'grayscale(0.4)' } : {}),
-                        ...(isPicked ? { outline: '2px solid #d4a84a', background: 'rgba(212,168,74,0.14)' } : {}),
+                        ...(isPicked ? { outline: '2px solid #e6c473', background: 'rgba(212,168,74,0.14)' } : {}),
                       }}
                     >
                       <span className={styles.officerNameZh}>
-                        <span style={{ marginRight: 5, color: isPicked ? '#d4a84a' : '#6a5a40' }}>{isPicked ? '☑' : '☐'}</span>
-                        {recommended && <span style={{ color: '#d4a84a', marginRight: 4 }}>⭐</span>}
+                        <span style={{ marginRight: 5, color: isPicked ? '#e6c473' : '#6a5a40' }}>{isPicked ? '☑' : '☐'}</span>
+                        {recommended && <span style={{ color: '#e6c473', marginRight: 4 }}>⭐</span>}
                         {liability && <span style={{ color: '#b8442e', marginRight: 4 }}>⚠</span>}
                         {o.name.zh}
                         {isTraining && <span style={{ marginLeft: '0.4rem', fontSize: '0.7rem', color: '#88b7e8', fontStyle: 'italic' }}>⏳ {t('培訓中', 'training')}</span>}
@@ -170,8 +170,8 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
             style={{
               marginTop: '0.8rem', width: '100%', padding: '0.55rem',
               background: picked.size > 0 ? 'linear-gradient(180deg,#3a2d18,#2a1f10)' : 'transparent',
-              border: `1px solid ${picked.size > 0 ? '#d4a84a' : '#3a2d20'}`,
-              color: picked.size > 0 ? '#f0d98a' : '#5a4a35',
+              border: `1px solid ${picked.size > 0 ? '#e6c473' : '#26323e'}`,
+              color: picked.size > 0 ? '#f2dd9a' : '#5a4a35',
               cursor: picked.size > 0 ? 'pointer' : 'not-allowed',
               fontFamily: 'inherit', letterSpacing: '0.2rem', fontSize: '0.9rem',
             }}

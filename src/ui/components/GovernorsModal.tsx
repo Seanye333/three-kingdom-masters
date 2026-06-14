@@ -52,29 +52,29 @@ export function GovernorsModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(880px,100%)',
           maxHeight: '88vh',
           display: 'flex', flexDirection: 'column',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <header style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.3rem' }}>州牧</div>
-            <div style={{ fontSize: '0.8rem', color: '#8a7050', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.3rem' }}>州牧</div>
+            <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>
               Provincial Governors · appoint trusted officers to oversee a province
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
 
         <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1 }}>
           {playerProvinces.length === 0 ? (
-            <div style={{ color: '#8a7050', fontStyle: 'italic', padding: '2rem', textAlign: 'center' }}>
+            <div style={{ color: '#7a8893', fontStyle: 'italic', padding: '2rem', textAlign: 'center' }}>
               You hold no provinces yet. Conquer some cities first.
             </div>
           ) : (
@@ -84,29 +84,29 @@ export function GovernorsModal({ onClose }: Props) {
                 const govId = provinceGovernors[p.id as keyof typeof provinceGovernors];
                 const governor = govId ? officers[govId] : null;
                 return (
-                  <li key={p.id} style={{ background: '#1a1410', border: `1px solid ${p.color}`, padding: '0.7rem 1rem' }}>
+                  <li key={p.id} style={{ background: '#10161e', border: `1px solid ${p.color}`, padding: '0.7rem 1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
                       <div>
                         <span style={{ fontSize: '1rem', color: p.color, letterSpacing: '0.2rem' }}>{lang === 'en' ? p.name.en : p.name.zh}</span>
-                        {lang === 'both' && <span style={{ fontSize: '0.72rem', color: '#8a7050', fontStyle: 'italic', marginLeft: '0.6rem' }}>{p.name.en}</span>}
-                        <span style={{ fontSize: '0.7rem', color: '#c0a878', marginLeft: '0.6rem' }}>
+                        {lang === 'both' && <span style={{ fontSize: '0.72rem', color: '#7a8893', fontStyle: 'italic', marginLeft: '0.6rem' }}>{p.name.en}</span>}
+                        <span style={{ fontSize: '0.7rem', color: '#aab6c0', marginLeft: '0.6rem' }}>
                           ({ownedCount} / {p.cityIds.length} cities held)
                         </span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {governor ? (
-                          <span style={{ fontSize: '0.85rem', color: '#d4a84a' }}>
+                          <span style={{ fontSize: '0.85rem', color: '#e6c473' }}>
                             {governor.name.zh}{' '}
-                            <span style={{ fontSize: '0.65rem', color: '#8a7050', fontStyle: 'italic' }}>{governor.name.en}</span>
+                            <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{governor.name.en}</span>
                           </span>
                         ) : (
-                          <span style={{ fontSize: '0.75rem', color: '#5a4530', fontStyle: 'italic' }}>未任命 unassigned</span>
+                          <span style={{ fontSize: '0.75rem', color: '#364654', fontStyle: 'italic' }}>未任命 unassigned</span>
                         )}
                         <button
                           onClick={() => setPickerForProvince(pickerForProvince === p.id ? null : p.id)}
                           style={{
-                            background: 'transparent', border: '1px solid #4a3520',
-                            color: '#d4a84a', padding: '0.25rem 0.6rem',
+                            background: 'transparent', border: '1px solid #2b3845',
+                            color: '#e6c473', padding: '0.25rem 0.6rem',
                             fontFamily: 'inherit', fontSize: '0.7rem', cursor: 'pointer',
                           }}
                         >
@@ -114,16 +114,16 @@ export function GovernorsModal({ onClose }: Props) {
                         </button>
                       </div>
                     </div>
-                    <p style={{ fontSize: '0.72rem', color: '#8a7050', margin: '0.4rem 0 0 0', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: '0.72rem', color: '#7a8893', margin: '0.4rem 0 0 0', lineHeight: 1.5 }}>
                       {desc(p)}
                     </p>
                     {pickerForProvince === p.id && (
-                      <div style={{ marginTop: '0.6rem', padding: '0.6rem', background: '#2a1f15', border: '1px solid #4a3520' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#8a7050', marginBottom: '0.4rem', letterSpacing: '0.1rem' }}>
+                      <div style={{ marginTop: '0.6rem', padding: '0.6rem', background: '#1b2531', border: '1px solid #2b3845' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#7a8893', marginBottom: '0.4rem', letterSpacing: '0.1rem' }}>
                           {t('閒置武將', 'Idle officers')} ({idleOfficers.length}):
                         </div>
                         {idleOfficers.length === 0 ? (
-                          <div style={{ fontSize: '0.78rem', color: '#5a4530', fontStyle: 'italic' }}>
+                          <div style={{ fontSize: '0.78rem', color: '#364654', fontStyle: 'italic' }}>
                             {t('無閒置武將——請先從城內職務召回。', 'No idle officers — recall some from city duties first.')}
                           </div>
                         ) : (
@@ -138,16 +138,16 @@ export function GovernorsModal({ onClose }: Props) {
                                     setPickerForProvince(null);
                                   }}
                                   style={{
-                                    background: '#1a1410', border: '1px solid #3a2d20',
-                                    color: '#c0a878', padding: '0.3rem 0.5rem',
+                                    background: '#10161e', border: '1px solid #26323e',
+                                    color: '#aab6c0', padding: '0.3rem 0.5rem',
                                     fontFamily: 'inherit', fontSize: '0.75rem',
                                     cursor: 'pointer', textAlign: 'left',
                                   }}
                                 >
-                                  <div style={{ color: '#d4a84a' }}>
-                                    {o.name.zh} <span style={{ fontSize: '0.65rem', color: '#8a7050' }}>{o.name.en}</span>
+                                  <div style={{ color: '#e6c473' }}>
+                                    {o.name.zh} <span style={{ fontSize: '0.65rem', color: '#7a8893' }}>{o.name.en}</span>
                                   </div>
-                                  <div style={{ fontSize: '0.65rem', color: '#8a7050', fontFamily: 'ui-monospace, monospace' }}>
+                                  <div style={{ fontSize: '0.65rem', color: '#7a8893', fontFamily: 'ui-monospace, monospace' }}>
                                     政 {o.stats.politics} · 知 {o.stats.intelligence} · 魅 {o.stats.charisma}
                                   </div>
                                 </button>

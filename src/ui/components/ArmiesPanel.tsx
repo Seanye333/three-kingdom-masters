@@ -33,7 +33,7 @@ export function ArmiesPanel() {
         onClick={() => setOpen(true)}
         style={{
           background: 'rgba(20, 14, 9, 0.88)', border: '1px solid #6a5536',
-          color: '#e8d9b0', padding: '0.3rem 0.55rem', cursor: 'pointer',
+          color: '#e6edf3', padding: '0.3rem 0.55rem', cursor: 'pointer',
           fontFamily: '"Songti SC", serif', fontSize: '0.72rem',
           pointerEvents: 'auto',
         }}
@@ -48,24 +48,24 @@ export function ArmiesPanel() {
       padding: '0.35rem 0.5rem',
       fontFamily: '"Songti SC", serif',
       fontSize: '0.72rem',
-      color: '#e8d9b0',
+      color: '#e6edf3',
       minWidth: 150,
       maxWidth: 210,
       boxShadow: '0 0 10px rgba(0,0,0,0.6)',
       pointerEvents: 'auto',
     }}>
-      <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: 3, display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ fontSize: '0.62rem', letterSpacing: '0.15rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: 3, display: 'flex', justifyContent: 'space-between' }}>
         <span>在途部隊 · Armies</span>
         {IS_MOBILE && (
           <button
             onClick={() => setOpen(false)}
-            style={{ background: 'transparent', border: 'none', color: '#8a7050', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}
+            style={{ background: 'transparent', border: 'none', color: '#7a8893', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}
           >✕</button>
         )}
       </div>
       {selectedArmyId && armies[selectedArmyId] && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, marginBottom: 3 }}>
-          <span style={{ fontSize: '0.58rem', color: '#d4a84a' }}>點城改道 · 點野地進駐 · 點友軍合流 · 點近敵亲征</span>
+          <span style={{ fontSize: '0.58rem', color: '#e6c473' }}>點城改道 · 點野地進駐 · 點友軍合流 · 點近敵亲征</span>
           <div style={{ display: 'flex', gap: 4 }}>
             <button
               onClick={() => holdArmy(selectedArmyId)}
@@ -121,8 +121,8 @@ export function ArmiesPanel() {
         const status = a.holding
           ? { icon: '⏸', text: '駐守', color: '#a8c87a', tip: '原地駐守,本季不前進(可「解除」續行)' }
           : remaining <= 1
-            ? { icon: '⚑', text: `${dest}·抵達在即`, color: '#f0d98a', tip: '下季抵達目的地' }
-            : { icon: '▸', text: `${dest}·${remaining}季`, color: '#c0a878', tip: `行軍中 · 已行 ${pct}%` };
+            ? { icon: '⚑', text: `${dest}·抵達在即`, color: '#f2dd9a', tip: '下季抵達目的地' }
+            : { icon: '▸', text: `${dest}·${remaining}季`, color: '#aab6c0', tip: `行軍中 · 已行 ${pct}%` };
         return (
           <div
             key={a.id}
@@ -131,13 +131,13 @@ export function ArmiesPanel() {
             style={{
               lineHeight: 1.4, cursor: 'pointer', padding: '1px 2px',
               background: selected ? 'rgba(212, 168, 74, 0.22)' : 'transparent',
-              outline: selected ? '1px solid #d4a84a' : 'none',
+              outline: selected ? '1px solid #e6c473' : 'none',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
               <span style={{ color: '#ffe9a8', whiteSpace: 'nowrap' }}>
                 {cmdr?.name.zh ?? '？'}
-                <span style={{ color: '#8a7050', marginLeft: 4, fontSize: '0.62rem', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}</span>
+                <span style={{ color: '#7a8893', marginLeft: 4, fontSize: '0.62rem', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}</span>
                 {a.food !== undefined && (() => {
                   const seasons = Math.floor(a.food / Math.max(1, a.troops * 0.25));
                   return (

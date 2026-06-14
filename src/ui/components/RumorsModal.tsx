@@ -93,22 +93,22 @@ export function RumorsModal({ onClose }: { onClose: () => void }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-        width: 'min(540px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+        width: 'min(540px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
         fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.2rem' }}>
-          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>🏮 {t('市井流言', 'Word on the Street')}</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🏮 {t('市井流言', 'Word on the Street')}</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
-        <div style={{ color: '#8a7050', fontSize: '0.72rem', fontStyle: 'italic', marginBottom: '0.7rem' }}>
+        <div style={{ color: '#7a8893', fontSize: '0.72rem', fontStyle: 'italic', marginBottom: '0.7rem' }}>
           {t('道聽途說,未必盡實 — 然空穴來風,亦或有自。', 'Hearsay, not gospel — yet smoke seldom rises without fire.')}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {rumors.map((r) => (
-            <div key={r.key} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '0.5rem 0.6rem', background: '#1a140d', border: '1px solid #3a2c1c', borderRadius: 5 }}>
+            <div key={r.key} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '0.5rem 0.6rem', background: '#141c25', border: '1px solid #243240', borderRadius: 5 }}>
               <span style={{ fontSize: '1.1rem' }}>{r.icon}</span>
-              <span style={{ fontSize: '0.86rem', lineHeight: 1.5, color: '#d4c4a0' }}>{t(r.zh, r.en)}</span>
+              <span style={{ fontSize: '0.86rem', lineHeight: 1.5, color: '#cdd8e0' }}>{t(r.zh, r.en)}</span>
             </div>
           ))}
         </div>

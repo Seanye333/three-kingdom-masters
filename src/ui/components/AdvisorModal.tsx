@@ -60,32 +60,32 @@ export function AdvisorModal({ onClose }: { onClose: () => void }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(560px,100%)', maxHeight: '85vh', overflowY: 'auto',
-          color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.3rem',
+          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.3rem',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.7rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {advisor && <OfficerAvatar officer={advisor} size={42} />}
             <div>
-              <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>🧠 {t('軍師錦囊', 'Advisor')}</div>
-              <div style={{ fontSize: '0.72rem', color: '#8a7050' }}>
+              <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.2rem' }}>🧠 {t('軍師錦囊', 'Advisor')}</div>
+              <div style={{ fontSize: '0.72rem', color: '#7a8893' }}>
                 {advisor ? t(`${advisor.name.zh} 進言`, `${advisor.name.en} counsels`) : t('幕僚進言', 'Your aides counsel')}
               </div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
 
         {tips.length === 0 && (
-          <div style={{ color: '#8a7050', fontSize: '0.85rem', padding: '1rem 0' }}>
+          <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1rem 0' }}>
             {t('「眼下並無燃眉之急,主公可從容布局。」', '"Nothing burns today, my lord — plan at leisure."')}
           </div>
         )}
         {tips.map((tip) => (
           <div key={tip.id} style={{
-            border: '1px solid #3a2d20', background: '#1a1410',
+            border: '1px solid #26323e', background: '#10161e',
             padding: '0.6rem 0.8rem', marginBottom: '0.5rem',
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
@@ -96,13 +96,13 @@ export function AdvisorModal({ onClose }: { onClose: () => void }) {
               <button
                 onClick={() => execute(tip)}
                 style={{
-                  background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #d4a84a',
-                  color: '#f0d98a', padding: '0.35rem 0.9rem', cursor: 'pointer',
+                  background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473',
+                  color: '#f2dd9a', padding: '0.35rem 0.9rem', cursor: 'pointer',
                   fontFamily: 'inherit', letterSpacing: '0.15rem', whiteSpace: 'nowrap',
                 }}
               >{t('照辦', 'Do it')}</button>
             ) : (
-              <span style={{ fontSize: '0.7rem', color: '#6a5a45', whiteSpace: 'nowrap' }}>{t('參考', 'FYI')}</span>
+              <span style={{ fontSize: '0.7rem', color: '#5f6c76', whiteSpace: 'nowrap' }}>{t('參考', 'FYI')}</span>
             )}
           </div>
         ))}

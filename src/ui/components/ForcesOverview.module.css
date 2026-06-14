@@ -9,8 +9,8 @@
 }
 
 .modal {
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 760px;
   max-width: 95vw;
   max-height: 88vh;
@@ -24,20 +24,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
 }
 
 .titleZh {
   font-size: 1.75rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.4rem;
 }
 
 .titleEn {
   font-size: 0.8rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
@@ -45,7 +45,7 @@
 .closeButton {
   background: transparent;
   border: none;
-  color: #8a7050;
+  color: #7a8893;
   font-size: 1.5rem;
   cursor: pointer;
   font-family: inherit;
@@ -53,7 +53,7 @@
 }
 
 .closeButton:hover {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .list {
@@ -66,8 +66,8 @@
 }
 
 .list li {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   padding: 0.75rem 1rem;
 }
 
@@ -101,12 +101,12 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 1.1rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .nameEn {
   font-size: 0.75rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
@@ -114,8 +114,8 @@
 .playerTag {
   font-family: ui-monospace, monospace;
   font-size: 0.65rem;
-  background: #d4a84a;
-  color: #1a1410;
+  background: #e6c473;
+  color: #10161e;
   padding: 0.1rem 0.4rem;
   letter-spacing: 0.1rem;
 }
@@ -124,7 +124,7 @@
   font-family: ui-monospace, monospace;
   font-size: 0.65rem;
   background: #b8442e;
-  color: #1a1410;
+  color: #10161e;
   padding: 0.1rem 0.4rem;
   letter-spacing: 0.1rem;
 }
@@ -147,20 +147,20 @@
 
 .statLabel {
   font-size: 0.65rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.15rem;
   text-transform: uppercase;
 }
 
 .statValue {
   font-size: 0.95rem;
-  color: #e8d9b0;
+  color: #e6edf3;
 }
 
 .topOfficers {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px dotted #3a2d20;
+  border-top: 1px dotted #26323e;
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
@@ -170,23 +170,23 @@
   display: flex;
   align-items: baseline;
   gap: 0.35rem;
-  background: #2a1f15;
-  border: 1px solid #3a2d20;
+  background: #1b2531;
+  border: 1px solid #26323e;
   padding: 0.2rem 0.5rem;
   font-size: 0.78rem;
 }
 
 .officerNameZh {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .officerNameEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
 }
 
 .officerStats {
-  color: #c0a878;
+  color: #aab6c0;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
 }

@@ -30,11 +30,11 @@ export function WordWarModal({ result, onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15 0%,#1a1410 100%)',
-          border: '2px solid #d4a84a',
+          background: 'linear-gradient(160deg,#1b2531 0%,#10161e 100%)',
+          border: '2px solid #e6c473',
           width: 'min(620px, 95vw)',
           padding: '2rem',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
           textAlign: 'center',
         }}
@@ -43,7 +43,7 @@ export function WordWarModal({ result, onClose }: Props) {
           style={{
             fontSize: '0.7rem',
             letterSpacing: '0.4rem',
-            color: '#c19a3b',
+            color: '#c9a64e',
             textTransform: 'uppercase',
             marginBottom: '1rem',
           }}
@@ -53,22 +53,22 @@ export function WordWarModal({ result, onClose }: Props) {
 
         {cur ? (
           <>
-            <div style={{ fontSize: '1.1rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
+            <div style={{ fontSize: '1.1rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
               {lang === 'en' ? speaker?.name.en : speaker?.name.zh}
-              {lang === 'both' && <> <span style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>{speaker?.name.en}</span></>}
+              {lang === 'both' && <> <span style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>{speaker?.name.en}</span></>}
             </div>
             <hr
               style={{
                 border: 'none',
                 height: 1,
-                background: 'linear-gradient(90deg, transparent, #d4a84a, transparent)',
+                background: 'linear-gradient(90deg, transparent, #e6c473, transparent)',
                 margin: '1rem 0',
               }}
             />
             <div
               style={{
                 fontSize: '1.3rem',
-                color: '#e8d9b0',
+                color: '#e6edf3',
                 lineHeight: 1.8,
                 minHeight: 80,
                 fontStyle: 'italic',
@@ -80,7 +80,7 @@ export function WordWarModal({ result, onClose }: Props) {
               <div
                 style={{
                   fontSize: '0.85rem',
-                  color: '#8a7050',
+                  color: '#7a8893',
                   marginTop: '0.5rem',
                   fontStyle: 'italic',
                 }}
@@ -88,16 +88,16 @@ export function WordWarModal({ result, onClose }: Props) {
                 {cur.text.en}
               </div>
             )}
-            <div style={{ marginTop: '1.5rem', fontSize: '0.75rem', color: '#8a7050' }}>
+            <div style={{ marginTop: '1.5rem', fontSize: '0.75rem', color: '#7a8893' }}>
               {idx + 1} / {total}
             </div>
             <button
               onClick={() => setIdx((i) => i + 1)}
               style={{
                 marginTop: '1rem',
-                background: '#3a2d20',
-                border: '1px solid #d4a84a',
-                color: '#d4a84a',
+                background: '#26323e',
+                border: '1px solid #e6c473',
+                color: '#e6c473',
                 padding: '0.5rem 2rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',
@@ -112,7 +112,7 @@ export function WordWarModal({ result, onClose }: Props) {
             <div
               style={{
                 fontSize: '2rem',
-                color: result.winnerSide === 'draw' ? '#c19a3b' : '#d4a84a',
+                color: result.winnerSide === 'draw' ? '#c9a64e' : '#e6c473',
                 letterSpacing: '0.4rem',
                 margin: '1.5rem 0',
               }}
@@ -121,7 +121,7 @@ export function WordWarModal({ result, onClose }: Props) {
               {result.winnerSide === 'defender' && t('守方勝舌', 'Defenders prevail')}
               {result.winnerSide === 'draw' && t('平分秋色', 'A stalemate')}
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#c0a878', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.85rem', color: '#aab6c0', marginBottom: '1rem' }}>
               {result.winnerSide === 'attacker' &&
                 t('守方士氣動搖——開戰時士氣 −10。', "The defenders' morale wavers — they begin the battle at −10.")}
               {result.winnerSide === 'defender' &&
@@ -131,9 +131,9 @@ export function WordWarModal({ result, onClose }: Props) {
             <button
               onClick={onClose}
               style={{
-                background: 'linear-gradient(180deg, #5a4530, #3a2d20)',
-                border: '1px solid #d4a84a',
-                color: '#d4a84a',
+                background: 'linear-gradient(180deg, #364654, #26323e)',
+                border: '1px solid #e6c473',
+                color: '#e6c473',
                 padding: '0.6rem 2rem',
                 fontFamily: 'inherit',
                 cursor: 'pointer',

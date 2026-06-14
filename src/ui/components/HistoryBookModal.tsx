@@ -45,32 +45,32 @@ export function HistoryBookModal({ onClose }: { onClose: () => void }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(160deg,#2e2418,#1a1410)', border: '1px solid #c19a3b',
+          background: 'linear-gradient(160deg,#2e2418,#10161e)', border: '1px solid #c9a64e',
           width: 'min(680px,100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column',
-          color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif',
+          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
       >
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.4rem', borderBottom: '1px solid #4a3520' }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.4rem', borderBottom: '1px solid #2b3845' }}>
           <div>
-            <div style={{ fontSize: '1.35rem', color: '#d4a84a', letterSpacing: '0.3rem' }}>📜 《{forceName}本紀》</div>
-            <div style={{ fontSize: '0.72rem', color: '#8a7050', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '1.35rem', color: '#e6c473', letterSpacing: '0.3rem' }}>📜 《{forceName}本紀》</div>
+            <div style={{ fontSize: '0.72rem', color: '#7a8893', fontStyle: 'italic' }}>
               {victoryStatus === 'playing' ? t('未完之卷 — 至今實錄', 'The unfinished scroll — annals so far') : t('定本', 'Definitive edition')}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={exportText}
-              style={{ background: '#2a1f15', border: '1px solid #5a4530', color: '#d4a84a', padding: '0.3rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem' }}
+              style={{ background: '#1b2531', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e6c473', padding: '0.3rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem' }}
             >⬇ {t('導出', 'Export')}</button>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
           </div>
         </header>
         <div style={{ overflowY: 'auto', padding: '1rem 1.6rem', flex: 1 }}>
           {sections.map((sec) => (
             <div key={sec.title} style={{ marginBottom: '1.1rem' }}>
               <div style={{
-                fontSize: '0.95rem', color: '#c19a3b', letterSpacing: '0.4rem',
-                borderBottom: '1px dashed #4a3520', paddingBottom: 4, marginBottom: 8,
+                fontSize: '0.95rem', color: '#c9a64e', letterSpacing: '0.4rem',
+                borderBottom: '1px dashed #2b3845', paddingBottom: 4, marginBottom: 8,
               }}>{sec.title}</div>
               {sec.lines.map((l, i) => (
                 <p key={i} style={{ margin: '0 0 0.4rem', fontSize: '0.85rem', lineHeight: 1.9, color: '#cdb88f' }}>{l}</p>

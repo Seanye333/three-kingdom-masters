@@ -73,11 +73,11 @@ export function DeedsModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
-          borderTop: '3px solid #d4a84a',  // gold — 金石之功
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+          borderTop: '3px solid #e6c473',  // gold — 金石之功
           width: 'min(1100px,100%)', maxHeight: '90vh',
-          display: 'flex', flexDirection: 'column', color: '#e8d9b0',
+          display: 'flex', flexDirection: 'column', color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
           boxShadow: '0 0 18px rgba(212,168,74,0.15)',
         }}
@@ -86,15 +86,15 @@ export function DeedsModal({ onClose }: Props) {
         <header
           style={{
             display: 'flex', justifyContent: 'space-between',
-            padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520',
+            padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845',
             alignItems: 'baseline',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>{t('武功榜', 'Heroic Deeds')}</div>
-            {lang === 'both' && <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>Heroic Deeds Leaderboard</div>}
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('武功榜', 'Heroic Deeds')}</div>
+            {lang === 'both' && <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Heroic Deeds Leaderboard</div>}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
 
         {/* Force filter chip row */}
@@ -102,7 +102,7 @@ export function DeedsModal({ onClose }: Props) {
           display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
           padding: '0.7rem 1.5rem 0', alignItems: 'center',
         }}>
-          <span style={{ color: '#8a7050', fontSize: '0.75rem', marginRight: '0.4rem' }}>
+          <span style={{ color: '#7a8893', fontSize: '0.75rem', marginRight: '0.4rem' }}>
             {t('勢力', 'Force')}:
           </span>
           {[
@@ -117,9 +117,9 @@ export function DeedsModal({ onClose }: Props) {
               key={chip.id}
               onClick={() => setForceFilter(chip.id)}
               style={{
-                background: forceFilter === chip.id ? '#3a2818' : 'transparent',
-                border: `1px solid ${forceFilter === chip.id ? '#d4a84a' : '#4a3520'}`,
-                color: forceFilter === chip.id ? '#d4a84a' : '#8a7050',
+                background: forceFilter === chip.id ? '#1e2832' : 'transparent',
+                border: `1px solid ${forceFilter === chip.id ? '#e6c473' : '#2b3845'}`,
+                color: forceFilter === chip.id ? '#e6c473' : '#7a8893',
                 padding: '0.25rem 0.6rem', fontSize: '0.75rem',
                 cursor: 'pointer', fontFamily: 'inherit',
               }}
@@ -137,13 +137,13 @@ export function DeedsModal({ onClose }: Props) {
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #4a3520' }}>
+                <tr style={{ borderBottom: '1px solid #2b3845' }}>
                   <th style={th()}>{t('名次', 'Rank')}</th>
                   <th style={th()}>{t('武將', 'Officer')}</th>
                   {COL_LABELS.map((c) => (
                     <th
                       key={c.key}
-                      style={{ ...th(), cursor: 'pointer', color: sortBy === c.key ? '#d4a84a' : '#8a7050' }}
+                      style={{ ...th(), cursor: 'pointer', color: sortBy === c.key ? '#e6c473' : '#7a8893' }}
                       onClick={() => setSortBy(c.key)}
                     >
                       {lang === 'en' ? c.en : c.zh}
@@ -163,7 +163,7 @@ export function DeedsModal({ onClose }: Props) {
                       key={r.officerId}
                       onClick={() => setSelectedOfficer(r.officer)}
                       style={{
-                        borderBottom: '1px solid #2a1f15',
+                        borderBottom: '1px solid #1b2531',
                         cursor: 'pointer',
                         background: i < 3 ? 'rgba(212,168,74,0.04)' : undefined,
                       }}
@@ -171,15 +171,15 @@ export function DeedsModal({ onClose }: Props) {
                       onMouseLeave={(e) => (e.currentTarget.style.background = i < 3 ? 'rgba(212,168,74,0.04)' : 'transparent')}
                     >
                       <td style={td()}>
-                        <span style={{ color: i < 3 ? '#d4a84a' : '#8a7050', fontWeight: i < 3 ? 'bold' : undefined }}>
+                        <span style={{ color: i < 3 ? '#e6c473' : '#7a8893', fontWeight: i < 3 ? 'bold' : undefined }}>
                           {MEDAL[i] ?? (i + 1)}
                         </span>
                       </td>
                       <td style={td()}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ color: '#d4a84a' }}>
+                          <span style={{ color: '#e6c473' }}>
                             {lang === 'en' ? r.officer.name.en : r.officer.name.zh}
-                            {lang === 'both' && <> <span style={{ color: '#8a7050', fontSize: '0.72rem', fontStyle: 'italic' }}>{r.officer.name.en}</span></>}
+                            {lang === 'both' && <> <span style={{ color: '#7a8893', fontSize: '0.72rem', fontStyle: 'italic' }}>{r.officer.name.en}</span></>}
                           </span>
                           {topTitle && (
                             <span style={{ color: '#a08050', fontSize: '0.7rem', fontStyle: 'italic' }}>
@@ -191,7 +191,7 @@ export function DeedsModal({ onClose }: Props) {
                       {COL_LABELS.map((c) => {
                         if (c.key === 'titles') {
                           return (
-                            <td key={c.key} style={{ ...td(), color: sortBy === c.key ? '#d4a84a' : '#c0a878', fontFamily: 'ui-monospace, monospace' }}>
+                            <td key={c.key} style={{ ...td(), color: sortBy === c.key ? '#e6c473' : '#aab6c0', fontFamily: 'ui-monospace, monospace' }}>
                               {(r.titles?.length ?? 0).toLocaleString()}
                             </td>
                           );
@@ -199,7 +199,7 @@ export function DeedsModal({ onClose }: Props) {
                         return (
                           <td
                             key={c.key}
-                            style={{ ...td(), fontFamily: 'ui-monospace, monospace', color: sortBy === c.key ? '#d4a84a' : '#c0a878' }}
+                            style={{ ...td(), fontFamily: 'ui-monospace, monospace', color: sortBy === c.key ? '#e6c473' : '#aab6c0' }}
                           >
                             {(((r[c.key as keyof typeof r] as number) ?? 0)).toLocaleString()}
                           </td>

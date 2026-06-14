@@ -13,7 +13,7 @@ interface Props {
 const TIER_COLORS = {
   bronze: '#a86b3a',
   silver: '#b8c0c8',
-  gold: '#d4a84a',
+  gold: '#e6c473',
   legendary: '#ffce4a',
 };
 
@@ -40,12 +40,12 @@ export function AchievementsModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(900px,100%)',
           maxHeight: '90vh',
           display: 'flex', flexDirection: 'column',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -53,20 +53,20 @@ export function AchievementsModal({ onClose }: Props) {
         <header
           style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-            padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520',
+            padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>勳功</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>勳功</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
               Achievements ({completedCount} / {ACHIEVEMENTS.length})
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
 
         {progress && (
-          <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid #4a3520', fontSize: '0.78rem', color: '#c0a878', fontFamily: 'ui-monospace, monospace' }}>
+          <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid #2b3845', fontSize: '0.78rem', color: '#aab6c0', fontFamily: 'ui-monospace, monospace' }}>
             Total kills: {progress.counters.kills.toLocaleString()} ·
             Cities taken: {progress.counters.citiesTaken} ·
             Recruits: {progress.counters.recruits} ·
@@ -93,8 +93,8 @@ export function AchievementsModal({ onClose }: Props) {
               <div
                 key={a.id}
                 style={{
-                  background: unlocked ? '#1a1410' : '#0a0805',
-                  border: `1px solid ${unlocked ? color : '#3a2d20'}`,
+                  background: unlocked ? '#10161e' : '#080b0e',
+                  border: `1px solid ${unlocked ? color : '#26323e'}`,
                   padding: '0.55rem 0.7rem',
                   opacity: unlocked ? 1 : 0.5,
                   boxShadow: unlocked ? `0 0 6px ${color}33` : undefined,
@@ -103,7 +103,7 @@ export function AchievementsModal({ onClose }: Props) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <div style={{ color: unlocked ? color : '#6a5238', fontSize: '0.95rem' }}>
                     {unlocked ? '✓' : '✗'} {a.name.zh}
-                    <span style={{ fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic', marginLeft: '0.4rem' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic', marginLeft: '0.4rem' }}>
                       {a.name.en}
                     </span>
                   </div>
@@ -115,7 +115,7 @@ export function AchievementsModal({ onClose }: Props) {
                     textTransform: 'uppercase',
                   }}>{a.tier}</span>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#c0a878', marginTop: '0.2rem', fontStyle: 'italic', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.72rem', color: '#aab6c0', marginTop: '0.2rem', fontStyle: 'italic', lineHeight: 1.4 }}>
                   {desc(a)}
                 </div>
               </div>

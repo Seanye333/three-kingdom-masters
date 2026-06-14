@@ -85,21 +85,21 @@ export function CourtModal({ onClose }: Props) {
             }}>
               <span>
                 👑 {lang === 'en' ? 'The Emperor resides at ' : '天子駐蹕'}
-                <strong style={{ color: '#f0d98a' }}>{allCities[emperorCityId]?.name.zh ?? emperorCityId}</strong>
+                <strong style={{ color: '#f2dd9a' }}>{allCities[emperorCityId]?.name.zh ?? emperorCityId}</strong>
                 {custodianForce
                   ? <span style={{ color: custodianForce.color }}>(
                       {custodian === playerForceId
                         ? (lang === 'en' ? 'in your custody — edicts cost 30% less, the Mandate drifts your way, the realm resents you' : '在你奉戴之下 — 詔書七折,天命日聚,而諸侯側目')
                         : `${custodianForce.name.zh}${lang === 'en' ? ' holds him' : '挾之'}`})
                     </span>
-                  : <span style={{ color: '#8a7050' }}>{lang === 'en' ? '(masterless city)' : '(無主之城)'}</span>}
+                  : <span style={{ color: '#7a8893' }}>{lang === 'en' ? '(masterless city)' : '(無主之城)'}</span>}
               </span>
               {canWelcome && (
                 <button
                   onClick={() => welcomeEmperor()}
                   style={{
-                    background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #d4a84a',
-                    color: '#f0d98a', padding: '0.3rem 0.8rem', cursor: 'pointer',
+                    background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: '1px solid #e6c473',
+                    color: '#f2dd9a', padding: '0.3rem 0.8rem', cursor: 'pointer',
                     fontFamily: 'inherit', letterSpacing: '0.15rem', whiteSpace: 'nowrap',
                   }}
                   title={lang === 'en' ? 'Move the emperor into your capital (+10 Mandate)' : '奉迎天子入都 — 天命 +10,自此國都即帝都'}
@@ -139,9 +139,9 @@ export function CourtModal({ onClose }: Props) {
                     if (!r.ok) alert(r.reason ?? 'Failed');
                   }}
                   style={{
-                    background: check.ok && !isEmperorPath ? '#3a2818' : '#1a1410',
-                    border: '1px solid #d4a84a',
-                    color: check.ok && !isEmperorPath ? '#d4a84a' : '#6a5238',
+                    background: check.ok && !isEmperorPath ? '#1e2832' : '#10161e',
+                    border: '1px solid #e6c473',
+                    color: check.ok && !isEmperorPath ? '#e6c473' : '#6a5238',
                     padding: '0.5rem 0.9rem',
                     fontFamily: 'inherit',
                     cursor: check.ok && !isEmperorPath ? 'pointer' : 'not-allowed',
@@ -151,10 +151,10 @@ export function CourtModal({ onClose }: Props) {
                   進爵 → {nextDef.name.zh} {nextDef.name.en}
                 </button>
                 {!check.ok && !isEmperorPath && (
-                  <div style={{ fontSize: '0.7rem', color: '#8a7050' }}>{(check as { reason: string }).reason}</div>
+                  <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>{(check as { reason: string }).reason}</div>
                 )}
                 {isEmperorPath && (
-                  <div style={{ fontSize: '0.7rem', color: '#8a7050' }}>需頒「即位」詔令</div>
+                  <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>需頒「即位」詔令</div>
                 )}
               </div>
             );
@@ -168,14 +168,14 @@ export function CourtModal({ onClose }: Props) {
           for (const f of factions) counts[f.faction] = (counts[f.faction] ?? 0) + 1;
           const total = factions.length;
           return (
-            <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid #4a3520', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', fontSize: '0.78rem' }}>
-              <span style={{ color: '#8a7050', letterSpacing: '0.2rem' }}>朝堂派系：</span>
+            <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid #2b3845', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', fontSize: '0.78rem' }}>
+              <span style={{ color: '#7a8893', letterSpacing: '0.2rem' }}>朝堂派系：</span>
               {(['military', 'gentry', 'reformer', 'eunuch'] as const).map((fid) => {
                 const n = counts[fid] ?? 0;
                 if (n === 0) return null;
                 const pct = Math.round((n / total) * 100);
                 return (
-                  <span key={fid} style={{ color: pct > 50 ? '#d4a84a' : '#c0a878' }}>
+                  <span key={fid} style={{ color: pct > 50 ? '#e6c473' : '#aab6c0' }}>
                     {FACTION_LABEL[fid].zh} {n} ({pct}%)
                   </span>
                 );
@@ -183,7 +183,7 @@ export function CourtModal({ onClose }: Props) {
               {playerForceId && (() => {
                 const m = mandate.byForce[playerForceId] ?? 50;
                 const mNote = m < 30 ? '（天命衰）' : m > 70 ? '（天命昌）' : '';
-                return <span style={{ color: m < 30 ? '#b8442e' : m > 70 ? '#d4a84a' : '#8a7050' }}>
+                return <span style={{ color: m < 30 ? '#b8442e' : m > 70 ? '#e6c473' : '#7a8893' }}>
                   · 天命 {m}{mNote}
                 </span>;
               })()}

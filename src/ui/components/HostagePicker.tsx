@@ -68,7 +68,7 @@ export function HostagePicker({ targetForceId, onClose }: Props) {
             <div className={styles.columnHeader}>
               <span
                 className={styles.colorDot}
-                style={{ background: playerForce?.color ?? '#5a4530' }}
+                style={{ background: playerForce?.color ?? '#364654' }}
               />
               <span>{playerForce?.name.zh ?? t('我方', 'You')} — {t('選人質', 'pick a hostage')}</span>
             </div>

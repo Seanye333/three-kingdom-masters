@@ -21,7 +21,7 @@
 }
 
 .row {
-  background: #2a1f15;
+  background: #1b2531;
   border: 1px solid #5a2820;
   padding: 0.5rem 0.65rem;
   display: flex;
@@ -38,19 +38,19 @@
 
 .nameZh {
   font-size: 0.95rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .nameEn {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .stats {
   grid-column: 1 / -1;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .actions {
@@ -61,9 +61,9 @@
 
 .actions button {
   flex: 1;
-  background: #1a1410;
-  color: #e8d9b0;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  color: #e6edf3;
+  border: 1px solid #2b3845;
   padding: 0.3rem 0.5rem;
   font-family: inherit;
   font-size: 0.7rem;
@@ -72,7 +72,7 @@
 }
 
 .actions button:hover:not(:disabled) {
-  background: #3a2d20;
+  background: #26323e;
 }
 
 .actions button:disabled {

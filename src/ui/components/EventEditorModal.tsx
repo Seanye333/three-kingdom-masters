@@ -98,12 +98,12 @@ export function EventEditorModal({ scenario, onClose }: Props) {
       <div style={panel} onClick={(e) => e.stopPropagation()}>
         <header style={header}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>{t('事件編輯器', 'Event Editor')}</div>
-            <div style={{ fontSize: '0.8rem', color: '#8a7050', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('事件編輯器', 'Event Editor')}</div>
+            <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>
               {lang === 'en' ? scenario.name.en : scenario.name.zh} · {t('自製事件於遊戲中觸發', 'Authored events fire during play')}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
 
         <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1 }}>
@@ -112,10 +112,10 @@ export function EventEditorModal({ scenario, onClose }: Props) {
             <div style={{ marginBottom: '1rem' }}>
               <div style={sectionLabel}>{t('已建事件', 'Your Events')} ({customEvents.length})</div>
               {customEvents.map((e) => (
-                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem', background: '#1a1410', border: '1px solid #4a3520', marginTop: '0.3rem' }}>
+                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem', background: '#10161e', border: '1px solid #2b3845', marginTop: '0.3rem' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ color: '#d4a84a' }}>{lang === 'en' ? e.name.en : e.name.zh}</span>
-                    <span style={{ fontSize: '0.72rem', color: '#8a7050', marginLeft: '0.5rem' }}>
+                    <span style={{ color: '#e6c473' }}>{lang === 'en' ? e.name.en : e.name.zh}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#7a8893', marginLeft: '0.5rem' }}>
                       {e.yearMin}–{e.yearMax} · {e.effects.length} {t('效果', 'effects')}
                     </span>
                   </div>
@@ -134,7 +134,7 @@ export function EventEditorModal({ scenario, onClose }: Props) {
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.78rem', color: '#a08c6a' }}>{t('年份', 'Years')}</span>
             <input style={{ ...inp, width: 80 }} type="number" value={yearMin} onChange={(e) => setYearMin(Number(e.target.value))} />
-            <span style={{ color: '#8a7050' }}>–</span>
+            <span style={{ color: '#7a8893' }}>–</span>
             <input style={{ ...inp, width: 80 }} type="number" value={yearMax} onChange={(e) => setYearMax(Number(e.target.value))} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.8rem' }}>
@@ -143,7 +143,7 @@ export function EventEditorModal({ scenario, onClose }: Props) {
           </div>
 
           {/* Effect builder */}
-          <div style={{ border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)', padding: '0.6rem', marginBottom: '0.6rem' }}>
+          <div style={{ border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)', padding: '0.6rem', marginBottom: '0.6rem' }}>
             <div style={{ fontSize: '0.76rem', color: '#a08c6a', marginBottom: '0.4rem' }}>{t('加入效果', 'Add an effect')}</div>
             <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <select style={sel} value={efKind} onChange={(e) => setEfKind(e.target.value as EffectKind)}>
@@ -173,7 +173,7 @@ export function EventEditorModal({ scenario, onClose }: Props) {
             {effects.length > 0 && (
               <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {effects.map((e, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: '#c0a878' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: '#aab6c0' }}>
                     <span style={{ color: '#7ed68a' }}>•</span>
                     <span style={{ flex: 1 }}>{describeEffect(e)}</span>
                     <button style={miniBtn} onClick={() => setEffects((xs) => xs.filter((_, j) => j !== i))}>✕</button>
@@ -194,12 +194,12 @@ export function EventEditorModal({ scenario, onClose }: Props) {
 }
 
 const overlay: CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' };
-const panel: CSSProperties = { background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530', width: 'min(720px,100%)', maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif' };
-const header: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520' };
-const sectionLabel: CSSProperties = { fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#8a7050', textTransform: 'uppercase', marginBottom: '0.4rem' };
-const inp: CSSProperties = { background: '#14100c', border: '1px solid #4a3520', color: '#e8d9b0', padding: '0.35rem 0.5rem', fontFamily: 'inherit', fontSize: '0.82rem' };
+const panel: CSSProperties = { background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: 'min(720px,100%)', maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif' };
+const header: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845' };
+const sectionLabel: CSSProperties = { fontSize: '0.7rem', letterSpacing: '0.2rem', color: '#7a8893', textTransform: 'uppercase', marginBottom: '0.4rem' };
+const inp: CSSProperties = { background: '#14100c', border: '1px solid #2b3845', color: '#e6edf3', padding: '0.35rem 0.5rem', fontFamily: 'inherit', fontSize: '0.82rem' };
 const sel: CSSProperties = { ...inp };
-const miniBtn: CSSProperties = { background: '#3a2818', border: '1px solid #4a3520', color: '#d4a84a', padding: '0.15rem 0.5rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem' };
+const miniBtn: CSSProperties = { background: '#1e2832', border: '1px solid #2b3845', color: '#e6c473', padding: '0.15rem 0.5rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem' };
 function btn(enabled: boolean): CSSProperties {
-  return { background: enabled ? '#3a2818' : 'transparent', border: '1px solid #d4a84a', color: enabled ? '#d4a84a' : '#6a5238', padding: '0.35rem 0.7rem', cursor: enabled ? 'pointer' : 'not-allowed', fontFamily: 'inherit', fontSize: '0.82rem' };
+  return { background: enabled ? '#1e2832' : 'transparent', border: '1px solid #e6c473', color: enabled ? '#e6c473' : '#6a5238', padding: '0.35rem 0.7rem', cursor: enabled ? 'pointer' : 'not-allowed', fontFamily: 'inherit', fontSize: '0.82rem' };
 }

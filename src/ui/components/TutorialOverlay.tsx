@@ -69,11 +69,11 @@ export function TutorialOverlay() {
         bottom: 20,
         right: 20,
         zIndex: 980,
-        background: 'linear-gradient(160deg,#2a1f15 0%,#1a1410 100%)',
-        border: '2px solid #d4a84a',
+        background: 'linear-gradient(160deg,#1b2531 0%,#10161e 100%)',
+        border: '2px solid #e6c473',
         width: 'min(400px, 92vw)',
         padding: '1rem 1.25rem',
-        color: '#e8d9b0',
+        color: '#e6edf3',
         fontFamily: '"Songti SC","Noto Serif SC",serif',
         boxShadow: '0 0 24px rgba(212, 168, 74, 0.35)',
       }}
@@ -82,30 +82,30 @@ export function TutorialOverlay() {
         style={{
           fontSize: '0.65rem',
           letterSpacing: '0.3rem',
-          color: '#c19a3b',
+          color: '#c9a64e',
           textTransform: 'uppercase',
           marginBottom: '0.3rem',
         }}
       >
         {t('教學', 'Tutorial')} {safeStep + 1} / {TUTORIAL_STEPS.length}
       </div>
-      <div style={{ fontSize: '1.2rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
+      <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
         {lang === 'en' ? cur.titleEn : cur.titleZh}
       </div>
       {lang === 'both' && (
-        <div style={{ fontSize: '0.78rem', color: '#8a7050', fontStyle: 'italic', marginBottom: '0.5rem' }}>
+        <div style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic', marginBottom: '0.5rem' }}>
           {cur.titleEn}
         </div>
       )}
-      <hr style={{ border: 'none', height: 1, background: '#4a3520', margin: '0.5rem 0' }} />
-      <div style={{ fontSize: '0.88rem', lineHeight: 1.7, color: '#d4a84a' }}>
+      <hr style={{ border: 'none', height: 1, background: '#2b3845', margin: '0.5rem 0' }} />
+      <div style={{ fontSize: '0.88rem', lineHeight: 1.7, color: '#e6c473' }}>
         {lang === 'en' ? cur.bodyEn : cur.bodyZh}
       </div>
       {lang === 'both' && (
         <div
           style={{
             fontSize: '0.78rem',
-            color: '#c0a878',
+            color: '#aab6c0',
             fontStyle: 'italic',
             marginTop: '0.4rem',
             lineHeight: 1.5,
@@ -119,8 +119,8 @@ export function TutorialOverlay() {
           onClick={() => setStep(null)}
           style={{
             background: 'none',
-            border: '1px solid #5a4530',
-            color: '#8a7050',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+            color: '#7a8893',
             padding: '0.35rem 0.8rem',
             fontFamily: 'inherit',
             cursor: 'pointer',
@@ -135,9 +135,9 @@ export function TutorialOverlay() {
             else setStep(safeStep + 1);
           }}
           style={{
-            background: '#3a2d20',
-            border: '1px solid #d4a84a',
-            color: '#d4a84a',
+            background: '#26323e',
+            border: '1px solid #e6c473',
+            color: '#e6c473',
             padding: '0.35rem 1rem',
             fontFamily: 'inherit',
             cursor: 'pointer',

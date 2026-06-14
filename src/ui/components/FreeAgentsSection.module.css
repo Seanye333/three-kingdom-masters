@@ -21,7 +21,7 @@
 }
 
 .row {
-  background: #1a1410;
+  background: #10161e;
   border: 1px solid #3a5a7d;
   padding: 0.5rem 0.65rem;
   display: flex;
@@ -38,12 +38,12 @@
 
 .nameZh {
   font-size: 0.95rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .nameEn {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .courtesy {
@@ -54,7 +54,7 @@
   grid-column: 1 / -1;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .actions {
@@ -64,7 +64,7 @@
 
 .recruitBtn {
   flex: 1;
-  background: #1a1410;
+  background: #10161e;
   color: #88b7e8;
   border: 1px solid #3a7dd9;
   padding: 0.3rem 0.5rem;

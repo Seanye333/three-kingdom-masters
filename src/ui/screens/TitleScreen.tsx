@@ -190,14 +190,14 @@ export function TitleScreen() {
   ];
 
   const whatIfBadge: CSSProperties = {
-    marginLeft: 'auto', background: '#3a2d20', color: '#c178c7',
+    marginLeft: 'auto', background: '#26323e', color: '#c178c7',
     border: '1px solid #c178c7', padding: '0.08rem 0.4rem',
     fontSize: '0.6rem', letterSpacing: '0.15rem', borderRadius: 2,
   };
   const navPrimary = (enabled: boolean): CSSProperties => ({
-    borderColor: enabled ? '#d4a84a' : '#4a3520',
-    color: enabled ? '#d4a84a' : '#6a5238',
-    background: enabled ? '#3a2818' : 'transparent',
+    borderColor: enabled ? '#e6c473' : '#2b3845',
+    color: enabled ? '#e6c473' : '#6a5238',
+    background: enabled ? '#1e2832' : 'transparent',
     fontWeight: 'bold',
   });
 
@@ -207,7 +207,7 @@ export function TitleScreen() {
       <WhatsNewModal />
       {boardDate && <LeaderboardModal date={boardDate} onClose={() => setBoardDate(null)} />}
       {/* 版本號 — bottom corner, quiet */}
-      <div style={{ position: 'fixed', right: 10, bottom: 6, zIndex: 5, fontSize: '0.62rem', color: '#6a5a45', fontFamily: 'ui-monospace, monospace' }}>
+      <div style={{ position: 'fixed', right: 10, bottom: 6, zIndex: 5, fontSize: '0.62rem', color: '#5f6c76', fontFamily: 'ui-monospace, monospace' }}>
         v{GAME_VERSION}
       </div>
       <header className={styles.header}>
@@ -219,7 +219,7 @@ export function TitleScreen() {
             viewBox="0 0 300 80"
             style={{ display: 'block', margin: '0.5rem auto 0', maxWidth: 300, opacity: 0.85 }}
             fill="none"
-            stroke="#d4a84a"
+            stroke="#e6c473"
             strokeWidth="3"
             strokeLinecap="round"
           >
@@ -243,16 +243,16 @@ export function TitleScreen() {
                   }}
                   style={{
                     padding: '0.25rem 0.8rem',
-                    border: `1px solid ${on ? '#d4a84a' : done ? '#8a7050' : '#4a3520'}`,
-                    background: on ? '#3a2818' : 'transparent',
-                    color: on ? '#d4a84a' : done ? '#a08c6a' : '#6a5238',
+                    border: `1px solid ${on ? '#e6c473' : done ? '#7a8893' : '#2b3845'}`,
+                    background: on ? '#1e2832' : 'transparent',
+                    color: on ? '#e6c473' : done ? '#a08c6a' : '#6a5238',
                     fontFamily: 'inherit', fontSize: '0.82rem', letterSpacing: '0.1rem',
                     cursor: i <= STEPS.findIndex((x) => x.k === step) ? 'pointer' : 'default',
                   }}
                 >
                   {s.n} {lang === 'en' ? s.en : s.zh}
                 </button>
-                {i < STEPS.length - 1 && <span style={{ color: '#4a3520' }}>→</span>}
+                {i < STEPS.length - 1 && <span style={{ color: '#2b3845' }}>→</span>}
               </div>
             );
           })}
@@ -295,24 +295,24 @@ export function TitleScreen() {
                 padding: '0.45rem 0.8rem', marginBottom: '0.7rem', fontSize: '0.82rem',
               }}>
                 <span style={{ color: '#ff9080', letterSpacing: '0.15rem' }}>🔥 {t('每日挑戰', 'Daily')} {todayStr}</span>
-                <span style={{ color: '#e8d9b0' }}>
+                <span style={{ color: '#e6edf3' }}>
                   {lang === 'en' ? dailyScenario.name.en : dailyScenario.name.zh} · {lang === 'en' ? dailyForce.name.en : dailyForce.name.zh}
                 </span>
-                <span style={{ color: '#8a7050', fontSize: '0.7rem' }}>
+                <span style={{ color: '#7a8893', fontSize: '0.7rem' }}>
                   {daily.modifiers.map((m) => (lang === 'en' ? m.en : m.zh)).join(' / ')}
                 </span>
                 {dailyResult && (
                   <button
                     onClick={() => navigator.clipboard?.writeText(dailyShareString(daily, dailyForce.name.zh, dailyResult)).catch(() => undefined)}
                     style={{
-                      background: 'transparent', border: '1px solid #5a4530', color: '#c0a878',
+                      background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#aab6c0',
                       padding: '0.2rem 0.6rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.72rem',
                     }}
                     title={t('複製戰績', 'Copy result')}
                   >{dailyResult.victory ? `🏆 ${dailyResult.seasons}旬` : '☠'} {t('複製', 'Copy')}</button>
                 )}
                 {streak > 0 && (
-                  <span style={{ color: '#f0d98a', fontSize: '0.72rem' }} title={t('連勝天數', 'Win streak')}>
+                  <span style={{ color: '#f2dd9a', fontSize: '0.72rem' }} title={t('連勝天數', 'Win streak')}>
                     🔥×{streak}
                   </span>
                 )}
@@ -328,14 +328,14 @@ export function TitleScreen() {
                   onClick={() => setBoardDate(todayStr)}
                   title={t('每日排行榜', 'Daily leaderboard')}
                   style={{
-                    background: 'transparent', border: '1px solid #d4a84a', color: '#f0d98a',
+                    background: 'transparent', border: '1px solid #e6c473', color: '#f2dd9a',
                     padding: '0.3rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >🏆</button>
                 {/* 補打日曆 — the last seven days, replayable; older days
                     show their result but the window has closed. */}
                 <div style={{ flexBasis: '100%', display: 'flex', gap: 4, alignItems: 'center', marginTop: 2 }}>
-                  <span style={{ fontSize: '0.62rem', color: '#8a7050' }}>{t('近七日', 'Last 7')}</span>
+                  <span style={{ fontSize: '0.62rem', color: '#7a8893' }}>{t('近七日', 'Last 7')}</span>
                   {recent.map((d) => {
                     const r = allResults[d];
                     const isToday = d === todayStr;
@@ -348,8 +348,8 @@ export function TitleScreen() {
                           width: 26, height: 22, cursor: 'pointer', fontSize: '0.62rem',
                           fontFamily: 'ui-monospace, monospace',
                           background: r ? (r.victory ? 'rgba(212,168,74,0.3)' : 'rgba(184,68,46,0.25)') : 'transparent',
-                          border: `1px solid ${isToday ? '#ff9080' : r ? (r.victory ? '#d4a84a' : '#8a4538') : '#3a2d20'}`,
-                          color: r ? (r.victory ? '#f0d98a' : '#c08070') : '#6a5a45',
+                          border: `1px solid ${isToday ? '#ff9080' : r ? (r.victory ? '#e6c473' : '#8a4538') : '#26323e'}`,
+                          color: r ? (r.victory ? '#f2dd9a' : '#c08070') : '#5f6c76',
                         }}
                       >{Number(d.slice(8))}</button>
                     );
@@ -368,9 +368,9 @@ export function TitleScreen() {
                     onClick={() => setActiveEra(e.id)}
                     style={{
                       padding: '0.35rem 0.85rem',
-                      border: `1px solid ${on ? '#d4a84a' : '#4a3520'}`,
-                      background: on ? '#3a2818' : 'transparent',
-                      color: on ? '#d4a84a' : '#8a7050',
+                      border: `1px solid ${on ? '#e6c473' : '#2b3845'}`,
+                      background: on ? '#1e2832' : 'transparent',
+                      color: on ? '#e6c473' : '#7a8893',
                       cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.85rem',
                     }}
                   >
@@ -403,7 +403,7 @@ export function TitleScreen() {
               {/* Right — description + territory preview for the highlighted scenario */}
               <div style={{ flex: '1 1 0', minWidth: 0 }}>
                 <p className={styles.scenarioDesc} style={{ marginTop: 0 }}>{desc(scenario)}</p>
-                <div style={{ fontSize: '0.78rem', color: '#8a7050', marginBottom: '0.5rem' }}>
+                <div style={{ fontSize: '0.78rem', color: '#7a8893', marginBottom: '0.5rem' }}>
                   {startYear} AD · {scenario.forces.length} {t('勢力', 'forces')}
                 </div>
                 <MiniMap scenario={scenario} labelCapitals />
@@ -436,7 +436,7 @@ export function TitleScreen() {
             </button>
 
             {/* Secondary tools (encyclopaedia / load / random / custom) */}
-            <div style={{ marginTop: '1rem', borderTop: '1px solid #3a2818', paddingTop: '0.7rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+            <div style={{ marginTop: '1rem', borderTop: '1px solid #1e2832', paddingTop: '0.7rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
               <button className={styles.officersButton} onClick={() => setShowLoad(true)}>{t('載入存檔', 'Load Game')}</button>
               <button
                 className={styles.officersButton}
@@ -494,7 +494,7 @@ export function TitleScreen() {
                 })}
               </ul>
               {/* Right — clickable territory map + force detail */}
-              <div style={{ flex: '1 1 0', minWidth: 0, border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)', padding: '1rem', minHeight: 340 }}>
+              <div style={{ flex: '1 1 0', minWidth: 0, border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)', padding: '1rem', minHeight: 340 }}>
                 <MiniMap scenario={scenario} highlightForceId={selectedForceId} labelCapitals onSelectForce={setSelectedForceId} />
                 {selectedForce && selectedRuler ? (() => {
                   const st = forceStats(selectedForce.id);
@@ -503,11 +503,11 @@ export function TitleScreen() {
                     .slice(0, 6);
                   const strength = st.cities >= 8 ? t('強', 'Strong') : st.cities >= 3 ? t('中', 'Moderate') : t('弱（高難度）', 'Weak (hard)');
                   return (
-                    <div style={{ marginTop: '0.8rem', borderTop: '1px solid #3a2818', paddingTop: '0.7rem' }}>
+                    <div style={{ marginTop: '0.8rem', borderTop: '1px solid #1e2832', paddingTop: '0.7rem' }}>
                       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
                         <OfficerPortrait officer={selectedRuler} size={72} forceColor={selectedForce.color} year={startYear} />
                         <div>
-                          <div style={{ fontSize: '1.1rem', color: '#d4a84a' }}>{lang === 'en' ? selectedForce.name.en : selectedForce.name.zh}</div>
+                          <div style={{ fontSize: '1.1rem', color: '#e6c473' }}>{lang === 'en' ? selectedForce.name.en : selectedForce.name.zh}</div>
                           <div style={{ fontSize: '0.85rem', color: '#a08c6a' }}>
                             {lang === 'en' ? selectedRuler.name.en : selectedRuler.name.zh}
                             {selectedRuler.courtesyName && (
@@ -519,21 +519,21 @@ export function TitleScreen() {
                       {/* ruler abilities */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.3rem', margin: '0.8rem 0', textAlign: 'center', fontSize: '0.75rem' }}>
                         {([['統', selectedRuler.stats.leadership], ['武', selectedRuler.stats.war], ['智', selectedRuler.stats.intelligence], ['政', selectedRuler.stats.politics], ['魅', selectedRuler.stats.charisma]] as const).map(([k, v]) => (
-                          <div key={k}><div style={{ color: '#8a7050' }}>{k}</div><div style={{ color: '#d4a84a', fontSize: '0.95rem' }}>{v}</div></div>
+                          <div key={k}><div style={{ color: '#7a8893' }}>{k}</div><div style={{ color: '#e6c473', fontSize: '0.95rem' }}>{v}</div></div>
                         ))}
                       </div>
                       {/* force data */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem 1rem', fontSize: '0.78rem', color: '#a08c6a', borderTop: '1px solid #3a2818', paddingTop: '0.6rem' }}>
-                        <div>{t('城池', 'Cities')}: <b style={{ color: '#d4a84a' }}>{st.cities}</b></div>
-                        <div>{t('武將', 'Officers')}: <b style={{ color: '#d4a84a' }}>{st.officers.length}</b></div>
-                        <div>{t('兵力', 'Troops')}: <b style={{ color: '#d4a84a' }}>{st.troops.toLocaleString()}</b></div>
-                        <div>{t('資金', 'Gold')}: <b style={{ color: '#d4a84a' }}>{st.gold.toLocaleString()}</b></div>
-                        <div>{t('兵糧', 'Food')}: <b style={{ color: '#d4a84a' }}>{st.food.toLocaleString()}</b></div>
-                        <div>{t('勢力', 'Strength')}: <b style={{ color: '#d4a84a' }}>{strength}</b></div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem 1rem', fontSize: '0.78rem', color: '#a08c6a', borderTop: '1px solid #1e2832', paddingTop: '0.6rem' }}>
+                        <div>{t('城池', 'Cities')}: <b style={{ color: '#e6c473' }}>{st.cities}</b></div>
+                        <div>{t('武將', 'Officers')}: <b style={{ color: '#e6c473' }}>{st.officers.length}</b></div>
+                        <div>{t('兵力', 'Troops')}: <b style={{ color: '#e6c473' }}>{st.troops.toLocaleString()}</b></div>
+                        <div>{t('資金', 'Gold')}: <b style={{ color: '#e6c473' }}>{st.gold.toLocaleString()}</b></div>
+                        <div>{t('兵糧', 'Food')}: <b style={{ color: '#e6c473' }}>{st.food.toLocaleString()}</b></div>
+                        <div>{t('勢力', 'Strength')}: <b style={{ color: '#e6c473' }}>{strength}</b></div>
                       </div>
                       {/* notable officers */}
-                      <div style={{ marginTop: '0.7rem', borderTop: '1px solid #3a2818', paddingTop: '0.6rem' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#8a7050', marginBottom: '0.4rem' }}>{t('主要武將', 'Notable Officers')}</div>
+                      <div style={{ marginTop: '0.7rem', borderTop: '1px solid #1e2832', paddingTop: '0.6rem' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#7a8893', marginBottom: '0.4rem' }}>{t('主要武將', 'Notable Officers')}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                           {top.map((o) => (
                             <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#a08c6a' }}>
@@ -572,21 +572,21 @@ export function TitleScreen() {
         {step === 'options' && (
           <section className={styles.scenarioCard} style={{ width: 'min(720px, 94vw)', maxWidth: 'none' }}>
             <div style={{ textAlign: 'center', marginBottom: '0.6rem' }}>
-              <div style={{ fontSize: '1.05rem', color: '#d4a84a' }}>{lang === 'en' ? scenario.name.en : scenario.name.zh}</div>
-              <div style={{ fontSize: '0.74rem', color: '#8a7050' }}>{startYear} AD</div>
+              <div style={{ fontSize: '1.05rem', color: '#e6c473' }}>{lang === 'en' ? scenario.name.en : scenario.name.zh}</div>
+              <div style={{ fontSize: '0.74rem', color: '#7a8893' }}>{startYear} AD</div>
             </div>
             {selectedForce && selectedRuler && (() => {
               const st = forceStats(selectedForce.id);
               return (
-                <div style={{ display: 'flex', gap: '0.9rem', alignItems: 'center', border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)', padding: '0.7rem', marginBottom: '0.9rem' }}>
+                <div style={{ display: 'flex', gap: '0.9rem', alignItems: 'center', border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)', padding: '0.7rem', marginBottom: '0.9rem' }}>
                   <OfficerPortrait officer={selectedRuler} size={64} forceColor={selectedForce.color} year={startYear} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '1rem', color: '#d4a84a', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '1rem', color: '#e6c473', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                       <span style={{ width: 10, height: 10, borderRadius: '50%', background: selectedForce.color }} />
                       {lang === 'en' ? selectedForce.name.en : selectedForce.name.zh}
                       <span style={{ color: '#a08c6a', fontSize: '0.85rem' }}>{lang === 'en' ? selectedRuler.name.en : selectedRuler.name.zh}</span>
                     </div>
-                    <div style={{ fontSize: '0.73rem', color: '#8a7050', margin: '0.3rem 0' }}>
+                    <div style={{ fontSize: '0.73rem', color: '#7a8893', margin: '0.3rem 0' }}>
                       統{selectedRuler.stats.leadership} 武{selectedRuler.stats.war} 智{selectedRuler.stats.intelligence} 政{selectedRuler.stats.politics} 魅{selectedRuler.stats.charisma}
                     </div>
                     <div style={{ fontSize: '0.76rem', color: '#a08c6a' }}>
@@ -619,19 +619,19 @@ export function TitleScreen() {
             </p>
 
             {/* Game modes */}
-            <label style={{ display: 'block', marginTop: '0.6rem', fontSize: '0.78rem', color: '#8a7050', cursor: 'pointer' }}>
+            <label style={{ display: 'block', marginTop: '0.6rem', fontSize: '0.78rem', color: '#7a8893', cursor: 'pointer' }}>
               <input type="checkbox" checked={hotSeatMode} onChange={(e) => setHotSeatMode(e.target.checked)} style={{ marginRight: '0.4rem' }} />
               {t('輪流模式（多人共用鍵盤）', 'Hot-seat (players share keyboard)')}
             </label>
-            <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#8a7050', cursor: 'pointer' }}>
+            <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#7a8893', cursor: 'pointer' }}>
               <input type="checkbox" checked={careerMode} onChange={(e) => setCareerMode(e.target.checked)} style={{ marginRight: '0.4rem' }} />
               {t('一代記模式（選擇一位武將為主角）', 'Chronicle mode (pick one officer as your avatar)')}
             </label>
-            <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#8a7050', cursor: 'pointer' }}>
+            <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#7a8893', cursor: 'pointer' }}>
               <input type="checkbox" checked={romance} onChange={(e) => { setRomance(e.target.checked); setRomanceMode(e.target.checked); }} style={{ marginRight: '0.4rem' }} />
               {t('演義模式（歷史事件按時觸發）', 'Romance mode (historical events fire on schedule)')}
             </label>
-            <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#8a7050', cursor: 'pointer' }}>
+            <label style={{ display: 'block', marginTop: '0.3rem', fontSize: '0.78rem', color: '#7a8893', cursor: 'pointer' }}>
               <input type="checkbox" checked={roguelike} onChange={(e) => { setRoguelike(e.target.checked); setRoguelikeMode(e.target.checked); }} style={{ marginRight: '0.4rem' }} disabled={!careerMode} />
               {t('Roguelike 模式（主角陣亡即遊戲結束；需開啟一代記）', 'Roguelike (chronicle officer death = game over; requires Chronicle mode)')}
             </label>
@@ -642,19 +642,19 @@ export function TitleScreen() {
               onClick={() => setShowDynasties((v) => !v)}
               style={{
                 display: 'block', width: '100%', marginTop: '0.6rem',
-                background: enabledDynasties.length > 0 ? '#3a2818' : 'transparent',
-                border: '1px solid #4a3520', color: enabledDynasties.length > 0 ? '#d4a84a' : '#8a7050',
+                background: enabledDynasties.length > 0 ? '#1e2832' : 'transparent',
+                border: '1px solid #2b3845', color: enabledDynasties.length > 0 ? '#e6c473' : '#7a8893',
                 padding: '0.35rem 0.6rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', textAlign: 'left',
               }}
             >
               {showDynasties ? '▾' : '▸'} {t('歷代名將', 'Historical Officers')}
               {enabledDynasties.length > 0 && (
-                <span style={{ float: 'right', color: '#d4a84a' }}>{enabledDynasties.length} {t('朝', 'dyn.')}</span>
+                <span style={{ float: 'right', color: '#e6c473' }}>{enabledDynasties.length} {t('朝', 'dyn.')}</span>
               )}
             </button>
             {showDynasties && (
-              <div style={{ marginTop: '0.4rem', padding: '0.5rem', border: '1px solid #4a3520', background: 'rgba(20,16,12,0.5)' }}>
-                <div style={{ fontSize: '0.7rem', color: '#8a7050', marginBottom: '0.4rem' }}>
+              <div style={{ marginTop: '0.4rem', padding: '0.5rem', border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)' }}>
+                <div style={{ fontSize: '0.7rem', color: '#7a8893', marginBottom: '0.4rem' }}>
                   {t(
                     '勾選後，對應朝代的名將以「未發現」狀態加入劇本，依出生地隱於各城，需「搜索人才」尋得。',
                     'Selected dynasties join as unsearched free agents at their hometown cities — use Search for Talent to discover them.',
@@ -673,8 +673,8 @@ export function TitleScreen() {
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer',
                           padding: '0.2rem 0.4rem', background: on ? 'rgba(212,168,74,0.08)' : 'transparent',
-                          border: `1px solid ${on ? '#5a4530' : 'transparent'}`, fontSize: '0.75rem',
-                          color: on ? '#d4a84a' : '#a08c6a',
+                          border: `1px solid ${on ? '#364654' : 'transparent'}`, fontSize: '0.75rem',
+                          color: on ? '#e6c473' : '#a08c6a',
                         }}
                       >
                         <input type="checkbox" checked={on} onChange={() => toggleDynasty(d.id)} />
@@ -756,8 +756,8 @@ export function TitleScreen() {
         title="設定 / Settings"
         style={{
           position: 'fixed', top: 16, right: 16, width: 44, height: 44,
-          background: 'rgba(20, 14, 8, 0.85)', border: '1px solid #d4a84a',
-          color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer',
+          background: 'rgba(20, 14, 8, 0.85)', border: '1px solid #e6c473',
+          color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer',
           fontFamily: 'serif', boxShadow: '0 0 8px rgba(0,0,0,0.6)', zIndex: 50,
         }}
       >⚙</button>
@@ -767,9 +767,9 @@ export function TitleScreen() {
 
 function miniBtn(disabled: boolean): CSSProperties {
   return {
-    background: '#3a2818',
-    border: '1px solid #4a3520',
-    color: disabled ? '#6a5238' : '#d4a84a',
+    background: '#1e2832',
+    border: '1px solid #2b3845',
+    color: disabled ? '#6a5238' : '#e6c473',
     padding: '0.15rem 0.5rem',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontFamily: 'inherit',
@@ -791,7 +791,7 @@ function MiniMap({ scenario, highlightForceId, labelCapitals, onSelectForce }: {
     <svg
       viewBox="110 150 790 570"
       preserveAspectRatio="xMidYMid meet"
-      style={{ width: '100%', height: 'auto', display: 'block', background: '#14100c', border: '1px solid #3a2818', borderRadius: 4 }}
+      style={{ width: '100%', height: 'auto', display: 'block', background: '#14100c', border: '1px solid #1e2832', borderRadius: 4 }}
     >
       {/* Schematic rivers — the Yellow (north) and Yangtze (south) */}
       <path d="M 150 380 Q 330 300 500 322 Q 660 342 808 306" stroke="#33424f" strokeWidth={5} fill="none" opacity={0.5} strokeLinecap="round" />
@@ -823,7 +823,7 @@ function MiniMap({ scenario, highlightForceId, labelCapitals, onSelectForce }: {
             cx={c.coords.x} cy={c.coords.y}
             r={isHover ? baseR + 3 : hl ? baseR + 2 : baseR}
             fill={colorOf(c.ownerForceId)}
-            stroke={isHover ? '#ffffff' : hl ? '#fff5e0' : '#1a1410'}
+            stroke={isHover ? '#ffffff' : hl ? '#fff5e0' : '#10161e'}
             strokeWidth={isHover ? 2 : hl ? 1.6 : 0.8}
             opacity={dim && !isHover ? 0.4 : 1}
             style={{ cursor: 'pointer' }}
@@ -857,8 +857,8 @@ function MiniMap({ scenario, highlightForceId, labelCapitals, onSelectForce }: {
         const tx = left ? -206 : 14;
         return (
           <g transform={`translate(${hc.coords.x}, ${hc.coords.y})`} pointerEvents="none">
-            <rect x={tx} y={-36} width={192} height={50} rx={3} fill="#1a1410" stroke={colorOf(hc.ownerForceId)} strokeWidth={1.5} />
-            <text x={tx + 11} y={-15} fontSize={18} fill="#d4a84a" style={{ fontWeight: 'bold' }}>{hc.name.zh}</text>
+            <rect x={tx} y={-36} width={192} height={50} rx={3} fill="#10161e" stroke={colorOf(hc.ownerForceId)} strokeWidth={1.5} />
+            <text x={tx + 11} y={-15} fontSize={18} fill="#e6c473" style={{ fontWeight: 'bold' }}>{hc.name.zh}</text>
             <text x={tx + 11} y={6} fontSize={14} fill="#a08c6a">
               {forceName(hc.ownerForceId)} · {hc.troops.toLocaleString()}{hc.ownerForceId ? ' 兵' : ''}
             </text>

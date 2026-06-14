@@ -142,8 +142,8 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
                 <div className={styles.sectionLabel}>名場面 Highlights</div>
                 {moments.map((m, i) => (
                   <div key={i} style={{
-                    color: '#f0d98a', fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
-                    padding: '2px 0', borderLeft: '2px solid #d4a84a', paddingLeft: 8, margin: '3px 0',
+                    color: '#f2dd9a', fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+                    padding: '2px 0', borderLeft: '2px solid #e6c473', paddingLeft: 8, margin: '3px 0',
                   }}>{m}</div>
                 ))}
               </div>
@@ -225,9 +225,9 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
               {battle.log.slice(-10).map((entry, i) => {
                 const speaker = entry.speaker ? officers[entry.speaker] : null;
                 return (
-                  <div key={i} className={styles.officerCard} style={{ borderColor: '#3a2d20' }}>
+                  <div key={i} className={styles.officerCard} style={{ borderColor: '#26323e' }}>
                     <div style={{ fontSize: '0.78rem' }}>
-                      <span style={{ color: '#8a7050' }}>T{entry.turn} </span>
+                      <span style={{ color: '#7a8893' }}>T{entry.turn} </span>
                       {speaker && (
                         <span className={styles.officerName}>{speaker.name.zh}: </span>
                       )}
@@ -241,7 +241,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
         </div>
 
         <div className={styles.footer}>
-          <span style={{ fontSize: '0.78rem', color: '#8a7050' }}>
+          <span style={{ fontSize: '0.78rem', color: '#7a8893' }}>
             {won ? 'Spoils & captives applied to the strategic map.' : 'Your forces retreat to lick their wounds.'}
           </span>
           <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={onClose}>

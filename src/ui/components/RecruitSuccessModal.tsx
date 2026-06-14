@@ -15,7 +15,7 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
   const forces = useGameStore((s) => s.forces);
   const year = useGameStore((s) => s.date.year);
   const force = officer.forceId ? forces[officer.forceId] : null;
-  const accent = force?.color ?? '#d4a84a';
+  const accent = force?.color ?? '#e6c473';
 
   const stats: Array<[string, number, string]> = [
     ['統', officer.stats.leadership, 'LDR'],
@@ -36,14 +36,14 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
         style={{
           background: 'linear-gradient(165deg,#2e2417,#15100a)', border: `1px solid ${accent}`,
           width: 'min(380px,100%)', padding: '1.2rem 1.3rem', textAlign: 'center',
-          color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif',
+          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif',
           boxShadow: `0 0 30px ${accent}44`,
         }}
       >
         <div style={{ fontSize: '0.95rem', letterSpacing: '0.4rem', color: accent, marginBottom: '0.1rem' }}>
           🎉 {t('招攬成功', 'Recruited!')}
         </div>
-        <div style={{ fontSize: '0.72rem', color: '#8a7050', marginBottom: '0.8rem' }}>
+        <div style={{ fontSize: '0.72rem', color: '#7a8893', marginBottom: '0.8rem' }}>
           {force ? t(`${force.name.zh} 喜得一員`, `Joins ${force.name.en}`) : t('入我麾下', 'Joins your banner')}
         </div>
 
@@ -51,17 +51,17 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
           <OfficerPortrait officer={officer} size={96} forceColor={accent} year={year} />
         </div>
 
-        <div style={{ fontSize: '1.4rem', color: '#f0d98a' }}>
+        <div style={{ fontSize: '1.4rem', color: '#f2dd9a' }}>
           {officer.name.zh}
-          {officer.courtesyName && <span style={{ fontSize: '0.8rem', color: '#8a7050', marginLeft: 6 }}>字 {officer.courtesyName.zh}</span>}
+          {officer.courtesyName && <span style={{ fontSize: '0.8rem', color: '#7a8893', marginLeft: 6 }}>字 {officer.courtesyName.zh}</span>}
         </div>
-        <div style={{ fontSize: '0.78rem', color: '#a89070', fontStyle: 'italic', marginBottom: '0.7rem' }}>{officer.name.en}</div>
+        <div style={{ fontSize: '0.78rem', color: '#97a4ae', fontStyle: 'italic', marginBottom: '0.7rem' }}>{officer.name.en}</div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4, marginBottom: '0.7rem' }}>
           {stats.map(([zh, v, en]) => (
-            <div key={en} style={{ background: '#1a1410', border: '1px solid #3a2d20', padding: '0.35rem 0' }}>
-              <div style={{ fontSize: '0.62rem', color: '#8a7050' }}>{lang === 'en' ? en : zh}</div>
-              <div style={{ fontSize: '1.05rem', color: v === best ? accent : '#e8d9b0', fontWeight: v === best ? 700 : 400 }}>{v}</div>
+            <div key={en} style={{ background: '#10161e', border: '1px solid #26323e', padding: '0.35rem 0' }}>
+              <div style={{ fontSize: '0.62rem', color: '#7a8893' }}>{lang === 'en' ? en : zh}</div>
+              <div style={{ fontSize: '1.05rem', color: v === best ? accent : '#e6edf3', fontWeight: v === best ? 700 : 400 }}>{v}</div>
             </div>
           ))}
         </div>
@@ -86,7 +86,7 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
           style={{
             width: '100%', padding: '0.5rem', cursor: 'pointer',
             background: 'linear-gradient(180deg,#3a2d18,#2a1f10)', border: `1px solid ${accent}`,
-            color: '#f0d98a', fontFamily: 'inherit', letterSpacing: '0.3rem',
+            color: '#f2dd9a', fontFamily: 'inherit', letterSpacing: '0.3rem',
           }}
         >{t('善', 'Excellent')}</button>
       </div>

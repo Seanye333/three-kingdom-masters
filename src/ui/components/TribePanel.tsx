@@ -89,10 +89,10 @@ export function TribePanel({ tribeId, onClose }: Props) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#1a1410',
+          background: '#10161e',
           border: `2px solid ${color}`,
           padding: '1rem 1.2rem',
-          color: '#f0e0b0',
+          color: '#eef4f8',
           fontFamily: 'Songti SC, serif',
           minWidth: 360, maxWidth: 470,
           boxShadow: `0 0 16px ${color}`,
@@ -103,12 +103,12 @@ export function TribePanel({ tribeId, onClose }: Props) {
             <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>
               ⛺ {tribe.name.zh}
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#a89070' }}>
+            <div style={{ fontSize: '0.72rem', color: '#97a4ae' }}>
               {tribe.name.en} · {t('異族部落', 'Frontier Tribe')}
             </div>
           </div>
           <button onClick={onClose} style={{
-            background: 'transparent', border: 'none', color: '#a89070',
+            background: 'transparent', border: 'none', color: '#97a4ae',
             fontSize: '1.4rem', cursor: 'pointer', padding: 0,
           }}>×</button>
         </header>
@@ -118,20 +118,20 @@ export function TribePanel({ tribeId, onClose }: Props) {
         </div>
 
         <div style={{ marginTop: '0.7rem', display: 'grid', gridTemplateColumns: '70px 1fr', gap: '0.3rem 0.5rem', fontSize: '0.85rem' }}>
-          <span style={{ color: '#8a7050' }}>{t('威脅', 'Threat')}</span>
+          <span style={{ color: '#7a8893' }}>{t('威脅', 'Threat')}</span>
           <span>
-            <div style={{ height: 8, background: '#3a2818', border: '1px solid #5a4530', position: 'relative', width: '100%' }}>
+            <div style={{ height: 8, background: '#1e2832', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', position: 'relative', width: '100%' }}>
               <div style={{
                 height: '100%', width: `${Math.round(threatPct * 100)}%`,
-                background: threatPct > 0.6 ? '#b8442e' : threatPct > 0.3 ? '#c19a3b' : '#7ed68a',
+                background: threatPct > 0.6 ? '#b8442e' : threatPct > 0.3 ? '#c9a64e' : '#7ed68a',
               }} />
             </div>
-            <span style={{ fontSize: '0.72rem', color: '#a89070' }}>
+            <span style={{ fontSize: '0.72rem', color: '#97a4ae' }}>
               {threatPct > 0.6 ? t('蠢蠢欲動', 'Restless') : threatPct > 0.3 ? t('時有寇邊', 'Probing') : t('暫且安分', 'Quiet')}
             </span>
           </span>
 
-          <span style={{ color: '#8a7050' }}>{t('寇邊', 'Raids')}</span>
+          <span style={{ color: '#7a8893' }}>{t('寇邊', 'Raids')}</span>
           <span style={{ fontSize: '0.78rem' }}>
             {tribe.raidableCityIds.map((id) => cities[id]?.name.zh ?? id).join(' · ')}
           </span>
@@ -154,7 +154,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
               }}
               style={{
                 width: '100%', padding: '0.3rem 0.5rem',
-                background: '#1a1410', color: '#f0e0b0', border: '1px solid #5a4530',
+                background: '#10161e', color: '#eef4f8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
                 fontFamily: 'Songti SC, serif', fontSize: '0.82rem', marginBottom: '0.4rem',
               }}
             >
@@ -182,8 +182,8 @@ export function TribePanel({ tribeId, onClose }: Props) {
             disabled={!reach.ok || candidates.length === 0 || !pickOfficer}
             title={reach.ok ? '' : (reach.reason ?? '')}
             style={{
-              background: '#3a1a1a', color: reach.ok ? '#ff8060' : '#a89070',
-              border: `1px solid ${reach.ok ? '#b8442e' : '#5a4530'}`,
+              background: '#3a1a1a', color: reach.ok ? '#ff8060' : '#97a4ae',
+              border: `1px solid ${reach.ok ? '#b8442e' : '#364654'}`,
               padding: '0.4rem 0.8rem', cursor: reach.ok ? 'pointer' : 'not-allowed',
               fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
               opacity: reach.ok ? 1 : 0.5,
@@ -194,8 +194,8 @@ export function TribePanel({ tribeId, onClose }: Props) {
             disabled={playerCapitalGold < 400}
             title={t('賜物招撫,降低威脅', 'Gifts to cool their aggression')}
             style={{
-              background: '#1a2a3a', color: '#d4a84a',
-              border: '1px solid #d4a84a',
+              background: '#1a2a3a', color: '#e6c473',
+              border: '1px solid #e6c473',
               padding: '0.4rem 0.8rem', cursor: playerCapitalGold < 400 ? 'not-allowed' : 'pointer',
               fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
               opacity: playerCapitalGold < 400 ? 0.4 : 1,

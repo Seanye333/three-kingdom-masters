@@ -77,22 +77,22 @@ export function PowerGraphModal({ onClose }: { onClose: () => void }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
-          width: 'min(640px,100%)', color: '#e8d9b0',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+          width: 'min(640px,100%)', color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.3rem',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-          <div style={{ fontSize: '1.2rem', color: '#d4a84a', letterSpacing: '0.25rem' }}>📈 {t('天下大勢', 'Balance of Power')}</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+          <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.25rem' }}>📈 {t('天下大勢', 'Balance of Power')}</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
         {history.length < 2 ? (
-          <div style={{ color: '#8a7050', fontSize: '0.85rem', padding: '1.5rem 0' }}>
+          <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1.5rem 0' }}>
             {t('史官尚在磨墨 — 過幾旬再來看曲線。', 'The historians are still grinding ink — give it a few seasons.')}
           </div>
         ) : (
           <>
-            <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ background: '#14100a', border: '1px solid #2a2014' }}>
+            <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ background: '#14100a', border: '1px solid #18212b' }}>
               {/* Frame + axis labels */}
               {[0.25, 0.5, 0.75].map((f) => (
                 <line key={f} x1={PAD} x2={W - PAD} y1={H - PAD - f * (H - PAD * 2)} y2={H - PAD - f * (H - PAD * 2)} stroke="#241c12" />
@@ -109,9 +109,9 @@ export function PowerGraphModal({ onClose }: { onClose: () => void }) {
               ))}
               {years && (
                 <>
-                  <text x={PAD} y={H - 10} fontSize={11} fill="#8a7050">{years[0]}年</text>
-                  <text x={W - PAD} y={H - 10} fontSize={11} fill="#8a7050" textAnchor="end">{years[1]}年</text>
-                  <text x={PAD} y={16} fontSize={10} fill="#6a5a45">{t('國力(城+兵+財)峰值', 'Power (cities+troops+gold), peak')} {Math.round(maxP / 1000)}k</text>
+                  <text x={PAD} y={H - 10} fontSize={11} fill="#7a8893">{years[0]}年</text>
+                  <text x={W - PAD} y={H - 10} fontSize={11} fill="#7a8893" textAnchor="end">{years[1]}年</text>
+                  <text x={PAD} y={16} fontSize={10} fill="#5f6c76">{t('國力(城+兵+財)峰值', 'Power (cities+troops+gold), peak')} {Math.round(maxP / 1000)}k</text>
                 </>
               )}
             </svg>
@@ -127,15 +127,15 @@ export function PowerGraphModal({ onClose }: { onClose: () => void }) {
 
         {/* 實時排行 + 統一進度 — who holds what, right now. */}
         {rows.length > 0 && (
-          <div style={{ marginTop: '0.8rem', borderTop: '1px solid #3a2c1c', paddingTop: '0.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#d4a84a', marginBottom: 4 }}>
+          <div style={{ marginTop: '0.8rem', borderTop: '1px solid #243240', paddingTop: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#e6c473', marginBottom: 4 }}>
               <span>🏯 {t('當世排行', 'Standings')}</span>
               <span title={t('已控城池 / 天下城池', 'cities held / total')}>
-                {t('統一', 'Unify')} {unif}% <span style={{ color: '#8a7050' }}>({rows.find((r) => r.fid === playerForceId)?.cities ?? 0}/{totalCities})</span>
+                {t('統一', 'Unify')} {unif}% <span style={{ color: '#7a8893' }}>({rows.find((r) => r.fid === playerForceId)?.cities ?? 0}/{totalCities})</span>
               </span>
             </div>
             <div style={{ height: 5, background: '#241c12', borderRadius: 3, marginBottom: 6, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${unif}%`, background: unif >= 50 ? '#7ed68a' : '#d4a84a' }} />
+              <div style={{ height: '100%', width: `${unif}%`, background: unif >= 50 ? '#7ed68a' : '#e6c473' }} />
             </div>
             <div style={{ maxHeight: 150, overflowY: 'auto', fontSize: '0.76rem' }}>
               {rows.slice(0, 12).map((r, i) => (
@@ -144,11 +144,11 @@ export function PowerGraphModal({ onClose }: { onClose: () => void }) {
                   background: r.fid === playerForceId ? 'rgba(212,168,74,0.14)' : 'transparent',
                   alignItems: 'baseline',
                 }}>
-                  <span style={{ color: '#8a7050' }}>{i + 1}.</span>
+                  <span style={{ color: '#7a8893' }}>{i + 1}.</span>
                   <span style={{ color: r.color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    ■ {r.name}{r.ruler ? <span style={{ color: '#a89070' }}> · {r.ruler}</span> : ''}{r.fid === playerForceId ? '(我)' : ''}
+                    ■ {r.name}{r.ruler ? <span style={{ color: '#97a4ae' }}> · {r.ruler}</span> : ''}{r.fid === playerForceId ? '(我)' : ''}
                   </span>
-                  <span style={{ color: '#c0a878', fontFamily: 'ui-monospace, monospace' }}>{r.cities}{t('城', '')}</span>
+                  <span style={{ color: '#aab6c0', fontFamily: 'ui-monospace, monospace' }}>{r.cities}{t('城', '')}</span>
                   <span style={{ color: '#9aa8b0', fontFamily: 'ui-monospace, monospace' }}>{Math.round(r.troops / 1000)}k{t('兵', '')}</span>
                 </div>
               ))}

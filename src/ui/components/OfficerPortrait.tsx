@@ -74,7 +74,7 @@ export function OfficerPortrait({
   faction,
 }: PortraitProps) {
   const arch = deriveArchetype(officer, year);
-  const accent = forceColor ?? '#d4a84a';
+  const accent = forceColor ?? '#e6c473';
   const factionAttr: Record<string, boolean> = {};
   if (faction) factionAttr[`data-faction-${faction}`] = true;
 
@@ -133,10 +133,10 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           <path d="M19,24 L13,16 L17,22 Z" fill={accent} />
           <path d="M45,24 L51,16 L47,22 Z" fill={accent} />
           {/* eyes */}
-          <rect x="25" y="27" width="3" height="2" fill="#1a1410" />
-          <rect x="36" y="27" width="3" height="2" fill="#1a1410" />
+          <rect x="25" y="27" width="3" height="2" fill="#10161e" />
+          <rect x="36" y="27" width="3" height="2" fill="#10161e" />
           {/* beard */}
-          <path d="M27,33 Q32,40 37,33 L37,36 Q32,42 27,36 Z" fill="#1a1410" opacity="0.7" />
+          <path d="M27,33 Q32,40 37,33 L37,36 Q32,42 27,36 Z" fill="#10161e" opacity="0.7" />
         </g>
       );
 
@@ -153,15 +153,15 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           {/* face — slightly longer */}
           <ellipse cx="32" cy="26" rx="10" ry="12" fill={skin} />
           {/* scholar's cap (futou) */}
-          <path d="M20,20 Q20,10 32,9 Q44,10 44,20 L40,18 L24,18 Z" fill="#1a1410" />
+          <path d="M20,20 Q20,10 32,9 Q44,10 44,20 L40,18 L24,18 Z" fill="#10161e" />
           {/* cap tassel */}
           <line x1="44" y1="14" x2="50" y2="20" stroke={accent} strokeWidth="1.5" />
           <circle cx="50" cy="20" r="1.5" fill={accent} />
           {/* eyes — narrow, contemplative */}
-          <line x1="25" y1="28" x2="29" y2="28" stroke="#1a1410" strokeWidth="1.4" />
-          <line x1="35" y1="28" x2="39" y2="28" stroke="#1a1410" strokeWidth="1.4" />
+          <line x1="25" y1="28" x2="29" y2="28" stroke="#10161e" strokeWidth="1.4" />
+          <line x1="35" y1="28" x2="39" y2="28" stroke="#10161e" strokeWidth="1.4" />
           {/* thin moustache */}
-          <line x1="28" y1="33" x2="36" y2="33" stroke="#1a1410" strokeWidth="0.8" />
+          <line x1="28" y1="33" x2="36" y2="33" stroke="#10161e" strokeWidth="0.8" />
         </g>
       );
 
@@ -175,14 +175,14 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           <rect x="28" y="35" width="8" height="9" fill={skin} />
           <circle cx="32" cy="27" r="11" fill={skin} />
           {/* wide official's cap with wings */}
-          <path d="M18,22 Q18,12 32,10 Q46,12 46,22 L42,20 L22,20 Z" fill="#1a1410" />
-          <rect x="10" y="19" width="10" height="3" fill="#1a1410" />
-          <rect x="44" y="19" width="10" height="3" fill="#1a1410" />
+          <path d="M18,22 Q18,12 32,10 Q46,12 46,22 L42,20 L22,20 Z" fill="#10161e" />
+          <rect x="10" y="19" width="10" height="3" fill="#10161e" />
+          <rect x="44" y="19" width="10" height="3" fill="#10161e" />
           {/* eyes — composed */}
-          <rect x="25" y="27" width="3" height="2" fill="#1a1410" />
-          <rect x="36" y="27" width="3" height="2" fill="#1a1410" />
+          <rect x="25" y="27" width="3" height="2" fill="#10161e" />
+          <rect x="36" y="27" width="3" height="2" fill="#10161e" />
           {/* small thin beard */}
-          <path d="M28,33 L30,38 L34,38 L36,33" fill="none" stroke="#1a1410" strokeWidth="1" />
+          <path d="M28,33 L30,38 L34,38 L36,33" fill="none" stroke="#10161e" strokeWidth="1" />
         </g>
       );
 
@@ -197,18 +197,18 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           <rect x="28" y="35" width="8" height="9" fill={skin} />
           <circle cx="32" cy="27" r="11" fill={skin} />
           {/* imperial mortarboard cap */}
-          <rect x="16" y="14" width="32" height="5" fill="#1a1410" />
-          <path d="M19,19 Q19,11 32,9 Q45,11 45,19 Z" fill="#1a1410" />
+          <rect x="16" y="14" width="32" height="5" fill="#10161e" />
+          <path d="M19,19 Q19,11 32,9 Q45,11 45,19 Z" fill="#10161e" />
           {/* hanging bead strings */}
           <line x1="20" y1="19" x2="20" y2="24" stroke={accent} strokeWidth="1" />
           <circle cx="20" cy="24" r="1.5" fill={accent} />
           <line x1="44" y1="19" x2="44" y2="24" stroke={accent} strokeWidth="1" />
           <circle cx="44" cy="24" r="1.5" fill={accent} />
           {/* eyes */}
-          <rect x="25" y="27" width="3" height="2" fill="#1a1410" />
-          <rect x="36" y="27" width="3" height="2" fill="#1a1410" />
+          <rect x="25" y="27" width="3" height="2" fill="#10161e" />
+          <rect x="36" y="27" width="3" height="2" fill="#10161e" />
           {/* dignified beard */}
-          <path d="M26,33 Q32,42 38,33 L36,40 L28,40 Z" fill="#1a1410" opacity="0.85" />
+          <path d="M26,33 Q32,42 38,33 L36,40 L28,40 Z" fill="#10161e" opacity="0.85" />
         </g>
       );
 
@@ -224,16 +224,16 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           {/* oval face */}
           <ellipse cx="32" cy="26" rx="10" ry="11" fill={skin} />
           {/* hair */}
-          <path d="M21,18 Q21,12 32,10 Q43,12 43,18 L43,26 L21,26 Z" fill="#1a1410" />
+          <path d="M21,18 Q21,12 32,10 Q43,12 43,18 L43,26 L21,26 Z" fill="#10161e" />
           {/* side buns */}
-          <circle cx="19" cy="22" r="4" fill="#1a1410" />
-          <circle cx="45" cy="22" r="4" fill="#1a1410" />
+          <circle cx="19" cy="22" r="4" fill="#10161e" />
+          <circle cx="45" cy="22" r="4" fill="#10161e" />
           {/* hairpin */}
           <circle cx="32" cy="13" r="1.5" fill={accent} />
           <line x1="32" y1="13" x2="38" y2="9" stroke={accent} strokeWidth="0.8" />
           {/* eyes — wider, delicate */}
-          <ellipse cx="27" cy="27" rx="1.5" ry="1" fill="#1a1410" />
-          <ellipse cx="37" cy="27" rx="1.5" ry="1" fill="#1a1410" />
+          <ellipse cx="27" cy="27" rx="1.5" ry="1" fill="#10161e" />
+          <ellipse cx="37" cy="27" rx="1.5" ry="1" fill="#10161e" />
           {/* lips */}
           <path d="M30,32 Q32,34 34,32" stroke="#8a3c2e" strokeWidth="1" fill="none" />
         </g>
@@ -245,8 +245,8 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           <rect width="64" height="64" fill={robe} opacity="0.4" />
           <path d="M8,64 Q8,46 18,42 L46,42 Q58,46 58,64 Z" fill="#5a3a22" />
           {/* fur shoulder pads */}
-          <ellipse cx="14" cy="44" rx="6" ry="3" fill="#3a2818" />
-          <ellipse cx="50" cy="44" rx="6" ry="3" fill="#3a2818" />
+          <ellipse cx="14" cy="44" rx="6" ry="3" fill="#1e2832" />
+          <ellipse cx="50" cy="44" rx="6" ry="3" fill="#1e2832" />
           <rect x="28" y="35" width="8" height="9" fill={skin} />
           <circle cx="32" cy="27" r="11" fill={skin} />
           {/* feather headdress — three feathers */}
@@ -254,10 +254,10 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           <path d="M30,12 L32,2 L34,12 Z" fill={accent} />
           <path d="M42,16 L46,4 L40,12 Z" fill={accent} />
           {/* headband */}
-          <rect x="20" y="20" width="24" height="3" fill="#3a2818" />
+          <rect x="20" y="20" width="24" height="3" fill="#1e2832" />
           {/* eyes — fierce */}
-          <rect x="24" y="27" width="4" height="2" fill="#1a1410" />
-          <rect x="36" y="27" width="4" height="2" fill="#1a1410" />
+          <rect x="24" y="27" width="4" height="2" fill="#10161e" />
+          <rect x="36" y="27" width="4" height="2" fill="#10161e" />
           {/* warpaint stripes on cheeks */}
           <rect x="22" y="31" width="6" height="1.5" fill="#b8442e" opacity="0.6" />
           <rect x="36" y="31" width="6" height="1.5" fill="#b8442e" opacity="0.6" />
@@ -272,11 +272,11 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           <rect x="28" y="32" width="8" height="9" fill={skin} />
           <circle cx="32" cy="27" r="11" fill={skin} />
           {/* cap */}
-          <path d="M21,22 Q21,13 32,11 Q43,13 43,22 Z" fill="#1a1410" />
+          <path d="M21,22 Q21,13 32,11 Q43,13 43,22 Z" fill="#10161e" />
           <rect x="30" y="11" width="4" height="3" fill={accent} />
           {/* eyes — squinted */}
-          <line x1="25" y1="27" x2="29" y2="27" stroke="#1a1410" strokeWidth="1.4" />
-          <line x1="35" y1="27" x2="39" y2="27" stroke="#1a1410" strokeWidth="1.4" />
+          <line x1="25" y1="27" x2="29" y2="27" stroke="#10161e" strokeWidth="1.4" />
+          <line x1="35" y1="27" x2="39" y2="27" stroke="#10161e" strokeWidth="1.4" />
           {/* long flowing white beard */}
           <path d="M24,32 Q32,38 40,32 L40,52 Q32,58 24,52 Z" fill="#e0d8c8" opacity="0.9" />
           <path d="M30,34 L34,34 L33,40 L31,40 Z" fill="#c4b8a0" />
@@ -297,16 +297,16 @@ function ArchetypeSilhouette({ arch, accent }: { arch: Archetype; accent: string
           <rect x="28" y="36" width="8" height="8" fill={skin} />
           <circle cx="32" cy="28" r="10" fill={skin} />
           {/* topknot */}
-          <path d="M28,18 L30,8 L34,8 L36,18 Z" fill="#1a1410" />
+          <path d="M28,18 L30,8 L34,8 L36,18 Z" fill="#10161e" />
           <rect x="29" y="14" width="6" height="2" fill={accent} />
           {/* side hair */}
-          <path d="M22,22 Q22,30 26,32 L26,22 Z" fill="#1a1410" />
-          <path d="M42,22 Q42,30 38,32 L38,22 Z" fill="#1a1410" />
+          <path d="M22,22 Q22,30 26,32 L26,22 Z" fill="#10161e" />
+          <path d="M42,22 Q42,30 38,32 L38,22 Z" fill="#10161e" />
           {/* eyes — large, bright */}
-          <circle cx="27" cy="28" r="1.5" fill="#1a1410" />
-          <circle cx="37" cy="28" r="1.5" fill="#1a1410" />
+          <circle cx="27" cy="28" r="1.5" fill="#10161e" />
+          <circle cx="37" cy="28" r="1.5" fill="#10161e" />
           {/* small smile */}
-          <path d="M29,33 Q32,35 35,33" stroke="#1a1410" strokeWidth="0.8" fill="none" />
+          <path d="M29,33 Q32,35 35,33" stroke="#10161e" strokeWidth="0.8" fill="none" />
         </g>
       );
   }

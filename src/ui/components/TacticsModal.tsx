@@ -951,7 +951,7 @@ const CATEGORIES: CatalogCategory[] = [
   { key: 'ranged',   zh: '遠程', en: 'Ranged',   color: '#b8c87a' },
   { key: 'mystic',   zh: '奇門', en: 'Mystic',   color: '#c178c7' },
   { key: 'disrupt',  zh: '擾亂', en: 'Disrupt',  color: '#88b7e8' },
-  { key: 'strategy', zh: '策略', en: 'Strategy', color: '#d4a84a' },
+  { key: 'strategy', zh: '策略', en: 'Strategy', color: '#e6c473' },
 ];
 
 interface Props { onClose: () => void; }

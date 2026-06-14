@@ -39,10 +39,10 @@ export function OfficerHoverCard({ officer, children }: Props) {
             position: 'fixed',
             left: Math.min(window.innerWidth - 340, pos.x + 14),
             top: Math.min(window.innerHeight - 240, pos.y + 14),
-            background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-            border: '1px solid #d4a84a',
+            background: 'linear-gradient(160deg,#1b2531,#10161e)',
+            border: '1px solid #e6c473',
             padding: '0.6rem 0.8rem',
-            color: '#e8d9b0',
+            color: '#e6edf3',
             fontFamily: '"Songti SC", serif',
             width: 320,
             pointerEvents: 'none',
@@ -58,26 +58,26 @@ export function OfficerHoverCard({ officer, children }: Props) {
               year={currentYear}
             />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '1rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
+              <div style={{ fontSize: '1rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
                 {officer.name.zh}{' '}
-                <span style={{ fontSize: '0.75rem', color: '#8a7050', fontStyle: 'italic' }}>
+                <span style={{ fontSize: '0.75rem', color: '#7a8893', fontStyle: 'italic' }}>
                   {officer.name.en}
                 </span>
               </div>
               {officer.courtesyName && (
-                <div style={{ fontSize: '0.72rem', color: '#8a7050' }}>
+                <div style={{ fontSize: '0.72rem', color: '#7a8893' }}>
                   字 {officer.courtesyName.zh}
                 </div>
               )}
             </div>
           </div>
-          <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.78rem', color: '#c0a878', marginTop: '0.3rem' }}>
+          <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.78rem', color: '#aab6c0', marginTop: '0.3rem' }}>
             統 {officer.stats.leadership} · 武 {officer.stats.war} · 知 {officer.stats.intelligence} ·
             政 {officer.stats.politics} · 魅 {officer.stats.charisma}
           </div>
           {t.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
-              <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>
                 性格 TRAITS
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -103,17 +103,17 @@ export function OfficerHoverCard({ officer, children }: Props) {
           )}
           {skills.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
-              <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>
                 特技 SKILLS
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#c19a3b' }}>
+              <div style={{ fontSize: '0.72rem', color: '#c9a64e' }}>
                 {skills.map((s) => s!.name.zh).join(' · ')}
               </div>
             </div>
           )}
           {items.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
-              <div style={{ fontSize: '0.65rem', color: '#8a7050', letterSpacing: '0.15rem' }}>
+              <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.15rem' }}>
                 持有 ITEMS ({items.length})
               </div>
               <div style={{ fontSize: '0.72rem', color: '#88b7e8' }}>

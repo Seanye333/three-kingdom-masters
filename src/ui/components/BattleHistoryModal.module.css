@@ -9,8 +9,8 @@
 }
 
 .modal {
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 840px;
   max-width: 96vw;
   max-height: 90vh;
@@ -24,20 +24,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.65rem;
   margin-bottom: 0.75rem;
 }
 
 .titleZh {
   font-size: 1.75rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.4rem;
 }
 
 .titleEn {
   font-size: 0.8rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
@@ -45,7 +45,7 @@
 .closeButton {
   background: transparent;
   border: none;
-  color: #8a7050;
+  color: #7a8893;
   font-size: 1.5rem;
   cursor: pointer;
   font-family: inherit;
@@ -53,7 +53,7 @@
 }
 
 .empty {
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
   text-align: center;
   padding: 2rem;
@@ -73,33 +73,33 @@
   grid-template-columns: 88px 110px 1fr 90px 110px;
   gap: 0.5rem;
   align-items: center;
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   padding: 0.4rem 0.6rem;
   font-size: 0.82rem;
   cursor: pointer;
 }
 
 .row:hover {
-  background: #3a2d20;
-  border-color: #d4a84a;
+  background: #26323e;
+  border-color: #e6c473;
 }
 
 .dateCell {
-  color: #8a7050;
+  color: #7a8893;
   font-family: ui-monospace, monospace;
   font-size: 0.75rem;
 }
 
 .cityCell {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .sidesCell {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-size: 0.78rem;
 }
 
@@ -117,7 +117,7 @@
 }
 
 .versus {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
 }
 
@@ -129,9 +129,9 @@
   font-family: ui-monospace, monospace;
 }
 
-.outcomeConquest { background: #d4a84a; color: #1a1410; }
-.outcomeWon      { background: #c19a3b; color: #1a1410; }
-.outcomeRepulsed { background: #b8442e; color: #1a1410; }
+.outcomeConquest { background: #e6c473; color: #10161e; }
+.outcomeWon      { background: #c9a64e; color: #10161e; }
+.outcomeRepulsed { background: #b8442e; color: #10161e; }
 
 .casualtiesCell {
   font-family: ui-monospace, monospace;

@@ -379,7 +379,7 @@ const CATEGORIES: CatalogCategory[] = [
   { key: 'economy',   zh: '民政', en: 'Economy',   color: '#b8c87a' },
   { key: 'civil',     zh: '文教', en: 'Civil',     color: '#88b7e8' },
   { key: 'military',  zh: '兵備', en: 'Military',  color: '#b8442e' },
-  { key: 'diplomacy', zh: '外交', en: 'Diplomacy', color: '#d4a84a' },
+  { key: 'diplomacy', zh: '外交', en: 'Diplomacy', color: '#e6c473' },
 ];
 
 interface Props { onClose: () => void; }

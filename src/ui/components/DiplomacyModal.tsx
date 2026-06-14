@@ -105,7 +105,7 @@ export function DiplomacyModal({ onClose }: Props) {
               {' · '}
               <span title={t('背盟則損,守信漸復;低信譽他國難與結盟。', 'Falls when you break pacts, recovers as you honour them; low credibility makes others wary.')}>
                 {t('信譽', 'Credibility')}{' '}
-                <strong style={{ color: credibility >= 80 ? '#7ed68a' : credibility >= 50 ? '#d4a84a' : '#e0707a' }}>
+                <strong style={{ color: credibility >= 80 ? '#7ed68a' : credibility >= 50 ? '#e6c473' : '#e0707a' }}>
                   {credibility}
                 </strong>
               </span>

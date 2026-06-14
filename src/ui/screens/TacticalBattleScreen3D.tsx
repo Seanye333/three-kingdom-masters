@@ -3822,7 +3822,7 @@ export function TacticalBattleScreen3D() {
         })()}
         <span style={{
           fontSize: '0.72rem', padding: '2px 7px',
-          background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530', color: '#a89070',
+          background: 'rgba(40, 28, 18, 0.7)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#a89070',
         }}>{WEATHER_LABEL[battle.weather]}</span>
         {battle.windDirection && battle.windDirection !== 'calm' && (
           <span style={{
@@ -3834,7 +3834,7 @@ export function TacticalBattleScreen3D() {
         )}
         <span style={{
           fontSize: '0.72rem', padding: '2px 7px',
-          background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530', color: '#a89070',
+          background: 'rgba(40, 28, 18, 0.7)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#a89070',
         }}>{TOD_LABEL[battle.timeOfDay]}</span>
         <button
           onClick={toggleRecording}
@@ -3872,7 +3872,7 @@ export function TacticalBattleScreen3D() {
           title={t('推演速度', 'Playback speed')}
           style={{
             fontSize: '0.72rem', padding: '2px 8px', cursor: 'pointer',
-            background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530',
+            background: 'rgba(40, 28, 18, 0.7)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             color: '#a89070', fontFamily: 'inherit',
           }}
         >⏩ {battleSpeed}×</button>
@@ -3918,7 +3918,7 @@ export function TacticalBattleScreen3D() {
             ))}
             <button
               onClick={() => setPrepDismissed(true)}
-              style={{ background: 'transparent', border: '1px solid #5a4530', color: '#8a7050', fontSize: '0.7rem', padding: '2px 6px', cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#8a7050', fontSize: '0.7rem', padding: '2px 6px', cursor: 'pointer', fontFamily: 'inherit' }}
             >{t('不備', 'Skip')}</button>
             {prepMsg && <span style={{ fontSize: '0.65rem', color: '#ff9080' }}>{prepMsg}</span>}
           </span>
@@ -4181,7 +4181,7 @@ export function TacticalBattleScreen3D() {
           return (
             <div style={{
               position: 'absolute', top: 12, right: 12,
-              background: 'rgba(20, 14, 8, 0.85)', border: '1px solid #5a4530',
+              background: 'rgba(20, 14, 8, 0.85)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
               padding: '0.3rem 0.6rem', color: '#d4a84a',
               fontFamily: 'ui-monospace, monospace', fontSize: '0.78rem',
             }}>
@@ -4393,7 +4393,7 @@ function BattleMinimap({ battle, playerSide }: { battle: TacticalBattle; playerS
   return (
     <div style={{
       position: 'absolute', left: 12, bottom: 12, width: W, height: H,
-      background: 'rgba(16, 12, 8, 0.82)', border: '1px solid #5a4530', borderRadius: 3,
+      background: 'rgba(16, 12, 8, 0.82)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
       boxShadow: '0 0 10px rgba(0,0,0,0.5)', pointerEvents: 'none', overflow: 'hidden',
     }}>
       {battle.units.filter((u) => u.troops > 0 && !(u.hidden && u.side !== playerSide)).map((u) => {
@@ -4443,7 +4443,7 @@ function UnitPanel3D({
     display: 'block', width: '100%',
     padding: '0.4rem 0.6rem', marginBottom: '0.25rem',
     background: 'rgba(40, 28, 18, 0.7)',
-    border: '1px solid #5a4530',
+    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
     color: '#f0e0b0',
     fontFamily: 'Songti SC, serif',
     fontSize: '0.78rem',

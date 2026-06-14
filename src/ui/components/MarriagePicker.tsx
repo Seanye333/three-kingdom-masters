@@ -81,7 +81,7 @@ export function MarriagePicker({ targetForceId, onClose }: Props) {
         <div className={styles.columns}>
           <Column
             label={`${playerForce?.name.zh ?? t('我方', 'You')} ${t('自軍', '(self)')}`}
-            color={playerForce?.color ?? '#5a4530'}
+            color={playerForce?.color ?? '#364654'}
             officers={yourOfficers}
             cities={cities}
             picked={yourPick}
@@ -90,7 +90,7 @@ export function MarriagePicker({ targetForceId, onClose }: Props) {
           <div className={styles.linkIcon}>⚭</div>
           <Column
             label={`${targetForce?.name.zh ?? t('對方', 'Target')} ${t('相手軍', '(other)')}`}
-            color={targetForce?.color ?? '#5a4530'}
+            color={targetForce?.color ?? '#364654'}
             officers={theirOfficers}
             cities={cities}
             picked={theirPick}

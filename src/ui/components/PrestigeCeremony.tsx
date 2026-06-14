@@ -17,7 +17,7 @@ const PATH_COLOR: Record<PrestigePath, string> = {
   military: '#c0504a',
   strategist: '#5a8ac0',
   official: '#6aa84f',
-  merchant: '#d4a84a',
+  merchant: '#e6c473',
 };
 
 const MOTES = Array.from({ length: 12 }, (_, i) => i);
@@ -66,13 +66,13 @@ export function PrestigeCeremony({ officer, titleId, color, year, onDone }: Prop
       )}
 
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.1rem' }}>
-        <div style={{ fontSize: '0.8rem', letterSpacing: '0.5rem', color: '#c0a878', ...anim('tkmCeremonyBackdrop 0.5s ease-out 0.2s both') }}>威名 · PRESTIGE</div>
+        <div style={{ fontSize: '0.8rem', letterSpacing: '0.5rem', color: '#aab6c0', ...anim('tkmCeremonyBackdrop 0.5s ease-out 0.2s both') }}>威名 · PRESTIGE</div>
 
         {/* Portrait rising into the light */}
         <div style={{ borderRadius: '50%', border: `3px solid ${accent}`, boxShadow: `0 0 32px ${hexA(accent, 0.8)}`, ...anim('tkmPortraitRise 0.8s cubic-bezier(0.2,0.9,0.3,1) both') }}>
           <OfficerPortrait officer={officer} size={132} forceColor={color} year={year} />
         </div>
-        <div style={{ fontSize: '1.15rem', color: '#f0e0b0', fontFamily: '"Songti SC", serif', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+        <div style={{ fontSize: '1.15rem', color: '#eef4f8', fontFamily: '"Songti SC", serif', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
           {lang === 'en' ? officer.name.en : officer.name.zh}
         </div>
 
@@ -81,7 +81,7 @@ export function PrestigeCeremony({ officer, titleId, color, year, onDone }: Prop
           style={{
             position: 'relative', padding: '0.5rem 2.2rem',
             background: `linear-gradient(160deg, ${hexA(accent, 0.95)}, ${hexA(accent, 0.55)})`,
-            border: '3px solid #f0e0b0', borderRadius: 6,
+            border: '3px solid #eef4f8', borderRadius: 6,
             boxShadow: `0 0 26px ${hexA(accent, 0.7)}, inset 0 0 14px rgba(0,0,0,0.3)`,
             ...anim('tkmBannerUnfurl 0.7s cubic-bezier(0.2,1.1,0.3,1) 0.4s both'),
           }}
@@ -91,7 +91,7 @@ export function PrestigeCeremony({ officer, titleId, color, year, onDone }: Prop
           </span>
         </div>
         {lang !== 'zh' && (
-          <div style={{ fontSize: '1rem', color: '#c0a878', fontStyle: 'italic', letterSpacing: '0.2rem', ...anim('tkmCalligraphyReveal 0.9s ease-out 0.7s both') }}>
+          <div style={{ fontSize: '1rem', color: '#aab6c0', fontStyle: 'italic', letterSpacing: '0.2rem', ...anim('tkmCalligraphyReveal 0.9s ease-out 0.7s both') }}>
             {title.name.en}
           </div>
         )}
@@ -103,7 +103,7 @@ export function PrestigeCeremony({ officer, titleId, color, year, onDone }: Prop
             style={{
               position: 'absolute', left: `calc(50% + ${(i - 6) * 9}px)`, bottom: '18%',
               width: 4 + (i % 3), height: 4 + (i % 3), borderRadius: '50%',
-              background: i % 2 ? '#f0e0b0' : accent, pointerEvents: 'none',
+              background: i % 2 ? '#eef4f8' : accent, pointerEvents: 'none',
               animation: `tkmMoteFloat ${2 + (i % 4) * 0.4}s ease-out ${0.7 + (i % 5) * 0.18}s infinite`,
             }}
           />

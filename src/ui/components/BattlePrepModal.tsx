@@ -68,7 +68,7 @@ function FormationDiagram({ id }: { id: FormationId }) {
   return (
     <svg viewBox="0 0 100 60" style={{ width: '100%', height: 48, display: 'block' }}>
       {/* Ground line */}
-      <line x1="0" y1="55" x2="100" y2="55" stroke="#4a3520" strokeWidth="0.5" strokeDasharray="2 2" />
+      <line x1="0" y1="55" x2="100" y2="55" stroke="#2b3845" strokeWidth="0.5" strokeDasharray="2 2" />
       {/* Unit dots: first dot = commander (gold star), rest = troops (small circles) */}
       {pts.map((p, i) => {
         const cx = p.x * 100;
@@ -76,13 +76,13 @@ function FormationDiagram({ id }: { id: FormationId }) {
         if (i === 0) {
           return (
             <g key={i}>
-              <circle cx={cx} cy={cy} r="5.5" fill="#d4a84a" stroke="#1a1410" strokeWidth="0.8" />
-              <text x={cx} y={cy + 1.6} textAnchor="middle" fontSize="6" fill="#1a1410" fontWeight="bold">★</text>
+              <circle cx={cx} cy={cy} r="5.5" fill="#e6c473" stroke="#10161e" strokeWidth="0.8" />
+              <text x={cx} y={cy + 1.6} textAnchor="middle" fontSize="6" fill="#10161e" fontWeight="bold">★</text>
             </g>
           );
         }
         return (
-          <circle key={i} cx={cx} cy={cy} r="3.8" fill="#7a9bd9" stroke="#1a1410" strokeWidth="0.6" />
+          <circle key={i} cx={cx} cy={cy} r="3.8" fill="#7a9bd9" stroke="#10161e" strokeWidth="0.6" />
         );
       })}
       {/* Engagement arrow pointing up toward enemy */}
@@ -294,9 +294,9 @@ export function BattlePrepModal({
           <div style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
             padding: '0.5rem 0.75rem', marginTop: '0.5rem', fontSize: '0.78rem',
-            background: 'rgba(26,20,16,0.55)', border: '1px solid #4a3520',
+            background: 'rgba(26,20,16,0.55)', border: '1px solid #2b3845',
           }}>
-            <span style={{ color: '#8a7050', letterSpacing: '0.15rem' }}>攻城方略</span>
+            <span style={{ color: '#7a8893', letterSpacing: '0.15rem' }}>攻城方略</span>
             {([
               { id: 'storm' as const, zh: '強攻', en: 'Storm', hint: lang === 'zh' ? '直接攻城' : 'Assault as-is', disabled: false },
               { id: 'invest' as const, zh: '圍困', en: 'Invest', hint: (lang === 'zh' ? `斷其糧道（軍糧 −${investFoodCost.toLocaleString()}）守軍飢疲` : `Starve them out (food −${investFoodCost.toLocaleString()})`), disabled: !canInvest },
@@ -310,8 +310,8 @@ export function BattlePrepModal({
                 style={{
                   padding: '0.3rem 0.7rem',
                   background: siegeWorks === o.id ? '#6a4a20' : 'rgba(20,14,8,0.7)',
-                  border: `1px solid ${siegeWorks === o.id ? '#d4a84a' : '#4a3520'}`,
-                  color: o.disabled ? '#5a4a38' : siegeWorks === o.id ? '#ffe9a8' : '#c0a878',
+                  border: `1px solid ${siegeWorks === o.id ? '#e6c473' : '#2b3845'}`,
+                  color: o.disabled ? '#5a4a38' : siegeWorks === o.id ? '#ffe9a8' : '#aab6c0',
                   cursor: o.disabled ? 'not-allowed' : 'pointer',
                   fontFamily: 'Songti SC, serif',
                 }}
@@ -338,30 +338,30 @@ export function BattlePrepModal({
             const colorBy: Record<string, string> = {
               plain: '#4a5e30', forest: '#2a4220', mountain: '#5a4838',
               river: '#2c5882', road: '#7a6038', hill: '#7a6238',
-              marsh: '#3a4838', chokepoint: '#5a4530', bridge: '#8a6840',
-              gate: '#4a2820', watchtower: '#8a7050',
+              marsh: '#3a4838', chokepoint: '#364654', bridge: '#8a6840',
+              gate: '#4a2820', watchtower: '#7a8893',
             };
             const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
             return (
               <div style={{
                 display: 'flex', flexWrap: 'wrap', gap: '0.35rem',
                 padding: '0.5rem 0.75rem', fontSize: '0.7rem',
-                background: 'rgba(26,20,16,0.55)', border: '1px solid #4a3520',
+                background: 'rgba(26,20,16,0.55)', border: '1px solid #2b3845',
                 marginTop: '0.5rem',
               }}>
-                <span style={{ color: '#8a7050', letterSpacing: '0.2rem', marginRight: '0.3rem' }}>
+                <span style={{ color: '#7a8893', letterSpacing: '0.2rem', marginRight: '0.3rem' }}>
                   地形組成
                 </span>
                 {entries.map(([k, n]) => (
                   <span key={k} style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                    border: `1px solid ${colorBy[k] ?? '#5a4530'}`,
+                    border: `1px solid ${colorBy[k] ?? '#364654'}`,
                     padding: '0.1rem 0.4rem',
-                    color: colorBy[k] ?? '#c0a878',
+                    color: colorBy[k] ?? '#aab6c0',
                   }}>
                     <span style={{
                       display: 'inline-block', width: 6, height: 6,
-                      background: colorBy[k] ?? '#5a4530',
+                      background: colorBy[k] ?? '#364654',
                     }} />
                     {labelZh[k] ?? k} × {n}
                   </span>
@@ -435,7 +435,7 @@ export function BattlePrepModal({
                     </div>
                     <FormationDiagram id={f.id} />
                     <div className={styles.formDesc}>{desc(f)}</div>
-                    <div style={{ fontSize: '0.65rem', color: '#8a7050' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#7a8893' }}>
                       req INT {f.minIntelligence}
                     </div>
                   </button>

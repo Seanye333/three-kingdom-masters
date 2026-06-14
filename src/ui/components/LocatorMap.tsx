@@ -47,8 +47,8 @@ export function LocatorMap({
   return (
     <div style={{
       background: 'rgba(12, 10, 6, 0.82)',
-      border: '1px solid #5a4530',
-      borderRadius: 4,
+      border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 6,
       padding: '4px 5px 2px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
     }}>
@@ -97,7 +97,7 @@ export function LocatorMap({
               height={2.8}
               transform={`rotate(45, ${x}, ${y})`}
               fill={force?.color ?? '#9a8a6a'}
-              stroke={hostile ? '#ff5040' : '#f0e0b0'}
+              stroke={hostile ? '#ff5040' : '#eef4f8'}
               strokeWidth={0.7}
             />
           );
@@ -111,7 +111,7 @@ export function LocatorMap({
             width={Math.max(4, win.spanX * sx)}
             height={Math.max(4, win.spanY * sy)}
             fill="rgba(240, 224, 160, 0.12)"
-            stroke="#f0e0b0"
+            stroke="#eef4f8"
             strokeWidth={1.2}
             transform={`rotate(${winRectDeg}, ${win.cx * sx}, ${win.cy * sy})`}
           />
@@ -125,7 +125,7 @@ export function LocatorMap({
               cy={focus.coords.y * sy}
               r={3.2}
               fill="none"
-              stroke="#f0d98a"
+              stroke="#f2dd9a"
               strokeWidth={1.4}
             />
             <text
@@ -133,7 +133,7 @@ export function LocatorMap({
               y={focus.coords.y * sy - 5}
               textAnchor="middle"
               fontSize={9}
-              fill="#f0d98a"
+              fill="#f2dd9a"
               fontFamily="Songti SC, serif"
               style={{ paintOrder: 'stroke', stroke: '#000', strokeWidth: 2 }}
             >
@@ -144,13 +144,13 @@ export function LocatorMap({
 
         {/* Compass — the locator is always north-up. */}
         <g transform={`translate(${width - 12}, 12)`}>
-          <line x1={0} y1={5} x2={0} y2={-5} stroke="#d4a84a" strokeWidth={1.2} />
-          <path d="M 0 -7 L -2.4 -3 L 2.4 -3 Z" fill="#d4a84a" />
-          <text x={0} y={-9} textAnchor="middle" fontSize={7} fill="#d4a84a">N</text>
+          <line x1={0} y1={5} x2={0} y2={-5} stroke="#e6c473" strokeWidth={1.2} />
+          <path d="M 0 -7 L -2.4 -3 L 2.4 -3 Z" fill="#e6c473" />
+          <text x={0} y={-9} textAnchor="middle" fontSize={7} fill="#e6c473">N</text>
         </g>
       </svg>
       <div style={{
-        color: '#8a7050', fontSize: '0.58rem', letterSpacing: '0.05rem',
+        color: '#7a8893', fontSize: '0.58rem', letterSpacing: '0.05rem',
         textAlign: 'center', marginTop: 1, fontFamily: 'Songti SC, serif',
       }}>
         {win?.kind === 'battle'

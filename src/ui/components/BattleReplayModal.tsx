@@ -55,13 +55,13 @@ export function BattleReplayModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(820px,100%)',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -71,18 +71,18 @@ export function BattleReplayModal({ onClose }: Props) {
             display: 'flex',
             justifyContent: 'space-between',
             padding: '1rem 1.5rem',
-            borderBottom: '1px solid #4a3520',
+            borderBottom: '1px solid #2b3845',
             alignItems: 'baseline',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>戰史</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>Battle Replays</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>戰史</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Battle Replays</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
         <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', overflow: 'hidden', flex: 1 }}>
-          <div style={{ overflowY: 'auto', borderRight: '1px solid #4a3520', padding: '0.5rem' }}>
+          <div style={{ overflowY: 'auto', borderRight: '1px solid #2b3845', padding: '0.5rem' }}>
             {replays.length > 0 && (
               <input
                 value={filter}
@@ -90,8 +90,8 @@ export function BattleReplayModal({ onClose }: Props) {
                 placeholder="搜尋… (城名/年份)"
                 style={{
                   width: '100%', boxSizing: 'border-box',
-                  background: '#1a1410', border: '1px solid #4a3520',
-                  color: '#e8d9b0', padding: '0.35rem 0.5rem',
+                  background: '#10161e', border: '1px solid #2b3845',
+                  color: '#e6edf3', padding: '0.35rem 0.5rem',
                   fontFamily: 'inherit', fontSize: '0.78rem',
                   marginBottom: '0.4rem',
                 }}
@@ -110,9 +110,9 @@ export function BattleReplayModal({ onClose }: Props) {
                   onClick={() => { setSelectedId(r.id); setTurnIdx(0); }}
                   style={{
                     width: '100%',
-                    background: r.id === selectedId ? '#2a1f15' : 'transparent',
-                    border: '1px solid ' + (r.id === selectedId ? '#d4a84a' : '#3a2d20'),
-                    color: '#e8d9b0',
+                    background: r.id === selectedId ? '#1b2531' : 'transparent',
+                    border: '1px solid ' + (r.id === selectedId ? '#e6c473' : '#26323e'),
+                    color: '#e6edf3',
                     padding: '0.5rem 0.6rem',
                     margin: '0.25rem 0',
                     textAlign: 'left',
@@ -120,8 +120,8 @@ export function BattleReplayModal({ onClose }: Props) {
                     fontFamily: 'inherit',
                   }}
                 >
-                  <div style={{ color: '#d4a84a', fontSize: '0.9rem' }}>{r.cityName.zh}</div>
-                  <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.7rem', color: '#8a7050' }}>
+                  <div style={{ color: '#e6c473', fontSize: '0.9rem' }}>{r.cityName.zh}</div>
+                  <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.7rem', color: '#7a8893' }}>
                     {r.year} {season.en}
                   </div>
                 </button>
@@ -132,10 +132,10 @@ export function BattleReplayModal({ onClose }: Props) {
           <div style={{ overflowY: 'auto', padding: '1rem 1.5rem' }}>
             {replay ? (
               <>
-                <div style={{ fontSize: '1.2rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
+                <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.2rem' }}>
                   {replay.cityName.zh} {replay.cityName.en}
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#8a7050', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.78rem', color: '#7a8893', marginBottom: '1rem' }}>
                   {replay.year} {SEASON_LABEL[replay.season].zh} ·{' '}
                   {replay.attackerForceName?.en ?? 'Attacker'} vs {replay.defenderForceName?.en ?? 'Defender'}
                 </div>
@@ -176,9 +176,9 @@ export function BattleReplayModal({ onClose }: Props) {
                           key={s}
                           onClick={() => setSpeed(s)}
                           style={{
-                            background: speed === s ? '#3a2818' : 'transparent',
-                            border: '1px solid ' + (speed === s ? '#d4a84a' : '#4a3520'),
-                            color: speed === s ? '#d4a84a' : '#8a7050',
+                            background: speed === s ? '#1e2832' : 'transparent',
+                            border: '1px solid ' + (speed === s ? '#e6c473' : '#2b3845'),
+                            color: speed === s ? '#e6c473' : '#7a8893',
                             padding: '0.15rem 0.4rem',
                             cursor: 'pointer',
                             fontFamily: 'inherit',
@@ -196,13 +196,13 @@ export function BattleReplayModal({ onClose }: Props) {
                         value={turnIdx}
                         onChange={(e) => { setTurnIdx(Number(e.target.value)); setIsPlaying(false); }}
                         style={{
-                          width: '100%', accentColor: '#d4a84a',
+                          width: '100%', accentColor: '#e6c473',
                           marginBottom: '0.5rem',
                         }}
                       />
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                      <div style={{ background: '#1a1410', border: '1px solid #4a3520', padding: '0.5rem' }}>
+                      <div style={{ background: '#10161e', border: '1px solid #2b3845', padding: '0.5rem' }}>
                         <div style={{ color: '#b8442e', fontSize: '0.78rem', marginBottom: '0.25rem' }}>
                           Attacker
                         </div>
@@ -216,7 +216,7 @@ export function BattleReplayModal({ onClose }: Props) {
                           );
                         })}
                       </div>
-                      <div style={{ background: '#1a1410', border: '1px solid #4a3520', padding: '0.5rem' }}>
+                      <div style={{ background: '#10161e', border: '1px solid #2b3845', padding: '0.5rem' }}>
                         <div style={{ color: '#3a7dd9', fontSize: '0.78rem', marginBottom: '0.25rem' }}>
                           Defender
                         </div>
@@ -233,12 +233,12 @@ export function BattleReplayModal({ onClose }: Props) {
                     </div>
                   </>
                 )}
-                <div style={{ marginTop: '1rem', fontSize: '0.78rem', color: '#c0a878' }}>
+                <div style={{ marginTop: '1rem', fontSize: '0.78rem', color: '#aab6c0' }}>
                   <span style={{ color: '#b8442e' }}>Attacker losses: {replay.finalBattle.attackerLosses.toLocaleString()}</span>
                   {' · '}
                   <span style={{ color: '#3a7dd9' }}>Defender: {replay.finalBattle.defenderLosses.toLocaleString()}</span>
                   {' · '}
-                  Winner: <strong style={{ color: '#d4a84a' }}>{replay.finalBattle.winner ?? '-'}</strong>
+                  Winner: <strong style={{ color: '#e6c473' }}>{replay.finalBattle.winner ?? '-'}</strong>
                 </div>
               </>
             ) : (
@@ -255,9 +255,9 @@ export function BattleReplayModal({ onClose }: Props) {
 
 function btn(disabled: boolean) {
   return {
-    background: '#3a2d20',
-    border: '1px solid #4a3520',
-    color: disabled ? '#6a5238' : '#d4a84a',
+    background: '#26323e',
+    border: '1px solid #2b3845',
+    color: disabled ? '#6a5238' : '#e6c473',
     padding: '0.35rem 0.8rem',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontFamily: 'inherit',

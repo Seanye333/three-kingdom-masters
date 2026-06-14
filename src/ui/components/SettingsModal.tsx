@@ -52,12 +52,12 @@ export function SettingsModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(520px,100%)',
           maxHeight: '90vh',
           display: 'flex', flexDirection: 'column',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -65,14 +65,14 @@ export function SettingsModal({ onClose }: Props) {
         <header
           style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-            padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520',
+            padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>{t('設定', 'Settings')}</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>{t('遊戲偏好', 'Preferences')}</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('設定', 'Settings')}</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>{t('遊戲偏好', 'Preferences')}</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
         <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1 }}>
           <Section title={t('音響', 'Audio')}>
@@ -128,9 +128,9 @@ export function SettingsModal({ onClose }: Props) {
                     key={s}
                     onClick={() => updateUiPref({ uiScale: s })}
                     style={{
-                      background: uiPrefs.uiScale === s ? '#3a2d20' : 'transparent',
-                      border: '1px solid ' + (uiPrefs.uiScale === s ? '#d4a84a' : '#4a3520'),
-                      color: uiPrefs.uiScale === s ? '#d4a84a' : '#8a7050',
+                      background: uiPrefs.uiScale === s ? '#26323e' : 'transparent',
+                      border: '1px solid ' + (uiPrefs.uiScale === s ? '#e6c473' : '#2b3845'),
+                      color: uiPrefs.uiScale === s ? '#e6c473' : '#7a8893',
                       padding: '0.25rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
@@ -190,9 +190,9 @@ export function SettingsModal({ onClose }: Props) {
                     key={s}
                     onClick={() => setBattleSpeed(s)}
                     style={{
-                      background: battleSpeed === s ? '#3a2d20' : 'transparent',
-                      border: '1px solid ' + (battleSpeed === s ? '#d4a84a' : '#4a3520'),
-                      color: battleSpeed === s ? '#d4a84a' : '#8a7050',
+                      background: battleSpeed === s ? '#26323e' : 'transparent',
+                      border: '1px solid ' + (battleSpeed === s ? '#e6c473' : '#2b3845'),
+                      color: battleSpeed === s ? '#e6c473' : '#7a8893',
                       padding: '0.25rem 0.7rem',
                       cursor: 'pointer',
                       fontFamily: 'inherit',
@@ -243,7 +243,7 @@ function SaveTransferRows() {
   };
 
   const btn: React.CSSProperties = {
-    background: '#2a1f15', border: '1px solid #5a4530', color: '#d4a84a',
+    background: '#1b2531', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e6c473',
     padding: '0.3rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.82rem',
   };
 
@@ -298,7 +298,7 @@ function ModRows() {
   };
 
   const btn: React.CSSProperties = {
-    background: '#2a1f15', border: '1px solid #5a4530', color: '#d4a84a',
+    background: '#1b2531', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e6c473',
     padding: '0.3rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.82rem',
   };
 
@@ -336,7 +336,7 @@ function ModRows() {
 function Section({ title, children }: { title: string; children: import('react').ReactNode }) {
   return (
     <div style={{ marginBottom: '1rem' }}>
-      <div style={{ fontSize: '0.7rem', letterSpacing: '0.25rem', color: '#c19a3b', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+      <div style={{ fontSize: '0.7rem', letterSpacing: '0.25rem', color: '#c9a64e', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
         {title}
       </div>
       {children}
@@ -352,17 +352,17 @@ function Toggle({ label, hint, checked, onChange, disabled }: { label: string; h
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '0.5rem 0.65rem',
-        background: '#1a1410',
-        border: '1px solid #3a2d20',
+        background: '#10161e',
+        border: '1px solid #26323e',
         marginBottom: '0.3rem',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
       }}
     >
       <span>
-        <span style={{ fontSize: '0.9rem', color: '#d4a84a' }}>{label}</span>
+        <span style={{ fontSize: '0.9rem', color: '#e6c473' }}>{label}</span>
         {hint && (
-          <span style={{ display: 'block', fontSize: '0.7rem', color: '#8a7050', fontStyle: 'italic' }}>
+          <span style={{ display: 'block', fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>
             {hint}
           </span>
         )}
@@ -385,16 +385,16 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
         justifyContent: 'space-between',
         alignItems: hint ? 'flex-start' : 'center',
         padding: '0.5rem 0.65rem',
-        background: '#1a1410',
-        border: '1px solid #3a2d20',
+        background: '#10161e',
+        border: '1px solid #26323e',
         marginBottom: '0.3rem',
         gap: '0.6rem',
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.9rem', color: '#d4a84a' }}>{label}</div>
+        <div style={{ fontSize: '0.9rem', color: '#e6c473' }}>{label}</div>
         {hint && (
-          <div style={{ fontSize: '0.72rem', color: '#8a7050', marginTop: 2, lineHeight: 1.3 }}>{hint}</div>
+          <div style={{ fontSize: '0.72rem', color: '#7a8893', marginTop: 2, lineHeight: 1.3 }}>{hint}</div>
         )}
       </div>
       {children}
@@ -403,9 +403,9 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 }
 
 const selectStyle: React.CSSProperties = {
-  background: '#0a0805',
-  border: '1px solid #4a3520',
-  color: '#d4a84a',
+  background: '#080b0e',
+  border: '1px solid #2b3845',
+  color: '#e6c473',
   padding: '0.3rem',
   fontFamily: 'inherit',
 };

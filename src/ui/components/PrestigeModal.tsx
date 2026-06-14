@@ -11,7 +11,7 @@ const PATH_LABEL: Record<PrestigePath, { zh: string; en: string; color: string }
   military:   { zh: '武', en: 'Martial',   color: '#c0504a' },
   strategist: { zh: '謀', en: 'Strategy',  color: '#5a8ac0' },
   official:   { zh: '政', en: 'Civil',     color: '#6aa84f' },
-  merchant:   { zh: '商', en: 'Commerce',  color: '#d4a84a' },
+  merchant:   { zh: '商', en: 'Commerce',  color: '#e6c473' },
 };
 
 /**
@@ -33,7 +33,7 @@ export function PrestigeModal({ onClose }: Props) {
       if (!title) continue;
       (map[title.id] ??= []).push({
         id: o.id, nameZh: o.name.zh, nameEn: o.name.en,
-        color: o.forceId ? forces[o.forceId]?.color ?? '#8a7050' : '#8a7050',
+        color: o.forceId ? forces[o.forceId]?.color ?? '#7a8893' : '#7a8893',
       });
     }
     return map;
@@ -52,12 +52,12 @@ export function PrestigeModal({ onClose }: Props) {
       <div style={panel} onClick={(e) => e.stopPropagation()}>
         <header style={header}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>{t('威名一覽', 'Prestige')}</div>
-            <div style={{ fontSize: '0.8rem', color: '#8a7050', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>{t('威名一覽', 'Prestige')}</div>
+            <div style={{ fontSize: '0.8rem', color: '#7a8893', fontStyle: 'italic' }}>
               {t('憑天資與功業而得的名望階層', 'Reputation ranks earned through talent and deeds')}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
 
         <div style={{ padding: '0.8rem 1.2rem', overflowY: 'auto', flex: 1, display: 'grid', gap: '0.6rem' }}>
@@ -65,16 +65,16 @@ export function PrestigeModal({ onClose }: Props) {
             const path = PATH_LABEL[title.path];
             const holders = holdersByTitle[title.id] ?? [];
             return (
-              <div key={title.id} style={{ background: '#1a1410', border: '1px solid #4a3520', borderLeft: `3px solid ${path.color}`, padding: '0.7rem 0.9rem' }}>
+              <div key={title.id} style={{ background: '#10161e', border: '1px solid #2b3845', borderLeft: `3px solid ${path.color}`, padding: '0.7rem 0.9rem' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '1.05rem', color: '#d4a84a' }}>{lang === 'en' ? title.name.en : title.name.zh}</span>
+                  <span style={{ fontSize: '1.05rem', color: '#e6c473' }}>{lang === 'en' ? title.name.en : title.name.zh}</span>
                   <span style={{ fontSize: '0.68rem', color: path.color, border: `1px solid ${path.color}`, padding: '0.03rem 0.3rem', borderRadius: 2 }}>{lang === 'en' ? path.en : path.zh}</span>
                   <span style={{ fontSize: '0.74rem', color: '#7ed68a', marginLeft: 'auto' }}>{fmtEff(title.effects)}</span>
                 </div>
                 <div style={{ fontSize: '0.74rem', color: '#a08c6a', marginTop: '0.3rem' }}>
                   {t('條件', 'Requires')}: {lang === 'en' ? REQ[title.id]?.en : REQ[title.id]?.zh}
                 </div>
-                <div style={{ fontSize: '0.74rem', color: '#8a7050', marginTop: '0.3rem' }}>
+                <div style={{ fontSize: '0.74rem', color: '#7a8893', marginTop: '0.3rem' }}>
                   {t('現有', 'Holders')} ({holders.length}):{' '}
                   {holders.length === 0
                     ? <span style={{ fontStyle: 'italic', color: '#6a5238' }}>{t('無', 'none')}</span>
@@ -95,5 +95,5 @@ export function PrestigeModal({ onClose }: Props) {
 }
 
 const overlay: CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' };
-const panel: CSSProperties = { background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530', width: 'min(720px,100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', color: '#e8d9b0', fontFamily: '"Songti SC","Noto Serif SC",serif' };
-const header: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.2rem', borderBottom: '1px solid #4a3520' };
+const panel: CSSProperties = { background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: 'min(720px,100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif' };
+const header: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.2rem', borderBottom: '1px solid #2b3845' };

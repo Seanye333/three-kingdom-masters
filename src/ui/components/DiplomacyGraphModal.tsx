@@ -53,28 +53,28 @@ export function DiplomacyGraphModal({ onClose }: Props) {
     >
       <div
         style={{
-          background: 'linear-gradient(160deg,#2a1f15,#1a1410)',
-          border: '1px solid #5a4530',
+          background: 'linear-gradient(160deg,#1b2531,#10161e)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(820px,100%)',
-          color: '#e8d9b0',
+          color: '#e6edf3',
           fontFamily: '"Songti SC","Noto Serif SC",serif',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 1.5rem', borderBottom: '1px solid #4a3520', alignItems: 'baseline' }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845', alignItems: 'baseline' }}>
           <div>
-            <div style={{ fontSize: '1.4rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>關係図</div>
-            <div style={{ fontSize: '0.85rem', color: '#8a7050', fontStyle: 'italic' }}>Diplomacy Web</div>
+            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.2rem' }}>關係図</div>
+            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>Diplomacy Web</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
         </header>
         <svg viewBox="0 0 700 600" style={{ width: '100%', maxHeight: '70vh', display: 'block' }}>
           {/* Edges */}
           {pairs.map((p, i) => {
             const color =
-              p.status === 'allied' ? '#d4a84a' :
+              p.status === 'allied' ? '#e6c473' :
               p.status === 'non-aggression' ? '#88b7e8' :
-              p.score < -30 ? '#b8442e' : '#5a4530';
+              p.score < -30 ? '#b8442e' : '#364654';
             const dash =
               p.status === 'non-aggression' ? '6 4' :
               undefined;
@@ -92,21 +92,21 @@ export function DiplomacyGraphModal({ onClose }: Props) {
           {/* Force nodes */}
           {positions.map((p) => (
             <g key={p.force.id}>
-              <circle cx={p.x} cy={p.y} r="40" fill={p.force.color} stroke="#1a1410" strokeWidth="2" />
+              <circle cx={p.x} cy={p.y} r="40" fill={p.force.color} stroke="#10161e" strokeWidth="2" />
               <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="20" fontWeight="bold" fill="#fff" fontFamily="Songti SC, serif">
                 {p.force.name.zh.charAt(0)}
               </text>
-              <text x={p.x} y={p.y + 58} textAnchor="middle" fontSize="12" fill="#e8d9b0" fontFamily="Songti SC, serif">
+              <text x={p.x} y={p.y + 58} textAnchor="middle" fontSize="12" fill="#e6edf3" fontFamily="Songti SC, serif">
                 {p.force.name.zh}
               </text>
-              <text x={p.x} y={p.y + 72} textAnchor="middle" fontSize="9" fill="#8a7050" fontStyle="italic" fontFamily="ui-monospace, monospace">
+              <text x={p.x} y={p.y + 72} textAnchor="middle" fontSize="9" fill="#7a8893" fontStyle="italic" fontFamily="ui-monospace, monospace">
                 {p.force.name.en}
               </text>
             </g>
           ))}
         </svg>
-        <div style={{ display: 'flex', gap: '1rem', padding: '0.75rem 1.5rem', fontSize: '0.78rem', borderTop: '1px solid #4a3520' }}>
-          <span><span style={{ background: '#d4a84a', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Allied 同盟</span>
+        <div style={{ display: 'flex', gap: '1rem', padding: '0.75rem 1.5rem', fontSize: '0.78rem', borderTop: '1px solid #2b3845' }}>
+          <span><span style={{ background: '#e6c473', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Allied 同盟</span>
           <span><span style={{ background: '#88b7e8', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Non-Aggression 不戰</span>
           <span><span style={{ background: '#b8442e', display: 'inline-block', width: 14, height: 3, marginRight: 4 }} /> Hostile 敵対</span>
         </div>

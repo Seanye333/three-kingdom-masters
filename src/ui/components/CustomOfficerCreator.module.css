@@ -9,19 +9,19 @@
 }
 
 .modal {
-  background: linear-gradient(160deg, #2a1f15 0%, #1a1410 100%);
-  border: 1px solid #d4a84a;
+  background: linear-gradient(160deg, #1b2531 0%, #10161e 100%);
+  border: 1px solid #e6c473;
   width: min(720px, 100%);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
 }
 
 .header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -29,20 +29,20 @@
 
 .titleZh {
   font-size: 1.4rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
@@ -69,14 +69,14 @@
 .label {
   font-size: 0.75rem;
   letter-spacing: 0.15rem;
-  color: #8a7050;
+  color: #7a8893;
   text-transform: uppercase;
 }
 
 .input {
-  background: #1a1410;
-  border: 1px solid #4a3520;
-  color: #d4a84a;
+  background: #10161e;
+  border: 1px solid #2b3845;
+  color: #e6c473;
   padding: 0.5rem;
   font-family: inherit;
   font-size: 1rem;
@@ -92,7 +92,7 @@
 
 .statName {
   font-size: 0.85rem;
-  color: #c0a878;
+  color: #aab6c0;
 }
 
 .statRange {
@@ -103,7 +103,7 @@
 
 .statRange::-webkit-slider-runnable-track {
   height: 6px;
-  background: #4a3520;
+  background: #2b3845;
   border-radius: 3px;
 }
 
@@ -112,7 +112,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #d4a84a;
+  background: #e6c473;
   margin-top: -6px;
   cursor: pointer;
 }
@@ -120,14 +120,14 @@
 .statValue {
   text-align: center;
   font-family: ui-monospace, monospace;
-  color: #d4a84a;
+  color: #e6c473;
   font-size: 0.95rem;
 }
 
 .statBudget {
   font-family: ui-monospace, monospace;
   font-size: 0.8rem;
-  color: #c19a3b;
+  color: #c9a64e;
   text-align: right;
 }
 
@@ -149,9 +149,9 @@
 }
 
 .skillChip {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
-  color: #c0a878;
+  background: #10161e;
+  border: 1px solid #26323e;
+  color: #aab6c0;
   padding: 0.3rem 0.5rem;
   font-family: inherit;
   font-size: 0.78rem;
@@ -160,18 +160,18 @@
 }
 
 .skillChip:hover {
-  border-color: #d4a84a;
+  border-color: #e6c473;
 }
 
 .skillChipActive {
-  border-color: #d4a84a;
-  color: #d4a84a;
-  background: #2a1f15;
+  border-color: #e6c473;
+  color: #e6c473;
+  background: #1b2531;
 }
 
 .skillCapWarn {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   margin-top: 0.3rem;
 }
 
@@ -188,9 +188,9 @@
 }
 
 .affChip {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
-  color: #c0a878;
+  background: #10161e;
+  border: 1px solid #26323e;
+  color: #aab6c0;
   font-family: inherit;
   padding: 0.4rem 0.7rem;
   font-size: 0.8rem;
@@ -198,13 +198,13 @@
 }
 
 .affChip:hover {
-  border-color: #d4a84a;
+  border-color: #e6c473;
 }
 
 .affChipActive {
-  border-color: #d4a84a;
-  color: #d4a84a;
-  background: #2a1f15;
+  border-color: #e6c473;
+  color: #e6c473;
+  background: #1b2531;
 }
 
 .affChipFA {
@@ -221,16 +221,16 @@
 
 .footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #4a3520;
+  border-top: 1px solid #2b3845;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .startBtn {
-  background: linear-gradient(180deg, #5a4530, #3a2d20);
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: linear-gradient(180deg, #364654, #26323e);
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.6rem 2rem;
   font-family: inherit;
   font-size: 1rem;

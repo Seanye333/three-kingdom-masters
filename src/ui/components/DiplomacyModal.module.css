@@ -9,8 +9,8 @@
 }
 
 .modal {
-  background: #2a1f15;
-  border: 1px solid #d4a84a;
+  background: #1b2531;
+  border: 1px solid #e6c473;
   width: 720px;
   max-width: 95vw;
   max-height: 88vh;
@@ -24,33 +24,33 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #4a3520;
+  border-bottom: 1px solid #2b3845;
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
 }
 
 .titleZh {
   font-size: 1.75rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.4rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
 
 .titleEn strong {
-  color: #d4a84a;
+  color: #e6c473;
   font-weight: normal;
 }
 
 .closeButton {
   background: transparent;
   border: none;
-  color: #8a7050;
+  color: #7a8893;
   font-size: 1.5rem;
   cursor: pointer;
   font-family: inherit;
@@ -58,11 +58,11 @@
 }
 
 .closeButton:hover {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .empty {
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
   padding: 2rem;
   text-align: center;
@@ -78,8 +78,8 @@
 }
 
 .row {
-  background: #1a1410;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  border: 1px solid #26323e;
   padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
@@ -108,12 +108,12 @@
 
 .nameZh {
   font-size: 1.05rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .nameEn {
   font-size: 0.75rem;
-  color: #8a7050;
+  color: #7a8893;
 }
 
 .relationBlock {
@@ -128,8 +128,8 @@
   position: relative;
   width: 200px;
   height: 14px;
-  background: #2a1f15;
-  border: 1px solid #3a2d20;
+  background: #1b2531;
+  border: 1px solid #26323e;
 }
 
 .relCenter {
@@ -138,7 +138,7 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background: #8a7050;
+  background: #7a8893;
 }
 
 .relFill {
@@ -153,7 +153,7 @@
   top: 0;
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
-  color: #c0a878;
+  color: #aab6c0;
   line-height: 14px;
 }
 
@@ -164,20 +164,20 @@
   font-family: ui-monospace, monospace;
 }
 
-.tagAllied   { background: #3a7dd9; color: #1a1410; }
-.tagNap      { background: #5a9b3a; color: #1a1410; }
-.tagNeutral  { background: #4a3520; color: #c0a878; }
+.tagAllied   { background: #3a7dd9; color: #10161e; }
+.tagNap      { background: #5a9b3a; color: #10161e; }
+.tagNeutral  { background: #2b3845; color: #aab6c0; }
 
 .metaRow {
   display: flex;
   gap: 1.5rem;
   font-size: 0.75rem;
-  color: #8a7050;
+  color: #7a8893;
   font-family: ui-monospace, monospace;
 }
 
 .metaRow strong {
-  color: #e8d9b0;
+  color: #e6edf3;
   font-weight: normal;
 }
 
@@ -185,12 +185,12 @@
   font-size: 0.75rem;
   padding: 0.3rem 0.5rem;
   font-style: italic;
-  border-left: 3px solid #4a3520;
+  border-left: 3px solid #2b3845;
 }
 
 .feedbackOk   { background: rgba(58, 125, 217, 0.15); color: #88b7e8; border-left-color: #3a7dd9; }
 .feedbackFail { background: rgba(184, 68, 46, 0.15); color: #e09b6c; border-left-color: #b8442e; }
-.feedbackInfo { background: rgba(212, 168, 74, 0.1); color: #c0a878; border-left-color: #d4a84a; }
+.feedbackInfo { background: rgba(212, 168, 74, 0.1); color: #aab6c0; border-left-color: #e6c473; }
 
 .actions {
   display: flex;
@@ -199,9 +199,9 @@
 }
 
 .actions button {
-  background: #1a1410;
-  color: #e8d9b0;
-  border: 1px solid #3a2d20;
+  background: #10161e;
+  color: #e6edf3;
+  border: 1px solid #26323e;
   padding: 0.35rem 0.6rem;
   font-family: inherit;
   font-size: 0.75rem;
@@ -210,7 +210,7 @@
 }
 
 .actions button:hover:not(:disabled) {
-  background: #3a2d20;
+  background: #26323e;
 }
 
 .actions button:disabled {
@@ -220,5 +220,5 @@
 
 .allianceBtn { border-color: #3a7dd9; color: #88b7e8; }
 .napBtn      { border-color: #5a9b3a; color: #88c060; }
-.tributeBtn  { border-color: #d4a84a; color: #d4a84a; }
+.tributeBtn  { border-color: #e6c473; color: #e6c473; }
 .breakBtn    { border-color: #b8442e; color: #e09b6c; margin-left: auto; }

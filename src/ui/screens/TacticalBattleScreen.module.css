@@ -1,11 +1,11 @@
 .root {
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at center, #2a1f15 0%, #0a0805 100%);
+  background: radial-gradient(ellipse at center, #1b2531 0%, #080b0e 100%);
   display: grid;
   grid-template-rows: auto 1fr auto;
   z-index: 950;
-  color: #e8d9b0;
+  color: #e6edf3;
   font-family: 'Songti SC', 'Noto Serif SC', serif;
 }
 
@@ -14,8 +14,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(180deg, #1a1410 0%, transparent 100%);
-  border-bottom: 1px solid #4a3520;
+  background: linear-gradient(180deg, #10161e 0%, transparent 100%);
+  border-bottom: 1px solid #2b3845;
 }
 
 .title {
@@ -26,35 +26,35 @@
 
 .titleZh {
   font-size: 1.2rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.2rem;
 }
 
 .titleEn {
   font-size: 0.85rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .turnBlock {
   font-family: ui-monospace, monospace;
   font-size: 0.85rem;
-  color: #c19a3b;
+  color: #c9a64e;
   letter-spacing: 0.2rem;
 }
 
 .exitBtn {
   background: none;
-  border: 1px solid #5a4530;
-  color: #c0a878;
+  border: 1px solid #364654;
+  color: #aab6c0;
   padding: 0.35rem 0.85rem;
   cursor: pointer;
   font-family: inherit;
 }
 
 .exitBtn:hover {
-  border-color: #d4a84a;
-  color: #d4a84a;
+  border-color: #e6c473;
+  color: #e6c473;
 }
 
 .battlefield {
@@ -81,8 +81,8 @@
     /* Distant ridge silhouette (north) */
     linear-gradient(0deg, rgba(0,0,0,0) 85%, rgba(40,30,22,0.65) 95%, rgba(28,22,16,0.9) 100%),
     /* Warm sky gradient */
-    linear-gradient(180deg, #2a1f15 0%, #1a1410 60%, #100a06 100%);
-  border: 1px solid #4a3520;
+    linear-gradient(180deg, #1b2531 0%, #10161e 60%, #100a06 100%);
+  border: 1px solid #2b3845;
 }
 
 /* Two decorative banners on either edge — flank the battlefield. */
@@ -97,8 +97,8 @@
   pointer-events: none;
   z-index: 1;
   background:
-    linear-gradient(180deg, #d4a84a 0%, #c19a3b 50%, #8a6028 100%);
-  border: 1px solid #5a4530;
+    linear-gradient(180deg, #e6c473 0%, #c9a64e 50%, #8a6028 100%);
+  border: 1px solid #364654;
   border-radius: 2px;
   opacity: 0.45;
   box-shadow: 0 0 16px rgba(212, 168, 74, 0.25);
@@ -119,27 +119,27 @@
 }
 
 .sidePanel {
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   padding: 0.75rem;
 }
 
 .panelLabel {
   font-size: 0.65rem;
   letter-spacing: 0.2rem;
-  color: #8a7050;
+  color: #7a8893;
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
 
 .unitName {
   font-size: 1rem;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .unitNameEn {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
   margin-left: 0.3rem;
 }
@@ -147,7 +147,7 @@
 .unitStats {
   font-family: ui-monospace, monospace;
   font-size: 0.78rem;
-  color: #c0a878;
+  color: #aab6c0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.25rem;
@@ -156,9 +156,9 @@
 
 .actionButton {
   width: 100%;
-  background: #2a1f15;
-  border: 1px solid #5a4530;
-  color: #e8d9b0;
+  background: #1b2531;
+  border: 1px solid #364654;
+  color: #e6edf3;
   padding: 0.45rem 0.6rem;
   cursor: pointer;
   font-family: inherit;
@@ -171,8 +171,8 @@
 }
 
 .actionButton:hover:not(:disabled) {
-  border-color: #d4a84a;
-  background: #3a2d20;
+  border-color: #e6c473;
+  background: #26323e;
 }
 
 .actionButton:disabled {
@@ -181,8 +181,8 @@
 }
 
 .actionButtonActive {
-  border-color: #d4a84a;
-  background: #3a2d20;
+  border-color: #e6c473;
+  background: #26323e;
 }
 
 .actionTitle {
@@ -192,11 +192,11 @@
 }
 
 .actionLabel {
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .actionLabelEn {
-  color: #8a7050;
+  color: #7a8893;
   font-size: 0.7rem;
   font-style: italic;
   margin-left: 0.3rem;
@@ -204,15 +204,15 @@
 
 .actionDesc {
   font-size: 0.7rem;
-  color: #8a7050;
+  color: #7a8893;
   font-style: italic;
 }
 
 .endTurnBtn {
   width: 100%;
-  background: linear-gradient(180deg, #5a4530, #3a2d20);
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: linear-gradient(180deg, #364654, #26323e);
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.6rem;
   font-family: inherit;
   font-size: 0.95rem;
@@ -234,37 +234,37 @@
 }
 
 .victoryBox {
-  background: #2a1f15;
-  border: 2px solid #d4a84a;
+  background: #1b2531;
+  border: 2px solid #e6c473;
   padding: 2rem 3rem;
   text-align: center;
 }
 
 .victoryTitleZh {
   font-size: 2.2rem;
-  color: #d4a84a;
+  color: #e6c473;
   letter-spacing: 0.5rem;
 }
 
 .victoryTitleEn {
   font-size: 0.9rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-style: italic;
   margin-top: 0.5rem;
 }
 
 .victoryStats {
   font-family: ui-monospace, monospace;
-  color: #c19a3b;
+  color: #c9a64e;
   margin-top: 1rem;
   font-size: 0.85rem;
 }
 
 .victoryClose {
   margin-top: 1rem;
-  background: #3a2d20;
-  border: 1px solid #d4a84a;
-  color: #d4a84a;
+  background: #26323e;
+  border: 1px solid #e6c473;
+  color: #e6c473;
   padding: 0.5rem 1.5rem;
   font-family: inherit;
   cursor: pointer;
@@ -289,11 +289,11 @@
 .statusBurning { background: #5a2025; color: #ff9070; }
 .statusConfused { background: #3a2c55; color: #b39de8; }
 .statusDefending { background: #2a4a3a; color: #7ed68a; }
-.statusChained { background: #4a3520; color: #e0d090; }
+.statusChained { background: #2b3845; color: #e0d090; }
 .statusStarving { background: #4a3a18; color: #d8b24a; }
 .statusDemoralized { background: #3a2a2a; color: #c89090; }
 .statusRevealed { background: #2a3a55; color: #88b7e8; }
-.statusDemoralized { background: #2a1a1a; color: #c0a878; }
+.statusDemoralized { background: #2a1a1a; color: #aab6c0; }
 
 .weatherOverlay {
   position: absolute;
@@ -448,10 +448,10 @@
   left: 50%;
   transform: translateX(-50%);
   background: rgba(20, 14, 8, 0.92);
-  border: 1px solid #d4a84a;
+  border: 1px solid #e6c473;
   padding: 0.4rem 1rem;
   font-size: 0.95rem;
-  color: #d4a84a;
+  color: #e6c473;
   max-width: 80%;
   text-align: center;
   pointer-events: none;
@@ -474,18 +474,18 @@
   letter-spacing: 0.15rem;
   text-transform: uppercase;
   padding: 0.15rem 0.5rem;
-  background: #1a1410;
-  border: 1px solid #4a3520;
-  color: #c0a878;
+  background: #10161e;
+  border: 1px solid #2b3845;
+  color: #aab6c0;
 }
 
 .formationChip {
   font-family: ui-monospace, monospace;
   font-size: 0.7rem;
   padding: 0.15rem 0.5rem;
-  background: #1a1410;
-  border: 1px solid #4a3520;
-  color: #c19a3b;
+  background: #10161e;
+  border: 1px solid #2b3845;
+  color: #c9a64e;
   margin-left: 0.4rem;
 }
 
@@ -494,16 +494,16 @@
   gap: 0.6rem;
   align-items: center;
   font-size: 0.8rem;
-  color: #c0a878;
+  color: #aab6c0;
   padding: 0.3rem 0.6rem;
-  background: #1a1410;
-  border: 1px solid #4a3520;
+  background: #10161e;
+  border: 1px solid #2b3845;
   margin-bottom: 0.5rem;
 }
 
 .objectiveProgress {
   font-family: ui-monospace, monospace;
-  color: #d4a84a;
+  color: #e6c473;
 }
 
 .cinematic {
@@ -526,7 +526,7 @@
 
 .cinematicTitle {
   text-align: center;
-  color: #d4a84a;
+  color: #e6c473;
   font-family: 'Songti SC', serif;
 }
 
@@ -545,7 +545,7 @@
 
 .cinematicTitleEn {
   font-size: 1.1rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-style: italic;
   margin-top: 1rem;
   letter-spacing: 0.2rem;
@@ -560,7 +560,7 @@
 .cinematicDesc {
   margin-top: 2rem;
   font-size: 1rem;
-  color: #c0a878;
+  color: #aab6c0;
   font-style: italic;
   max-width: 640px;
   line-height: 1.6;
@@ -574,17 +574,17 @@
 .cinCurtainR {
   position: absolute; top: 0; bottom: 0;
   width: 50%;
-  background: linear-gradient(90deg, #0a0805 0%, #1a1208 100%);
+  background: linear-gradient(90deg, #080b0e 0%, #1a1208 100%);
   pointer-events: none;
 }
 .cinCurtainL {
   left: 0;
-  border-right: 1px solid #3a2818;
+  border-right: 1px solid #1e2832;
   animation: curtainSlideL 1.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
 }
 .cinCurtainR {
   right: 0;
-  border-left: 1px solid #3a2818;
+  border-left: 1px solid #1e2832;
   animation: curtainSlideR 1.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
 }
 @keyframes curtainSlideL {
@@ -603,7 +603,7 @@
   width: 56px; height: 56px;
   border: 2px solid #b8442e;
   background: rgba(184, 68, 46, 0.15);
-  color: #d4a84a;
+  color: #e6c473;
   font-family: 'Songti SC', serif;
   font-size: 1.7rem;
   font-weight: bold;

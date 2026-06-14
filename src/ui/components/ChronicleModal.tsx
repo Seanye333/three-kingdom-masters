@@ -12,7 +12,7 @@ import { useT, useLanguage } from '../i18n';
 const KIND_STYLE: Record<string, { glyph: string; color: string; zh: string; en: string }> = {
   conquest:  { glyph: '⚔', color: '#d4604a', zh: '攻略', en: 'Conquest' },
   defense:   { glyph: '🛡', color: '#5a8ad6', zh: '守禦', en: 'Defense' },
-  works:     { glyph: '🏗', color: '#c19a3b', zh: '工事', en: 'Works' },
+  works:     { glyph: '🏗', color: '#c9a64e', zh: '工事', en: 'Works' },
   event:     { glyph: '✦', color: '#9a7ad0', zh: '大事', en: 'Event' },
   rebellion: { glyph: '🔥', color: '#d0823a', zh: '亂事', en: 'Rebellion' },
 };
@@ -55,28 +55,28 @@ export function ChronicleModal({ onClose }: { onClose: () => void }) {
           background: 'linear-gradient(180deg, #221a10 0%, #1a140c 100%)',
           border: '1px solid #8a6f3a',
           boxShadow: '0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(20,12,4,0.6)',
-          fontFamily: 'Songti SC, serif', color: '#e8d9b0',
+          fontFamily: 'Songti SC, serif', color: '#e6edf3',
         }}
       >
         {/* Scroll header — title seal style */}
         <header style={{
           padding: '0.9rem 1.4rem 0.7rem',
-          borderBottom: '1px solid #4a3520',
+          borderBottom: '1px solid #2b3845',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: 'linear-gradient(180deg, rgba(60,42,20,0.5), transparent)',
         }}>
           <div>
-            <span style={{ fontSize: '1.45rem', letterSpacing: '0.5rem', color: '#f0d98a' }}>
+            <span style={{ fontSize: '1.45rem', letterSpacing: '0.5rem', color: '#f2dd9a' }}>
               {t('國 史', 'Chronicle')}
             </span>
-            <span style={{ marginLeft: '0.9rem', fontSize: '0.75rem', color: '#8a7050', letterSpacing: '0.1rem' }}>
+            <span style={{ marginLeft: '0.9rem', fontSize: '0.75rem', color: '#7a8893', letterSpacing: '0.1rem' }}>
               {playerForce ? (lang === 'en' ? playerForce.name.en : playerForce.name.zh) : ''}
               {' · '}{t(`至 ${date.year} 年`, `through ${date.year} AD`)}
               {' · '}{chronicle.length} {t('條', 'entries')}
             </span>
           </div>
           <button onClick={onClose} style={{
-            background: 'transparent', border: 'none', color: '#a89070',
+            background: 'transparent', border: 'none', color: '#97a4ae',
             fontSize: '1.5rem', cursor: 'pointer',
           }}>×</button>
         </header>
@@ -85,7 +85,7 @@ export function ChronicleModal({ onClose }: { onClose: () => void }) {
         <div style={{ overflowY: 'auto', padding: '1rem 1.6rem 1.6rem' }}>
           {years.length === 0 ? (
             <div style={{
-              textAlign: 'center', color: '#8a7050', padding: '3rem 1rem',
+              textAlign: 'center', color: '#7a8893', padding: '3rem 1rem',
               fontStyle: 'italic', letterSpacing: '0.15rem',
             }}>
               {t('史官尚未動筆 — 去攻下一座城,或守住一場圍攻。', 'The historian\'s brush is dry — take a city, or hold one.')}
@@ -98,11 +98,11 @@ export function ChronicleModal({ onClose }: { onClose: () => void }) {
                   display: 'flex', alignItems: 'center', gap: '0.7rem', margin: '0.4rem 0 0.6rem',
                 }}>
                   <span style={{
-                    fontSize: '1.05rem', color: '#d4a84a', letterSpacing: '0.25rem',
+                    fontSize: '1.05rem', color: '#e6c473', letterSpacing: '0.25rem',
                     border: '1px solid #8a6f3a', padding: '0.1rem 0.6rem', borderRadius: 2,
                     background: 'rgba(212, 168, 74, 0.07)',
                   }}>{year}{t('年', ' AD')}</span>
-                  <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #5a4530, transparent)' }} />
+                  <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #364654, transparent)' }} />
                 </div>
                 {entries.map((e, i) => {
                   const ks = KIND_STYLE[e.kind] ?? KIND_STYLE.event;
@@ -113,7 +113,7 @@ export function ChronicleModal({ onClose }: { onClose: () => void }) {
                       borderLeft: `2px solid ${ks.color}44`,
                       marginBottom: '0.15rem',
                     }}>
-                      <span style={{ color: '#8a7050', fontSize: '0.7rem', flexShrink: 0, width: 18, textAlign: 'center' }}>
+                      <span style={{ color: '#7a8893', fontSize: '0.7rem', flexShrink: 0, width: 18, textAlign: 'center' }}>
                         {SEASON_ZH[e.season] ?? ''}
                       </span>
                       <span style={{ color: ks.color, fontSize: '0.72rem', flexShrink: 0, letterSpacing: '0.05rem' }}>
