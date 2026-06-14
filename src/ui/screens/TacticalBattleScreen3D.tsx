@@ -271,13 +271,27 @@ export function HexTile({
 /** 火攻 — licking flames + ember glow on a burning hex. */
 export function FireArt({ y }: { y: number }) {
   const ref = useRef<THREE.Group>(null);
+  const smokeRef = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {
-    if (!ref.current) return;
     const t = clock.elapsedTime;
-    ref.current.children.forEach((m, i) => {
-      const f = 1 + Math.sin(t * 7 + i * 2.1) * 0.25;
-      m.scale.set(f, 1 + Math.sin(t * 9 + i) * 0.35, f);
-    });
+    if (ref.current) {
+      ref.current.children.forEach((m, i) => {
+        const f = 1 + Math.sin(t * 7 + i * 2.1) * 0.25;
+        m.scale.set(f, 1 + Math.sin(t * 9 + i) * 0.35, f);
+      });
+    }
+    // 濃煙升騰 — smoke climbs and fades, so a fire field reads as spreading.
+    if (smokeRef.current) {
+      smokeRef.current.children.forEach((m, i) => {
+        const cycle = (t * 0.5 + i * 0.33) % 1;
+        m.position.y = 0.6 + cycle * 2.4;
+        m.position.x = Math.sin(t * 0.6 + i) * 0.3 * cycle;
+        const mat = (m as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        if (mat) mat.opacity = (1 - cycle) * 0.32;
+        const sc = 0.3 + cycle * 0.6;
+        m.scale.set(sc, sc, sc);
+      });
+    }
   });
   return (
     <group position={[0, y, 0]}>
@@ -297,6 +311,15 @@ export function FireArt({ y }: { y: number }) {
               emissiveIntensity={1.8}
               transparent opacity={0.85}
             />
+          </mesh>
+        ))}
+      </group>
+      {/* Rising smoke */}
+      <group ref={smokeRef}>
+        {[0, 1, 2].map((i) => (
+          <mesh key={i} position={[0, 0.6, 0]} raycast={() => null}>
+            <sphereGeometry args={[0.26, 6, 6]} />
+            <meshBasicMaterial color={i % 2 ? '#4a423a' : '#5c5048'} transparent opacity={0.3} depthWrite={false} />
           </mesh>
         ))}
       </group>
