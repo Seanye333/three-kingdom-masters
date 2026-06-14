@@ -8,6 +8,7 @@ import { useGameStore } from '../../game/state/store';
 import type { Difficulty } from '../../game/state/gameState';
 import type { Scenario } from '../../game/types';
 import { CustomOfficerCreator } from '../components/CustomOfficerCreator';
+import { Seal } from '../components/Seal';
 import { InstallPrompt } from '../components/InstallPrompt';
 import { LeaderboardModal } from '../components/LeaderboardModal';
 import { WhatsNewModal } from '../components/WhatsNewModal';
@@ -210,7 +211,15 @@ export function TitleScreen() {
       <div style={{ position: 'fixed', right: 10, bottom: 6, zIndex: 5, fontSize: '0.62rem', color: '#5f6c76', fontFamily: 'ui-monospace, monospace' }}>
         v{GAME_VERSION}
       </div>
-      <header className={styles.header}>
+      <header className={styles.header} style={{ position: 'relative' }}>
+        {/* 朱印 — a 「鼎」 chop: the three-legged cauldron, emblem of 三足鼎立. */}
+        <Seal
+          chars="鼎"
+          size={58}
+          rotate={-8}
+          title="鼎 — 三足鼎立"
+          style={{ position: 'absolute', top: '1rem', right: 'clamp(0.75rem, 8vw, 5rem)', zIndex: 2 }}
+        />
         <h1 className={styles.title}>
           {lang !== 'en' && <span className={styles.titleZh}>三國志</span>}
           {lang !== 'zh' && <span className={styles.titleEn}>Three Kingdom Masters</span>}

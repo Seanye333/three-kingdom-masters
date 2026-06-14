@@ -1,4 +1,5 @@
 import { useGameStore } from '../../game/state/store';
+import { Seal } from './Seal';
 import styles from './VictoryModal.module.css';
 
 export function VictoryModal() {
@@ -18,7 +19,7 @@ export function VictoryModal() {
   return (
     <div className={styles.backdrop}>
       <div className={`${styles.modal} ${isVictory ? styles.victory : styles.defeat}`}>
-        <div className={styles.banner}>
+        <div className={styles.banner} style={{ position: 'relative' }}>
           {isVictory ? (
             <>
               <div className={styles.bannerZh}>天下統一</div>
@@ -30,6 +31,15 @@ export function VictoryModal() {
               <div className={styles.bannerEn}>Annihilation</div>
             </>
           )}
+          {/* 朱印 — the record is stamped: 「統一」 in triumph, 「終」 at the end. */}
+          <Seal
+            chars={isVictory ? '統一' : '終'}
+            size={88}
+            rotate={isVictory ? 7 : -8}
+            color={isVictory ? '#b5302c' : '#6f2723'}
+            title={isVictory ? '天下統一' : '滅亡'}
+            style={{ position: 'absolute', top: -18, right: -6 }}
+          />
         </div>
 
         <p className={styles.body}>
