@@ -4822,10 +4822,16 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, fogCityId
     const road = !water && roadTiles.has(i);
     const base = road ? '#9a8358' : (HEXWORLD_COLOR[t.kind] ?? HEXWORLD_COLOR.plain);
     const col = new THREE.Color(base);
-    // Cheap deterministic tint so the plains read as a quilt, not a slab.
-    if (!road && (t.kind === 'plain' || t.kind === 'hill')) {
-      const h = Math.abs(Math.sin(t.x * 12.9898 + t.z * 78.233)) * 0.12;
-      col.offsetHSL(0, 0, h - 0.06);
+    // 地塊質感 — match the painted map's PBR bake on the quilt: every land
+    // tile takes a mottle + relief shading off its north neighbour, and the
+    // high ranges a cool atmospheric cast.
+    if (!road && !water) {
+      const mottle = Math.abs(Math.sin(t.x * 9.1 + t.z * 4.7)) * 0.12 - 0.06;
+      const ni = tileIndex.get(`${t.c},${t.r - 1}`);
+      const northTop = ni !== undefined ? tiles[ni].topY : t.topY;
+      const shade = Math.max(-0.1, Math.min(0.1, (t.topY - northTop) * 0.6));
+      col.offsetHSL(0, 0, mottle + shade);
+      if (t.topY > 0.55) col.lerp(new THREE.Color('#8a98aa'), Math.min(0.26, (t.topY - 0.55) * 0.4));
     }
     if (owner && !water) {
       // Roads take only a light realm wash so the network stays readable.
@@ -5792,11 +5798,11 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
         </Suspense>
       )}
       <Ocean />
-      {mapStyle === 'classic' && season !== 'winter' && <CoastFoam />}
+      {season !== 'winter' && <CoastFoam />}
       {mapStyle === 'classic' && <Lakes3D />}
       {mapStyle === 'classic' && <RiverRibbons frozen={season === 'winter'} />}
       {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
-      {mapStyle === 'classic' && season !== 'winter' && <SeasonGroundTint season={season} />}
+      {season !== 'winter' && <SeasonGroundTint season={season} />}
       {/* Forests plant at the shared height function, so the same trees stand
           perfectly on the hex quilt too. */}
       <Forest3D season={season} />
@@ -5806,7 +5812,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <DriftingClouds />
       {!dusk && <Birds3D />}
       <CitySmoke3D cities={cities} />
-      {mapStyle === 'classic' && season !== 'winter' && <ValleyMist />}
+      {season !== 'winter' && <ValleyMist />}
       <Caravans3D cities={cities} />
       <TradeShips3D ports={portsForMarch} cities={cities} />
       {dusk && <DuskCityLights cities={cities} />}
@@ -5820,8 +5826,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
 
       {/* In hex mode the road network is paved into the quilt itself. */}
       {mapStyle === 'classic' && <Roads cities={cities} />}
-      {mapStyle === 'classic' && <Bridges3D cities={cities} />}
-      {mapStyle === 'classic' && <PostStations3D cities={cities} />}
+      <Bridges3D cities={cities} />
+      <PostStations3D cities={cities} />
       <Landmarks3D cities={cities} />
       <UniqueLandmarks3D cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={visibleCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
