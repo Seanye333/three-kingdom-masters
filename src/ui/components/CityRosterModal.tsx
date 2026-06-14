@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { useT } from '../i18n';
 import { Modal } from './Modal';
+import { Icon } from './Icon';
 
 type Col = 'agriculture' | 'commerce' | 'troops' | 'population' | 'loyalty' | 'gold';
 
@@ -36,7 +37,7 @@ export function CityRosterModal({ onClose }: { onClose: () => void }) {
   const sum = (k: Col) => rows.reduce((s, c) => s + (c[k] as number), 0);
 
   return (
-    <Modal onClose={onClose} width="min(720px, 100%)" icon="🏯" title={t('郡縣一覽', 'Cities')} badge={`(${rows.length})`}>
+    <Modal onClose={onClose} width="min(720px, 100%)" icon={<Icon name="city" size={18} />} title={t('郡縣一覽', 'Cities')} badge={`(${rows.length})`}>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}

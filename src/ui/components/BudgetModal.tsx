@@ -4,6 +4,7 @@ import { tickCityEconomy, TAX_EFFECT } from '../../game/systems/economy';
 import type { TaxRate } from '../../game/types';
 import { useT } from '../i18n';
 import { Modal } from './Modal';
+import { Icon } from './Icon';
 import { playSfx } from '../../game/systems/sound';
 
 /**
@@ -62,7 +63,7 @@ export function BudgetModal({ onClose }: { onClose: () => void }) {
     <Modal
       onClose={onClose}
       width="min(680px, 100%)"
-      icon="🪙"
+      icon={<Icon name="gold" size={18} />}
       title={t('度支簿', 'Treasury')}
       badge={t(`${seasonZh}季預算`, `${season} budget`)}
     >

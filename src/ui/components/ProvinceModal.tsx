@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { PROVINCES } from '../../game/data';
 import { useT } from '../i18n';
 import { Modal } from './Modal';
+import { Icon } from './Icon';
 
 /**
  * 州牧圖 — the realm a province at a time. For each of the 13 provinces: how
@@ -68,9 +69,9 @@ export function ProvinceModal({ onClose }: { onClose: () => void }) {
                 </div>
                 {r.mine > 0 && (
                   <div style={{ fontSize: '0.74rem', color: '#aab6c0', display: 'flex', gap: 14, fontFamily: 'ui-monospace, monospace' }}>
-                    <span>⚔ {num(r.troops)}</span>
-                    <span>🪙 {num(r.gold)}</span>
-                    <span>🌾 {num(r.food)}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="war" /> {num(r.troops)}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="gold" /> {num(r.gold)}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="grain" /> {num(r.food)}</span>
                   </div>
                 )}
               </div>
