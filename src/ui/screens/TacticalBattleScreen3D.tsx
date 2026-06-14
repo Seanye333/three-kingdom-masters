@@ -664,6 +664,33 @@ function FlutterFlag({ color, poleX, y, big }: { color: string; poleX: number; y
   );
 }
 
+/** 浴血 — battle wear scaled by how much a unit has bled: blood streaks on the
+ *  armor, and arrows lodged in it once badly hurt. Static (derived from state). */
+function BattleWear({ unit, yLift }: { unit: TacticalUnit; yLift: number }) {
+  const dmg = 1 - unit.troops / Math.max(1, unit.maxTroops);
+  if (dmg < 0.18) return null;
+  const ph = unit.coord.col * 7 + unit.coord.row * 13;
+  return (
+    <group raycast={() => null}>
+      {[0, 1].map((i) => (
+        <mesh key={`bl${i}`} position={[i ? -0.13 : 0.15, (0.52 - i * 0.2) + yLift, 0.31]} rotation={[0, 0, i ? -0.5 : 0.4]}>
+          <planeGeometry args={[0.08, 0.2]} />
+          <meshBasicMaterial color="#5a0f0a" transparent opacity={Math.min(0.85, 0.3 + dmg * 0.6)} depthWrite={false} />
+        </mesh>
+      ))}
+      {dmg > 0.45 && [0, 1, 2].map((i) => {
+        const a = ((ph + i * 97) % 360) * Math.PI / 180;
+        return (
+          <mesh key={`ar${i}`} position={[Math.cos(a) * 0.22, 0.55 + yLift + Math.sin(i * 1.3) * 0.12, Math.sin(a) * 0.22]} rotation={[Math.PI / 2 - 0.4, a, 0]}>
+            <cylinderGeometry args={[0.012, 0.012, 0.34, 4]} />
+            <meshStandardMaterial color="#6a5230" roughness={0.8} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 function UnitMesh({
   unit, terrainH, isPlayer, selected, onClick, isWounded, lunge,
 }: {
@@ -853,6 +880,8 @@ function UnitMesh({
       )}
       {/* Per-unit-type weapon */}
       <UnitWeapon unit={unit} yLift={yLift} />
+      {/* 浴血 — blood + lodged arrows scaled by damage taken. */}
+      <BattleWear unit={unit} yLift={yLift} />
       {/* Banner pole + fluttering flag — commanders fly a taller 大纛. */}
       <mesh position={[0.28, (unit.isCommander ? 1.2 : 1.05) + yLift, 0]} castShadow>
         <cylinderGeometry args={[0.025, 0.025, unit.isCommander ? 1.25 : 0.95, 6]} />
