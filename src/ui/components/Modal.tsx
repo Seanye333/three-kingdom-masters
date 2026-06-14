@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { playSfx } from '../../game/systems/sound';
 import styles from './Modal.module.css';
 
 export interface ModalProps {
@@ -69,12 +70,16 @@ export function Modal({
   const requestClose = useCallback(() => {
     if (closingRef.current) return;
     closingRef.current = true;
+    playSfx('whoosh');
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (reduce) { onClose(); return; }
     setClosing(true);
     closeTimer.current = window.setTimeout(onClose, 170);
   }, [onClose]);
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+  // 弹窗開合 — a soft sting on open; whoosh on close (in requestClose).
+  useEffect(() => { playSfx('open-modal'); }, []);
 
   useEffect(() => {
     if (!closeOnEsc) return;

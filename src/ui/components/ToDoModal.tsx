@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { tickCityEconomy } from '../../game/systems/economy';
 import { useT } from '../i18n';
 import { Modal } from './Modal';
+import { playSfx } from '../../game/systems/sound';
 
 type Tone = 'urgent' | 'warn' | 'info';
 
@@ -90,7 +91,7 @@ export function ToDoModal({ onClose, onOpenLetters }: { onClose: () => void; onO
             ? t(`存糧 ${c.food.toLocaleString()} — 點擊由 ${relief.name.zh} 調糧`, `${c.food.toLocaleString()} stored — click to ship grain from ${relief.name.en}`)
             : t(`存糧 ${c.food.toLocaleString()},下季缺糧逃兵`, `${c.food.toLocaleString()} stored — desertion next season`),
           onClick: relief
-            ? () => { dispatchConvoy(relief.id, c.id, Math.min(relief.food - 3000, 5000), 0); onClose(); }
+            ? () => { dispatchConvoy(relief.id, c.id, Math.min(relief.food - 3000, 5000), 0); playSfx('coin'); onClose(); }
             : jump(c.id),
         });
       }

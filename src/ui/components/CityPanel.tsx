@@ -1,6 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { cityEconCap } from '../../game/systems/citySize';
 import { useGameStore } from '../../game/state/store';
+import { playSfx } from '../../game/systems/sound';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { cityPolicyEffects, lockedPolicies } from '../../game/systems/policyEffects';
 import { POLICY_DEFS } from '../../game/data/officerAttributes';
@@ -238,7 +239,7 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
           key={a}
           style={btn}
           disabled={have < a}
-          onClick={() => dest && dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0, cargo === 'troops' ? a : 0, cautious)}
+          onClick={() => { if (dest) { dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0, cargo === 'troops' ? a : 0, cautious); playSfx('coin'); } }}
         >
           {a.toLocaleString()}
         </button>

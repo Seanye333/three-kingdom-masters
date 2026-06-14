@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Tip } from './Tip';
+import { playSfx } from '../../game/systems/sound';
 
 interface MenuItem {
   label: ReactNode;
@@ -66,7 +67,7 @@ export function HudMenu({ label, items, title }: Props) {
         <button
           ref={triggerRef}
           className="hud-menu-trigger"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => setOpen((o) => { if (!o) playSfx('click'); return !o; })}
           style={{
             background: open ? 'var(--tkm-bg-raised)' : 'transparent',
             color: 'var(--tkm-text-h2)',

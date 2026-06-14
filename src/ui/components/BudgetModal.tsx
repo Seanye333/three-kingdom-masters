@@ -4,6 +4,7 @@ import { tickCityEconomy, TAX_EFFECT } from '../../game/systems/economy';
 import type { TaxRate } from '../../game/types';
 import { useT } from '../i18n';
 import { Modal } from './Modal';
+import { playSfx } from '../../game/systems/sound';
 
 /**
  * 度支簿 — the realm's ledger for the coming season: every city's projected
@@ -114,7 +115,7 @@ export function BudgetModal({ onClose }: { onClose: () => void }) {
         {playerForceId && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.5rem', flexWrap: 'wrap' }}>
             <button
-              onClick={() => mintCoin()}
+              onClick={() => { mintCoin(); playSfx('coin'); }}
               title={t('鑄小錢 — 即入大筆金,然通脹上揚,蝕日後稅入(漸消)', 'Debase the coinage — a gold windfall now, but inflation rises and saps future tax income (eases over time)')}
               style={{
                 background: 'rgba(212,168,74,0.16)', border: '1px solid #e6c473', color: '#f2dd9a',
