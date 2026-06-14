@@ -81,8 +81,12 @@
 }
 
 .scenarioCard {
-  background: #1b2531;
-  border: 1px solid #2b3845;
+  background: rgba(27, 37, 49, 0.72);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  border-radius: var(--tkm-radius, 8px);
+  box-shadow: var(--tkm-elev-2, 0 10px 34px rgba(0, 0, 0, 0.5));
   padding: 1.5rem;
 }
 
@@ -111,8 +115,9 @@
   grid-template-columns: auto 1fr;
   gap: 1rem;
   align-items: center;
-  background: #10161e;
-  border: 1px solid #26323e;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  border-radius: var(--tkm-radius-sm, 5px);
   color: #e6edf3;
   padding: 0.5rem 0.75rem;
   cursor: pointer;
@@ -122,13 +127,13 @@
 }
 
 .scenarioButton:hover {
-  background: #26323e;
-  border-color: #e6c473;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(230, 196, 115, 0.6);
 }
 
 .scenarioSelected {
   border-color: #e6c473;
-  background: #26323e;
+  background: rgba(230, 196, 115, 0.12);
 }
 
 .scenarioYear {
@@ -173,8 +178,9 @@
 }
 
 .diffButton {
-  background: #10161e;
-  border: 1px solid #26323e;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  border-radius: var(--tkm-radius-sm, 5px);
   color: #aab6c0;
   padding: 0.5rem 0.6rem;
   cursor: pointer;
@@ -187,13 +193,13 @@
 }
 
 .diffButton:hover {
-  background: #26323e;
-  border-color: #e6c473;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(230, 196, 115, 0.6);
 }
 
 .diffSelected {
   border-color: #e6c473;
-  background: #26323e;
+  background: rgba(230, 196, 115, 0.12);
   color: #e6c473;
 }
 
@@ -222,18 +228,20 @@
 .officersButton {
   margin-top: 1rem;
   width: 100%;
-  background: #10161e;
+  background: rgba(255, 255, 255, 0.03);
   color: #e6c473;
-  border: 1px solid #2b3845;
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  border-radius: var(--tkm-radius-sm, 5px);
   padding: 0.6rem;
   font-family: inherit;
   font-size: 0.9rem;
-  letter-spacing: 0.1rem;
+  letter-spacing: 0.07rem;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .officersButton:hover {
-  background: #26323e;
+  background: rgba(255, 255, 255, 0.07);
   border-color: #e6c473;
 }
 
@@ -253,8 +261,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #1b2531;
-  border: 1px solid #2b3845;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--tkm-hairline, rgba(255, 255, 255, 0.08));
+  border-radius: var(--tkm-radius-sm, 5px);
   color: #e6edf3;
   padding: 0.6rem 0.85rem;
   cursor: pointer;
@@ -264,8 +273,8 @@
 }
 
 .forceButton:hover {
-  background: #26323e;
-  border-color: #e6c473;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(230, 196, 115, 0.6);
 }
 
 .forceColor {

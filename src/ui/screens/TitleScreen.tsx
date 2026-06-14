@@ -214,19 +214,24 @@ export function TitleScreen() {
         <h1 className={styles.title}>
           {lang !== 'en' && <span className={styles.titleZh}>三國志</span>}
           {lang !== 'zh' && <span className={styles.titleEn}>Three Kingdom Masters</span>}
+          {/* A single tapered brush sweep — calmer than the old four strokes. */}
           <svg
             className="tkm-brush-stroke"
-            viewBox="0 0 300 80"
-            style={{ display: 'block', margin: '0.5rem auto 0', maxWidth: 300, opacity: 0.85 }}
+            viewBox="0 0 300 24"
+            style={{ display: 'block', margin: '0.35rem auto 0', width: 230, opacity: 0.9 }}
             fill="none"
-            stroke="#e6c473"
-            strokeWidth="3"
+            stroke="url(#tkm-title-sweep)"
+            strokeWidth="2.5"
             strokeLinecap="round"
           >
-            <path d="M 20 25 Q 80 18 145 25" />
-            <path d="M 20 45 Q 80 38 145 45" />
-            <path d="M 20 65 Q 80 58 145 65" />
-            <path d="M 180 18 Q 220 40 270 65" style={{ animationDelay: '0.9s' }} />
+            <defs>
+              <linearGradient id="tkm-title-sweep" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#e6c473" stopOpacity="0" />
+                <stop offset="50%" stopColor="#e6c473" stopOpacity="1" />
+                <stop offset="100%" stopColor="#e6c473" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M 12 14 Q 150 4 288 14" />
           </svg>
         </h1>
         {/* Stepped-wizard indicator */}
@@ -242,12 +247,14 @@ export function TitleScreen() {
                     if (i <= STEPS.findIndex((x) => x.k === step)) setStep(s.k);
                   }}
                   style={{
-                    padding: '0.25rem 0.8rem',
-                    border: `1px solid ${on ? '#e6c473' : done ? '#7a8893' : '#2b3845'}`,
-                    background: on ? '#1e2832' : 'transparent',
-                    color: on ? '#e6c473' : done ? '#a08c6a' : '#6a5238',
-                    fontFamily: 'inherit', fontSize: '0.82rem', letterSpacing: '0.1rem',
+                    padding: '0.3rem 0.9rem',
+                    border: `1px solid ${on ? '#e6c473' : done ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}`,
+                    borderRadius: 999,
+                    background: on ? 'rgba(230,196,115,0.12)' : 'transparent',
+                    color: on ? '#e6c473' : done ? '#a8b4be' : '#6a7682',
+                    fontFamily: 'inherit', fontSize: '0.82rem', letterSpacing: '0.06rem',
                     cursor: i <= STEPS.findIndex((x) => x.k === step) ? 'pointer' : 'default',
+                    transition: 'background 0.15s, border-color 0.15s, color 0.15s',
                   }}
                 >
                   {s.n} {lang === 'en' ? s.en : s.zh}
