@@ -770,15 +770,20 @@ function UnitMesh({
     } else if (hitT === 0 && unit.troops > 0) {
       g.rotation.x = 0;
     }
-    // 突刺 — thrust toward the melee target on a strike, then recoil back.
+    // 突刺 — strike motion toward the melee target, shaped by unit type:
+    // 騎兵踐踏遠衝、槍兵急促突刺、餘者中庸。
     if (lunge && unit.troops > 0) {
       const [lx, lz] = hexWorld(lunge.to.col, lunge.to.row);
       const dx = lx - tx, dz = lz - tz;
       const len = Math.hypot(dx, dz) || 1;
+      const reach = unit.unitType === 'cavalry' ? 0.58 : unit.unitType === 'spearmen' ? 0.46 : 0.38;
+      const dur = unit.unitType === 'cavalry' ? 0.5 : unit.unitType === 'spearmen' ? 0.28 : 0.36;
       const since = (Date.now() - lunge.at) / 1000;
-      const lungeT = since >= 0 && since < 0.4 ? Math.sin((since / 0.4) * Math.PI) : 0;
-      tgt.x += (dx / len) * lungeT * 0.38;
-      tgt.z += (dz / len) * lungeT * 0.38;
+      const lungeT = since >= 0 && since < dur ? Math.sin((since / dur) * Math.PI) : 0;
+      tgt.x += (dx / len) * lungeT * reach;
+      tgt.z += (dz / len) * lungeT * reach;
+      // Cavalry dips forward as it tramples through.
+      if (unit.unitType === 'cavalry') tgt.y -= lungeT * 0.12;
     }
     // 陣亡 — once wiped out, the husk topples, sinks and fades before it's
     // pruned, instead of blinking out of existence.
