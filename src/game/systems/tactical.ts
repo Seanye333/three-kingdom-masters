@@ -1482,7 +1482,16 @@ export function applyBattlePrep(
   });
 
   if (kind === 'night') {
-    return { battle: mark({ ...b, timeOfDay: 'night' }, '🌙 夜襲!兩軍於暗夜中接戰,弓弩難及,伏兵愈利。'), ok: true };
+    // 夜襲劫營 — the enemy is roused from camp in disarray: every foe opens the
+    // fight shaken (−18 morale). Night also cuts archery and emboldens ambush.
+    const foe = side === 'attacker' ? 'defender' : 'attacker';
+    const raided = b.units.map((u) =>
+      u.side === foe && u.troops > 0 ? { ...u, morale: Math.max(0, u.morale - 18) } : u);
+    return {
+      battle: mark({ ...b, timeOfDay: 'night', units: raided },
+        '🌙 夜襲劫營!敵軍倉促應戰、陣腳大亂(士氣挫),弓弩難及,伏兵愈利。'),
+      ok: true,
+    };
   }
 
   if (kind === 'ambush') {
