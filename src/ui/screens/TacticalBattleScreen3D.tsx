@@ -4302,6 +4302,24 @@ export function TacticalBattleScreen3D() {
                 kind: 'event',
               }],
             };
+            // 一騎討 — a decisive duel sways both armies: the victor's side is
+            // emboldened (+10), the bested side shaken (−15), with a banner + kick.
+            if (outcome.winner !== 'draw') {
+              const meSide = battle.units.find((u) => u.officerId === me.id)?.side;
+              const winSide = outcome.winner === 'attacker' ? meSide : (meSide === 'attacker' ? 'defender' : 'attacker');
+              const loseSide = winSide === 'attacker' ? 'defender' : 'attacker';
+              if (winSide) {
+                next = {
+                  ...next,
+                  units: next.units.map((u) => u.side === winSide ? { ...u, morale: Math.min(100, u.morale + 10) }
+                    : u.side === loseSide ? { ...u, morale: Math.max(0, u.morale - 15) } : u),
+                };
+              }
+              const wn = outcome.winner === 'attacker' ? me : foe;
+              setSignatureBanner({ zh: `一騎討 — ${wn.name.zh} 力克強敵!`, en: `${wn.name.en} wins the duel!`, key: Date.now() });
+              setCine({ key: ++cineCount.current, weight: 3, color: '#ffd54a' });
+              setTimeout(() => setSignatureBanner(null), 2200);
+            }
             start(next);
             setInteractiveDuel(null);
           }}
