@@ -3665,6 +3665,29 @@ export function TacticalBattleScreen3D() {
             ⏳ {t('久戰', 'Fatigue')} −{Math.min(40, 5 * (battle.turn - 9))}%
           </span>
         )}
+        {/* 戰鬥目標 — surface the player's win condition. */}
+        {(() => {
+          const obj = playerSide === 'attacker' ? battle.attackerObjective : battle.defenderObjective;
+          const lbl: Record<string, [string, string]> = {
+            'destroy-commander': ['斬敵主將', 'Slay the enemy commander'],
+            'hold-tile': ['守住要地', 'Hold the position'],
+            'escape': ['主將脫出戰場', 'Escape with your commander'],
+            'survive-turns': ['堅守到援軍', 'Survive'],
+            'escort': ['護送脫出', 'Escort to the edge'],
+            'capture-supply': ['奪取糧倉', 'Seize the supply dump'],
+          };
+          const k = obj?.kind ?? 'destroy-commander';
+          const [zh, en] = lbl[k] ?? ['殲敵或斬將', 'Rout or slay the foe'];
+          const prog = obj?.turnsRequired ? ` ${obj.progress ?? 0}/${obj.turnsRequired}` : '';
+          return (
+            <span style={{
+              fontSize: '0.72rem', padding: '2px 7px',
+              background: 'rgba(40,28,18,0.7)', border: '1px solid #7ec0e0', color: '#9ed0ea',
+            }} title={t('本戰勝利條件', 'Victory condition')}>
+              🎯 {t(zh, en)}{prog}
+            </span>
+          );
+        })()}
         {myTurn && (() => {
           const live = battle.units.filter((u) => u.side === playerSide && u.troops > 0);
           const ready = live.filter((u) => u.ap > 0).length;
