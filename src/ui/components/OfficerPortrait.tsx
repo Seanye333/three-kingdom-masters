@@ -86,7 +86,7 @@ export function OfficerPortrait({
   return (
     <div
       className="tkm-portrait"
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, ...(forceColor ? { borderColor: forceColor } : null) }}
       title={`${officer.name.zh} · ${ARCH_LABEL[arch]}`}
       {...factionAttr}
     >
@@ -102,7 +102,7 @@ export function OfficerPortrait({
           height={size}
           loading="lazy"
           onError={() => { missingPortraits.add(officer.id); setImgFailed(true); }}
-          style={{ width: size, height: size, objectFit: 'cover', display: 'block', border: `1px solid ${accent}` }}
+          style={{ width: size, height: size, objectFit: 'cover', display: 'block' }}
         />
       )}
     </div>
