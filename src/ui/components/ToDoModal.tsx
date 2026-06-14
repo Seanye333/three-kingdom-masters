@@ -4,6 +4,7 @@ import { tickCityEconomy } from '../../game/systems/economy';
 import { useT } from '../i18n';
 import { Modal } from './Modal';
 import { playSfx } from '../../game/systems/sound';
+import { CHIP_TONES } from './Chip';
 
 type Tone = 'urgent' | 'warn' | 'info';
 
@@ -17,10 +18,11 @@ interface Todo {
   onClick?: () => void;
 }
 
+// Share the one status palette — urgent reads as the 受襲 danger red.
 const TONE_COLOR: Record<Tone, { fg: string; border: string; bg: string }> = {
-  urgent: { fg: '#ffb088', border: '#e0603a', bg: 'rgba(200,60,40,0.12)' },
-  warn:   { fg: '#f2dd9a', border: '#e6c473', bg: 'rgba(212,168,74,0.10)' },
-  info:   { fg: '#9ad6c8', border: '#5a8a7a', bg: 'rgba(90,138,122,0.10)' },
+  urgent: CHIP_TONES.danger,
+  warn:   CHIP_TONES.warn,
+  info:   CHIP_TONES.info,
 };
 
 /**

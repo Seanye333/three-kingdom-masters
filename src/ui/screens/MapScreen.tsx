@@ -29,6 +29,7 @@ import { OfficersTab } from '../components/OfficersTab';
 import { SaveSlotsModal } from '../components/SaveSlotsModal';
 import { SeasonReportModal } from '../components/SeasonReportModal';
 import { SeasonTransition } from '../components/SeasonTransition';
+import { Chip } from '../components/Chip';
 import { BattleTheaterModal } from '../components/BattleTheaterModal';
 import { StrategicMap3D } from '../components/StrategicMap3D';
 import { TutorialOverlay } from '../components/TutorialOverlay';
@@ -590,40 +591,32 @@ export function MapScreen() {
             {/* 敵軍逼近 — pulsing red alert when a hostile army marches on one of
                 your cities; click to jump to the most imminent front. */}
             {threats.length > 0 && (
-              <button
+              <Chip
+                tone="danger"
+                pulse
+                icon="⚠"
                 onClick={jumpToThreat}
-                className="tkm-threat-chip"
                 title={threats
                   .map((th) => `${th.name} ⚔ ${th.troops.toLocaleString()}${t('兵', '')}`)
                   .join('  ·  ')}
-                style={{
-                  marginRight: 8, cursor: 'pointer',
-                  background: 'rgba(200,60,40,0.2)', border: '1px solid #e0603a',
-                  color: '#ffb088', padding: '0.2rem 0.6rem', borderRadius: 4,
-                  fontFamily: 'var(--tkm-font-body)', fontSize: '0.8rem', whiteSpace: 'nowrap',
-                }}
+                style={{ marginRight: 8 }}
               >
-                ⚠ {threats.length} {t('城受襲', threats.length > 1 ? 'under threat' : 'threatened')}
-              </button>
+                {threats.length} {t('城受襲', threats.length > 1 ? 'under threat' : 'threatened')}
+              </Chip>
             )}
             {/* 季內進度 — idle-commander nudge; click to jump to the first. */}
-            <button
+            <Chip
+              tone={idleCount > 0 ? 'warn' : 'ok'}
+              icon={idleCount > 0 ? '⚑' : '✓'}
               onClick={jumpToIdle}
               disabled={idleCount === 0}
               title={idleCount > 0
                 ? t('尚有未派遣的武將 — 點擊前往', 'Idle commanders await orders — click to jump')
                 : t('全員已令', 'every commander has an order')}
-              style={{
-                marginRight: 8, cursor: idleCount > 0 ? 'pointer' : 'default',
-                background: idleCount > 0 ? 'rgba(212,168,74,0.18)' : 'rgba(110,174,115,0.14)',
-                border: `1px solid ${idleCount > 0 ? '#e6c473' : '#6fae73'}`,
-                color: idleCount > 0 ? '#f2dd9a' : '#9ad6a8',
-                padding: '0.2rem 0.6rem', borderRadius: 4,
-                fontFamily: 'var(--tkm-font-body)', fontSize: '0.8rem', whiteSpace: 'nowrap',
-              }}
+              style={{ marginRight: 8 }}
             >
-              {idleCount > 0 ? `⚑ ${idleCount} ${t('閒置', 'idle')}` : `✓ ${t('全員已令', 'all set')}`}
-            </button>
+              {idleCount > 0 ? `${idleCount} ${t('閒置', 'idle')}` : t('全員已令', 'all set')}
+            </Chip>
             {/* 一鍵委派 — auto-assign every idle officer a sensible task. */}
             {idleCount > 0 && (
               <button
