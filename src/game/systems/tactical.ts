@@ -491,6 +491,10 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
 
   // Generate spawn voice lines for famous officers.
   const log: TacticalBattle['log'] = [];
+  // 戰役腳本 — a named historical battle opens with its scene-setting line.
+  if (namedMap?.introZh || namedMap?.introEn) {
+    log.push({ turn: 1, text: namedMap.introEn ?? namedMap.introZh ?? '', kind: 'event' });
+  }
   for (const u of units) {
     const voice = pickVoiceLine(u.officerId, 'spawn', Math.random);
     if (voice) {
@@ -780,8 +784,8 @@ export function setupTacticalBattle(p: SetupParams): TacticalBattle {
     },
     attackerFormation: p.attackerFormation ?? 'none',
     defenderFormation: p.defenderFormation ?? 'none',
-    attackerObjective: p.attackerObjective,
-    defenderObjective: p.defenderObjective,
+    attackerObjective: p.attackerObjective ?? namedMap?.attackerObjective,
+    defenderObjective: p.defenderObjective ?? namedMap?.defenderObjective,
     weather,
     timeOfDay,
     windDirection: p.windDirection ?? 'calm',

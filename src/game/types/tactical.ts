@@ -101,6 +101,11 @@ export interface NamedBattleMap {
     label: BilingualName;
     role: 'supply' | 'bridge' | 'hill' | 'wagon' | 'flag';
   }>;
+  /** 戰役腳本 — scripted win conditions + opening flavour for famous battles. */
+  attackerObjective?: BattleObjective;
+  defenderObjective?: BattleObjective;
+  introZh?: string;
+  introEn?: string;
 }
 
 /** A floating damage popup spawned by a hit. */

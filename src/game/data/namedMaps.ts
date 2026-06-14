@@ -37,6 +37,9 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
       { coord: { col: 5, row: 3 }, label: { en: 'Bridge', zh: '橋' }, role: 'bridge' },
       { coord: { col: 8, row: 3 }, label: { en: 'Ford', zh: '渡' }, role: 'bridge' },
     ],
+    defenderObjective: { kind: 'survive-turns', turnsRequired: 6 },
+    introZh: '北軍艦船相連、鎖如平地;只待東南風起,一炬可焚連營。守得風來,則勝。',
+    introEn: 'Red Cliffs — the chained northern fleet awaits the south wind and the fire. Hold until it turns.',
   },
   {
     id: 'map-hulao-pass',
@@ -67,6 +70,9 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     specialTiles: [
       { coord: { col: 5, row: 2 }, label: { en: 'The Pass', zh: '關門' }, role: 'flag' },
     ],
+    defenderObjective: { kind: 'survive-turns', turnsRequired: 6 },
+    introZh: '虎牢關前,三英戰呂布!聯軍欲破關而入,守軍但須拒之關外,堅守即勝。',
+    introEn: 'Hulao Pass — three heroes against Lü Bu. Hold the chokepoint and the day is yours.',
   },
   {
     id: 'map-changban',
@@ -143,6 +149,9 @@ export const NAMED_BATTLE_MAPS: NamedBattleMap[] = [
     specialTiles: [
       { coord: { col: 10, row: 3 }, label: { en: 'Wuchao Granary', zh: '烏巣之倉' }, role: 'supply' },
     ],
+    attackerObjective: { kind: 'capture-supply', tileCoord: { col: 10, row: 3 }, turnsRequired: 2 },
+    introZh: '官渡決於烏巢 — 直取糧囤、焚其積穀,袁紹百萬之眾不戰自潰。',
+    introEn: "Guandu hinges on Wuchao — seize the granary and Yuan Shao's vast host starves.",
   },
 
   // ─── Phase 35 additional maps ──────────────────────────────
