@@ -70,6 +70,26 @@ export function SeasonReportModal() {
     { icon: '☠', label: t('殞', 'deaths'), count: n('death'), color: '#b0a090' },
   ].filter((s) => s.count > 0);
 
+  // ── 季度旁白 — a史官's one-line prose gloss on the season, woven from the
+  // same tallies. Turns a column of numbers into a sentence you'd read in a
+  // chronicle. Quiet seasons get their own (peaceful) line.
+  const narration: { zh: string; en: string } = (() => {
+    const c = (k: string) => n(k);
+    const zh: string[] = [];
+    const en: string[] = [];
+    if (c('battle')) { zh.push(`烽火${c('battle')}起`); en.push(`${c('battle')} clash${c('battle') > 1 ? 'es' : ''}`); }
+    if (c('conquest')) { zh.push(`拓土${c('conquest')}城`); en.push(`${c('conquest')} city taken`); }
+    if (c('defeat')) { zh.push(`失地${c('defeat')}城`); en.push(`${c('defeat')} city lost`); }
+    if (c('talent')) { zh.push(`${c('talent')}賢來投`); en.push(`${c('talent')} worthy joined`); }
+    if (c('death')) { zh.push(`${c('death')}將星隕`); en.push(`${c('death')} fallen`); }
+    if (c('rebellion')) { zh.push('境內生變'); en.push('unrest stirs'); }
+    if (c('succession')) { zh.push('易主承祧'); en.push('a throne passes'); }
+    const era = `${report.date.year}年·${season.zh}`;
+    const eraEn = `${season.en} ${report.date.year} AD`;
+    if (zh.length === 0) return { zh: `${era} —— 四海晏然,境內無大事。`, en: `${eraEn} — a quiet season across the realm.` };
+    return { zh: `${era} —— ${zh.join('、')}。`, en: `${eraEn} — ${en.join(', ')}.` };
+  })();
+
   return (
     <div className={styles.backdrop} onClick={dismiss}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -85,6 +105,15 @@ export function SeasonReportModal() {
             </div>
           </div>
         </header>
+
+        {/* 季度旁白 — chronicler's gloss on the season */}
+        <div style={{
+          textAlign: 'center', fontStyle: 'italic', color: '#bda06a',
+          fontFamily: '"Songti SC","Noto Serif SC",serif', fontSize: '0.9rem',
+          padding: '0.55rem 1rem 0.2rem', lineHeight: 1.5,
+        }}>
+          {lang === 'en' ? narration.en : lang === 'both' ? `${narration.zh} · ${narration.en}` : narration.zh}
+        </div>
 
         {summary.length > 0 && (
           <div style={{
