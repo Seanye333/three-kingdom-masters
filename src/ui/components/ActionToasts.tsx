@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { playSfx } from '../../game/systems/sound';
 import { useT } from '../i18n';
+import { Seal } from './Seal';
 
 interface Toast { key: number; zh: string; en: string; tone: 'ok' | 'warn' }
 
@@ -42,18 +43,25 @@ export function ActionToasts() {
           key={x.key}
           className="tkm-action-toast"
           style={{
+            display: 'flex', alignItems: 'center', gap: 8,
             background: 'rgba(20, 14, 8, 0.94)',
             border: `1px solid ${x.tone === 'warn' ? '#c08a4a' : '#6fae73'}`,
             color: '#eef4f8', fontFamily: 'var(--tkm-font-body)', fontSize: '0.84rem',
-            padding: '0.34rem 0.85rem', borderRadius: 4,
+            padding: '0.34rem 0.5rem 0.34rem 0.85rem', borderRadius: 4,
             boxShadow: '0 2px 12px rgba(0,0,0,0.55)', whiteSpace: 'nowrap',
-            overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '92vw',
+            overflow: 'hidden', maxWidth: '92vw',
           }}
         >
-          <span style={{ color: x.tone === 'warn' ? '#e0b070' : '#9ad6a8', marginRight: 6 }}>
-            {x.tone === 'warn' ? '↺' : '✓'}
-          </span>
-          {t(x.zh, x.en)}
+          {/* 朱印 — a confirmed order earns a stamped 「令」 chop; a reversal
+              keeps the amber ↺. */}
+          {x.tone === 'warn' ? (
+            <span style={{ color: '#e0b070' }}>↺</span>
+          ) : (
+            <span className="tkm-seal-stamp" style={{ lineHeight: 0, flexShrink: 0 }}>
+              <Seal chars="令" size={22} rotate={0} />
+            </span>
+          )}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(x.zh, x.en)}</span>
         </div>
       ))}
     </div>

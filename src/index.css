@@ -1014,6 +1014,17 @@ textarea:focus-visible,
 .tkm-action-toast { animation: tkmActionToast 2.4s ease-out forwards; }
 @media (prefers-reduced-motion: reduce) { .tkm-action-toast { animation: none; } }
 
+/* 朱印盖章 — a confirmed order's seal presses down with a little overshoot,
+   the way a real chop thumps onto a dispatch. */
+@keyframes tkmSealStamp {
+  0%   { opacity: 0; transform: scale(1.55) rotate(-14deg); }
+  55%  { opacity: 1; transform: scale(0.9) rotate(-6deg); }
+  76%  { transform: scale(1.05) rotate(-6deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-6deg); }
+}
+.tkm-seal-stamp { animation: tkmSealStamp 0.42s cubic-bezier(0.3, 1.5, 0.6, 1) both; }
+@media (prefers-reduced-motion: reduce) { .tkm-seal-stamp { animation: none; } }
+
 /* 戰鬥定格 — victory/defeat character slams in over the frozen battlefield. */
 @keyframes tkmVictorySlam {
   0%   { opacity: 0; transform: scale(2.6); filter: blur(6px); }
