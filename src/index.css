@@ -978,3 +978,17 @@ button:not(:disabled):active {
 }
 .tkm-threat-chip { animation: tkmThreatPulse 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .tkm-threat-chip { animation: none; } }
+
+/* 輔助設定 — manual "reduce motion" toggle (uiPrefs.ts). Kills the pulsing /
+   flashing screen FX for motion-sensitive players, independent of the OS
+   media query so it works even where that isn't set. */
+html[data-tkm-reduce-motion="1"] .tkm-blood-vignette,
+html[data-tkm-reduce-motion="1"] .tkm-threat-chip,
+html[data-tkm-reduce-motion="1"] .tkm-fx-flash,
+html[data-tkm-reduce-motion="1"] .tkm-action-toast,
+html[data-tkm-reduce-motion="1"] .tkm-ach-toast,
+html[data-tkm-reduce-motion="1"] .tkm-victory-slam {
+  animation: none !important;
+}
+/* 血腥畫面 — hide the on-damage blood vignette when gore is turned off. */
+html[data-tkm-gore="off"] .tkm-blood-vignette { display: none !important; }

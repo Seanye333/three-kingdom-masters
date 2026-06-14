@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { exportAllSaves, importAllSaves } from '../../game/state/saveTransfer';
 import { installMod, loadMods, parseModBundle, removeMod } from '../../game/systems/mods';
+import { applyUiPrefs, getStoredUiPrefs, type UiPrefs, type UiScale } from '../uiPrefs';
 import { useT } from '../i18n';
 
 interface Props {
@@ -30,6 +31,13 @@ export function SettingsModal({ onClose }: Props) {
   const setLanguage = useGameStore((s) => s.setLanguage);
   const placementMode = useGameStore((s) => s.placementMode ?? 'historical');
   const setPlacementMode = useGameStore((s) => s.setPlacementMode);
+  // 輔助偏好 — device-level, not campaign state; lives in localStorage.
+  const [uiPrefs, setUiPrefs] = useState<UiPrefs>(getStoredUiPrefs);
+  const updateUiPref = (patch: Partial<UiPrefs>) => {
+    const next = { ...uiPrefs, ...patch };
+    setUiPrefs(next);
+    applyUiPrefs(next);
+  };
   const t = useT();
 
   return (
@@ -97,6 +105,39 @@ export function SettingsModal({ onClose }: Props) {
                 <option value="en">English</option>
                 <option value="both">中英 Both</option>
               </select>
+            </Row>
+          </Section>
+
+          <Section title={t('輔助', 'Accessibility')}>
+            <Toggle
+              label={t('減少動畫', 'Reduce motion')}
+              hint={t('關閉畫面閃動、脈動警示與彈跳提示', 'Stop flashes, pulses & bouncing toasts')}
+              checked={uiPrefs.reduceMotion}
+              onChange={(v) => updateUiPref({ reduceMotion: v })}
+            />
+            <Toggle
+              label={t('血腥畫面', 'Blood effects')}
+              hint={t('受創時屏幕邊緣的紅暈', 'The red vignette when your troops are hit')}
+              checked={uiPrefs.gore}
+              onChange={(v) => updateUiPref({ gore: v })}
+            />
+            <Row label={t('介面字號', 'Text size')} hint={t('縮放全介面文字', 'Scale all interface text')}>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {([['sm', t('小', 'S')], ['md', t('中', 'M')], ['lg', t('大', 'L')]] as Array<[UiScale, string]>).map(([s, lbl]) => (
+                  <button
+                    key={s}
+                    onClick={() => updateUiPref({ uiScale: s })}
+                    style={{
+                      background: uiPrefs.uiScale === s ? '#3a2d20' : 'transparent',
+                      border: '1px solid ' + (uiPrefs.uiScale === s ? '#d4a84a' : '#4a3520'),
+                      color: uiPrefs.uiScale === s ? '#d4a84a' : '#8a7050',
+                      padding: '0.25rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {lbl}
+                  </button>
+                ))}
+              </div>
             </Row>
           </Section>
 

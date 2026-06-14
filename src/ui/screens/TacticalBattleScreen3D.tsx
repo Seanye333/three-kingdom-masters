@@ -20,6 +20,7 @@ import { BattleResultsModal } from '../components/BattleResultsModal';
 import { IntroDive } from '../components/IntroDive';
 import { DuelGameModal } from '../components/DuelGameModal';
 import { useT, useDesc, useLanguage } from '../i18n';
+import { isReduceMotion } from '../uiPrefs';
 
 /** Coarse-pointer / small-screen device — drop pixel ratio and skip the
  *  post-processing pass so phones keep a playable framerate. */
@@ -3456,6 +3457,7 @@ export function TacticalBattleScreen3D() {
   // Run the screen-shake on the canvas wrapper whenever a cinematic fires.
   useEffect(() => {
     if (!cine || cine.weight <= 0) return;
+    if (isReduceMotion()) return;  // 減少動畫 — skip the camera punch entirely.
     const el = canvasWrapRef.current;
     if (!el || typeof el.animate !== 'function') return;
     const a = cine.weight >= 2 ? 11 : 5;
