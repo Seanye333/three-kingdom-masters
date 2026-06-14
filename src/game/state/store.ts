@@ -51,7 +51,7 @@ import {
 } from '../systems/tribes';
 import { TRIBES_BY_ID } from '../data/tribes';
 import { addRapport, mingleRapport, getRapport, growRapportFromProximity } from '../systems/rapport';
-import { pairKey } from '../types/diplomacy';
+import { pairKey, getRelation } from '../types/diplomacy';
 import { OATH_BONDS } from '../data';
 import { planAITurn } from '../systems/ai';
 import { planAIAppointments } from '../systems/aiAppointments';
@@ -245,6 +245,10 @@ interface GameStore extends GameState {
   welcomeEmperor: () => { ok: boolean; reason?: string };
   /** 市易 — convert gold↔food at the city's current market rate. */
   tradeFood: (cityId: EntityId, kind: 'buy' | 'sell', amount: number) => { ok: boolean; got: number };
+  /** 借糧 — ask a friendly force to send grain to your capital. Allies and NAP
+   *  partners (or anyone you're on good terms with) oblige; the grain comes out
+   *  of their own stores. */
+  requestGrain: (targetForceId: EntityId) => { ok: boolean; accepted?: boolean; message: string };
   /** 委任太守 — set (or clear with null) a city's standing governor. */
   delegateCity: (cityId: EntityId, officerId: EntityId | null) => void;
   /** 軍團都督 — form a legion (id auto-assigned). */
@@ -3728,6 +3732,40 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           diplomacy: outcome.diplomacy,
         });
         return { ok: true, message: outcome.message };
+      },
+
+      requestGrain: (targetForceId) => {
+        const state = get();
+        if (!state.playerForceId) return { ok: false, message: 'No player force.' };
+        const player = state.forces[state.playerForceId];
+        const target = state.forces[targetForceId];
+        if (!player || !target) return { ok: false, message: 'Invalid forces.' };
+        const myCap = state.cities[player.capitalCityId];
+        const theirCap = state.cities[target.capitalCityId];
+        if (!myCap || !theirCap) return { ok: false, message: 'No capital city.' };
+        const rel = getRelation(state.diplomacy, player.id, target.id);
+        // Allies and pact-partners share freely; a friendly neutral may too.
+        const willing = rel.status === 'allied' || rel.status === 'non-aggression' || rel.score >= 20;
+        if (!willing) {
+          return { ok: true, accepted: false, message: `${target.name.en} declines to share grain.` };
+        }
+        const spare = Math.max(0, theirCap.food - 3000); // they keep a reserve
+        if (spare < 500) {
+          return { ok: true, accepted: false, message: `${target.name.en} has no grain to spare.` };
+        }
+        const grant = Math.min(spare, rel.status === 'allied' ? 6000 : 3000);
+        set({
+          cities: {
+            ...state.cities,
+            [theirCap.id]: { ...theirCap, food: theirCap.food - grant },
+            [myCap.id]: { ...myCap, food: myCap.food + grant },
+          },
+        });
+        get().notify(
+          `借糧 · ${target.name.zh} 濟糧 ${grant.toLocaleString()}（入 ${myCap.name.zh}）`,
+          `${target.name.en} sends ${grant.toLocaleString()} grain to ${myCap.name.en}`,
+        );
+        return { ok: true, accepted: true, message: `${target.name.zh} 濟糧 ${grant.toLocaleString()}。` };
       },
 
       breakAlliance: (targetForceId) => {

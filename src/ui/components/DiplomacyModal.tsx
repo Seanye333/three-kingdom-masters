@@ -44,6 +44,7 @@ export function DiplomacyModal({ onClose }: Props) {
   const proposeAlliance = useGameStore((s) => s.proposeAlliance);
   const proposeNAP = useGameStore((s) => s.proposeNonAggression);
   const payTribute = useGameStore((s) => s.payTribute);
+  const requestGrain = useGameStore((s) => s.requestGrain);
   const breakAlliance = useGameStore((s) => s.breakAlliance);
   const credibility = useGameStore((s) => (playerForceId ? s.credibility[playerForceId] : undefined) ?? 100);
 
@@ -196,6 +197,14 @@ export function DiplomacyModal({ onClose }: Props) {
                     disabled={playerCapitalGold < 500}
                   >
                     +500g
+                  </button>
+                  <button
+                    className={styles.tributeBtn}
+                    onClick={() => handle(row.id, () => requestGrain(row.id))}
+                    disabled={row.relation.status === 'neutral' && row.relation.score < 20}
+                    title={t('向友邦借糧,濟入都城(盟友慷慨,中立須交好)', "Ask a friendly power for grain (allies are generous; a neutral must be on good terms)")}
+                  >
+                    {t('借糧', 'Grain')}
                   </button>
                   <button
                     className={styles.tributeBtn}
