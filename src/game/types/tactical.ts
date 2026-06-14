@@ -269,6 +269,9 @@ export interface TacticalBattle {
   stratagemCooldowns: Record<string, number>;
   /** Set when one side is eliminated. */
   winner?: 'attacker' | 'defender';
+  /** 撤退 — the loser conceded and pulled out in order; survivors escape and
+   *  the victor mounts no pursuit (no 掩殺 bonus). */
+  withdrew?: boolean;
   /** Casualty totals, computed at end. */
   attackerLosses: number;
   defenderLosses: number;

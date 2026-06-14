@@ -2661,7 +2661,8 @@ export function resolveBattleEnd(
     : 0;
   const loserLoss = winner === 'attacker' ? battle.defenderLosses
     : winner === 'defender' ? battle.attackerLosses : 0;
-  const hotPursuit = !!winner && winnerStrength > loserLoss * 0.5;
+  // An orderly withdrawal denies the victor a pursuit.
+  const hotPursuit = !!winner && !battle.withdrew && winnerStrength > loserLoss * 0.5;
   const pursuitCapMul = hotPursuit ? 1.35 : 1;
   const pursuitLootMul = hotPursuit ? 1.5 : 1;
 

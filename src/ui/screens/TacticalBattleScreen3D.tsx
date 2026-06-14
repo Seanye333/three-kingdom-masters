@@ -3798,6 +3798,23 @@ export function TacticalBattleScreen3D() {
             color: '#a89070', fontFamily: 'inherit',
           }}
         >⏩ {battleSpeed}×</button>
+        {/* 撤退 — concede and pull out: you lose the field, but your standing
+            units withdraw intact (no pursuit / 掩殺). */}
+        {myTurn && !battle.winner && playerSide && !battle.practice && (
+          <button
+            onClick={() => {
+              if (!window.confirm(t('撤兵退走?此戰判負,但現存部隊得以保全。', 'Withdraw? You concede the field, but your standing units escape intact.'))) return;
+              const foe = playerSide === 'attacker' ? 'defender' : 'attacker';
+              playSfx('horn');
+              start({ ...battle, winner: foe, withdrew: true });
+            }}
+            title={t('撤兵 — 判負但保全現存兵力', 'Withdraw — concede but save your surviving troops')}
+            style={{
+              fontSize: '0.72rem', padding: '2px 8px', cursor: 'pointer',
+              background: 'rgba(60,30,20,0.7)', border: '1px solid #b8584a', color: '#e0a090', fontFamily: 'inherit',
+            }}
+          >🏳 {t('撤退', 'Withdraw')}</button>
+        )}
         {/* 戰前準備 — one card, played before your first move. */}
         {myTurn && battle.turn === 1 && playerSide && !battle.prepUsed?.[playerSide] && !prepDismissed && (
           <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
