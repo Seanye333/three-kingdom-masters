@@ -203,9 +203,14 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
   const allCities = useGameStore((s) => s.cities);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const dispatchConvoy = useGameStore((s) => s.dispatchConvoy);
+  const officers = useGameStore((s) => s.officers);
   const [open, setOpen] = useState(false);
   const [destId, setDestId] = useState('');
   const city = allCities[cityId];
+  const woodenOx = useMemo(
+    () => Object.values(officers).some((o) => o.forceId === playerForceId && o.status !== 'dead' && (o.skills ?? []).includes('wooden-ox')),
+    [officers, playerForceId],
+  );
   const dests = useMemo(
     () => Object.values(allCities)
       .filter((c) => c.ownerForceId === playerForceId && c.id !== cityId)
@@ -263,7 +268,8 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
           {row(t('運金', 'Gold'), goldAmts, city.gold, 'gold')}
           {row(t('運兵', 'Troops'), troopAmts, Math.max(0, city.troops - 100), 'troops')}
           <span style={{ fontSize: '0.68rem', color: adjacent ? '#7ed68a' : '#e0a070' }}>
-            {adjacent ? t('鄰城直運,無耗,1 季抵達', 'adjacent — no loss, ~1 season') : t('遠運耗 12%,需數季', '−12% en route, a few seasons')}
+            {adjacent ? t('鄰城近運,損耗極低', 'adjacent — minimal loss') : t('遠運按路程耗糧,需數季', 'loss & time scale with the haul')}
+            {woodenOx && t(' · 木牛流馬減半', ' · Wooden Ox halves loss')}
           </span>
         </div>
       )}

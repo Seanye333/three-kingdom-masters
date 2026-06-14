@@ -1250,14 +1250,23 @@ export const useGameStore = create<GameStore>()(
         // Keep a token garrison behind — never ship the city's last 100 men.
         const shipTroops = Math.min(Math.max(0, Math.floor(troops)), Math.max(0, from.troops - 100));
         if (shipFood <= 0 && shipGold <= 0 && shipTroops <= 0) return { ok: false, seasons: 0 };
-        // 漕運損耗 — adjacent cities ship along the supply network with no loss;
-        // a longer overland haul spills 12% to spoilage, attrition, escort rations.
-        const adjacent = from.adjacentCityIds.includes(toCityId);
-        const keep = adjacent ? 1 : 0.88;
+        // 木牛流馬 — Zhuge Liang's logistics device (an officer skill). In a
+        // force's service it speeds transport ~40% and halves road spoilage.
+        const woodenOx = Object.values(state.officers).some(
+          (o) => o.forceId === pid && o.status !== 'dead' && (o.skills ?? []).includes('wooden-ox'),
+        );
+        // 漕運損耗 — spoilage/attrition grows with the haul (≈6% per season past
+        // the first), winter roads add a little, all capped; 木牛流馬 halves it.
+        const baseSeasons = Math.max(1, marchDurationFor(from, to, state.date.season));
+        let lossFrac = Math.min(0.4, 0.06 * (baseSeasons - 1));
+        if (state.date.season === 'winter') lossFrac += 0.04;
+        if (woodenOx) lossFrac *= 0.5;
+        lossFrac = Math.max(0, Math.min(0.5, lossFrac));
+        const keep = 1 - lossFrac;
         const arriveFood = Math.floor(shipFood * keep);
         const arriveGold = Math.floor(shipGold * keep);
         const arriveTroops = Math.floor(shipTroops * keep);
-        const seasons = Math.max(1, marchDurationFor(from, to, state.date.season));
+        const seasons = woodenOx ? Math.max(1, Math.round(baseSeasons * 0.6)) : baseSeasons;
         const id = `convoy-${fromCityId}-${toCityId}-${state.date.year}-${state.date.season}-${Object.keys(state.convoys ?? {}).length}`;
         set({
           cities: {
