@@ -745,6 +745,7 @@ function UnitMesh({
   const deathAt = useRef(-1);
   const flashRef = useRef<THREE.MeshBasicMaterial>(null);
   const bloodRef = useRef<THREE.Group>(null);
+  const auraRef = useRef<THREE.MeshBasicMaterial>(null);
   const dustRef = useRef<THREE.Group>(null);
   const navyFoamRef = useRef<THREE.Group>(null);
   const lastMoveAt = useRef(-10);
@@ -803,6 +804,8 @@ function UnitMesh({
     const s = 1 + hitT * 0.10;
     g.scale.set(s, s, s);
     if (flashRef.current) flashRef.current.opacity = hitT * 0.55;
+    // 主將光環 — gentle breathing pulse on the command-range ring.
+    if (auraRef.current) auraRef.current.opacity = 0.16 + Math.sin(clock.elapsedTime * 2) * 0.07;
     // 血霧 — on a hit, specks of blood burst outward and fade.
     if (bloodRef.current) {
       const out = (1 - hitT) * 0.55;
@@ -904,6 +907,13 @@ function UnitMesh({
             </mesh>
           ))}
         </group>
+      )}
+      {/* 主將光環 — a command-presence ring marks the general's rallying reach. */}
+      {unit.isCommander && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} raycast={() => null}>
+          <ringGeometry args={[1.05, 1.28, 40]} />
+          <meshBasicMaterial ref={auraRef} color={color} transparent opacity={0.16} side={THREE.DoubleSide} depthWrite={false} />
+        </mesh>
       )}
       {/* Mount or vehicle (cavalry horse / siege cart / navy boat) */}
       <UnitMount unit={unit} onClick={onClick} />
