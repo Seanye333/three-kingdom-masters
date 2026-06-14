@@ -4035,64 +4035,6 @@ function Birds3D() {
   );
 }
 
-/* ─── 谷霧 — morning mist pooling in the low valleys and river bottoms ──── */
-let mistMaskCache: THREE.Texture | null = null;
-function buildMistMask(): THREE.Texture {
-  if (mistMaskCache) return mistMaskCache;
-  const W = 400, H = 288;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d')!;
-  const img = ctx.createImageData(W, H);
-  const d = img.data;
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const px = (x / W) * PX_W, py = (y / H) * PX_H;
-      const { h } = sampleTerrain(px, py);
-      // Mist pools only in the deepest valleys/river flats — kept sparse so it
-      // never curtains the map at a grazing camera angle.
-      const alpha = h > 0 && h < 0.1 ? (1 - h / 0.1) * 0.5 : 0;
-      const i = (y * W + x) * 4;
-      d[i] = 226; d[i + 1] = 230; d[i + 2] = 236;
-      d[i + 3] = Math.round(alpha * 255);
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.flipY = true; tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
-  mistMaskCache = tex;
-  return tex;
-}
-function ValleyMist() {
-  const matRef = useRef<THREE.MeshBasicMaterial>(null);
-  const geom = useMemo(() => {
-    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 160, 120);
-    const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const wx = pos.getX(i); const wy = pos.getY(i);
-      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
-      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
-      pos.setZ(i, sampleTerrain(px, py).h + 0.16);
-    }
-    g.computeVertexNormals();
-    return g;
-  }, []);
-  const texture = useMemo(() => buildMistMask(), []);
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    if (matRef.current) matRef.current.opacity = 0.08 + Math.sin(t * 0.5) * 0.04;
-    // Slow drift so the mist creeps across the valley floors.
-    texture.offset.x = (t * 0.004) % 1;
-    texture.offset.y = (t * 0.0025) % 1;
-  });
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
-      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.1} depthWrite={false} />
-    </mesh>
-  );
-}
-
 /* ─── 邦交關係線 — the web of pacts and grudges, capital to capital ────
    The 邦交 overlay arcs every meaningful relation between living forces:
    gold solid = alliance, green dashed = non-aggression pact, red = open
@@ -5738,9 +5680,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
 
   return (
     <>
-      {/* Distance fog — color follows season; far value pushed past max
-       *  camera zoom (100) so the world stays visible when fully zoomed out. */}
-      <fog attach="fog" args={[dusk ? '#caa37e' : seasonPreset.fogColor, 120 * WORLD_SCALE, 500 * WORLD_SCALE]} />
+      {/* Distance fog removed — it hazed the whole map at zoom-out. The sky
+       *  dome + ocean carry the horizon now. */}
 
       {/* 天穹 — gradient sky + sun, horizon matched to the fog colour. */}
       <SkyDome dusk={dusk} horizon={dusk ? '#caa37e' : seasonPreset.fogColor} />
@@ -5815,7 +5756,6 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <DriftingClouds />
       {!dusk && <Birds3D />}
       <CitySmoke3D cities={cities} />
-      {season !== 'winter' && <ValleyMist />}
       <Caravans3D cities={cities} />
       <TradeShips3D ports={portsForMarch} cities={cities} />
       {dusk && <DuskCityLights cities={cities} />}
