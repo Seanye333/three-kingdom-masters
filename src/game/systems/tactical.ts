@@ -2378,6 +2378,33 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     return rallied ? { ...u, morale: 25 } : u;
   });
 
+  // 戰場異象 — an occasional dramatic event shakes the field after it's joined.
+  const eventLog: NonNullable<TacticalBattle['log']> = [];
+  if (b.turn >= 3 && Math.random() < 0.09) {
+    const roll = Math.random();
+    const sideZh = (s: 'attacker' | 'defender') => (s === 'attacker' ? '攻方' : '守方');
+    if (roll < 0.34) {
+      const live = tickedUnits.filter((u) => u.troops > 0);
+      if (live.length) {
+        const v = live[Math.floor(Math.random() * live.length)];
+        const dmg = Math.floor(v.maxTroops * 0.08);
+        tickedUnits = tickedUnits.map((u) => u.id === v.id
+          ? { ...u, troops: Math.max(0, u.troops - dmg), morale: Math.max(0, u.morale - 12) } : u);
+        eventLog.push({ turn: b.turn + 1, text: '☄ 流星墜營,軍心惶惶!', kind: 'event' });
+      }
+    } else if (roll < 0.67) {
+      const side: 'attacker' | 'defender' = Math.random() < 0.5 ? 'attacker' : 'defender';
+      tickedUnits = tickedUnits.map((u) => u.side === side && u.troops > 0
+        ? { ...u, troops: Math.max(0, u.troops - Math.floor(u.maxTroops * 0.04)), morale: Math.max(0, u.morale - 6) } : u);
+      eventLog.push({ turn: b.turn + 1, text: `🦠 軍中疫疾橫行,${sideZh(side)}減員失士!`, kind: 'event' });
+    } else {
+      const side: 'attacker' | 'defender' = Math.random() < 0.5 ? 'attacker' : 'defender';
+      tickedUnits = tickedUnits.map((u) => u.side === side && u.troops > 0
+        ? { ...u, morale: Math.min(100, u.morale + 15) } : u);
+      eventLog.push({ turn: b.turn + 1, text: `🎺 ${sideZh(side)}得天時鼓舞,士氣大振!`, kind: 'event' });
+    }
+  }
+
   // Remove routed units (troops 0 or morale 0).
   const allUnits = [...tickedUnits, ...arrivedUnits];
   const surviving = allUnits.filter((u) => u.troops > 0 && u.morale > 0);
@@ -2652,7 +2679,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     defenderObjective: defenderObj,
     reinforcements: remaining,
     casualties,
-    log: [...(b.log ?? []), ...fireLog, ...weatherLog, ...windLog, ...arrivalLog, ...structureLog],
+    log: [...(b.log ?? []), ...fireLog, ...weatherLog, ...windLog, ...arrivalLog, ...structureLog, ...eventLog],
     damagePopups: structurePopups, // visible briefly on turn flip
     cityStructures: updatedStructures,
   };
