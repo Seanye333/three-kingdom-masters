@@ -249,7 +249,7 @@ interface GameStore extends GameState {
    *  your cities to another. It crawls the map over `seasons` and empties its
    *  cargo on arrival; adjacent hauls arrive in full, longer ones lose 12% on
    *  the road. Cargo is deducted from the source at dispatch. */
-  dispatchConvoy: (fromCityId: EntityId, toCityId: EntityId, food: number, gold: number, troops?: number) => { ok: boolean; seasons: number };
+  dispatchConvoy: (fromCityId: EntityId, toCityId: EntityId, food: number, gold: number, troops?: number, cautious?: boolean) => { ok: boolean; seasons: number };
   /** 召回輜重 — turn a convoy around; its cargo returns to the origin city (lost
    *  if that city has since fallen). */
   recallConvoy: (id: EntityId) => void;
@@ -1240,7 +1240,7 @@ export const useGameStore = create<GameStore>()(
         return { ok: true, got: gold };
       },
 
-      dispatchConvoy: (fromCityId, toCityId, food, gold, troops = 0) => {
+      dispatchConvoy: (fromCityId, toCityId, food, gold, troops = 0, cautious = false) => {
         const state = get();
         const pid = state.playerForceId;
         if (!pid) return { ok: false, seasons: 0 };
@@ -1276,6 +1276,7 @@ export const useGameStore = create<GameStore>()(
         let effSeasons = baseSeasons;
         if (naval) effSeasons = Math.round(effSeasons * 0.7);
         if (woodenOx) effSeasons = Math.round(effSeasons * 0.6);
+        if (cautious) effSeasons += 1; // 謹慎避敵 — the safer back-roads take longer
         const seasons = Math.max(1, effSeasons);
         const id = `convoy-${fromCityId}-${toCityId}-${state.date.year}-${state.date.season}-${Object.keys(state.convoys ?? {}).length}`;
         set({
@@ -1291,6 +1292,7 @@ export const useGameStore = create<GameStore>()(
               food: arriveFood, gold: arriveGold, troops: arriveTroops,
               seasonsRemaining: seasons, totalSeasons: seasons,
               ...(naval ? { naval: true } : {}),
+              ...(cautious ? { cautious: true } : {}),
             },
           },
         });

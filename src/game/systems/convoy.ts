@@ -21,6 +21,9 @@ export interface Convoy {
   /** 漕運 — shipped by sea/river between linked ports: faster, less spoilage,
    *  and rendered as a junk gliding the water rather than an ox-cart. */
   naval?: boolean;
+  /** 謹慎避敵 — took the cautious back-roads: one extra season, but far less
+   *  likely to be raided. */
+  cautious?: boolean;
 }
 
 export interface ConvoyStepResult {

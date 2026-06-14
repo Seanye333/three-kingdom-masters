@@ -208,6 +208,7 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
   const setStandingRoute = useGameStore((s) => s.setStandingRoute);
   const [open, setOpen] = useState(false);
   const [destId, setDestId] = useState('');
+  const [cautious, setCautious] = useState(false);
   const city = allCities[cityId];
   const woodenOx = useMemo(
     () => Object.values(officers).some((o) => o.forceId === playerForceId && o.status !== 'dead' && (o.skills ?? []).includes('wooden-ox')),
@@ -237,7 +238,7 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
           key={a}
           style={btn}
           disabled={have < a}
-          onClick={() => dest && dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0, cargo === 'troops' ? a : 0)}
+          onClick={() => dest && dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0, cargo === 'troops' ? a : 0, cautious)}
         >
           {a.toLocaleString()}
         </button>
@@ -288,6 +289,10 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
           <span style={{ fontSize: '0.66rem', color: '#8a7050' }}>
             {t('⚔ 隨車運兵即為護糧 — 經敵境恐遭劫,押運足則可拒', '⚔ Troops sent along escort the load — raids near enemy ground need a strong escort')}
           </span>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: cautious ? '#9ad6a8' : '#8a7050', cursor: 'pointer' }}>
+            <input type="checkbox" checked={cautious} onChange={(e) => setCautious(e.target.checked)} />
+            {t('謹慎避敵(+1 季,遇劫減半)', 'Cautious back-roads (+1 season, far fewer raids)')}
+          </label>
         </div>
       )}
     </section>

@@ -1410,11 +1410,14 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         const d = Math.hypot(cp.x - pos.x, cp.y - pos.y);
         if (d < nd) { nd = d; nearest = c; }
       }
+      // 謹慎避敵 — the cautious back-roads roughly halve the chance of being found.
+      const sortieChance = cv.cautious ? 0.2 : 0.4;
+      const banditChance = cv.cautious ? 0.04 : 0.08;
       let strength = 0;
       if (nearest && nearest.ownerForceId && nearest.ownerForceId !== cv.forceId
           && isHostilePermitted(input.diplomacy, cv.forceId, nearest.ownerForceId)) {
-        if (rng() < 0.4) strength = Math.max(800, Math.floor(nearest.troops * 0.1)); // sortie from the stronghold
-      } else if (rng() < 0.08) {
+        if (rng() < sortieChance) strength = Math.max(800, Math.floor(nearest.troops * 0.1)); // sortie from the stronghold
+      } else if (rng() < banditChance) {
         strength = 700 + Math.floor(rng() * 800); // 山賊 — lawless roads
       }
       if (strength > 0) dangers[cv.id] = strength;
