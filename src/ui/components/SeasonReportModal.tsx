@@ -57,6 +57,19 @@ export function SeasonReportModal() {
     return cities[e.cityId]?.ownerForceId === playerForceId;
   });
 
+  // ── 摘要 — a one-line scannable tally so the season's signal isn't buried in
+  // a 40-line scroll. Counts are taken over the same player-relevant slice.
+  const n = (k: string) => playerEntries.filter((e) => e.kind === k).length;
+  const summary: Array<{ icon: string; label: string; count: number; color: string }> = [
+    { icon: '✓', label: t('令成', 'done'), count: n('command-success'), color: '#9ad6a8' },
+    { icon: '✗', label: t('令敗', 'failed'), count: n('command-failure'), color: '#e8a07a' },
+    { icon: '⚔', label: t('戰', 'battles'), count: n('battle'), color: '#e0b070' },
+    { icon: '★', label: t('克城', 'taken'), count: n('conquest'), color: '#7ed68a' },
+    { icon: '🛡', label: t('失地', 'lost'), count: n('defeat'), color: '#e0707a' },
+    { icon: '✦', label: t('賢才', 'talent'), count: n('talent'), color: '#c0a0e8' },
+    { icon: '☠', label: t('殞', 'deaths'), count: n('death'), color: '#b0a090' },
+  ].filter((s) => s.count > 0);
+
   return (
     <div className={styles.backdrop} onClick={dismiss}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -72,6 +85,25 @@ export function SeasonReportModal() {
             </div>
           </div>
         </header>
+
+        {summary.length > 0 && (
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
+            padding: '0.5rem 0.2rem 0.2rem', justifyContent: 'center',
+          }}>
+            {summary.map((s) => (
+              <span key={s.label} style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                background: 'rgba(0,0,0,0.25)', border: `1px solid ${s.color}55`,
+                borderRadius: 12, padding: '0.12rem 0.6rem',
+                color: s.color, fontSize: '0.82rem', fontFamily: 'Songti SC, serif',
+              }}>
+                <b style={{ fontSize: '0.95rem' }}>{s.icon}{s.count}</b>
+                <span style={{ opacity: 0.8 }}>{s.label}</span>
+              </span>
+            ))}
+          </div>
+        )}
 
         {report.executedCommands && report.executedCommands.length > 0 && (
           <div className={styles.executedBlock}>
