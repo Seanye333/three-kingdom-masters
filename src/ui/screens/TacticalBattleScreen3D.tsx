@@ -893,6 +893,16 @@ function UnitMesh({
               transition: 'width 0.4s ease, background 0.3s',
             }} />
           </div>
+          {/* AP pips — filled gold = action points still left this turn. */}
+          <div style={{ display: 'flex', gap: 2, justifyContent: 'center', marginTop: 3 }}>
+            {Array.from({ length: Math.min(6, unit.maxAp) }).map((_, i) => (
+              <span key={i} style={{
+                width: 4, height: 4, borderRadius: '50%',
+                background: i < unit.ap ? '#f0d070' : '#4a3a24',
+                boxShadow: i < unit.ap ? '0 0 2px #f0d070' : 'none',
+              }} />
+            ))}
+          </div>
         </div>
       </Html>}
     </group>
@@ -3250,6 +3260,18 @@ export function TacticalBattleScreen3D() {
         <span style={{ fontSize: '0.85rem', color: '#d4a84a' }}>
           {t('第', 'Turn')} {battle.turn} {t('回', '')} · {myTurn ? <span style={{ color: '#7ed68a' }}>{t('我方回合', 'YOUR TURN')}</span> : <span style={{ color: '#ff7050' }}>{t('敵方回合', 'ENEMY TURN')}</span>}
         </span>
+        {myTurn && (() => {
+          const live = battle.units.filter((u) => u.side === playerSide && u.troops > 0);
+          const ready = live.filter((u) => u.ap > 0).length;
+          return (
+            <span style={{
+              fontSize: '0.72rem', padding: '2px 7px',
+              background: ready > 0 ? 'rgba(212,168,74,0.18)' : 'rgba(110,174,115,0.16)',
+              border: `1px solid ${ready > 0 ? '#d4a84a' : '#6fae73'}`,
+              color: ready > 0 ? '#f0d98a' : '#9ad6a8',
+            }}>{ready > 0 ? `⚑ ${t('可動', 'ready')} ${ready}/${live.length}` : `✓ ${t('全員已動', 'all moved')}`}</span>
+          );
+        })()}
         <span style={{
           fontSize: '0.72rem', padding: '2px 7px',
           background: 'rgba(40, 28, 18, 0.7)', border: '1px solid #5a4530', color: '#a89070',
