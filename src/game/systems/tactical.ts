@@ -1015,6 +1015,138 @@ export function moveUnit(
   return next;
 }
 
+/**
+ * 尋徑 — cheapest path from a unit to an empty destination hex, by terrain move
+ * cost (Dijkstra over the hex grid). Returns the ordered steps AFTER the start
+ * (last entry === dest), or [] if the destination is occupied/unreachable.
+ * Plans on terrain only; the actual walk re-checks AP and zone-of-control per
+ * step, so the surcharge for breaking contact is paid at execution, not here.
+ */
+export function findPath(b: TacticalBattle, unit: TacticalUnit, dest: HexCoord): HexCoord[] {
+  const key = (c: HexCoord) => `${c.col},${c.row}`;
+  const startK = key(unit.coord);
+  const destK = key(dest);
+  if (startK === destK) return [];
+  if (unitAt(b, dest)) return [];
+  if (!tileAt(b, dest) || moveCost(b, dest) >= 99) return [];
+
+  const dist = new Map<string, number>([[startK, 0]]);
+  const prev = new Map<string, HexCoord>();
+  const frontier: Array<{ c: HexCoord; d: number }> = [{ c: unit.coord, d: 0 }];
+
+  while (frontier.length > 0) {
+    let mi = 0;
+    for (let i = 1; i < frontier.length; i++) if (frontier[i].d < frontier[mi].d) mi = i;
+    const { c, d } = frontier.splice(mi, 1)[0];
+    if (key(c) === destK) break;
+    if (d > (dist.get(key(c)) ?? Infinity)) continue;
+    for (const n of hexNeighbours(c)) {
+      const nk = key(n);
+      if (!tileAt(b, n)) continue;
+      // Can't path through a living unit; the destination is already empty.
+      if (nk !== destK && unitAt(b, n)) continue;
+      const step = moveCost(b, n);
+      if (step >= 99) continue;
+      const nd = d + step;
+      if (nd < (dist.get(nk) ?? Infinity)) {
+        dist.set(nk, nd);
+        prev.set(nk, c);
+        frontier.push({ c: n, d: nd });
+      }
+    }
+  }
+
+  if (!prev.has(destK)) return [];
+  const path: HexCoord[] = [];
+  let cur: HexCoord | undefined = dest;
+  while (cur && key(cur) !== startK) {
+    path.unshift(cur);
+    cur = prev.get(key(cur));
+  }
+  return path;
+}
+
+/**
+ * 可達 — every empty hex a unit can reach THIS turn (cumulative terrain cost ≤
+ * its remaining AP), as a set of "col,row" keys. Used to glow the full move
+ * range so multi-step orders are discoverable. Ignores the transient ZoC
+ * surcharge (paid at execution), so it's a generous-but-honest preview.
+ */
+export function reachableHexes(b: TacticalBattle, unit: TacticalUnit): Set<string> {
+  const key = (c: HexCoord) => `${c.col},${c.row}`;
+  const reach = new Set<string>();
+  const best = new Map<string, number>([[key(unit.coord), 0]]);
+  const frontier: Array<{ c: HexCoord; d: number }> = [{ c: unit.coord, d: 0 }];
+  while (frontier.length > 0) {
+    let mi = 0;
+    for (let i = 1; i < frontier.length; i++) if (frontier[i].d < frontier[mi].d) mi = i;
+    const { c, d } = frontier.splice(mi, 1)[0];
+    if (d > (best.get(key(c)) ?? Infinity)) continue;
+    for (const n of hexNeighbours(c)) {
+      if (!tileAt(b, n) || unitAt(b, n)) continue;
+      const step = moveCost(b, n);
+      if (step >= 99) continue;
+      const nd = d + step;
+      if (nd <= unit.ap && nd < (best.get(key(n)) ?? Infinity)) {
+        best.set(key(n), nd);
+        reach.add(key(n));
+        frontier.push({ c: n, d: nd });
+      }
+    }
+  }
+  return reach;
+}
+
+/**
+ * Walk a unit along a planned path, step by step, as far as this turn's AP and
+ * the real movement rules (ZoC, occupancy) permit. Returns the resulting battle
+ * and the un-walked remainder (empty when the destination was reached).
+ */
+export function moveUnitAlong(
+  b: TacticalBattle,
+  unitId: EntityId,
+  steps: HexCoord[],
+): { battle: TacticalBattle; remaining: HexCoord[] } {
+  let cur = b;
+  for (let i = 0; i < steps.length; i++) {
+    const unit = cur.units.find((u) => u.id === unitId);
+    if (!unit) return { battle: cur, remaining: [] };
+    if (!canMove(cur, unit, steps[i])) return { battle: cur, remaining: steps.slice(i) };
+    cur = moveUnit(cur, unitId, steps[i]);
+  }
+  return { battle: cur, remaining: [] };
+}
+
+/**
+ * 續行 — at the start of a side's turn, units carrying a queued march order
+ * resume it with their fresh AP. A unit pinned in melee holds its ground (and
+ * keeps the order); a blocked route is abandoned so nothing loops forever.
+ */
+function resumeQueuedPaths(b: TacticalBattle): TacticalBattle {
+  let cur = b;
+  const movers = cur.units.filter(
+    (u) => u.side === cur.activeSide && u.troops > 0 && u.path && u.path.length > 0,
+  );
+  for (const m of movers) {
+    const u = cur.units.find((x) => x.id === m.id);
+    if (!u || !u.path || u.path.length === 0) continue;
+    const engaged = cur.units.some(
+      (e) => e.side !== u.side && e.troops > 0 && !e.hidden && hexDistance(e.coord, u.coord) === 1,
+    );
+    if (engaged) continue; // hold the line; the order waits
+    const before = u.path.length;
+    const { battle, remaining } = moveUnitAlong(cur, u.id, u.path);
+    cur = battle;
+    const progressed = remaining.length < before;
+    const newPath = progressed && remaining.length > 0 ? remaining : undefined;
+    cur = {
+      ...cur,
+      units: cur.units.map((x) => (x.id === u.id ? { ...x, path: newPath } : x)),
+    };
+  }
+  return cur;
+}
+
 /** Max HP a fortification repairs back toward, by kind. */
 const FORT_MAX_HP: Record<string, number> = { wall: 1000, gate: 700 };
 
@@ -2712,7 +2844,7 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     ? [{ turn: b.turn, text: nextWeather === 'rain' ? '驟雨傾盆，火攻難繼！' : nextWeather === 'wind' ? '狂風驟起，火借風勢！' : '雲開天霽。', kind: 'event' }]
     : [];
 
-  return {
+  const next: TacticalBattle = {
     ...b,
     units: finalUnits,
     tiles: nextTiles,
@@ -2733,6 +2865,8 @@ export function endTurn(b: TacticalBattle): TacticalBattle {
     damagePopups: structurePopups, // visible briefly on turn flip
     cityStructures: updatedStructures,
   };
+  // 續行軍令 — newly-active units resume any queued march with their fresh AP.
+  return next.winner ? next : resumeQueuedPaths(next);
 }
 
 function tickObjective(

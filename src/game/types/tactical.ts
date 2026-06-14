@@ -187,6 +187,11 @@ export interface TacticalUnit {
    *  the unit attacks. Set when starting in forest with the
    *  ten-ambush formation. */
   hidden?: boolean;
+  /** 行軍路線 — queued waypoints from a multi-step move order. The unit walks
+   *  these within the turn as AP allows; any leftover auto-resumes at the start
+   *  of its side's next turn (unless it's pinned in melee). Cleared on arrival,
+   *  on a blocked route, or when the player issues a fresh manual order. */
+  path?: HexCoord[];
 }
 
 export type TacticalStatus =

@@ -15,6 +15,9 @@ import {
   endTurn,
   resolveBattleEnd,
   computeSlotPositions,
+  findPath,
+  moveUnitAlong,
+  reachableHexes,
 } from './tactical';
 import { mkOfficer, mkUnit, mkBattle, mkTiles, officerMap, fixedRng } from '../../test/factories';
 
@@ -299,5 +302,83 @@ describe('computeSlotPositions', () => {
       expect(s.row).toBeGreaterThanOrEqual(0);
       expect(s.row).toBeLessThan(10);
     }
+  });
+});
+
+describe('多步命令 — pathfinding & waypoint orders', () => {
+  it('findPath returns a contiguous route ending at the destination', () => {
+    const u = mkUnit({ id: 'u1', officerId: 'o1', coord: { col: 2, row: 2 } });
+    const b = mkBattle({ units: [u], width: 9, height: 6 });
+    const dest = { col: 5, row: 2 };
+    const path = findPath(b, u, dest);
+    expect(path.length).toBeGreaterThan(0);
+    expect(path[path.length - 1]).toEqual(dest);
+    let prev = u.coord;
+    for (const step of path) {
+      expect(hexDistance(prev, step)).toBe(1);
+      prev = step;
+    }
+  });
+
+  it('findPath refuses an occupied destination', () => {
+    const u = mkUnit({ id: 'u1', officerId: 'o1', coord: { col: 2, row: 2 } });
+    const blocker = mkUnit({ id: 'u2', officerId: 'o2', side: 'defender', coord: { col: 5, row: 2 } });
+    const b = mkBattle({ units: [u, blocker], width: 9, height: 6 });
+    expect(findPath(b, u, { col: 5, row: 2 })).toEqual([]);
+  });
+
+  it('moveUnitAlong walks only as far as AP allows, queuing the rest', () => {
+    const u = mkUnit({ id: 'u1', officerId: 'o1', coord: { col: 0, row: 2 }, ap: 2 });
+    const b = mkBattle({ units: [u], width: 9, height: 6 });
+    const path = findPath(b, u, { col: 5, row: 2 }); // longer than 2 AP on plains
+    const { battle, remaining } = moveUnitAlong(b, 'u1', path);
+    const moved = battle.units.find((x) => x.id === 'u1')!;
+    expect(moved.ap).toBe(0);
+    expect(remaining.length).toBeGreaterThan(0);
+    expect(remaining[remaining.length - 1]).toEqual({ col: 5, row: 2 });
+  });
+
+  it('reachableHexes covers the move range and excludes the unit and far hexes', () => {
+    const u = mkUnit({ id: 'u1', officerId: 'o1', coord: { col: 0, row: 2 }, ap: 2 });
+    const b = mkBattle({ units: [u], width: 12, height: 6 });
+    const r = reachableHexes(b, u);
+    expect(r.size).toBeGreaterThan(0);
+    expect(r.has('0,2')).toBe(false);   // not its own hex
+    expect(r.has('11,2')).toBe(false);  // far beyond 2 AP
+  });
+
+  it('a queued path resumes with fresh AP at the start of the side’s turn', () => {
+    const startCoord = { col: 0, row: 2 };
+    const dest = { col: 3, row: 2 };
+    const tmp = mkUnit({ id: 'a-cmd', officerId: 'oa', coord: startCoord });
+    const planned = findPath(mkBattle({ units: [tmp], width: 9, height: 6 }), tmp, dest);
+    expect(planned.length).toBeGreaterThan(0);
+
+    const cmdA = mkUnit({ id: 'a-cmd', officerId: 'oa', side: 'attacker', isCommander: true, coord: startCoord, ap: 0, path: planned });
+    const cmdD = mkUnit({ id: 'd-cmd', officerId: 'od', side: 'defender', isCommander: true, coord: { col: 8, row: 2 } });
+    const b = mkBattle({ units: [cmdA, cmdD], width: 9, height: 6, activeSide: 'defender' });
+
+    const after = endTurn(b);
+    expect(after.activeSide).toBe('attacker');
+    const movedA = after.units.find((x) => x.id === 'a-cmd')!;
+    expect(movedA.coord).toEqual(dest);   // marched the full queued route
+    expect(movedA.path).toBeUndefined();  // order complete
+  });
+
+  it('does not auto-resume a march while pinned in melee', () => {
+    const startCoord = { col: 1, row: 2 };
+    const dest = { col: 4, row: 2 };
+    const tmp = mkUnit({ id: 'a1', officerId: 'oa', coord: startCoord });
+    const planned = findPath(mkBattle({ units: [tmp], width: 9, height: 6 }), tmp, dest);
+    // an enemy sits adjacent to the mover at the start of its turn
+    const foeCoord = hexNeighbours(startCoord)[0];
+    const a1 = mkUnit({ id: 'a1', officerId: 'oa', side: 'attacker', isCommander: true, coord: startCoord, ap: 0, path: planned });
+    const aCmd = mkUnit({ id: 'a-keep', officerId: 'oa2', side: 'attacker', isCommander: false, coord: { col: 0, row: 0 } });
+    const dFoe = mkUnit({ id: 'd1', officerId: 'od', side: 'defender', isCommander: true, coord: foeCoord });
+    const b = mkBattle({ units: [a1, aCmd, dFoe], width: 9, height: 6, activeSide: 'defender' });
+    const after = endTurn(b);
+    const held = after.units.find((x) => x.id === 'a1')!;
+    expect(held.coord).toEqual(startCoord); // stayed to fight
+    expect(held.path).toEqual(planned);     // order preserved
   });
 });

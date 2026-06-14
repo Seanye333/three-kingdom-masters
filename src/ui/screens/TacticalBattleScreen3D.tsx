@@ -12,6 +12,7 @@ import { categoryOfTactic } from '../../game/data/officerAttributes';
 import { applyBattlePrep,
   aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
   moveUnit, resolveBattleEnd, unitAt, forecastAttack, matchupLabel, battleStratagemSituation, eliteUnitOf,
+  findPath, moveUnitAlong, reachableHexes,
 } from '../../game/systems/tactical';
 import { canDuel } from '../../game/systems/duel';
 import { personalTacticsForUnit } from '../../game/systems/personalTactics';
@@ -214,8 +215,9 @@ export function HexTile({
   tile: TacticalTile;
   onClick: () => void;
   hovered: boolean;
-  /** 'move' = walkable destination, 'attack' = attackable enemy hex, undefined = no highlight */
-  highlight: 'move' | 'attack' | undefined;
+  /** 'move' = walkable destination, 'attack' = attackable enemy hex,
+   *  'path' = a queued march waypoint, undefined = no highlight */
+  highlight: 'move' | 'attack' | 'path' | undefined;
   windStrength: number;
   /** 火攻 — this hex is ablaze (ground fire). */
   burning?: boolean;
@@ -252,7 +254,7 @@ export function HexTile({
           <circleGeometry args={[R * 0.85, 6]} />
           <meshBasicMaterial
             ref={pulseRef}
-            color={highlight === 'move' ? '#7ed68a' : '#ff7050'}
+            color={highlight === 'move' ? '#7ed68a' : highlight === 'path' ? '#e0c060' : '#ff7050'}
             transparent
             opacity={0.4}
             side={THREE.DoubleSide}
@@ -3055,14 +3057,11 @@ export function BattleScene({
   // Highlight set: which hexes glow green (move) or red (attack)?
   const selectedUnit = selectedId ? battle.units.find((u) => u.id === selectedId) : null;
   const highlights = useMemo(() => {
-    const m = new Map<string, 'move' | 'attack'>();
+    const m = new Map<string, 'move' | 'attack' | 'path'>();
     if (!selectedUnit || !playerSide || selectedUnit.side !== playerSide) return m;
     if (actionMode.kind === 'move') {
-      for (const t of tiles) {
-        if (canMove(battle, selectedUnit, t.coord)) {
-          m.set(`${t.coord.col},${t.coord.row}`, 'move');
-        }
-      }
+      // Full move range this turn (multi-step), not just adjacent hexes.
+      for (const k of reachableHexes(battle, selectedUnit)) m.set(k, 'move');
     } else if (actionMode.kind === 'attack') {
       for (const u of units) {
         if (u.side !== playerSide && canAttack(battle, selectedUnit, u)) {
@@ -3070,6 +3069,8 @@ export function BattleScene({
         }
       }
     }
+    // 行軍路線 — show the selected unit's standing march order (amber waypoints).
+    for (const w of selectedUnit.path ?? []) m.set(`${w.col},${w.row}`, 'path');
     return m;
   }, [battle, selectedUnit, playerSide, actionMode, tiles, units]);
 
@@ -3614,13 +3615,30 @@ export function TacticalBattleScreen3D() {
       return;
     }
     if (!selectedUnit) return;
-    if (actionMode.kind === 'move' && canMove(battle, selectedUnit, c)) {
+    if (actionMode.kind === 'move') {
       // 兵種動作音 — hoofbeats / oars / trundling siege / marching feet.
-      playSfx(selectedUnit.unitType === 'navy' ? 'whoosh'
+      const moveSfx = () => playSfx(selectedUnit.unitType === 'navy' ? 'whoosh'
         : selectedUnit.unitType === 'siege' ? 'thud' : 'march');
-      start(moveUnit(battle, selectedUnit.id, c));
-      setActionMode({ kind: 'none' });
-      return;
+      // Adjacent hex → a single step; a manual order cancels any standing march.
+      if (canMove(battle, selectedUnit, c)) {
+        moveSfx();
+        const moved = moveUnit(battle, selectedUnit.id, c);
+        start({ ...moved, units: moved.units.map((u) => (u.id === selectedUnit.id ? { ...u, path: undefined } : u)) });
+        setActionMode({ kind: 'none' });
+        return;
+      }
+      // 多步命令 — a farther empty hex: pathfind, walk as far as AP allows now,
+      // and queue the remainder to resume at the start of the next turn.
+      if (!unitAt(battle, c)) {
+        const path = findPath(battle, selectedUnit, c);
+        if (path.length > 0) {
+          moveSfx();
+          const { battle: after, remaining } = moveUnitAlong(battle, selectedUnit.id, path);
+          start({ ...after, units: after.units.map((u) => (u.id === selectedUnit.id ? { ...u, path: remaining.length > 0 ? remaining : undefined } : u)) });
+          setActionMode({ kind: 'none' });
+          return;
+        }
+      }
     }
     if (actionMode.kind === 'attack' && u && u.side !== playerSide && canAttack(battle, selectedUnit, u)) {
       const kind: 'melee' | 'ranged' = selectedUnit.unitType === 'archers' || selectedUnit.unitType === 'siege' ? 'ranged' : 'melee';
