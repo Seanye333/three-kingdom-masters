@@ -217,6 +217,26 @@ export function MapScreen() {
       return;
     }
   };
+  // 敵軍逼近 — player-owned cities a hostile field army is marching on, with
+  // its combined strength and how far along the road it is. Sorted nearest-to-
+  // arrival so the chip's first jump is to the most urgent front.
+  const threats = useGameStore((s) => {
+    if (!s.playerForceId) return [] as { cityId: string; name: string; troops: number; progress: number }[];
+    const byCity: Record<string, { cityId: string; name: string; troops: number; progress: number }> = {};
+    for (const a of Object.values(s.armies)) {
+      if (a.forceId === s.playerForceId || a.cellTarget) continue;
+      const city = s.cities[a.targetCityId];
+      if (!city || city.ownerForceId !== s.playerForceId) continue;
+      const cur = (byCity[a.targetCityId] ??= { cityId: a.targetCityId, name: city.name.zh, troops: 0, progress: 0 });
+      cur.troops += a.troops;
+      cur.progress = Math.max(cur.progress, a.progress);
+    }
+    return Object.values(byCity).sort((x, y) => y.progress - x.progress);
+  });
+  // Jump to the most-imminent threatened city.
+  const jumpToThreat = () => {
+    if (threats.length > 0) selectCityFromHud(threats[0].cityId);
+  };
   const reset = useGameStore((s) => s.reset);
   const weather = useGameStore((s) => s.weather);
   const mandate = useGameStore((s) =>
@@ -456,6 +476,25 @@ export function MapScreen() {
           </button>
         ) : (
           <>
+            {/* 敵軍逼近 — pulsing red alert when a hostile army marches on one of
+                your cities; click to jump to the most imminent front. */}
+            {threats.length > 0 && (
+              <button
+                onClick={jumpToThreat}
+                className="tkm-threat-chip"
+                title={threats
+                  .map((th) => `${th.name} ⚔ ${th.troops.toLocaleString()}${t('兵', '')}`)
+                  .join('  ·  ')}
+                style={{
+                  marginRight: 8, cursor: 'pointer',
+                  background: 'rgba(200,60,40,0.2)', border: '1px solid #e0603a',
+                  color: '#ffb088', padding: '0.2rem 0.6rem', borderRadius: 4,
+                  fontFamily: 'Songti SC, serif', fontSize: '0.8rem', whiteSpace: 'nowrap',
+                }}
+              >
+                ⚠ {threats.length} {t('城受襲', threats.length > 1 ? 'under threat' : 'threatened')}
+              </button>
+            )}
             {/* 季內進度 — idle-commander nudge; click to jump to the first. */}
             <button
               onClick={jumpToIdle}
