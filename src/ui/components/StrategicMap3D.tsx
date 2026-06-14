@@ -1,4 +1,4 @@
-import { Suspense, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, createContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, Line, OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -1404,16 +1404,19 @@ function CityBanner({ color, baseY, isCapital }: {
    camera distance into near/far; far hides labels of ordinary cities, keeping
    capitals and the selection readable. */
 const ZoomLODCtx = createContext<'near' | 'far'>('near');
-const LOD_FAR_DIST = 30;
+// Zoom gauged by camera HEIGHT (pan-independent — distance-from-origin flips
+// erratically once you pan off-centre). City names show below this height.
+const LOD_FAR_DIST = 220;
 function ZoomLODTracker({ onChange }: { onChange: (lod: 'near' | 'far') => void }) {
   const { camera } = useThree();
   const last = useRef<'near' | 'far'>('near');
   useFrame(() => {
-    // Hysteresis band so the labels don't flicker right on the threshold.
-    const d = camera.position.length();
+    // Camera height = clean zoom proxy (independent of panning). Wide
+    // hysteresis band so labels don't flicker right on the threshold.
+    const d = camera.position.y;
     const next = last.current === 'far'
-      ? (d < LOD_FAR_DIST - 3 ? 'near' : 'far')
-      : (d > LOD_FAR_DIST + 3 ? 'far' : 'near');
+      ? (d < LOD_FAR_DIST - 14 ? 'near' : 'far')
+      : (d > LOD_FAR_DIST + 14 ? 'far' : 'near');
     if (next !== last.current) {
       last.current = next;
       onChange(next);
@@ -1454,7 +1457,7 @@ function MiniNavRig({ controlsRef, onView, jump }: {
 }
 
 function City3D({
-  city, forceColor, isCapital, isSelected, terrainY, overlay, development = 0, onClick,
+  city, forceColor, isCapital, isSelected, terrainY, overlay, development = 0, isOwn = false, onClick,
 }: {
   city: City;
   forceColor: string;
@@ -1463,11 +1466,11 @@ function City3D({
   terrainY: number;
   overlay: { color: string; label: string } | null;
   development?: number;
+  isOwn?: boolean;
   onClick: () => void;
 }) {
   const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
   const [x, z] = pxToWorld(px, py);
-  const zoomLod = useContext(ZoomLODCtx);
   // Scale by city size (population or troops) — bigger cities, taller towers.
   const sizeScore = Math.max(1, Math.min(4, city.population / 60000 + city.troops / 30000));
   const height = 0.18 + sizeScore * 0.12;
@@ -1477,12 +1480,16 @@ function City3D({
   // cities (min ~18px ≈ 2.6 hexes apart) stop overlapping — de-crowds the
   // dense clusters (Luoyang basin, Shu passes, Xiangyang/Fancheng) without
   // moving any city off its real-geography position.
-  const worldScale = PIXEL_TO_WORLD * 50 * 0.5 * MARKER_SCALE;   // ~1.04 at base, grows gently with the world
-  // Selection pulse
+  const worldScale = PIXEL_TO_WORLD * 50 * 0.6 * MARKER_SCALE;   // 0.5→0.6: cities ~20% larger to read as proper cities under the name pills (still de-crowded enough for the dense clusters)
+  // Selection pulse + own-city beacon pulse
   const ringRef = useRef<THREE.MeshBasicMaterial>(null);
+  const ownRingRef = useRef<THREE.MeshBasicMaterial>(null);
   useFrame(({ clock }) => {
     if (ringRef.current && isSelected) {
       ringRef.current.opacity = 0.5 + Math.sin(clock.elapsedTime * 3) * 0.3;
+    }
+    if (ownRingRef.current && isOwn) {
+      ownRingRef.current.opacity = 0.55 + Math.sin(clock.elapsedTime * 2.2) * 0.25;
     }
   });
 
@@ -1493,6 +1500,13 @@ function City3D({
         <circleGeometry args={[radius + 0.08, 16]} />
         <meshBasicMaterial color={forceColor} transparent opacity={0.45} />
       </mesh>
+      {/* 我方城池 — a glowing beacon ring so your own cities pop from afar. */}
+      {isOwn && (
+        <mesh position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[radius + 0.18, radius + 0.30, 36]} />
+          <meshBasicMaterial ref={ownRingRef} color="#86f29a" side={THREE.DoubleSide} transparent opacity={0.6} depthWrite={false} />
+        </mesh>
+      )}
       <ChineseCity
         city={city}
         radius={radius}
@@ -1550,27 +1564,28 @@ function City3D({
           </Html>
         </>
       )}
-      {/* HTML label — Chinese name + strength bars. drei scales Html by
-       *  ~distanceFactor/distance, so a smaller distanceFactor keeps the
-       *  label from ballooning when the camera zooms in close. Zoomed far,
-       *  ordinary cities drop their labels (capitals/selection stay). */}
-      {(zoomLod === 'near' || isCapital || isSelected) && (
-        <Html position={[0, height + 0.6, 0]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-          <div style={{
-            fontFamily: 'Songti SC, serif',
-            textAlign: 'center',
-            width: 80,
-          }}>
+      {/* City name — ALWAYS shown (RTK-XIV style) so it never flickers in and
+       *  out as you zoom. A solid pill keeps it legible over any terrain; the
+       *  border carries the owning realm's colour; your own cities glow green
+       *  with a ★. The realm-name overlay layers on top when zoomed right out. */}
+      {(
+        <Html position={[0, height + 0.6, 0]} center distanceFactor={8.5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+          <div style={{ fontFamily: 'Songti SC, serif', textAlign: 'center', width: 96 }}>
             <div style={{
-              fontSize: '13px',
-              color: '#1a1410',
+              display: 'inline-block',
+              fontSize: isOwn ? '13px' : '12px',
               fontWeight: 'bold',
-              textShadow: '0 0 4px #f0e0b0, 1px 1px 0 #f0e0b0, -1px -1px 0 #f0e0b0',
+              color: isOwn ? '#eafff0' : '#f2e8d2',
+              background: isOwn ? 'rgba(20,42,26,0.85)' : 'rgba(22,16,10,0.8)',
+              border: `1.5px solid ${isOwn ? '#86f29a' : forceColor}`,
+              borderRadius: 4,
+              padding: '0px 7px',
               whiteSpace: 'nowrap',
+              boxShadow: isOwn ? '0 0 7px rgba(120,225,150,0.65)' : '0 1px 3px rgba(0,0,0,0.5)',
               marginBottom: 2,
-            }}>{city.name.zh}</div>
-            {/* Strength bars — troops (red), gold (gold), loyalty (blue) */}
-            <CityStrengthBars city={city} />
+            }}>{isOwn ? '★ ' : ''}{city.name.zh}</div>
+            {/* Strength bars only on the selected city — keeps the map clean. */}
+            {isSelected && <CityStrengthBars city={city} />}
           </div>
         </Html>
       )}
@@ -3624,6 +3639,82 @@ function ProvinceLabels3D() {
   );
 }
 
+/* ─── 天下大勢 — RTK-XIV-style realm labels: zoom out and each lord's name
+ *  blooms over the heart of his domain, colour-coded, so you read who holds
+ *  what at a glance. Zoom back in and they fade; city labels take over. */
+/** Camera distance below which the realm names give way to city detail.
+ *  Far higher than the city-label LOD (30): names stay through the overview
+ *  and medium zoom, vanishing only once you pull in to inspect cities. */
+const FACTION_LABEL_DIST = 220;   // camera-height handoff with the city-name LOD: above → realm names, below → city names
+function FactionLabels3D({ cities, forces, officers }: {
+  cities: Record<string, City>;
+  forces: Record<string, Force>;
+  officers: Record<string, { name: { zh: string; en: string } }>;
+}) {
+  // Own zoom gate (hysteresis) so the names persist until you zoom in close.
+  const { camera } = useThree();
+  const [show, setShow] = useState(true);
+  const shownRef = useRef(true);
+  useFrame(() => {
+    const d = camera.position.y;   // camera height — pan-independent zoom proxy
+    const next = shownRef.current
+      ? d >= FACTION_LABEL_DIST - 14      // stay shown until we pull in past the lower band
+      : d > FACTION_LABEL_DIST + 14;       // re-show once we zoom back out past the upper band
+    if (next !== shownRef.current) { shownRef.current = next; setShow(next); }
+  });
+  const labels = useMemo(() => {
+    const agg = new Map<string, { sx: number; sz: number; n: number }>();
+    for (const c of Object.values(cities)) {
+      if (!c.ownerForceId) continue;
+      const [px, py] = cityPixel(c.id, c.coords.x, c.coords.y);
+      const [wx, wz] = pxToWorld(px, py);
+      const e = agg.get(c.ownerForceId) ?? { sx: 0, sz: 0, n: 0 };
+      e.sx += wx; e.sz += wz; e.n += 1;
+      agg.set(c.ownerForceId, e);
+    }
+    const out: Array<{ x: number; z: number; name: string; color: string; bright: string; n: number }> = [];
+    for (const [fid, e] of agg) {
+      const force = forces[fid];
+      if (!force || e.n === 0) continue;
+      const ruler = force.rulerOfficerId ? officers[force.rulerOfficerId] : null;
+      const name = ruler?.name.zh ?? force.name.zh;
+      // Brighten the realm colour for legible text on the dark chip — keeps the
+      // faction's hue but guarantees contrast even for dark/terrain-green lords.
+      const bright = '#' + new THREE.Color(force.color).lerp(new THREE.Color('#ffffff'), 0.45).getHexString();
+      out.push({ x: e.sx / e.n, z: e.sz / e.n, name, color: force.color, bright, n: e.n });
+    }
+    return out;
+  }, [cities, forces, officers]);
+  if (!show) return null;   // pulled in close → city detail takes over
+  return (
+    <group>
+      {labels.map((l, i) => {
+        // Bigger domains get a bigger name; sized large so they read from a
+        // full zoom-out (distanceFactor keeps a fixed world size, so a big
+        // factor + big font is what stays legible when the camera pulls back).
+        const fs = Math.round(64 + Math.min(48, l.n * 3));
+        const y = sampleTerrainHeight(l.x, l.z) + 2.2;
+        return (
+          <Html key={i} position={[l.x, y, l.z]} center distanceFactor={64} zIndexRange={[3, 0]} style={{ pointerEvents: 'none' }}>
+            <div style={{
+              display: 'inline-block',
+              background: 'rgba(14,10,6,0.72)',
+              border: `3px solid ${l.color}`,
+              borderRadius: 10,
+              padding: '2px 16px',
+              fontFamily: '"Ma Shan Zheng", "Songti SC", serif',
+              fontSize: `${fs}px`, fontWeight: 800,
+              color: l.bright,
+              textShadow: '0 2px 10px rgba(0,0,0,0.9)',
+              letterSpacing: '0.08em', whiteSpace: 'nowrap', userSelect: 'none', opacity: 0.96,
+            }}>{l.name}</div>
+          </Html>
+        );
+      })}
+    </group>
+  );
+}
+
 /* ─── 冬雪 — a snow blanket draped over the northern terrain in winter ─
  *  Static latitude/altitude mask (built once), shown only in winter.
  *  The Yellow River freezes too — its ribbon goes pale ice-blue. */
@@ -5636,6 +5727,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
           raised hex prisms, so the quilt view goes without them. */}
       {mapStyle === 'classic' && <ProvinceBorders3D cities={cities} />}
       {overlayMode === 'province' && <ProvinceLabels3D />}
+      {/* 天下大勢 — lord names over their domains when zoomed out (RTK-XIV). */}
+      <FactionLabels3D cities={cities} forces={forces} officers={officers} />
       {marchPreview && (
         <MarchPreviewLine fromId={marchPreview.fromId} toId={marchPreview.toId} cities={cities} />
       )}
@@ -5754,6 +5847,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
               isSelected={selectedCityId === city.id}
               terrainY={terrainY}
               development={devByCity[city.id] ?? 0}
+              isOwn={!!playerForceId && city.ownerForceId === playerForceId}
               overlay={fog && city.ownerForceId !== playerForceId && !fog.visibleCityIds.has(city.id)
                 ? (overlayMode === 'none' ? null : FOG_OVERLAY)
                 : overlayMode === 'threat' ? (threatOverlays[city.id] ?? null) : overlayForCity(city, overlayMode, maxes)}

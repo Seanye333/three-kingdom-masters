@@ -36,6 +36,7 @@ import { createInitialMandate, type MandateState } from '../systems/mandate';
 import { ITEMS } from '../data/items';
 import { buildInitialPorts } from '../data/ports';
 import { buildInitialForts } from '../data/forts';
+import { distinctForceColors } from '../data/forceColors';
 import { buildInitialSites } from '../data/sites';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { buildHistoricalOfficers } from '../data/officers';
@@ -529,7 +530,9 @@ export function loadScenario(
       null,
     cities: indexById(scaledCities),
     forces: indexById(
-      scenario.forces.map((f) => ({ ...f, isPlayer: f.id === playerForceId })),
+      distinctForceColors(
+        scenario.forces.map((f) => ({ ...f, isPlayer: f.id === playerForceId })),
+      ),
     ),
     // Seed each officer's cached 威名 title from innate stats so the first
     // season doesn't announce prestige for the entire famous roster at once —
