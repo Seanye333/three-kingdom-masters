@@ -1,0 +1,122 @@
+import { useMemo } from 'react';
+import { useGameStore } from '../../game/state/store';
+import { tickCityEconomy } from '../../game/systems/economy';
+import { useT } from '../i18n';
+
+/**
+ * 度支簿 — the realm's ledger for the coming season: every city's projected
+ * gold and grain, netted into one bottom line. It runs the very same
+ * tickCityEconomy the season engine uses, so these are the true numbers, not a
+ * guess. Grain income only lands at the autumn harvest, so spring/summer/winter
+ * show upkeep eating into stores — that red is the point.
+ */
+export function BudgetModal({ onClose }: { onClose: () => void }) {
+  const t = useT();
+  const cities = useGameStore((s) => s.cities);
+  const officers = useGameStore((s) => s.officers);
+  const season = useGameStore((s) => s.date.season);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const selectCity = useGameStore((s) => s.selectCity);
+
+  const { rows, totals, treasury } = useMemo(() => {
+    const officersList = Object.values(officers);
+    const officersByCity: Record<string, typeof officersList> = {};
+    for (const o of officersList) {
+      if (!o.locationCityId || o.status === 'dead' || o.status === 'unsearched') continue;
+      (officersByCity[o.locationCityId] ??= []).push(o);
+    }
+    const mine = Object.values(cities).filter((c) => c.ownerForceId === playerForceId);
+    const rs = mine.map((c) => {
+      const tick = tickCityEconomy(c, season, officersByCity[c.id] ?? []);
+      const netFood = tick.foodIncome - tick.foodUpkeep;
+      return {
+        city: c,
+        gold: tick.goldIncome,
+        foodIn: tick.foodIncome,
+        foodUp: tick.foodUpkeep,
+        netFood,
+        starving: c.food + netFood < 0,
+      };
+    }).sort((a, b) => b.gold - a.gold);
+    const totals = rs.reduce(
+      (acc, r) => ({ gold: acc.gold + r.gold, foodIn: acc.foodIn + r.foodIn, foodUp: acc.foodUp + r.foodUp }),
+      { gold: 0, foodIn: 0, foodUp: 0 },
+    );
+    const treasury = mine.reduce((acc, c) => ({ gold: acc.gold + c.gold, food: acc.food + c.food }), { gold: 0, food: 0 });
+    return { rows: rs, totals, treasury };
+  }, [cities, officers, season, playerForceId]);
+
+  const netFoodTotal = totals.foodIn - totals.foodUp;
+  const seasonZh = { spring: '春', summer: '夏', autumn: '秋', winter: '冬' }[season];
+  const num = (n: number) => n.toLocaleString();
+  const signed = (n: number) => (n >= 0 ? `+${num(n)}` : `−${num(-n)}`);
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
+        width: 'min(680px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
+          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>
+            🪙 {t('度支簿', 'Treasury')} <span style={{ color: '#8a7050', fontSize: '0.8rem' }}>{t(`${seasonZh}季預算`, `${season} budget`)}</span>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+        </div>
+
+        {/* Realm summary — three cards: treasury on hand, gold/season, grain/season. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: '0.7rem' }}>
+          <div style={{ background: '#1a140d', border: '1px solid #3a2c1c', padding: '0.5rem 0.6rem', borderRadius: 4 }}>
+            <div style={{ color: '#8a7050', fontSize: '0.72rem' }}>{t('府庫現金', 'On hand')}</div>
+            <div style={{ color: '#f0d98a', fontSize: '1.05rem', fontFamily: 'ui-monospace, monospace' }}>{num(treasury.gold)} <span style={{ fontSize: '0.7rem' }}>金</span></div>
+            <div style={{ color: '#c0a878', fontSize: '0.72rem', fontFamily: 'ui-monospace, monospace' }}>{num(treasury.food)} 糧</div>
+          </div>
+          <div style={{ background: '#1a140d', border: '1px solid #3a2c1c', padding: '0.5rem 0.6rem', borderRadius: 4 }}>
+            <div style={{ color: '#8a7050', fontSize: '0.72rem' }}>{t('本季入金', 'Gold / season')}</div>
+            <div style={{ color: '#7ed68a', fontSize: '1.05rem', fontFamily: 'ui-monospace, monospace' }}>{signed(totals.gold)}</div>
+            <div style={{ color: '#6a5a45', fontSize: '0.7rem' }}>{rows.length} {t('城', 'cities')}</div>
+          </div>
+          <div style={{ background: '#1a140d', border: '1px solid #3a2c1c', padding: '0.5rem 0.6rem', borderRadius: 4 }}>
+            <div style={{ color: '#8a7050', fontSize: '0.72rem' }}>{t('本季糧秣', 'Grain / season')}</div>
+            <div style={{ color: netFoodTotal >= 0 ? '#7ed68a' : '#e8704a', fontSize: '1.05rem', fontFamily: 'ui-monospace, monospace' }}>{signed(netFoodTotal)}</div>
+            <div style={{ color: '#6a5a45', fontSize: '0.7rem' }}>{t('收', 'in')} {num(totals.foodIn)} · {t('支', 'out')} {num(totals.foodUp)}</div>
+          </div>
+        </div>
+        {season !== 'autumn' && (
+          <div style={{ color: '#8a7050', fontSize: '0.72rem', marginBottom: '0.5rem' }}>
+            🌾 {t('糧入僅在秋收結算,他季只支不入。', 'Grain only comes in at the autumn harvest — other seasons are upkeep-only.')}
+          </div>
+        )}
+
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+          <thead>
+            <tr style={{ color: '#8a7050', borderBottom: '1px solid #4a3520' }}>
+              <th style={{ textAlign: 'left', padding: '4px 6px' }}>{t('城', 'City')}</th>
+              <th style={{ textAlign: 'right', padding: '4px 6px' }}>{t('入金', 'Gold')}</th>
+              <th style={{ textAlign: 'right', padding: '4px 6px' }}>{t('糧入', 'Grain+')}</th>
+              <th style={{ textAlign: 'right', padding: '4px 6px' }}>{t('兵糧', 'Upkeep')}</th>
+              <th style={{ textAlign: 'right', padding: '4px 6px' }}>{t('糧淨', 'Net')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.city.id} onClick={() => { selectCity(r.city.id); onClose(); }} style={{ cursor: 'pointer', borderBottom: '1px solid #2a2014' }}>
+                <td style={{ padding: '3px 6px', color: r.starving ? '#e8704a' : '#f0e0b0' }}>
+                  {r.city.name.zh}{r.starving ? ' ⚠' : ''}
+                </td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontFamily: 'ui-monospace, monospace', color: '#7ed68a' }}>+{num(r.gold)}</td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontFamily: 'ui-monospace, monospace', color: '#c0a878' }}>{r.foodIn ? `+${num(r.foodIn)}` : '—'}</td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontFamily: 'ui-monospace, monospace', color: '#a88' }}>−{num(r.foodUp)}</td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontFamily: 'ui-monospace, monospace', color: r.netFood >= 0 ? '#7ed68a' : '#e8704a' }}>{signed(r.netFood)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {rows.length === 0 && (
+          <div style={{ color: '#8a7050', fontSize: '0.85rem', padding: '1rem 0' }}>{t('尚無城池。', 'No cities yet.')}</div>
+        )}
+      </div>
+    </div>
+  );
+}

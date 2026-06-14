@@ -56,6 +56,7 @@ const HistoryBookModal = lazy(() => import('../components/HistoryBookModal').the
 const SchemesModal = lazy(() => import('../components/SchemesModal').then(m => ({ default: m.SchemesModal })));
 const PowerGraphModal = lazy(() => import('../components/PowerGraphModal').then(m => ({ default: m.PowerGraphModal })));
 const CityRosterModal = lazy(() => import('../components/CityRosterModal').then(m => ({ default: m.CityRosterModal })));
+const BudgetModal = lazy(() => import('../components/BudgetModal').then(m => ({ default: m.BudgetModal })));
 const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
 const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
 const DiplomacyGraphModal = lazy(() => import('../components/DiplomacyGraphModal').then(m => ({ default: m.DiplomacyGraphModal })));
@@ -105,6 +106,7 @@ export function MapScreen() {
   const [showSchemes, setShowSchemes] = useState(false);
   const [showPowerGraph, setShowPowerGraph] = useState(false);
   const [showCityRoster, setShowCityRoster] = useState(false);
+  const [showBudget, setShowBudget] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
@@ -425,6 +427,7 @@ export function MapScreen() {
             { label: t('史書', 'Annals'),    onClick: () => setShowHistoryBook(true) },
             { label: t('大勢', 'Powers'),    onClick: () => setShowPowerGraph(true) },
             { label: t('郡縣', 'Cities'),    onClick: () => setShowCityRoster(true) },
+            { label: t('度支', 'Treasury'),  onClick: () => setShowBudget(true) },
             { label: t('勳功', 'Achievements'), onClick: () => setShowAch(true) },
             { label: t('戰記', 'Stats'),        onClick: () => setShowCampaignStats(true) },
             { label: t('📜 國史', '📜 Chronicle'), onClick: () => setShowChronicle(true) },
@@ -584,6 +587,7 @@ export function MapScreen() {
         {showSchemes && <SchemesModal onClose={() => setShowSchemes(false)} />}
         {showPowerGraph && <PowerGraphModal onClose={() => setShowPowerGraph(false)} />}
         {showCityRoster && <CityRosterModal onClose={() => setShowCityRoster(false)} />}
+        {showBudget && <BudgetModal onClose={() => setShowBudget(false)} />}
       </Suspense>
       {/* 戰略層回饋 — order-confirmation toasts, top-centre */}
       <ActionToasts />
