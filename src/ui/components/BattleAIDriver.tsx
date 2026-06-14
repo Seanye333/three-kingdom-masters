@@ -17,6 +17,7 @@ export function BattleAIDriver({ active }: { active: boolean }) {
   const start = useGameStore((s) => s.startTacticalBattle);
   const battleSpeed = useGameStore((s) => s.battleSpeed);
   const difficulty = useGameStore((s) => s.difficulty);
+  const pushBattleFx = useGameStore((s) => s.pushBattleFx);
 
   useEffect(() => {
     if (!active || !battle || battle.winner) return;
@@ -40,10 +41,15 @@ export function BattleAIDriver({ active }: { active: boolean }) {
           };
         }
       }
+      // Surface the casts so the diorama can play their FX/sound/運鏡 — without
+      // a screen mounted, this is the only path the big-map view gets them.
+      pushBattleFx(result.signatures.map((s) => ({
+        tacticId: s.tacticId, stratagemId: s.stratagemId, coord: s.coord,
+      })));
       start(next);
     }, delay);
     return () => clearTimeout(id);
-  }, [active, battle, officers, playerForceId, start, battleSpeed, difficulty]);
+  }, [active, battle, officers, playerForceId, start, battleSpeed, difficulty, pushBattleFx]);
 
   return null;
 }

@@ -122,6 +122,10 @@ export interface GameState {
   pendingEvent: PendingEvent | null;
   /** Active tactical battle screen, if any. */
   tacticalBattle: TacticalBattle | null;
+  /** 戰鬥運鏡/特效 — transient batch the headless AI driver pushes each turn so
+   *  the big-map diorama can play the same cast FX/sound/shake the fullscreen
+   *  battle does. Not persisted; replaced wholesale, keyed for dedup. */
+  battleFxBatch: { key: number; events: Array<{ tacticId?: string; stratagemId: import('../types').StratagemId; coord: import('../types').HexCoord }> } | null;
   /** Pending espionage ops queued for next season's resolution. */
   pendingEspionage: EspionageOp[];
   /** Historical record of all issued edicts. */
@@ -340,6 +344,7 @@ export const EMPTY_STATE: GameState = {
   firedEventIds: [],
   pendingEvent: null,
   tacticalBattle: null,
+  battleFxBatch: null,
   pendingEspionage: [],
   edictHistory: [],
   edictCooldowns: {},
@@ -566,6 +571,7 @@ export function loadScenario(
     })(),
     pendingEvent: null,
     tacticalBattle: null,
+    battleFxBatch: null,
     pendingEspionage: [],
     espionageReveals: {},
     cityDelegations: {},

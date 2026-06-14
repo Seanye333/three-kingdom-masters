@@ -202,6 +202,9 @@ interface GameStore extends GameState {
   /** 觀戰 — minimize the fullscreen battle to its world-map diorama (or
    *  restore it). The battle keeps running headless while minimized. */
   setBattleViewMinimized: (minimized: boolean) => void;
+  /** 戰鬥運鏡/特效 — the headless AI driver pushes the tactics it cast this turn
+   *  so the big-map diorama can play the same FX/sound/shake. Keyed for dedup. */
+  pushBattleFx: (events: NonNullable<GameState['battleFxBatch']>['events']) => void;
   selectArmy: (armyId: EntityId | null) => void;
   redirectArmy: (armyId: EntityId, newTargetId: EntityId) => boolean;
   holdArmy: (armyId: EntityId) => boolean;
@@ -676,6 +679,9 @@ export const useGameStore = create<GameStore>()(
       closeCityMap: () => set(() => ({ cityMapOpen: false })),
 
       setBattleViewMinimized: (minimized) => set(() => ({ battleViewMinimized: minimized })),
+      pushBattleFx: (events) => set((s) => (
+        events.length === 0 ? {} : { battleFxBatch: { key: (s.battleFxBatch?.key ?? 0) + 1, events } }
+      )),
 
       selectArmy: (armyId) => set(() => ({ selectedArmyId: armyId })),
 

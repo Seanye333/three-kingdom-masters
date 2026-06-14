@@ -18,7 +18,7 @@ import { FACILITY_DEFS, isHostilePermitted } from '../../game/types';
 // The battle diorama reuses the real battle scene (embedded mode) + its hex
 // coordinate helper, so the fight on the world map IS the fight.
 import { BattleScene, BattleCinematics, hexWorld as battleHexWorld, FX_DURATION, SIGNATURE_FLAVOR } from '../screens/TacticalBattleScreen3D';
-import { tacticFxSpec, FX_IMPACT, type StratagemFxInstance, type StratagemFxKind } from '../../game/data/stratagemFx';
+import { tacticFxSpec, FX_IMPACT, type StratagemFxInstance, type StratagemFxKind, type TacticFxSpec } from '../../game/data/stratagemFx';
 import { categoryOfTactic } from '../../game/data/officerAttributes';
 // In-place battle commanding — the SAME pure battle ops the fullscreen uses.
 import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStratagem, hexDistance } from '../../game/systems/tactical';
@@ -6586,6 +6586,30 @@ export function StrategicMap3D() {
       { duration: cine.weight >= 2 ? 420 : 250, easing: 'ease-out' },
     );
   }, [cine?.key]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const dioFxIdRef = useRef(0);
+  /** Spawn one cast FX on the diorama: particle + sound + 運鏡, auto-expired. */
+  const spawnCastFx = (coord: HexCoord, spec: TacticFxSpec) => {
+    const fxId = ++dioFxIdRef.current;
+    const now = Date.now();
+    setDioFx((arr) => [...arr, { id: fxId, coord, spec, spawnedAt: now }]);
+    playFxSfx(spec.kind);
+    punchFx(spec.kind, spec.color);
+    const lifeMs = (FX_DURATION[spec.kind] ?? 1.5) * 1000 + 200;
+    setTimeout(() => setDioFx((arr) => arr.filter((f) => f.id !== fxId)), lifeMs);
+  };
+  // 大地圖 AI 施放戰法 → 在縮圖戰場播同樣的特效/音效/運鏡。BattleAIDriver 無頭
+  // 推進、不直接入 dioFx,故經 store 的 battleFxBatch 轉一手。
+  const battleFxBatch = useGameStore((s) => s.battleFxBatch);
+  const lastFxBatchKey = useRef(0);
+  useEffect(() => {
+    if (!battleFxBatch || battleFxBatch.key === lastFxBatchKey.current) return;
+    lastFxBatchKey.current = battleFxBatch.key;
+    if (!worldBattle || !worldBattleMinimized) return;  // only while watching the diorama
+    for (const ev of battleFxBatch.events) {
+      const spec = tacticFxSpec(ev.tacticId, ev.stratagemId, categoryOfTactic);
+      if (spec) spawnCastFx(ev.coord, spec);
+    }
+  }, [battleFxBatch?.key]);  // eslint-disable-line react-hooks/exhaustive-deps
   // 單挑 — armed duel waiting for an adjacent enemy commander; the bout itself
   // runs in the same DuelGameModal the fullscreen uses.
   const [dioDuelArm, setDioDuelArm] = useState(false);
@@ -6625,14 +6649,8 @@ export function StrategicMap3D() {
       if (r.ok) {
         const spec = tacticFxSpec(dioCast.tacticId, dioCast.id, categoryOfTactic);
         if (spec) {
-          const fxId = Date.now();
           const isSelf = ['defend', 'precognition', 'dragon-veil'].includes(dioCast.id);
-          const fxCoord = isSelf ? sel0.coord : c;
-          setDioFx((arr) => [...arr, { id: fxId, coord: fxCoord, spec, spawnedAt: fxId }]);
-          playFxSfx(spec.kind);
-          punchFx(spec.kind, spec.color);
-          const lifeMs = (FX_DURATION[spec.kind] ?? 1.5) * 1000 + 200;
-          setTimeout(() => setDioFx((arr) => arr.filter((f) => f.id !== fxId)), lifeMs);
+          spawnCastFx(isSelf ? sel0.coord : c, spec);
         }
         // N6 — signature flavor line for famous personal tactics.
         const flavor = dioCast.tacticId ? SIGNATURE_FLAVOR[dioCast.tacticId] : undefined;
