@@ -64,6 +64,20 @@
   to { opacity: 1; transform: none; }
 }
 
+/* Exit — fade the backdrop and sink/shrink the frame, then the parent unmounts. */
+.backdrop.closing { animation: tkmBackdropOut 0.17s ease-in forwards; }
+.frame.closing { animation: tkmModalOut 0.17s ease-in forwards; }
+
+@keyframes tkmBackdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes tkmModalOut {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(6px) scale(0.98); }
+}
+
 /* Respect the user who'd rather not have things move. */
 @media (prefers-reduced-motion: reduce) {
   .backdrop,

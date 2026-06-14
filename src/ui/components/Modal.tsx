@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import styles from './Modal.module.css';
 
 export interface ModalProps {
@@ -60,19 +60,36 @@ export function Modal({
   ariaLabel,
   children,
 }: ModalProps) {
+  // Animated close: play the exit, *then* tell the parent to unmount us. The
+  // dialog stays mounted through the ~0.17s exit because onClose (which flips
+  // the parent's `show` flag) only fires when the animation is done.
+  const [closing, setClosing] = useState(false);
+  const closingRef = useRef(false);
+  const closeTimer = useRef(0);
+  const requestClose = useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { onClose(); return; }
+    setClosing(true);
+    closeTimer.current = window.setTimeout(onClose, 170);
+  }, [onClose]);
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
   useEffect(() => {
     if (!closeOnEsc) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') requestClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose, closeOnEsc]);
+  }, [requestClose, closeOnEsc]);
 
   const hasHeader = title != null || icon != null || headerRight != null || !hideClose;
 
   const frameClasses = [styles.frame];
   if (scrollBody) frameClasses.push(styles.frameScroll);
+  if (closing) frameClasses.push(styles.closing);
   if (className) frameClasses.push(className);
 
   const header = hasHeader ? (
@@ -86,7 +103,7 @@ export function Modal({
         <div className={styles.headerRight}>
           {headerRight}
           {!hideClose && (
-            <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
+            <button type="button" className={styles.closeBtn} onClick={requestClose} aria-label="Close">
               ×
             </button>
           )}
@@ -97,9 +114,9 @@ export function Modal({
 
   return (
     <div
-      className={styles.backdrop}
+      className={closing ? `${styles.backdrop} ${styles.closing}` : styles.backdrop}
       style={{ zIndex }}
-      onClick={closeOnBackdrop ? onClose : undefined}
+      onClick={closeOnBackdrop ? requestClose : undefined}
       role="presentation"
     >
       <div
