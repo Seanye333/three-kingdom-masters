@@ -3481,7 +3481,9 @@ function UnitPanel3D({
   const t = useT();
   const lang = useLanguage();
   const desc = useDesc();
-  const personalTactics = personalTacticsForUnit(officer, unit);
+  // Show the officer's FULL 戰法 pool (was silently capped at 8); the list
+  // scrolls if it's long, so nothing is hidden.
+  const personalTactics = personalTacticsForUnit(officer, unit, 16);
   const availableStratagems = STRATAGEMS.filter((s) => {
     if (!officer) return false;
     if (s.signatureOf && !s.signatureOf.includes(officer.id)) return false;
@@ -3624,7 +3626,10 @@ function UnitPanel3D({
 
       {personalTactics.length > 0 && (
         <div style={{ marginTop: '0.6rem', borderTop: '1px dotted #3a2818', paddingTop: '0.4rem' }}>
-          <div style={{ fontSize: '0.62rem', color: '#d4a84a', letterSpacing: '0.15rem', marginBottom: '0.3rem' }}>★ {t('個人戰法', 'PERSONAL')}</div>
+          <div style={{ fontSize: '0.62rem', color: '#d4a84a', letterSpacing: '0.15rem', marginBottom: '0.3rem' }}>
+            ★ {t('個人戰法', 'PERSONAL')} <span style={{ color: '#6a5238' }}>({personalTactics.length})</span>
+          </div>
+          <div style={{ maxHeight: 232, overflowY: 'auto', paddingRight: 2 }}>
           {personalTactics.map((pt) => {
             const cdKey = `${unit.id}-${pt.underlying}`;
             const cd = (battle.stratagemCooldowns[cdKey] ?? 0) - battle.turn;
@@ -3636,6 +3641,10 @@ function UnitPanel3D({
               : targetType === 'self' ? t('施放於自身', 'Cast on self')
               : targetType === 'enemy' ? t('點擊敵方單位', 'Click an enemy unit')
               : t('範圍效果', 'Area effect');
+            // 情境 — does this 戰法 suit the weather/terrain right now?
+            const sit = battleStratagemSituation(battle, unit.coord, unit.coord, pt.underlying);
+            const sitMark = sit.note ? (sit.mult >= 1 ? '⊕' : '⊖') : '';
+            const sitColor = sit.mult >= 1 ? '#9ad6a8' : '#e8a07a';
             return (
               <button
                 key={pt.id}
@@ -3646,10 +3655,11 @@ function UnitPanel3D({
                   opacity: apDisabled || onCd ? 0.4 : 1,
                 }}
                 disabled={apDisabled || onCd}
-                title={`${pt.description}\n\n${t('目標', 'Target')}: ${targetHint}\n${t('範圍', 'Range')}: ${pt.range}${onCd ? `\n${t('冷卻', 'CD')}: ${cd}t` : ''}`}
+                title={`${pt.description}\n\n${t('目標', 'Target')}: ${targetHint}\n${t('範圍', 'Range')}: ${pt.range}${sit.note ? `\n${t('情境', 'Situation')}: ${t(sit.note.zh, sit.note.en)}` : ''}${onCd ? `\n${t('冷卻', 'CD')}: ${cd}t` : ''}`}
                 onClick={() => setActionMode(active ? { kind: 'none' } : { kind: 'stratagem', id: pt.underlying, tacticId: pt.tacticId })}
               >
                 {pt.isSignature && <span style={{ color: '#d4a84a' }}>★ </span>}
+                {sitMark && <span style={{ color: sitColor, marginRight: 2 }}>{sitMark}</span>}
                 <span style={{ color: badge.color, fontSize: '0.6rem', marginRight: 3 }}>[{badge.label}]</span>
                 {pt.nameZh}
                 <span style={{ float: 'right', color: '#8a7050', fontSize: '0.66rem' }}>
@@ -3658,6 +3668,7 @@ function UnitPanel3D({
               </button>
             );
           })}
+          </div>
         </div>
       )}
     </div>

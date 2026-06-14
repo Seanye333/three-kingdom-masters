@@ -115,6 +115,9 @@ export const SIGNATURE_OVERRIDES: Record<string, { underlying: StratagemId; rang
 export function personalTacticsForUnit(
   officer: Officer | null,
   unit: TacticalUnit,
+  /** Max actions to return. Default 8 keeps the panel tidy; the fullscreen
+   *  panel passes a higher cap (and scrolls) so no 戰法 is silently hidden. */
+  limit = 8,
 ): PersonalTacticAction[] {
   if (!officer) return [];
   const tactics = deriveTactics(officer.stats, officer.id);
@@ -150,6 +153,5 @@ export function personalTacticsForUnit(
       category,
     });
   }
-  // Cap to 8 actions to keep UI tidy.
-  return out.slice(0, 8);
+  return out.slice(0, Math.max(1, limit));
 }
