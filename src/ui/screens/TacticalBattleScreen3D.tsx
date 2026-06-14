@@ -3261,6 +3261,7 @@ export function TacticalBattleScreen3D() {
         }
         if (bannerToShow) {
           setSignatureBanner({ zh: bannerToShow.zh, en: bannerToShow.en, key: Date.now() });
+          setCine({ key: ++cineCount.current, weight: 3, color: '#ffd54a' });  // 名場面:全運鏡
           setTimeout(() => setSignatureBanner(null), 2400);
         }
         start(battleAfterLogs);
@@ -3389,6 +3390,7 @@ export function TacticalBattleScreen3D() {
           };
           // N7 — show a transient on-screen banner for signature tactics
           setSignatureBanner({ zh: flavor.zh, en: flavor.en, key: Date.now() });
+          setCine({ key: ++cineCount.current, weight: 3, color: '#ffd54a' });  // 名場面:全運鏡
           setTimeout(() => setSignatureBanner(null), 2400);
         }
         start(next);
