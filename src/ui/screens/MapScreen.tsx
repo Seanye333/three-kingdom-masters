@@ -60,6 +60,7 @@ const BudgetModal = lazy(() => import('../components/BudgetModal').then(m => ({ 
 const ToDoModal = lazy(() => import('../components/ToDoModal').then(m => ({ default: m.ToDoModal })));
 const CommandPalette = lazy(() => import('../components/CommandPalette').then(m => ({ default: m.CommandPalette })));
 const ForceCompareModal = lazy(() => import('../components/ForceCompareModal').then(m => ({ default: m.ForceCompareModal })));
+const RumorsModal = lazy(() => import('../components/RumorsModal').then(m => ({ default: m.RumorsModal })));
 type PaletteCommand = import('../components/CommandPalette').PaletteCommand;
 const DeedsModal = lazy(() => import('../components/DeedsModal').then(m => ({ default: m.DeedsModal })));
 const ForgingModal = lazy(() => import('../components/ForgingModal').then(m => ({ default: m.ForgingModal })));
@@ -114,6 +115,7 @@ export function MapScreen() {
   const [showToDo, setShowToDo] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
+  const [showRumors, setShowRumors] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const careerMode = useGameStore((s) => s.careerMode);
   const recentAchievementUnlocks = useGameStore((s) => s.recentAchievementUnlocks);
@@ -329,6 +331,7 @@ export function MapScreen() {
       { id: 'budget', zh: '度支簿', en: 'Treasury', hint: g.rec, run: () => setShowBudget(true) },
       { id: 'power', zh: '天下大勢', en: 'Balance of power', hint: g.rec, run: () => setShowPowerGraph(true) },
       { id: 'compare', zh: '較量 — 勢力對比', en: 'Compare forces', hint: g.rec, run: () => setShowCompare(true) },
+      { id: 'rumors', zh: '市井流言', en: 'Rumors', hint: g.rec, run: () => setShowRumors(true) },
       { id: 'annals', zh: '史書', en: 'Annals', hint: g.rec, run: () => setShowHistoryBook(true) },
       { id: 'chronicle', zh: '國史', en: 'Chronicle', hint: g.rec, run: () => setShowChronicle(true) },
       { id: 'ach', zh: '勳功', en: 'Achievements', hint: g.rec, run: () => setShowAch(true) },
@@ -492,6 +495,7 @@ export function MapScreen() {
             { label: t('史書', 'Annals'),    onClick: () => setShowHistoryBook(true) },
             { label: t('大勢', 'Powers'),    onClick: () => setShowPowerGraph(true) },
             { label: t('較量', 'Compare'),   onClick: () => setShowCompare(true) },
+            { label: t('市井', 'Rumors'),    onClick: () => setShowRumors(true) },
             { label: t('待辦', 'To-Do'),     onClick: () => setShowToDo(true) },
             { label: t('郡縣', 'Cities'),    onClick: () => setShowCityRoster(true) },
             { label: t('度支', 'Treasury'),  onClick: () => setShowBudget(true) },
@@ -693,6 +697,7 @@ export function MapScreen() {
         {showToDo && <ToDoModal onClose={() => setShowToDo(false)} onOpenLetters={() => setShowWishes(true)} />}
         {showPalette && <CommandPalette commands={paletteCommands} onClose={() => setShowPalette(false)} />}
         {showCompare && <ForceCompareModal onClose={() => setShowCompare(false)} />}
+        {showRumors && <RumorsModal onClose={() => setShowRumors(false)} />}
       </Suspense>
       {/* 戰略層回饋 — order-confirmation toasts, top-centre */}
       <ActionToasts />
