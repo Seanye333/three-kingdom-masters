@@ -195,9 +195,9 @@ export function TitleScreen() {
     fontSize: '0.6rem', letterSpacing: '0.05rem', borderRadius: 2,
   };
   const navPrimary = (enabled: boolean): CSSProperties => ({
-    borderColor: enabled ? '#e6c473' : '#2b3845',
+    borderColor: enabled ? '#e6c473' : 'rgba(255,255,255,0.08)',
     color: enabled ? '#e6c473' : '#6a5238',
-    background: enabled ? '#1e2832' : 'transparent',
+    background: enabled ? 'rgba(230,196,115,0.14)' : 'transparent',
     fontWeight: 'bold',
   });
 
@@ -298,8 +298,9 @@ export function TitleScreen() {
             {daily && dailyScenario && dailyForce && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-                border: '1px solid #b8584a', background: 'rgba(184, 88, 74, 0.08)',
-                padding: '0.45rem 0.8rem', marginBottom: '0.7rem', fontSize: '0.82rem',
+                border: '1px solid rgba(255, 112, 80, 0.4)', background: 'rgba(184, 88, 74, 0.1)',
+                borderRadius: 'var(--tkm-radius, 8px)',
+                padding: '0.5rem 0.85rem', marginBottom: '0.7rem', fontSize: '0.82rem',
               }}>
                 <span style={{ color: '#ff9080', letterSpacing: '0.05rem' }}>🔥 {t('每日挑戰', 'Daily')} {todayStr}</span>
                 <span style={{ color: '#e6edf3' }}>
@@ -328,6 +329,7 @@ export function TitleScreen() {
                   style={{
                     marginLeft: 'auto', background: 'linear-gradient(180deg,#4a2418,#321810)',
                     border: '1px solid #ff7050', color: '#ffb0a0', padding: '0.3rem 1rem',
+                    borderRadius: 6,
                     cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.07rem',
                   }}
                 >{dailyResult ? t('再戰', 'Again') : t('應戰', 'Accept')}</button>
@@ -336,7 +338,7 @@ export function TitleScreen() {
                   title={t('每日排行榜', 'Daily leaderboard')}
                   style={{
                     background: 'transparent', border: '1px solid #e6c473', color: '#f2dd9a',
-                    padding: '0.3rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '0.3rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit', borderRadius: 6,
                   }}
                 >🏆</button>
                 {/* 補打日曆 — the last seven days, replayable; older days
@@ -374,11 +376,13 @@ export function TitleScreen() {
                     key={e.id}
                     onClick={() => setActiveEra(e.id)}
                     style={{
-                      padding: '0.35rem 0.85rem',
-                      border: `1px solid ${on ? '#e6c473' : '#2b3845'}`,
-                      background: on ? '#1e2832' : 'transparent',
+                      padding: '0.35rem 0.9rem',
+                      border: `1px solid ${on ? '#e6c473' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: 999,
+                      background: on ? 'rgba(230,196,115,0.12)' : 'transparent',
                       color: on ? '#e6c473' : '#7a8893',
                       cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.85rem',
+                      transition: 'background 0.15s, border-color 0.15s, color 0.15s',
                     }}
                   >
                     {lang === 'en' ? e.en : e.zh}{' '}
@@ -413,7 +417,13 @@ export function TitleScreen() {
                 <div style={{ fontSize: '0.78rem', color: '#7a8893', marginBottom: '0.5rem' }}>
                   {startYear} AD · {scenario.forces.length} {t('勢力', 'forces')}
                 </div>
-                <MiniMap scenario={scenario} labelCapitals />
+                <div style={{
+                  borderRadius: 'var(--tkm-radius, 8px)', overflow: 'hidden',
+                  border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))',
+                  boxShadow: 'var(--tkm-elev-1, 0 2px 10px rgba(0,0,0,0.35))',
+                }}>
+                  <MiniMap scenario={scenario} labelCapitals />
+                </div>
               </div>
             </div>
 
@@ -501,8 +511,10 @@ export function TitleScreen() {
                 })}
               </ul>
               {/* Right — clickable territory map + force detail */}
-              <div style={{ flex: '1 1 0', minWidth: 0, border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)', padding: '1rem', minHeight: 340 }}>
-                <MiniMap scenario={scenario} highlightForceId={selectedForceId} labelCapitals onSelectForce={setSelectedForceId} />
+              <div style={{ flex: '1 1 0', minWidth: 0, border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))', borderRadius: 'var(--tkm-radius, 8px)', background: 'rgba(27,37,49,0.55)', boxShadow: 'var(--tkm-elev-1, 0 2px 10px rgba(0,0,0,0.35))', padding: '1rem', minHeight: 340 }}>
+                <div style={{ borderRadius: 'var(--tkm-radius-sm, 5px)', overflow: 'hidden', border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))' }}>
+                  <MiniMap scenario={scenario} highlightForceId={selectedForceId} labelCapitals onSelectForce={setSelectedForceId} />
+                </div>
                 {selectedForce && selectedRuler ? (() => {
                   const st = forceStats(selectedForce.id);
                   const top = [...st.officers]
@@ -585,7 +597,7 @@ export function TitleScreen() {
             {selectedForce && selectedRuler && (() => {
               const st = forceStats(selectedForce.id);
               return (
-                <div style={{ display: 'flex', gap: '0.9rem', alignItems: 'center', border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)', padding: '0.7rem', marginBottom: '0.9rem' }}>
+                <div style={{ display: 'flex', gap: '0.9rem', alignItems: 'center', border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))', borderRadius: 'var(--tkm-radius, 8px)', background: 'rgba(27,37,49,0.55)', padding: '0.7rem', marginBottom: '0.9rem' }}>
                   <OfficerPortrait officer={selectedRuler} size={64} forceColor={selectedForce.color} year={startYear} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '1rem', color: '#e6c473', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
@@ -600,7 +612,7 @@ export function TitleScreen() {
                       {t('城', 'Cities')} {st.cities} · {t('將', 'Officers')} {st.officers.length} · {t('兵', 'Troops')} {st.troops.toLocaleString()}
                     </div>
                   </div>
-                  <div style={{ width: 156, flexShrink: 0 }}>
+                  <div style={{ width: 156, flexShrink: 0, borderRadius: 'var(--tkm-radius-sm, 5px)', overflow: 'hidden', border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))' }}>
                     <MiniMap scenario={scenario} highlightForceId={selectedForce.id} />
                   </div>
                 </div>
@@ -649,9 +661,10 @@ export function TitleScreen() {
               onClick={() => setShowDynasties((v) => !v)}
               style={{
                 display: 'block', width: '100%', marginTop: '0.6rem',
-                background: enabledDynasties.length > 0 ? '#1e2832' : 'transparent',
-                border: '1px solid #2b3845', color: enabledDynasties.length > 0 ? '#e6c473' : '#7a8893',
-                padding: '0.35rem 0.6rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', textAlign: 'left',
+                background: enabledDynasties.length > 0 ? 'rgba(230,196,115,0.12)' : 'transparent',
+                border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))', borderRadius: 'var(--tkm-radius-sm, 5px)',
+                color: enabledDynasties.length > 0 ? '#e6c473' : '#7a8893',
+                padding: '0.4rem 0.7rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', textAlign: 'left',
               }}
             >
               {showDynasties ? '▾' : '▸'} {t('歷代名將', 'Historical Officers')}
@@ -660,7 +673,7 @@ export function TitleScreen() {
               )}
             </button>
             {showDynasties && (
-              <div style={{ marginTop: '0.4rem', padding: '0.5rem', border: '1px solid #2b3845', background: 'rgba(20,16,12,0.5)' }}>
+              <div style={{ marginTop: '0.4rem', padding: '0.6rem', border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))', borderRadius: 'var(--tkm-radius-sm, 5px)', background: 'rgba(27,37,49,0.5)' }}>
                 <div style={{ fontSize: '0.7rem', color: '#7a8893', marginBottom: '0.4rem' }}>
                   {t(
                     '勾選後，對應朝代的名將以「未發現」狀態加入劇本，依出生地隱於各城，需「搜索人才」尋得。',
@@ -774,8 +787,9 @@ export function TitleScreen() {
 
 function miniBtn(disabled: boolean): CSSProperties {
   return {
-    background: '#1e2832',
-    border: '1px solid #2b3845',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid var(--tkm-hairline, rgba(255,255,255,0.08))',
+    borderRadius: 'var(--tkm-radius-sm, 5px)',
     color: disabled ? '#6a5238' : '#e6c473',
     padding: '0.15rem 0.5rem',
     cursor: disabled ? 'not-allowed' : 'pointer',
