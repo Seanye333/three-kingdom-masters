@@ -20,6 +20,7 @@ import {
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { Suspense, lazy } from 'react';
 import { TitleScreen } from './ui/screens/TitleScreen';
+import { LoadingSplash } from './ui/components/LoadingSplash';
 
 // The realm (three.js + the whole map/battle stack) is by far the heaviest
 // chunk — lazy so the title paints instantly; the title screen pre-warms the
@@ -98,13 +99,7 @@ export default function App() {
   return (
     <ErrorBoundary fallbackLabel="Game crashed">
       {scenarioId ? (
-        <Suspense fallback={
-          <div style={{
-            position: 'fixed', inset: 0, display: 'grid', placeItems: 'center',
-            background: '#0a0805', color: '#d4a84a',
-            fontFamily: 'Songti SC, serif', letterSpacing: '0.4rem', fontSize: '1.1rem',
-          }}>展開輿圖…</div>
-        }>
+        <Suspense fallback={<LoadingSplash />}>
           <MapScreen />
         </Suspense>
       ) : <TitleScreen />}
