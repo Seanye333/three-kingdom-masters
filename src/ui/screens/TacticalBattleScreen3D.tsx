@@ -11,7 +11,7 @@ import { stratagemFxKind, tacticFxKind, tacticFxSpec, FX_DURATION, FX_IMPACT, ty
 import { categoryOfTactic } from '../../game/data/officerAttributes';
 import { applyBattlePrep,
   aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
-  moveUnit, resolveBattleEnd, unitAt,
+  moveUnit, resolveBattleEnd, unitAt, forecastAttack, matchupLabel,
 } from '../../game/systems/tactical';
 import { canDuel } from '../../game/systems/duel';
 import { personalTacticsForUnit } from '../../game/systems/personalTactics';
@@ -3310,20 +3310,61 @@ export function TacticalBattleScreen3D() {
           </div>
         )}
 
-        {/* Hover hex indicator */}
-        {hovered && (
-          <div style={{
-            position: 'absolute', top: 12, right: 12,
-            background: 'rgba(20, 14, 8, 0.85)',
-            border: '1px solid #5a4530',
-            padding: '0.3rem 0.6rem',
-            color: '#d4a84a',
-            fontFamily: 'ui-monospace, monospace',
-            fontSize: '0.78rem',
-          }}>
-            ({hovered.col}, {hovered.row})
-          </div>
-        )}
+        {/* Hover hex indicator — upgrades to a 戰鬥預判 card when the selected
+            unit is yours and you're aiming at an enemy it can strike. */}
+        {hovered && (() => {
+          const tgt = unitAt(battle, hovered);
+          const mine = selectedUnit && playerSide && selectedUnit.side === playerSide;
+          const aimable = mine && tgt && tgt.side !== playerSide && tgt.troops > 0
+            && canAttack(battle, selectedUnit, tgt);
+          if (aimable) {
+            const f = forecastAttack(battle, selectedUnit, tgt, officers);
+            const ml = matchupLabel(selectedUnit.unitType, tgt.unitType);
+            const counterBad = matchupLabel(tgt.unitType, selectedUnit.unitType);
+            const verdictColor = f.willKill ? '#7ed68a' : f.matchup === 'strong' ? '#d4e88a'
+              : f.matchup === 'weak' ? '#e8a07a' : '#d4a84a';
+            return (
+              <div style={{
+                position: 'absolute', top: 12, right: 12, minWidth: 168,
+                background: 'rgba(20, 14, 8, 0.92)', border: `1px solid ${verdictColor}`,
+                padding: '0.5rem 0.7rem', color: '#f0e0b0', fontFamily: 'Songti SC, serif',
+                fontSize: '0.82rem', boxShadow: `0 0 14px ${verdictColor}44`,
+              }}>
+                <div style={{ fontWeight: 'bold', color: verdictColor, marginBottom: '0.25rem' }}>
+                  ⚔ {t('戰鬥預判', 'Forecast')}{f.willKill ? ` · ${t('可殲滅', 'LETHAL')}` : ''}
+                </div>
+                <div>{t('預估傷害', 'Damage')}: <b>{f.dmgMin.toLocaleString()}–{f.dmgMax.toLocaleString()}</b></div>
+                <div style={{ color: f.counterMax > 0 ? '#e8a07a' : '#8a9a7a' }}>
+                  {t('反擊', 'Counter')}: {f.counterMax > 0 ? `${f.counterMin.toLocaleString()}–${f.counterMax.toLocaleString()}` : t('無', 'none')}
+                </div>
+                {ml && (
+                  <div style={{ color: '#9ad6a8' }}>↑ {t(`${ml.zh} ×${f.counterMult.toFixed(2)}`, `${ml.en} ×${f.counterMult.toFixed(2)}`)}</div>
+                )}
+                {counterBad && (
+                  <div style={{ color: '#e88a7a' }}>↓ {t(`被${counterBad.zh}`, `vuln ${counterBad.en}`)}</div>
+                )}
+                {f.defShield < 1 && (
+                  <div style={{ color: '#a0b8d8' }}>🛡 {t('敵據地利', 'enemy terrain')} ×{f.defShield.toFixed(2)}</div>
+                )}
+                {f.terrainAtk !== 1 && (
+                  <div style={{ color: f.terrainAtk > 1 ? '#9ad6a8' : '#e8a07a' }}>
+                    {f.terrainAtk > 1 ? '⤴' : '⤵'} {t('我方地形', 'my terrain')} ×{f.terrainAtk.toFixed(2)}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return (
+            <div style={{
+              position: 'absolute', top: 12, right: 12,
+              background: 'rgba(20, 14, 8, 0.85)', border: '1px solid #5a4530',
+              padding: '0.3rem 0.6rem', color: '#d4a84a',
+              fontFamily: 'ui-monospace, monospace', fontSize: '0.78rem',
+            }}>
+              ({hovered.col}, {hovered.row})
+            </div>
+          );
+        })()}
 
         {/* Action mode hint */}
         {actionMode.kind !== 'none' && myTurn && (() => {

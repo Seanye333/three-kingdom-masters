@@ -76,6 +76,63 @@ export function defenderTerrainShield(terrain: TerrainKind): number {
 }
 
 /**
+ * 戰鬥預判 — the same composed math the AI uses (pickAdjacentTarget), surfaced
+ * for the player: predicted damage range after unit-type counter + terrain, the
+ * counter-attack risk, whether the blow殲滅s the target, and the matchup verdict.
+ * Pure — read-only, no battle mutation. Lets the player strategise on the very
+ * relationships the AI already exploits (槍克騎, 騎克弓, 弓克槍, 地利).
+ */
+export interface AttackForecast {
+  dmgMin: number; dmgMax: number;
+  counterMin: number; counterMax: number;
+  willKill: boolean;
+  /** Attacker-vs-defender unit-type verdict. */
+  matchup: 'strong' | 'weak' | 'even';
+  counterMult: number;
+  terrainAtk: number;
+  defShield: number;
+}
+
+export function forecastAttack(
+  b: TacticalBattle,
+  attacker: TacticalUnit,
+  target: TacticalUnit,
+  officers: Record<EntityId, Officer>,
+): AttackForecast {
+  const p = predictAttackDamage(b, attacker, target, officers);
+  const aTerr = tileAt(b, attacker.coord)?.terrain ?? 'plain';
+  const dTerr = tileAt(b, target.coord)?.terrain ?? 'plain';
+  const ctr = counterMultiplier(attacker.unitType, target.unitType);
+  const aTerrMod = terrainDamageMod(attacker.unitType, aTerr);
+  const shield = defenderTerrainShield(dTerr);
+  const fwd = ctr * aTerrMod * shield;
+  const dmgMin = Math.max(0, Math.floor(p.min * fwd));
+  const dmgMax = Math.max(0, Math.floor(p.max * fwd));
+  const willKill = dmgMax >= target.troops;
+  const back = counterMultiplier(target.unitType, attacker.unitType);
+  return {
+    dmgMin, dmgMax,
+    counterMin: willKill ? 0 : Math.max(0, Math.floor(p.counterMin * back)),
+    counterMax: willKill ? 0 : Math.max(0, Math.floor(p.counterMax * back)),
+    willKill,
+    matchup: ctr > 1.05 ? 'strong' : ctr < 0.95 ? 'weak' : 'even',
+    counterMult: ctr,
+    terrainAtk: aTerrMod,
+    defShield: shield,
+  };
+}
+
+/** Short bilingual label for a unit-type counter edge, e.g. 槍克騎 / spear>cav. */
+export function matchupLabel(a: UnitType, d: UnitType): { zh: string; en: string } | null {
+  const m = counterMultiplier(a, d);
+  if (m > 1.05) {
+    const Z: Record<string, string> = { spearmen: '槍', cavalry: '騎', archers: '弓', siege: '砲', navy: '舟', infantry: '步' };
+    return { zh: `${Z[a]}克${Z[d]}`, en: `${a}>${d}` };
+  }
+  return null;
+}
+
+/**
  * Pick an appropriate unit type for an officer based on their stats
  * and any unit-type signaling skills.
  */
