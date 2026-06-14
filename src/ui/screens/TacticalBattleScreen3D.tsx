@@ -745,6 +745,7 @@ function UnitMesh({
   const deathAt = useRef(-1);
   const flashRef = useRef<THREE.MeshBasicMaterial>(null);
   const dustRef = useRef<THREE.Group>(null);
+  const navyFoamRef = useRef<THREE.Group>(null);
   const lastMoveAt = useRef(-10);
   const HIT_DUR = 0.34;
   const DEATH_DUR = 0.85;
@@ -777,6 +778,18 @@ function UnitMesh({
           i++;
         }
       });
+    }
+    // 水戰 — navy units rock on the swell and trail foam (stronger when rowing).
+    if (unit.unitType === 'navy') {
+      g.rotation.z += Math.sin(clock.elapsedTime * 1.5 + tx) * 0.045;
+      tgt.y += Math.sin(clock.elapsedTime * 1.2 + tz) * 0.02;
+      if (navyFoamRef.current) {
+        const wake = moving ? 0.5 : 0.26;
+        navyFoamRef.current.traverse((o) => {
+          const m = (o as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined;
+          if (m && 'opacity' in m) m.opacity = wake * (0.6 + 0.4 * Math.sin(clock.elapsedTime * 5));
+        });
+      }
     }
     // Detect a troop loss since last frame → trigger the hit reaction.
     if (unit.troops < prevTroops.current) hitAt.current = clock.elapsedTime;
@@ -846,6 +859,21 @@ function UnitMesh({
         <sphereGeometry args={[0.52, 12, 10]} />
         <meshBasicMaterial ref={flashRef} color="#ff3018" transparent opacity={0} depthWrite={false} toneMapped={false} />
       </mesh>
+      {/* 水戰浪沫 — foam ring + wake trail under a warship. */}
+      {unit.unitType === 'navy' && (
+        <group ref={navyFoamRef} raycast={() => null}>
+          <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.34, 0.6, 20]} />
+            <meshBasicMaterial color="#dff2fa" transparent opacity={0.3} depthWrite={false} />
+          </mesh>
+          {[0, 1].map((i) => (
+            <mesh key={i} position={[0, 0.02, 0.55 + i * 0.28]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[0.5 - i * 0.16, 0.12]} />
+              <meshBasicMaterial color="#ffffff" transparent opacity={0.25} depthWrite={false} />
+            </mesh>
+          ))}
+        </group>
+      )}
       {/* 行軍揚塵 — ground dust puffs, opacity driven by movement in useFrame. */}
       {unit.unitType !== 'navy' && (
         <group ref={dustRef} raycast={() => null}>
