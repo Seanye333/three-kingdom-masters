@@ -960,3 +960,12 @@ button:not(:disabled):active {
 @media (prefers-reduced-motion: reduce) {
   .tkm-victory-slam, .tkm-victory-sub { animation: none; opacity: 1; }
 }
+
+/* 受創血暈 — red edges flash when the player's army takes losses. */
+@keyframes tkmBloodVignette { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+.tkm-blood-vignette {
+  position: absolute; inset: 0; pointer-events: none; z-index: 6;
+  box-shadow: inset 0 0 110px 36px rgba(176, 18, 10, 0.55);
+  opacity: 0; animation: tkmBloodVignette 0.7s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) { .tkm-blood-vignette { animation: none; } }

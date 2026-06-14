@@ -3364,6 +3364,8 @@ export function TacticalBattleScreen3D() {
     return () => { stopBattleAmbience(); stopMusic(); };
   }, []);
   const musicPhase = useRef<MusicTrack | null>(null);
+  const [bloodKey, setBloodKey] = useState(0);
+  const prevMyTroops = useRef<number | null>(null);
   const sfxCursor = useRef(0);
   useEffect(() => {
     const log = battle?.log ?? [];
@@ -3496,6 +3498,14 @@ export function TacticalBattleScreen3D() {
     }
     if (musicPhase.current !== track) { musicPhase.current = track; playMusic(track); }
   }, [battle?.winner, battle?.turn, battle?.units, playerSide]);
+
+  // 受創血暈 — flash red screen-edges when YOUR army loses troops.
+  useEffect(() => {
+    if (!battle || !playerSide) return;
+    const mine = battle.units.filter((u) => u.side === playerSide).reduce((s, u) => s + u.troops, 0);
+    if (prevMyTroops.current != null && mine < prevMyTroops.current - 50) setBloodKey((k) => k + 1);
+    prevMyTroops.current = mine;
+  }, [battle?.units, playerSide]);
 
   // AI takes its turn after a short delay when it's not the player's side —
   // or on the player's side too, when 委託指揮 is engaged.
@@ -3925,6 +3935,8 @@ export function TacticalBattleScreen3D() {
       {/* 3D canvas */}
       <div style={{ flex: 1, position: 'relative' }}>
        <div ref={canvasWrapRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+        {/* 受創血暈 — red edges flash when your army takes losses. */}
+        {bloodKey > 0 && <div key={bloodKey} className="tkm-blood-vignette" />}
         {/* 戰鬥運鏡 — impact flash, remounted per cast to replay its fade */}
         {cine && cine.weight > 0 && (
           <div
