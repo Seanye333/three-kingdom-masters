@@ -1391,20 +1391,38 @@ function AttackArc({ from, to, kind, spawnedAt }: {
 // 大地圖戰鬥沿用同一份;此處 re-export 讓 StrategicMap3D 的舊 import 不必改。
 export { stratagemFxKind, tacticFxKind, tacticFxSpec, FX_DURATION };
 
-/* 戰鬥運鏡 — a quick zoom-punch on heavy casts. Lives in the Canvas; dips the
- * camera FOV inward then eases it back, so 天雷/落石/火계 land with a kick.
- * FOV-only, so it never fights OrbitControls (which drives position/target). */
+/* 戰鬥運鏡 — a quick zoom-punch on heavy casts + a true freeze-frame hitstop.
+ * The FOV dip never fights OrbitControls. The hitstop pauses the r3f clock for
+ * ~85ms so EVERY clock-driven animation holds on the impact, then resumes
+ * WITHOUT resetting elapsedTime (we restore oldTime so motion stays continuous). */
 export function BattleCinematics({ trigger }: { trigger: { key: number; weight: number } | null }) {
-  const { camera } = useThree();
+  const { camera, clock } = useThree();
   const baseFov = useRef<number | null>(null);
   const pulse = useRef(0);
   const lastKey = useRef(0);
+  const frozen = useRef(false);
   useFrame((_, delta) => {
     const cam = camera as THREE.PerspectiveCamera;
     if (baseFov.current == null) baseFov.current = cam.fov;
     if (trigger && trigger.key !== lastKey.current) {
       lastKey.current = trigger.key;
-      if (trigger.weight >= 2) pulse.current = 1;
+      if (trigger.weight >= 2) {
+        pulse.current = 1;
+        // 頓幀 — pause the clock (delta→0, elapsedTime frozen) for a beat, then
+        // resume cleanly. Guard against autoStart resetting elapsedTime to 0.
+        if (!frozen.current) {
+          frozen.current = true;
+          clock.autoStart = false;
+          clock.running = false;
+          const ms = trigger.weight >= 3 ? 130 : 85;
+          setTimeout(() => {
+            clock.oldTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+            clock.running = true;
+            clock.autoStart = true;
+            frozen.current = false;
+          }, ms);
+        }
+      }
     }
     if (pulse.current > 0) {
       pulse.current = Math.max(0, pulse.current - delta * 2.6);
@@ -3093,7 +3111,13 @@ export function TacticalBattleScreen3D() {
       playSfx(kind === 'ranged' ? 'arrow' : 'sword');
       setAttackArcs((a) => [...a, { id: aid, from: selectedUnit.coord, to: u.coord, kind, spawnedAt: aid }]);
       setTimeout(() => setAttackArcs((a) => a.filter((x) => x.id !== aid)), 600);
-      start(attackUnits(battle, selectedUnit.id, u.id, officers, Math.random));
+      const afterAtk = attackUnits(battle, selectedUnit.id, u.id, officers, Math.random);
+      start(afterAtk);
+      // 殲滅頓幀 — a killing blow gets the full impact (shake + flash + hitstop).
+      const slain = afterAtk.units.find((x) => x.id === u.id);
+      if (u.troops > 0 && (!slain || slain.troops <= 0)) {
+        setCine({ key: ++cineCount.current, weight: 2, color: '#ff5030' });
+      }
       setActionMode({ kind: 'none' });
       return;
     }
