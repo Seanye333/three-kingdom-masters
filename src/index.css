@@ -99,26 +99,12 @@
   --tkm-text-muted:   #707080;
 }
 
-/* ─── Theme filters — tint hardcoded colors in legacy components ─── */
-/* Most components still hardcode warm parchment hex codes. A subtle
- * hue-rotate makes the new theme actually visible everywhere, not just
- * in the few components that use the variables. */
-html[data-theme="ink"] body {
-  filter: hue-rotate(170deg) saturate(0.85) brightness(0.95);
-}
-html[data-theme="vermilion"] body {
-  filter: hue-rotate(-15deg) saturate(1.15) brightness(0.95);
-}
-html[data-theme="bamboo"] body {
-  filter: hue-rotate(60deg) saturate(0.95) brightness(0.95);
-}
-html[data-theme="moonlight"] body {
-  filter: hue-rotate(220deg) saturate(0.55) brightness(0.95);
-}
-/* Smooth crossfade when switching */
-body {
-  transition: filter 0.5s ease;
-}
+/* ─── Theming — token-driven, no filter hack ───────────────────────────
+ * Each theme just swaps the `--tkm-*` palette on <html data-theme>; the
+ * shared chrome (top bar, <Modal>, <Chip>, city panel, …) reads those
+ * tokens, so a theme re-tints the UI cleanly. The old `filter: hue-rotate`
+ * on <body> is gone: it distorted portraits, seals, icons and the 3D map,
+ * and a filter on <body> also reparents every position:fixed overlay. */
 
 :root {
 

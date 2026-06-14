@@ -12,7 +12,7 @@ export const THEMES: Array<{
   /** Small palette swatch [bg, accent, text] */
   swatch: [string, string, string];
 }> = [
-  { id: 'parchment', zh: '古樸棕', en: 'Parchment',  swatch: ['#1a1410', '#d4a84a', '#c9b89a'] },
+  { id: 'parchment', zh: '水墨',   en: 'Modern Ink', swatch: ['#0e1216', '#e6c473', '#b6c2cc'] },
   { id: 'ink',       zh: '靑墨',   en: 'Ink Wash',   swatch: ['#0e1419', '#88c8e8', '#a8c0d0'] },
   { id: 'vermilion', zh: '赤焰',   en: 'Vermilion',  swatch: ['#1a0c0c', '#e8a060', '#d4a888'] },
   { id: 'bamboo',    zh: '竹林',   en: 'Bamboo',     swatch: ['#0e160e', '#b8d878', '#a8c098'] },
