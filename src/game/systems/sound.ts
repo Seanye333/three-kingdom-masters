@@ -795,22 +795,46 @@ function warDrum(c: AudioContext, dry: AudioNode, wet: AudioNode | null): void {
   osc.stop(t + 0.25);
 }
 
+/** Crossfade duration when switching tracks — old fades out as new fades in. */
+const MUSIC_CROSSFADE = 1.6;
+
 export function playMusic(track: MusicTrack): void {
   // Same track already sounding → leave it be (no restart churn).
   if (track && track === currentTrack && musicTimer) return;
-  stopMusic();
-  if (!track || !enabled) return;
-  currentTrack = track;
   const c = getCtx();
-  if (!c) return;
+
+  // Crossfade out the outgoing bus rather than hard-cutting it: ramp its gain
+  // down over MUSIC_CROSSFADE while the new track ramps up over the same window,
+  // so the two overlap instead of leaving a silent dip in the middle. Capture
+  // the nodes locally so the cleanup timer can't be clobbered by the new track.
+  if (c && musicGainNode) {
+    const oldGain = musicGainNode;
+    const oldTimer = musicTimer;
+    const oldExtra = musicExtra;
+    oldGain.gain.cancelScheduledValues(c.currentTime);
+    oldGain.gain.setValueAtTime(Math.max(0.0001, oldGain.gain.value), c.currentTime);
+    oldGain.gain.linearRampToValueAtTime(0, c.currentTime + MUSIC_CROSSFADE);
+    setTimeout(() => {
+      if (oldTimer) clearInterval(oldTimer);
+      try { oldGain.disconnect(); } catch { /* ignore */ }
+      for (const n of oldExtra) { try { n.disconnect(); } catch { /* ignore */ } }
+    }, MUSIC_CROSSFADE * 1000 + 80);
+  }
+  // Detach module refs so we never double-stop the now-independent old bus.
+  musicGainNode = null;
+  musicTimer = null;
+  musicExtra = [];
+
+  currentTrack = track;
+  if (!track || !enabled || !c) return;
   unlockAudio();
   const def = MUSIC_TRACKS[track];
-  if (!def) return;
+  if (!def) { currentTrack = null; return; }
 
-  // Master music bus.
+  // Master music bus — fades in over the crossfade window.
   musicGainNode = c.createGain();
   musicGainNode.gain.setValueAtTime(0, c.currentTime);
-  musicGainNode.gain.linearRampToValueAtTime(def.gain, c.currentTime + 2);
+  musicGainNode.gain.linearRampToValueAtTime(def.gain, c.currentTime + MUSIC_CROSSFADE);
   musicGainNode.connect(c.destination);
 
   // Feedback-delay reverb send — gives the voices space.
