@@ -7,6 +7,7 @@ import { useGameStore } from '../../game/state/store';
 import { playSfx, startBattleAmbience, stopBattleAmbience } from '../../game/systems/sound';
 import type { EntityId, HexCoord, Officer, StratagemId, TacticalBattle, TacticalTile, TacticalUnit, TerrainKind, TimeOfDay, UnitType, Weather } from '../../game/types';
 import type { DefenseBuildingId } from '../../game/data/defenseBuildings';
+import { primarySkillFx, type SkillFxArchetype } from '../../game/data/skillFx';
 import { applyBattlePrep,
   aiTakeTurn, aiSkillForDifficulty, applyStratagem, attackUnits, canAttack, canMove, endTurn, hexDistance,
   moveUnit, resolveBattleEnd, unitAt,
@@ -640,8 +641,102 @@ function UnitRetinue({ troops, color, unitType }: { troops: number; color: strin
   );
 }
 
+/* 技能光效 — a persistent signature aura under each unit's hero, its shape set
+ * by the skill's archetype and tinted its colour. One per unit (the officer's
+ * first skill). Cheap: a few meshes, animated by a single group transform. */
+function SkillAura({ archetype, color }: { archetype: SkillFxArchetype; color: string }) {
+  const g = useRef<THREE.Group>(null);
+  const m = useRef<THREE.MeshBasicMaterial>(null);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    if (g.current) {
+      if (archetype === 'mystic' || archetype === 'dust' || archetype === 'ring' || archetype === 'arrows') {
+        g.current.rotation.y = t * (archetype === 'arrows' ? 1.6 : 0.8);
+      }
+      if (archetype === 'wave' || archetype === 'aura') {
+        const s = 1 + Math.sin(t * 2) * 0.12;
+        g.current.scale.set(s, 1, s);
+      }
+    }
+    if (m.current) m.current.opacity = (archetype === 'blaze' || archetype === 'embers')
+      ? 0.5 + Math.abs(Math.sin(t * 9)) * 0.4
+      : 0.4 + Math.sin(t * 2.4) * 0.18;
+  });
+  const ringMat = <meshBasicMaterial ref={m} color={color} transparent opacity={0.5} side={THREE.DoubleSide} toneMapped={false} />;
+  switch (archetype) {
+    case 'ring':
+    case 'aura':
+      return (
+        <group ref={g} position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh><ringGeometry args={[0.34, 0.42, 32]} />{ringMat}</mesh>
+        </group>
+      );
+    case 'wave':
+      return (
+        <group ref={g} position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh><ringGeometry args={[0.30, 0.36, 32]} />{ringMat}</mesh>
+          <mesh position={[0, 0, 0.001]}><ringGeometry args={[0.44, 0.48, 32]} /><meshBasicMaterial color={color} transparent opacity={0.3} side={THREE.DoubleSide} /></mesh>
+        </group>
+      );
+    case 'mystic':
+      return (
+        <group ref={g} position={[0, 0.04, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.34, 0.40, 6]} />{ringMat}</mesh>
+          {[0, 1, 2].map((i) => {
+            const a = (i / 3) * Math.PI * 2;
+            return <mesh key={i} position={[Math.cos(a) * 0.42, 0.5, Math.sin(a) * 0.42]}><sphereGeometry args={[0.05, 8, 8]} /><meshBasicMaterial color={color} transparent opacity={0.85} toneMapped={false} /></mesh>;
+          })}
+        </group>
+      );
+    case 'blaze':
+      return (
+        <group ref={g} position={[0, 0, 0]}>
+          {[0, 1, 2, 3, 4].map((i) => {
+            const a = (i / 5) * Math.PI * 2;
+            return <mesh key={i} position={[Math.cos(a) * 0.26, 0.18, Math.sin(a) * 0.26]}><coneGeometry args={[0.08, 0.34, 5]} /><meshBasicMaterial ref={i === 0 ? m : undefined} color={color} transparent opacity={0.6} toneMapped={false} /></mesh>;
+          })}
+        </group>
+      );
+    case 'embers':
+      return (
+        <group ref={g} position={[0, 0, 0]}>
+          {[0, 1, 2, 3, 4, 5].map((i) => {
+            const a = (i / 6) * Math.PI * 2;
+            return <mesh key={i} position={[Math.cos(a) * 0.22, 0.2 + (i % 3) * 0.16, Math.sin(a) * 0.22]}><sphereGeometry args={[0.035, 6, 6]} /><meshBasicMaterial ref={i === 0 ? m : undefined} color={color} transparent opacity={0.7} toneMapped={false} /></mesh>;
+          })}
+        </group>
+      );
+    case 'arrows':
+      return (
+        <group ref={g} position={[0, 0.4, 0]}>
+          {[0, 1, 2, 3].map((i) => {
+            const a = (i / 4) * Math.PI * 2;
+            return <mesh key={i} position={[Math.cos(a) * 0.4, 0, Math.sin(a) * 0.4]} rotation={[0, -a, Math.PI / 2]}><cylinderGeometry args={[0.012, 0.012, 0.22, 4]} /><meshBasicMaterial color={color} transparent opacity={0.85} toneMapped={false} /></mesh>;
+          })}
+        </group>
+      );
+    case 'dust':
+      return (
+        <group ref={g} position={[0, 0.05, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.3, 0.46, 24]} />{ringMat}</mesh>
+          {[0, 1, 2, 3].map((i) => {
+            const a = (i / 4) * Math.PI * 2;
+            return <mesh key={i} position={[Math.cos(a) * 0.4, 0.08, Math.sin(a) * 0.4]}><sphereGeometry args={[0.07, 6, 6]} /><meshBasicMaterial color={color} transparent opacity={0.4} /></mesh>;
+          })}
+        </group>
+      );
+    case 'banner':
+      return (
+        <group ref={g} position={[0, 0, 0]}>
+          <mesh position={[0.18, 0.55, 0]}><cylinderGeometry args={[0.015, 0.015, 0.9, 5]} /><meshStandardMaterial color="#2a1d12" /></mesh>
+          <mesh position={[0.30, 0.85, 0]}><planeGeometry args={[0.26, 0.2]} /><meshBasicMaterial ref={m} color={color} transparent opacity={0.85} side={THREE.DoubleSide} toneMapped={false} /></mesh>
+        </group>
+      );
+  }
+}
+
 function UnitMesh({
-  unit, terrainH, isPlayer, selected, onClick, isWounded,
+  unit, terrainH, isPlayer, selected, onClick, isWounded, skillFx,
 }: {
   unit: TacticalUnit;
   terrainH: number;
@@ -649,6 +744,7 @@ function UnitMesh({
   selected: boolean;
   onClick: () => void;
   isWounded?: boolean;
+  skillFx?: { archetype: SkillFxArchetype; color: string; zh: string } | null;
 }) {
   const [tx, tz] = hexWorld(unit.coord.col, unit.coord.row);
   const color = isPlayer ? '#3a7dd9' : '#b8442e';
@@ -679,6 +775,8 @@ function UnitMesh({
 
   return (
     <group ref={groupRef} position={[tx, terrainH + 0.02, tz]}>
+      {/* 技能光效 — the hero's signature skill aura. */}
+      {skillFx && <SkillAura archetype={skillFx.archetype} color={skillFx.color} />}
       {/* Mount or vehicle (cavalry horse / siege cart / navy boat) */}
       <UnitMount unit={unit} onClick={onClick} />
       {/* Rank-and-file host behind the hero (footmen read wrong on a boat). */}
@@ -1866,6 +1964,7 @@ export function BattleScene({
         const h = tile ? TERRAIN_HEIGHT[tile.terrain] : 0.1;
         const isPlayer = playerSide ? u.side === playerSide : u.side === 'attacker';
         const isWounded = officers[u.officerId]?.status === 'wounded';
+        const skillFx = primarySkillFx(officers[u.officerId]?.skills);
         return (
           <UnitMesh
             key={u.id}
@@ -1875,6 +1974,7 @@ export function BattleScene({
             selected={selectedId === u.id}
             onClick={() => onTileClick(u.coord)}
             isWounded={isWounded}
+            skillFx={skillFx}
           />
         );
       })}
