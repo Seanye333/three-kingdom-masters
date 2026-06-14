@@ -1244,6 +1244,13 @@ export function attackUnits(
     | { kind: 'chained'; turnsLeft: number; chainedWith: EntityId[] }
     | undefined;
   const chainSpread = Math.floor(damage * 0.5);
+  // 潰敗連鎖 — a unit wiped out before their eyes shakes its neighbours' morale.
+  const routShock = newTroops === 0
+    ? new Set(b.units
+        .filter((u) => u.side === target.side && u.id !== targetId && u.troops > 0
+          && hexDistance(u.coord, target.coord) === 1)
+        .map((u) => u.id))
+    : null;
   const units = b.units.map((u) => {
     if (u.id === targetId) {
       return {
@@ -1266,6 +1273,10 @@ export function attackUnits(
         spawnedAt: Date.now() + 2,
       });
       return { ...u, troops: tr };
+    }
+    // Witnessing a comrade wiped out — morale shock to adjacent allies.
+    if (routShock && routShock.has(u.id)) {
+      return { ...u, morale: Math.max(0, u.morale - 14) };
     }
     return u;
   });

@@ -765,6 +765,10 @@ function UnitMesh({
     if (unit.troops > 0 && hitT === 0 && unit.morale < 35) {
       const fear = (35 - unit.morale) / 35;
       g.rotation.z = Math.sin(clock.elapsedTime * 5.5 + tx * 3) * fear * 0.07;
+      // 潰逃姿態 — near-broken units recoil/lean back as if about to bolt.
+      g.rotation.x = unit.morale < 20 ? -0.18 * ((20 - unit.morale) / 20) : 0;
+    } else if (hitT === 0 && unit.troops > 0) {
+      g.rotation.x = 0;
     }
     // 突刺 — thrust toward the melee target on a strike, then recoil back.
     if (lunge && unit.troops > 0) {
