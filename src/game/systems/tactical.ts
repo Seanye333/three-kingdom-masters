@@ -1152,6 +1152,11 @@ export function attackUnits(
   // forest, gate) reduces incoming damage.
   const dTerrainTile = tileAt(b, target.coord);
   const dShield = dTerrainTile ? defenderTerrainShield(dTerrainTile.terrain) : 1.0;
+  // 半渡而擊 — a land unit caught mid-crossing on a river/bridge is horribly
+  // exposed (+25%); ships are at home on the water and exempt.
+  const onCrossing = target.unitType !== 'navy'
+    && (dTerrainTile?.terrain === 'river' || dTerrainTile?.terrain === 'bridge');
+  const crossingMul = onCrossing ? 1.25 : 1.0;
   // 糧道枯竭：turn ≥ 10 both sides start to suffer 5% per turn beyond,
   // capped at -40% so battles still resolve.
   const fatigueMul = b.turn >= 10
@@ -1181,7 +1186,7 @@ export function attackUnits(
   let damage = Math.floor(
     base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
     dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul * pincerMul *
-    nightMul * heightMul * flankMul,
+    nightMul * heightMul * flankMul * crossingMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
