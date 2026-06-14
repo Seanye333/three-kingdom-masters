@@ -1602,6 +1602,37 @@ export function applyStratagem(
   if (unit.ap < 1) return { battle: b, ok: false, reason: 'no AP' };
 
   const off = officers[unit.officerId];
+
+  // 看破/反計 — a rival master strategist on the receiving side may see through
+  // a 計略 and foil it; the caster wastes the turn (AP + cooldown spent).
+  const COUNTERABLE: StratagemId[] = ['fire-attack', 'confusion', 'false-retreat', 'lightning', 'rain-of-arrows'];
+  if (COUNTERABLE.includes(stratagem)) {
+    const t0 = unitAt(b, targetCoord);
+    const foeSide = t0 ? t0.side : unit.side === 'attacker' ? 'defender' : 'attacker';
+    let seer: Officer | null = null;
+    for (const u of b.units) {
+      if (u.side !== foeSide || u.troops <= 0) continue;
+      const o = officers[u.officerId];
+      if (!o) continue;
+      if (!(o.skills?.includes('celestial-tactician') || o.skills?.includes('crouching-dragon') || o.skills?.includes('young-phoenix'))) continue;
+      if (!seer || o.stats.intelligence > seer.stats.intelligence) seer = o;
+    }
+    if (seer) {
+      const chance = Math.max(0, Math.min(0.5, (seer.stats.intelligence - (off?.stats.intelligence ?? 60) + 18) / 100));
+      if (Math.random() < chance) {
+        return {
+          battle: {
+            ...b,
+            units: b.units.map((u) => (u.id === unitId ? { ...u, ap: u.ap - 1 } : u)),
+            stratagemCooldowns: { ...b.stratagemCooldowns, [cooldownKey]: b.turn + 2 },
+            log: [...(b.log ?? []), { turn: b.turn, text: `${seer.name.zh}看破此計 — 計不得售!`, kind: 'event' as const }],
+          },
+          ok: true,
+        };
+      }
+    }
+  }
+
   switch (stratagem) {
     case 'fire-attack': {
       if ((off?.stats.intelligence ?? 0) < 70)
