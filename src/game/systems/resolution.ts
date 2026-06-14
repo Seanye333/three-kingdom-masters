@@ -1432,6 +1432,26 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       }
     }
 
+    // 途中際遇 — small fortunes of the road befall surviving convoys: grateful
+    // villagers add grain, a downpour spoils it, or a washed-out bridge adds a
+    // season's detour. Player convoys only; one happening at most.
+    for (const cv of Object.values(nextConvoys)) {
+      if (cv.forceId !== input.playerForceId) continue;
+      const roll = rng();
+      if (roll < 0.05 && cv.food > 0) {
+        const gift = Math.floor(cv.food * 0.1);
+        nextConvoys[cv.id] = { ...cv, food: cv.food + gift };
+        entries.push({ cityId: cv.toCityId, kind: 'income', text: `Grateful villagers add ${gift} grain to a convoy.`, textZh: `義民簞食壺漿,輜重添糧 ${gift.toLocaleString()}。` });
+      } else if (roll < 0.10 && cv.food > 0) {
+        const spoil = Math.floor(cv.food * 0.15);
+        nextConvoys[cv.id] = { ...cv, food: Math.max(0, cv.food - spoil) };
+        entries.push({ cityId: cv.toCityId, kind: 'desertion', text: `Rain spoils ${spoil} grain in transit.`, textZh: `霖雨壞糧,途中損 ${spoil.toLocaleString()}。` });
+      } else if (roll < 0.14 && cv.seasonsRemaining >= 1) {
+        nextConvoys[cv.id] = { ...cv, seasonsRemaining: cv.seasonsRemaining + 1, totalSeasons: cv.totalSeasons + 1 };
+        entries.push({ cityId: cv.toCityId, kind: 'desertion', text: `A washed-out bridge forces a convoy to detour (+1 season).`, textZh: `橋斷水漲,輜重繞道,多耗一季。` });
+      }
+    }
+
     // AI 運輸 — a rival with a glutted city and a starving one runs its own
     // grain convoy between them. These crawl the map too, so they can be raided
     // when they pass a player stronghold (your garrison sorties on their supply).
