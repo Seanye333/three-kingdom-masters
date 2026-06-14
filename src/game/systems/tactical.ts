@@ -29,6 +29,7 @@ import { generateTerrain, type TerrainHint } from './battlefieldTerrain';
 import { effectiveStats } from './traitEffects';
 import { SIGNATURE_OVERRIDES } from './personalTactics';
 import { predictAttackDamage } from './damagePredict';
+import { stratagemSituation, type Situation } from './tacticSituation';
 
 /**
  * Unit-type counter matrix. counterBonus[attacker][defender] = multiplier on
@@ -130,6 +131,22 @@ export function matchupLabel(a: UnitType, d: UnitType): { zh: string; en: string
     return { zh: `${Z[a]}克${Z[d]}`, en: `${a}>${d}` };
   }
   return null;
+}
+
+/** 戰法情境 for a cast in-battle — builds the weather/terrain context from the
+ *  board and delegates to the pure `stratagemSituation`. Used by applyStratagem
+ *  and surfaced live on the tactic buttons so players can read the conditions. */
+export function battleStratagemSituation(
+  b: TacticalBattle,
+  casterCoord: HexCoord,
+  targetCoord: HexCoord,
+  stratagem: StratagemId,
+): Situation {
+  return stratagemSituation(stratagem, {
+    weather: b.weather,
+    casterTerrain: tileAt(b, casterCoord)?.terrain ?? 'plain',
+    targetTerrain: tileAt(b, targetCoord)?.terrain ?? 'plain',
+  });
 }
 
 /**
@@ -1560,11 +1577,13 @@ export function applyStratagem(
       const target = unitAt(b, targetCoord);
       if (!target || target.side === unit.side)
         return { battle: b, ok: false, reason: 'invalid target' };
-      // Charge: +50% damage, spend all AP.
+      // Charge: +50% damage, spend all AP. Open ground spurs the charge home;
+      // forest/mountain bog it down (戰法情境).
       const aWar = off?.stats.war ?? 50;
       const dLead = officers[target.officerId]?.stats.leadership ?? 50;
+      const chgSit = battleStratagemSituation(b, unit.coord, targetCoord, stratagem);
       const damage = Math.floor(
-        (unit.troops * (aWar + 30) * 1.5) / (dLead + 50),
+        (unit.troops * (aWar + 30) * 1.5) / (dLead + 50) * chgSit.mult,
       );
       const updated: TacticalBattle = {
         ...b,
@@ -1585,7 +1604,9 @@ export function applyStratagem(
       const target = unitAt(b, targetCoord);
       if (!target || target.side === unit.side)
         return { battle: b, ok: false, reason: 'invalid target' };
-      const damage = Math.floor(target.troops * 0.12);
+      // 戰法情境 — rain soaks the bowstrings, high ground extends the volley.
+      const arrSit = battleStratagemSituation(b, unit.coord, targetCoord, stratagem);
+      const damage = Math.floor(target.troops * 0.12 * arrSit.mult);
       const popup: DamagePopup = {
         id: `dmg-${Date.now()}-arrows`,
         coord: target.coord,
@@ -1656,7 +1677,9 @@ export function applyStratagem(
         return { battle: b, ok: false, reason: 'out of range' };
       const target = unitAt(b, targetCoord);
       if (!target) return { battle: b, ok: false, reason: 'no target' };
-      const damage = Math.floor(target.troops * 0.15);
+      // 戰法情境 — a brewing storm feeds the bolt; fog/snow damps it.
+      const ltSit = battleStratagemSituation(b, unit.coord, targetCoord, stratagem);
+      const damage = Math.floor(target.troops * 0.15 * ltSit.mult);
       const confuse = Math.random() < 0.3;
       let next: TacticalBattle = {
         ...b,
