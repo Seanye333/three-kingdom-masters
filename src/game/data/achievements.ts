@@ -162,6 +162,15 @@ export const ACHIEVEMENTS: Achievement[] = [
     trigger: { kind: 'reach-ending', targetId: 'restore-han' },
   },
   {
+    id: 'ach-hegemon',
+    name: { en: 'Hegemon of the Realm', zh: '霸業既成' },
+    description: 'Reach the Hegemon ending — a non-Liu holding all three Han capitals.',
+    descriptionZh: '達成「霸業」結局——非劉氏而盡據三京。',
+    tier: 'legendary',
+    trigger: { kind: 'reach-ending', targetId: 'hegemon' },
+    unlockReward: { type: 'color', value: '#b8442e' },
+  },
+  {
     id: 'ach-tripartite',
     name: { en: 'Three Kingdoms', zh: '三国鼎立' },
     description: 'Reach the Tripartite ending.',

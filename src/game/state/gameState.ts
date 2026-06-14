@@ -51,6 +51,7 @@ export type Difficulty = 'easy' | 'normal' | 'hard';
 export type EndingKind =
   | 'unify'             // 統一 — control every city
   | 'restore-han'       // 漢室再興 — playing as a Liu, hold Luoyang + Chang'an + Xuchang
+  | 'hegemon'           // 霸業 — NON-Liu holding all three Han capitals (rule by the sword)
   | 'tripartite'        // 三国鼎立 — three kingdoms balanced (each holds 1/3+)
   | 'recluse'           // 隐士退隐 — small force, high loyalty, after year 220
   | 'emperor'           // 即位 — enthronement issued and held for 5 years

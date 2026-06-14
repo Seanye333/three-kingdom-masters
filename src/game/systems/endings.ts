@@ -36,6 +36,9 @@ export function checkEndings(ctx: EndingContext): EndingResult | null {
     playerCities.some((c) => c.id === 'city-changan') &&
     playerCities.some((c) => c.id === 'city-xuchang');
   if (isLiu && holdsHanCapitals) return restoreHan();
+  // Hegemon: a non-Liu warlord seizes all three imperial capitals — the
+  // Mandate held by the sword, not by blood.
+  if (!isLiu && holdsHanCapitals) return hegemon();
 
   // Tripartite: each of three top forces holds ≥ 1/3, and we're one of them.
   const byForce = new Map<EntityId, number>();
@@ -105,6 +108,18 @@ function restoreHan(): EndingResult {
       '献帝降诏,大汉中兴。卿以宗室之身,聚天下英才,夺三京以复祖业。汉祚再续四百年,后世称卿为光武之亚。',
     textEn:
       'Emperor Xian issues an edict of restoration. As kin of the imperial line, you have gathered the talent of the realm and recovered the three capitals. The Han endures another four hundred years. Later ages will name you second only to Emperor Guangwu.',
+  };
+}
+
+function hegemon(): EndingResult {
+  return {
+    kind: 'hegemon',
+    titleZh: '霸業既成',
+    titleEn: 'Hegemon of the Realm',
+    textZh:
+      '洛陽、長安、許昌——三京皆入卿手。卿非漢之宗親,然挾天子、據形勝,號令不出於血脈而出於刀鋒。 諸侯側目,海內震動。 史筆難斷:此為周公,抑或王莽?',
+    textEn:
+      "Luoyang, Chang'an, Xuchang — all three imperial capitals are yours. No kin of the Han, you hold the Son of Heaven and the high ground both; your word carries not by bloodline but by the edge of the blade. The lords look on askance, and the realm trembles. The historians cannot decide: are you a Duke of Zhou, or a Wang Mang?",
   };
 }
 

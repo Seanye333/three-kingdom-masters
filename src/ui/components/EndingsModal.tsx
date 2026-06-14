@@ -98,6 +98,26 @@ function EndingArtwork({ kind }: { kind: EndingKind }) {
           <path d="M 304 155 Q 320 140 336 155" fill="none" stroke="#364654" strokeWidth="1" />
         </g>
       )}
+
+      {kind === 'hegemon' && (
+        <g>
+          {/* The seized capital — a battlemented wall with a gate */}
+          <path d="M 150 160 L 150 120 L 162 120 L 162 112 L 182 112 L 182 120 L 210 120 L 210 108 L 232 108 L 232 120 L 260 120 L 260 112 L 280 112 L 280 120 L 292 120 L 292 160 Z" fill="#26323e" stroke="#e6c473" strokeWidth="1.2" />
+          <path d="M 210 160 L 210 138 a 11 11 0 0 1 22 0 L 232 160 Z" fill="#1a1208" stroke="#e6c473" strokeWidth="0.8" />
+          {/* Three capitals' banners, now flying one colour */}
+          <g stroke="#e6c473" strokeWidth="1.4">
+            <line x1="176" y1="112" x2="176" y2="84" /><path d="M 176 84 L 200 88 L 194 96 L 176 95 Z" fill="#b8442e" />
+            <line x1="221" y1="108" x2="221" y2="74" /><path d="M 221 74 L 247 78 L 240 87 L 221 86 Z" fill="#b8442e" />
+            <line x1="266" y1="112" x2="266" y2="84" /><path d="M 266 84 L 290 88 L 284 96 L 266 95 Z" fill="#b8442e" />
+          </g>
+          {/* A great sword planted before the gate — the Mandate by the blade */}
+          <g stroke="#e6c473" strokeWidth="2.2" strokeLinecap="round" fill="none">
+            <line x1="360" y1="72" x2="360" y2="158" />
+            <line x1="346" y1="92" x2="374" y2="92" />
+          </g>
+          <circle cx="360" cy="74" r="3.4" fill="#e6c473" />
+        </g>
+      )}
     </svg>
   );
 }
