@@ -662,8 +662,10 @@ function UnitMesh({
   // every blow visibly LANDS (not just a number popping).
   const prevTroops = useRef(unit.troops);
   const hitAt = useRef(-1);
+  const deathAt = useRef(-1);
   const flashRef = useRef<THREE.MeshBasicMaterial>(null);
   const HIT_DUR = 0.34;
+  const DEATH_DUR = 0.85;
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
     const g = groupRef.current;
@@ -689,6 +691,23 @@ function UnitMesh({
     const s = 1 + hitT * 0.10;
     g.scale.set(s, s, s);
     if (flashRef.current) flashRef.current.opacity = hitT * 0.55;
+    // 陣亡 — once wiped out, the husk topples, sinks and fades before it's
+    // pruned, instead of blinking out of existence.
+    if (unit.troops <= 0) {
+      if (deathAt.current < 0) deathAt.current = clock.elapsedTime;
+      const dT = Math.min(1, (clock.elapsedTime - deathAt.current) / DEATH_DUR);
+      g.position.y = bobBase - dT * 0.42;
+      g.rotation.x = dT * 1.05;
+      g.rotation.z = 0;
+      const ds = 1 - dT * 0.28;
+      g.scale.set(ds, ds, ds);
+      const op = 1 - dT;
+      g.traverse((o) => {
+        const m = (o as THREE.Mesh).material as (THREE.Material & { opacity?: number; transparent?: boolean }) | undefined;
+        if (m && 'opacity' in m) { m.transparent = true; m.opacity = op; }
+      });
+      if (flashRef.current) flashRef.current.opacity = 0;
+    }
   });
   // Mount lifts the rider/driver/sailor above the ground feature
   const yLift =
@@ -782,8 +801,9 @@ function UnitMesh({
         </mesh>
       )}
       {/* HTML overlay — unit info, always-upright crisp text. Skipped in the
-          embedded diorama (DOM labels don't scale with the group). */}
-      {!embedded && <Html
+          embedded diorama, and dropped the instant the unit is wiped out so a
+          floating label doesn't hover over the toppling corpse. */}
+      {!embedded && unit.troops > 0 && <Html
         position={[0, 1.6, 0]}
         center
         distanceFactor={8}
