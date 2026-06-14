@@ -3928,18 +3928,12 @@ function DriftingClouds() {
     <group ref={ref}>
       {clouds.map((c, i) => (
         <group key={i} position={[c.x0, 0, c.z0]}>
-          {/* The cloud — soft white puffs high above */}
+          {/* Soft white clouds drifting overhead. GROUND SHADOWS REMOVED on
+              purpose — the flat shadow blots looked glued to the terrain. */}
           {c.puffs.map(([dx, dz, ps], j) => (
-            <mesh key={j} position={[dx * c.s, 8.5 + j * 0.1, dz * c.s]} scale={[1, 0.32, 1]}>
+            <mesh key={j} position={[dx * c.s, 9 + j * 0.1, dz * c.s]} scale={[1, 0.3, 1]}>
               <sphereGeometry args={[c.s * 0.5 * ps, 10, 8]} />
-              <meshStandardMaterial color="#ffffff" transparent opacity={0.2} depthWrite={false} roughness={1} />
-            </mesh>
-          ))}
-          {/* Its shadow — a dark blot gliding over the ground */}
-          {c.puffs.map(([dx, dz, ps], j) => (
-            <mesh key={`s${j}`} position={[dx * c.s, 0.42, dz * c.s]} rotation={[-Math.PI / 2, 0, 0]}>
-              <circleGeometry args={[c.s * 0.55 * ps, 18]} />
-              <meshBasicMaterial color="#0a0c10" transparent opacity={0.09} depthWrite={false} />
+              <meshStandardMaterial color="#ffffff" transparent opacity={0.18} depthWrite={false} roughness={1} />
             </mesh>
           ))}
         </group>
@@ -3953,21 +3947,20 @@ function DriftingClouds() {
  *  as lived-in rather than a diorama of empty walls. */
 function CitySmoke3D({ cities }: { cities: Record<string, City> }) {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
-  const PUFFS = IS_MOBILE ? 1 : 2;
+  // One thin wisp per city — kept LOW and faint so dense city clusters (the
+  // central plains) don't stack their smoke into a grey haze over the map.
   const cols = useMemo(() => {
     const out: Array<{ x: number; y: number; z: number; phase: number; speed: number }> = [];
     for (const city of Object.values(cities)) {
       const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
       const [wx, wz] = pxToWorld(px, py);
-      const baseY = cityElevation(wx, wz) + 0.35;
-      for (let i = 0; i < PUFFS; i++) {
-        const h = Math.abs(Math.sin(px * 7.7 + py * 3.1 + i * 91.7));
-        out.push({ x: wx + (h - 0.5) * 0.2, y: baseY, z: wz + (h - 0.5) * 0.2, phase: h, speed: 0.1 + h * 0.06 });
-      }
+      const baseY = cityElevation(wx, wz) + 0.3;
+      const h = Math.abs(Math.sin(px * 7.7 + py * 3.1));
+      out.push({ x: wx, y: baseY, z: wz, phase: h, speed: 0.1 + h * 0.06 });
     }
     return out;
-  }, [cities, PUFFS]);
-  const RISE = 1.1;
+  }, [cities]);
+  const RISE = 0.45;
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
@@ -3976,8 +3969,8 @@ function CitySmoke3D({ cities }: { cities: Record<string, City> }) {
     const t = clock.elapsedTime;
     cols.forEach((c, i) => {
       const prog = (t * c.speed + c.phase) % 1;
-      pos.set(c.x + prog * 0.35, c.y + prog * RISE, c.z + prog * 0.15);
-      const s = 0.06 + prog * 0.18;              // swells as it rises (fade proxy)
+      pos.set(c.x + prog * 0.15, c.y + prog * RISE, c.z + prog * 0.08);
+      const s = 0.04 + prog * 0.08;              // small wisp, swells slightly
       scl.set(s, s, s);
       mesh.setMatrixAt(i, m.compose(pos, q, scl));
     });
@@ -3986,7 +3979,7 @@ function CitySmoke3D({ cities }: { cities: Record<string, City> }) {
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, Math.max(1, cols.length)]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 5]} />
-      <meshBasicMaterial color="#c8c0b4" transparent opacity={0.16} depthWrite={false} />
+      <meshBasicMaterial color="#ccc4b8" transparent opacity={0.09} depthWrite={false} />
     </instancedMesh>
   );
 }
@@ -4032,6 +4025,61 @@ function Birds3D() {
         </group>
       ))}
     </group>
+  );
+}
+
+/* ─── 谷霧 — a thin morning mist in the deepest valley/river bottoms ──── */
+let mistMaskCache: THREE.Texture | null = null;
+function buildMistMask(): THREE.Texture {
+  if (mistMaskCache) return mistMaskCache;
+  const W = 400, H = 288;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const px = (x / W) * PX_W, py = (y / H) * PX_H;
+      const { h } = sampleTerrain(px, py);
+      const alpha = h > 0 && h < 0.1 ? (1 - h / 0.1) * 0.5 : 0;
+      const i = (y * W + x) * 4;
+      d[i] = 226; d[i + 1] = 230; d[i + 2] = 236;
+      d[i + 3] = Math.round(alpha * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = true; tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+  mistMaskCache = tex;
+  return tex;
+}
+function ValleyMist() {
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  const geom = useMemo(() => {
+    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 160, 120);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const wx = pos.getX(i); const wy = pos.getY(i);
+      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
+      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
+      pos.setZ(i, sampleTerrain(px, py).h + 0.16);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  const texture = useMemo(() => buildMistMask(), []);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    if (matRef.current) matRef.current.opacity = 0.08 + Math.sin(t * 0.5) * 0.04;
+    texture.offset.x = (t * 0.004) % 1;
+    texture.offset.y = (t * 0.0025) % 1;
+  });
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
+      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.1} depthWrite={false} />
+    </mesh>
   );
 }
 
@@ -5680,8 +5728,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
 
   return (
     <>
-      {/* Distance fog removed — it hazed the whole map at zoom-out. The sky
-       *  dome + ocean carry the horizon now. */}
+      {/* Distance fog — restored; blends the far horizon into the sky dome. */}
+      <fog attach="fog" args={[dusk ? '#caa37e' : seasonPreset.fogColor, 150 * WORLD_SCALE, 560 * WORLD_SCALE]} />
 
       {/* 天穹 — gradient sky + sun, horizon matched to the fog colour. */}
       <SkyDome dusk={dusk} horizon={dusk ? '#caa37e' : seasonPreset.fogColor} />
@@ -5740,13 +5788,13 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
         </Suspense>
       )}
       <Ocean />
-      {season !== 'winter' && <CoastFoam />}
+      {mapStyle === 'classic' && season !== 'winter' && <CoastFoam />}
       {mapStyle === 'classic' && <Lakes3D />}
       {/* 河流流光 — the smooth shimmering ribbon rides BOTH maps; on the hex
           quilt it flows as living water down the blue channel of river tiles. */}
       <RiverRibbons frozen={season === 'winter'} />
       {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
-      {season !== 'winter' && <SeasonGroundTint season={season} />}
+      {mapStyle === 'classic' && season !== 'winter' && <SeasonGroundTint season={season} />}
       {/* Forests plant at the shared height function, so the same trees stand
           perfectly on the hex quilt too. */}
       <Forest3D season={season} />
@@ -5756,6 +5804,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <DriftingClouds />
       {!dusk && <Birds3D />}
       <CitySmoke3D cities={cities} />
+      {mapStyle === 'classic' && season !== 'winter' && <ValleyMist />}
       <Caravans3D cities={cities} />
       <TradeShips3D ports={portsForMarch} cities={cities} />
       {dusk && <DuskCityLights cities={cities} />}
