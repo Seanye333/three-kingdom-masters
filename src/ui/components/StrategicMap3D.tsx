@@ -5804,8 +5804,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <Villages3D />
       <GreatWall3D />
       <DriftingClouds />
-      {mapStyle === 'classic' && !dusk && <Birds3D />}
-      {mapStyle === 'classic' && <CitySmoke3D cities={cities} />}
+      {!dusk && <Birds3D />}
+      <CitySmoke3D cities={cities} />
       {mapStyle === 'classic' && season !== 'winter' && <ValleyMist />}
       <Caravans3D cities={cities} />
       <TradeShips3D ports={portsForMarch} cities={cities} />
@@ -5839,8 +5839,8 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <Tribes3D onTribeClick={onTribeClick} />
       <WildSites3D onSiteClick={onSiteClick} />
       <ScenicSites3D onScenicClick={onScenicClick} />
-      {mapStyle === 'classic' && <TradeRouteLines3D cities={cities} />}
-      {mapStyle === 'classic' && <GeoLabels3D />}
+      <TradeRouteLines3D cities={cities} />
+      <GeoLabels3D />
       <EspionageAgents3D cities={cities} />
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
