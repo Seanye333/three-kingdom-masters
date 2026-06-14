@@ -23,7 +23,7 @@ import { handleSearch, resolveInternalAffairs, type LostItemRef } from './comman
 import { handleMarch } from './combat';
 import { tickDiplomacy } from './diplomacy';
 import { tickCityEconomy, tradeTreatyGrants } from './economy';
-import { stepConvoys, resolveConvoyRaids, type Convoy } from './convoy';
+import { stepConvoys, resolveConvoyRaids, provisionNeeded, consumeRations, type Convoy } from './convoy';
 import { appointmentBonusFor } from './appointmentEffects';
 import { MILITARY_RANKS_BY_ID } from '../data/titles';
 import { rollEvents } from './events';
@@ -755,24 +755,67 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       ? { ...c, troops: mergeTroops[c.officerId], additionalOfficerIds: mergeCompanions[c.officerId] }
       : c);
 
+  // 隨軍糧 — provision a march from its source city the first season it
+  // persists (enough for the planned journey, if the city can spare it), then
+  // spend a season's rations. Run dry and the column bleeds deserters; this is
+  // what a convoy resupply (or a short campaign) staves off. Applies to every
+  // force, so an overextended AI host starves just the same.
+  const supplyMarch = (cmd: Extract<Command, { type: 'march' }>): { food: number; troops: number; starved: boolean } => {
+    let food = cmd.food;
+    if (food === undefined) {
+      const src = cities[cmd.cityId];
+      const drawn = src ? Math.min(src.food, provisionNeeded(cmd.troops, cmd.totalSeasons ?? 1)) : 0;
+      if (src && drawn > 0) cities[cmd.cityId] = { ...src, food: src.food - drawn };
+      food = drawn;
+    }
+    return consumeRations(food, cmd.troops);
+  };
+  const pfId = input.playerForceId;
+  const noteStarve = (cmd: Extract<Command, { type: 'march' }>, gone: boolean) => {
+    const cmdr = officers[cmd.officerId];
+    if (!cmdr || cmdr.forceId !== pfId) return;
+    entries.push({
+      cityId: null,
+      kind: 'desertion',
+      text: gone ? `${cmdr.name.en}'s column starved and scattered on the march.` : `${cmdr.name.en}'s column is out of provisions — men desert.`,
+      textZh: gone ? `${cmdr.name.zh}部糧盡潰散於途。` : `${cmdr.name.zh}部糧盡,士卒逃散。`,
+    });
+  };
+
   const keptCommands: Record<EntityId, Command> = {};
+  const suppliedTroops: Record<EntityId, number> = {};
+  const suppliedFood: Record<EntityId, number> = {};
   for (const cmd of inTransit) {
+    const s = supplyMarch(cmd);
+    if (s.troops <= 0) { noteStarve(cmd, true); continue; } // whole column melted away
+    suppliedTroops[cmd.officerId] = s.troops;
+    suppliedFood[cmd.officerId] = s.food;
+    if (s.starved) noteStarve(cmd, false);
     // 防壁 — a barricade in the column's path stalls it this season (no advance).
     const advance = blockedOfficers.has(cmd.officerId) ? 0 : 1;
     keptCommands[cmd.officerId] = {
       ...cmd,
+      troops: s.troops,
+      food: s.food,
       seasonsRemaining: (cmd.seasonsRemaining ?? 1) - advance,
     };
   }
-  // Held marches are carried forward unchanged (frozen in place).
+  // Held marches are carried forward (frozen in place) but still eat — a
+  // garrison far from home starves without resupply.
   for (const cmd of held) {
-    keptCommands[cmd.officerId] = { ...cmd };
+    const s = supplyMarch(cmd);
+    if (s.troops <= 0) { noteStarve(cmd, true); continue; }
+    suppliedTroops[cmd.officerId] = s.troops;
+    suppliedFood[cmd.officerId] = s.food;
+    if (s.starved) noteStarve(cmd, false);
+    keptCommands[cmd.officerId] = { ...cmd, troops: s.troops, food: s.food };
   }
 
   // Derive the persistent Army layer from marches still on the map next
   // season — in-transit (advancing) and held (frozen at their cell).
   const outArmies: Record<EntityId, import('../types').Army> = {};
   const deriveArmy = (cmd: Extract<Command, { type: 'march' }>, remainingNext: number, holding: boolean) => {
+    if (!keptCommands[cmd.officerId]) return; // starved away this season
     const src = cities[cmd.cityId];
     const dst = marchDestCoords(cmd, cities);
     const cmdr = officers[cmd.officerId];
@@ -785,13 +828,14 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       forceId: cmdr.forceId,
       commanderId: cmd.officerId,
       companionIds: cmd.additionalOfficerIds ?? [],
-      troops: cmd.troops,
+      troops: suppliedTroops[cmd.officerId] ?? cmd.troops,
       fromCityId: cmd.cityId,
       targetCityId: cmd.targetCityId,
       x: pos?.x ?? cityPos(src).x,
       y: pos?.y ?? cityPos(src).y,
       progress,
       totalSeasons: total,
+      food: suppliedFood[cmd.officerId],
       holding,
       cellTarget: cmd.targetX != null,
     };

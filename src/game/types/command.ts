@@ -41,6 +41,11 @@ export interface MarchCommand extends CommandBase {
    */
   seasonsRemaining?: number;
   totalSeasons?: number;
+  /** 隨軍糧 — provisions the column carries. Drawn from the source city when the
+   *  march first sets out (enough for its planned journey, if the city can
+   *  spare it), spent each season on the road. When it runs dry the army bleeds
+   *  deserters. `undefined` = not yet provisioned (provisioned on first step). */
+  food?: number;
   /** Holding position: the army stops advancing at its current cell and
    *  garrisons it (still fights enemies that reach it). Cleared on
    *  redirect. */

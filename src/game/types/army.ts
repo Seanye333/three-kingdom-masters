@@ -25,6 +25,9 @@ export interface Army {
   totalSeasons: number;
   /** Whether this army crosses water (rendered gliding, no hex snap). */
   naval?: boolean;
+  /** 隨軍糧 — provisions carried; spent each season, refillable by convoy.
+   *  An army that runs out starts shedding deserters. */
+  food?: number;
   /** Holding its current cell as a garrison (not advancing). */
   holding?: boolean;
   /** True if marching to an open cell (targetX/Y) rather than a city. */

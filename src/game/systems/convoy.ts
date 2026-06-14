@@ -1,4 +1,18 @@
 import type { City, EntityId } from '../types';
+import { FOOD_PER_TROOP_PER_SEASON } from './economy';
+
+/** 隨軍糧 — grain a column needs to march its whole planned journey. */
+export function provisionNeeded(troops: number, totalSeasons: number): number {
+  return Math.ceil(troops * FOOD_PER_TROOP_PER_SEASON * Math.max(1, totalSeasons));
+}
+
+/** Spend one season's rations. With enough grain the column just eats; out of
+ *  grain it sheds ~10% of its men to desertion and ends the season empty. */
+export function consumeRations(food: number, troops: number): { food: number; troops: number; starved: boolean } {
+  const consume = Math.ceil(troops * FOOD_PER_TROOP_PER_SEASON);
+  if (food >= consume) return { food: food - consume, troops, starved: false };
+  return { food: 0, troops: Math.max(0, troops - Math.ceil(troops * 0.1)), starved: true };
+}
 
 /**
  * 輜重 — a non-combat supply convoy (運糧車/運金車) crawling the map between two

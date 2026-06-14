@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepConvoys, resolveConvoyRaids, type Convoy } from './convoy';
+import { stepConvoys, resolveConvoyRaids, provisionNeeded, consumeRations, type Convoy } from './convoy';
 import type { City } from '../types';
 
 const mkCity = (id: string, over: Partial<City> = {}): City => ({
@@ -67,5 +67,27 @@ describe('劫糧道 — convoy raids & escort', () => {
     const r = resolveConvoyRaids(convoys, {}, cities);
     expect(r.convoys.cv1).toEqual(convoys.cv1);
     expect(r.raids).toHaveLength(0);
+  });
+});
+
+describe('隨軍糧 — march provisions & rationing', () => {
+  it('provisions a column for its whole planned journey', () => {
+    // 5000 troops × 0.25 ration × 4 seasons = 5000
+    expect(provisionNeeded(5000, 4)).toBe(5000);
+    expect(provisionNeeded(5000, 0)).toBe(provisionNeeded(5000, 1)); // floors at 1 season
+  });
+
+  it('eats a season of rations when supplied', () => {
+    const r = consumeRations(5000, 4000); // consume 1000
+    expect(r.food).toBe(4000);
+    expect(r.troops).toBe(4000);
+    expect(r.starved).toBe(false);
+  });
+
+  it('sheds ~10% to desertion and empties when out of grain', () => {
+    const r = consumeRations(0, 5000);
+    expect(r.starved).toBe(true);
+    expect(r.food).toBe(0);
+    expect(r.troops).toBe(4500); // −10%
   });
 });
