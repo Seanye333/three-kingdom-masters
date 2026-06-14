@@ -861,64 +861,6 @@ function Ocean() {
   );
 }
 
-/* ─── 海岸白浪 — a foam band that breathes along every coastline ────────
- *  Mask built once (white in the land-side surf band); opacity pulses so the
- *  surf laps in and out. Terrain-following plane, like the snow blanket. */
-let coastMaskCache: THREE.Texture | null = null;
-function buildCoastMask(): THREE.Texture {
-  if (coastMaskCache) return coastMaskCache;
-  const W = 500, H = 360;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d')!;
-  const img = ctx.createImageData(W, H);
-  const d = img.data;
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const px = (x / W) * PX_W, py = (y / H) * PX_H;
-      // Land within ~9px of the waterline = surf band; brightest at the edge.
-      const sdf = landSDF(px, py);
-      let alpha = 0;
-      if (sdf > 0 && sdf < 9 * WORLD_SCALE) {
-        alpha = sdf < 4 * WORLD_SCALE ? 0.9 : 0.5;
-      }
-      const i = (y * W + x) * 4;
-      d[i] = 248; d[i + 1] = 252; d[i + 2] = 255;
-      d[i + 3] = Math.round(alpha * 255);
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.flipY = true; tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
-  coastMaskCache = tex;
-  return tex;
-}
-function CoastFoam() {
-  const matRef = useRef<THREE.MeshBasicMaterial>(null);
-  const geom = useMemo(() => {
-    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 200, 150);
-    const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const wx = pos.getX(i); const wy = pos.getY(i);
-      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
-      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
-      pos.setZ(i, sampleTerrain(px, py).h + 0.02);
-    }
-    g.computeVertexNormals();
-    return g;
-  }, []);
-  const texture = useMemo(() => buildCoastMask(), []);
-  // The surf breathes — opacity swells in and ebbs out, ~5s period.
-  useFrame(({ clock }) => {
-    if (matRef.current) matRef.current.opacity = 0.42 + Math.sin(clock.elapsedTime * 1.25) * 0.22;
-  });
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
-      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.5} depthWrite={false} />
-    </mesh>
-  );
-}
-
 /* ─── Render rivers as visible blue ribbons on top of terrain ─── */
 function RiverRibbons({ frozen = false }: { frozen?: boolean }) {
   // Real WIDTH — a draped triangle strip following each river's course
@@ -3738,66 +3680,6 @@ function SnowBlanket() {
   );
 }
 
-/* ─── 四時換裝 — the land itself shifts colour through the year ───────
- *  Spring flush, summer deep green, autumn gold (winter is the snow blanket).
- *  A land-masked tint over the terrain — water untouched. */
-let landMaskCache: THREE.Texture | null = null;
-function buildLandMask(): THREE.Texture {
-  if (landMaskCache) return landMaskCache;
-  const W = 500, H = 360;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d')!;
-  const img = ctx.createImageData(W, H);
-  const d = img.data;
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const px = (x / W) * PX_W, py = (y / H) * PX_H;
-      const { h } = sampleTerrain(px, py);
-      const i = (y * W + x) * 4;
-      d[i] = 255; d[i + 1] = 255; d[i + 2] = 255;
-      d[i + 3] = h <= 0 ? 0 : 255;   // land only
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.flipY = true;
-  tex.minFilter = THREE.LinearFilter;
-  tex.magFilter = THREE.LinearFilter;
-  landMaskCache = tex;
-  return tex;
-}
-
-const SEASON_GROUND: Partial<Record<Season, { color: string; opacity: number }>> = {
-  spring: { color: '#a8d98a', opacity: 0.13 },
-  summer: { color: '#8fbf6e', opacity: 0.10 },
-  autumn: { color: '#e0b257', opacity: 0.18 },
-  // winter handled by <SnowBlanket />
-};
-
-function SeasonGroundTint({ season }: { season: Season }) {
-  const cfg = SEASON_GROUND[season];
-  const geom = useMemo(() => {
-    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 200, 150);
-    const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const wx = pos.getX(i); const wy = pos.getY(i);
-      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
-      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
-      pos.setZ(i, sampleTerrain(px, py).h + 0.03);
-    }
-    g.computeVertexNormals();
-    return g;
-  }, []);
-  const texture = useMemo(() => buildLandMask(), []);
-  if (!cfg) return null;
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={1}>
-      <meshBasicMaterial map={texture} color={cfg.color} transparent opacity={cfg.opacity} depthWrite={false} />
-    </mesh>
-  );
-}
-
 /* ─── 行軍預覽 — glowing route while the march picker is open ─────── */
 function MarchPreviewLine({ fromId, toId, cities }: {
   fromId: string; toId: string; cities: Record<string, City>;
@@ -4025,61 +3907,6 @@ function Birds3D() {
         </group>
       ))}
     </group>
-  );
-}
-
-/* ─── 谷霧 — a thin morning mist in the deepest valley/river bottoms ──── */
-let mistMaskCache: THREE.Texture | null = null;
-function buildMistMask(): THREE.Texture {
-  if (mistMaskCache) return mistMaskCache;
-  const W = 400, H = 288;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d')!;
-  const img = ctx.createImageData(W, H);
-  const d = img.data;
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const px = (x / W) * PX_W, py = (y / H) * PX_H;
-      const { h } = sampleTerrain(px, py);
-      const alpha = h > 0 && h < 0.1 ? (1 - h / 0.1) * 0.5 : 0;
-      const i = (y * W + x) * 4;
-      d[i] = 226; d[i + 1] = 230; d[i + 2] = 236;
-      d[i + 3] = Math.round(alpha * 255);
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.flipY = true; tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
-  mistMaskCache = tex;
-  return tex;
-}
-function ValleyMist() {
-  const matRef = useRef<THREE.MeshBasicMaterial>(null);
-  const geom = useMemo(() => {
-    const g = new THREE.PlaneGeometry(MAP_W, MAP_D, 160, 120);
-    const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const wx = pos.getX(i); const wy = pos.getY(i);
-      const px = (wx + MAP_W / 2) / PIXEL_TO_WORLD;
-      const py = (MAP_D / 2 - wy) / PIXEL_TO_WORLD;
-      pos.setZ(i, sampleTerrain(px, py).h + 0.16);
-    }
-    g.computeVertexNormals();
-    return g;
-  }, []);
-  const texture = useMemo(() => buildMistMask(), []);
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    if (matRef.current) matRef.current.opacity = 0.08 + Math.sin(t * 0.5) * 0.04;
-    texture.offset.x = (t * 0.004) % 1;
-    texture.offset.y = (t * 0.0025) % 1;
-  });
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
-      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.1} depthWrite={false} />
-    </mesh>
   );
 }
 
@@ -5788,13 +5615,11 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
         </Suspense>
       )}
       <Ocean />
-      {mapStyle === 'classic' && season !== 'winter' && <CoastFoam />}
       {mapStyle === 'classic' && <Lakes3D />}
       {/* 河流流光 — the smooth shimmering ribbon rides BOTH maps; on the hex
           quilt it flows as living water down the blue channel of river tiles. */}
       <RiverRibbons frozen={season === 'winter'} />
       {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
-      {mapStyle === 'classic' && season !== 'winter' && <SeasonGroundTint season={season} />}
       {/* Forests plant at the shared height function, so the same trees stand
           perfectly on the hex quilt too. */}
       <Forest3D season={season} />
@@ -5804,7 +5629,6 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <DriftingClouds />
       {!dusk && <Birds3D />}
       <CitySmoke3D cities={cities} />
-      {mapStyle === 'classic' && season !== 'winter' && <ValleyMist />}
       <Caravans3D cities={cities} />
       <TradeShips3D ports={portsForMarch} cities={cities} />
       {dusk && <DuskCityLights cities={cities} />}
