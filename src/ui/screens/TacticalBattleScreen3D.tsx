@@ -744,6 +744,7 @@ function UnitMesh({
   const hitAt = useRef(-1);
   const deathAt = useRef(-1);
   const flashRef = useRef<THREE.MeshBasicMaterial>(null);
+  const bloodRef = useRef<THREE.Group>(null);
   const dustRef = useRef<THREE.Group>(null);
   const navyFoamRef = useRef<THREE.Group>(null);
   const lastMoveAt = useRef(-10);
@@ -802,6 +803,16 @@ function UnitMesh({
     const s = 1 + hitT * 0.10;
     g.scale.set(s, s, s);
     if (flashRef.current) flashRef.current.opacity = hitT * 0.55;
+    // 血霧 — on a hit, specks of blood burst outward and fade.
+    if (bloodRef.current) {
+      const out = (1 - hitT) * 0.55;
+      bloodRef.current.children.forEach((c, i) => {
+        const a = (i / 7) * Math.PI * 2;
+        c.position.set(Math.cos(a) * out, 0.55 + yLift + (1 - hitT) * 0.35 - (1 - hitT) * (1 - hitT) * 0.5, Math.sin(a) * out);
+        const m = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        if (m) m.opacity = hitT > 0 ? hitT * 0.9 : 0;
+      });
+    }
     // 士氣低落 — a unit near breaking sways nervously, so you can SEE which
     // line is about to rout (and which enemy to push).
     if (unit.troops > 0 && hitT === 0 && unit.morale < 35) {
@@ -859,6 +870,15 @@ function UnitMesh({
         <sphereGeometry args={[0.52, 12, 10]} />
         <meshBasicMaterial ref={flashRef} color="#ff3018" transparent opacity={0} depthWrite={false} toneMapped={false} />
       </mesh>
+      {/* 血霧 — burst specks driven in useFrame on each hit. */}
+      <group ref={bloodRef} raycast={() => null}>
+        {Array.from({ length: 7 }).map((_, i) => (
+          <mesh key={i}>
+            <sphereGeometry args={[0.04 + (i % 3) * 0.015, 5, 5]} />
+            <meshBasicMaterial color={i % 2 ? '#9a0f0a' : '#c41810'} transparent opacity={0} depthWrite={false} />
+          </mesh>
+        ))}
+      </group>
       {/* 水戰浪沫 — foam ring + wake trail under a warship. */}
       {unit.unitType === 'navy' && (
         <group ref={navyFoamRef} raycast={() => null}>
