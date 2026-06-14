@@ -3309,6 +3309,9 @@ export function TacticalBattleScreen3D() {
     }
     if (!selectedUnit) return;
     if (actionMode.kind === 'move' && canMove(battle, selectedUnit, c)) {
+      // 兵種動作音 — hoofbeats / oars / trundling siege / marching feet.
+      playSfx(selectedUnit.unitType === 'navy' ? 'whoosh'
+        : selectedUnit.unitType === 'siege' ? 'thud' : 'march');
       start(moveUnit(battle, selectedUnit.id, c));
       setActionMode({ kind: 'none' });
       return;
@@ -3316,7 +3319,10 @@ export function TacticalBattleScreen3D() {
     if (actionMode.kind === 'attack' && u && u.side !== playerSide && canAttack(battle, selectedUnit, u)) {
       const kind: 'melee' | 'ranged' = selectedUnit.unitType === 'archers' || selectedUnit.unitType === 'siege' ? 'ranged' : 'melee';
       const aid = Date.now();
-      playSfx(kind === 'ranged' ? 'arrow' : 'sword');
+      // Per-type attack sting: 砲車轟然 / 弓矢呼嘯 / 騎兵吶喊 / 白刃相交.
+      playSfx(kind === 'ranged'
+        ? (selectedUnit.unitType === 'siege' ? 'crash' : 'arrow')
+        : (selectedUnit.unitType === 'cavalry' ? 'shout' : 'sword'));
       setAttackArcs((a) => [...a, { id: aid, from: selectedUnit.coord, to: u.coord, kind, spawnedAt: aid }]);
       setTimeout(() => setAttackArcs((a) => a.filter((x) => x.id !== aid)), 600);
       const afterAtk = attackUnits(battle, selectedUnit.id, u.id, officers, Math.random);
