@@ -2734,6 +2734,29 @@ function FieldDressing({ tiles }: { tiles: TacticalTile[] }) {
   );
 }
 
+/** 鏡頭跟隨 — on the enemy's turn, gently drift the orbit target toward where
+ *  the action just landed (latest damage popup); on your turn, ease back to the
+ *  board centre. Subtle lerp on controls.target — never wrests manual control. */
+function CameraFollow({ battle, playerSide, home }: {
+  battle: TacticalBattle; playerSide: 'attacker' | 'defender' | null; home: [number, number];
+}) {
+  const controls = useThree((s) => s.controls) as unknown as { target?: THREE.Vector3 } | null;
+  useFrame(() => {
+    const tgt = controls?.target;
+    if (!tgt) return;
+    let fx = home[0], fz = home[1];
+    const aiTurn = !!playerSide && battle.activeSide !== playerSide && !battle.winner;
+    if (aiTurn) {
+      const recent = (battle.damagePopups ?? []).filter((p) => Date.now() - p.spawnedAt < 1600);
+      const last = recent[recent.length - 1];
+      if (last) { const [x, z] = hexWorld(last.coord.col, last.coord.row); fx = x; fz = z; }
+    }
+    tgt.x += (fx - tgt.x) * 0.04;
+    tgt.z += (fz - tgt.z) * 0.04;
+  });
+  return null;
+}
+
 /** 日月 — a glowing sun (day/dawn/dusk) or pale moon (night) hung in the sky at
  *  the light's direction; Bloom gives it a halo. */
 function SkyBody({ position, color, night }: { position: [number, number, number]; color: string; night: boolean }) {
@@ -2919,6 +2942,7 @@ export function BattleScene({
           <BattleSurround width={battle.width} height={battle.height} timeOfDay={battle.timeOfDay} />
           {lighting.showStars && <Stars radius={80} depth={50} count={2500} factor={3} fade speed={0.5} />}
           <SkyBody position={lighting.sun.position} color={lighting.sun.color} night={lighting.showStars} />
+          <CameraFollow battle={battle} playerSide={playerSide} home={[hexWorld(battle.width / 2, battle.height / 2)[0], hexWorld(battle.width / 2, battle.height / 2)[1]]} />
 
           {/* Lighting per time-of-day */}
           <ambientLight intensity={lighting.ambient} />
@@ -3683,6 +3707,7 @@ export function TacticalBattleScreen3D() {
               officers={officers}
             />
             <OrbitControls
+              makeDefault
               enabled={introDone}
               target={target}
               maxPolarAngle={Math.PI / 2.2}
