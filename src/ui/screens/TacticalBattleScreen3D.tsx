@@ -658,9 +658,16 @@ function UnitMesh({
   // Animated position — lerps to target hex when unit moves
   const groupRef = useRef<THREE.Group>(null);
   const prevTarget = useRef<{ x: number; z: number }>({ x: tx, z: tz });
+  // 受擊反應 — when this unit's troops drop, it flinches and flashes red so
+  // every blow visibly LANDS (not just a number popping).
+  const prevTroops = useRef(unit.troops);
+  const hitAt = useRef(-1);
+  const flashRef = useRef<THREE.MeshBasicMaterial>(null);
+  const HIT_DUR = 0.34;
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
-    const tgt = groupRef.current.position;
+    const g = groupRef.current;
+    const tgt = g.position;
     // Lerp x/z toward target hex
     tgt.x += (tx - tgt.x) * Math.min(1, delta * 6);
     tgt.z += (tz - tgt.z) * Math.min(1, delta * 6);
@@ -671,6 +678,17 @@ function UnitMesh({
       + (selected ? Math.sin(clock.elapsedTime * 3) * 0.05 : 0)
       + (moving ? Math.abs(Math.sin(clock.elapsedTime * 10)) * 0.08 : 0);  // walking bounce
     prevTarget.current = { x: tx, z: tz };
+    // Detect a troop loss since last frame → trigger the hit reaction.
+    if (unit.troops < prevTroops.current) hitAt.current = clock.elapsedTime;
+    prevTroops.current = unit.troops;
+    const hitT = hitAt.current >= 0
+      ? Math.max(0, 1 - (clock.elapsedTime - hitAt.current) / HIT_DUR)
+      : 0;
+    // Flinch: a quick recoil wobble + scale punch, then settle.
+    g.rotation.z = hitT > 0 ? Math.sin((clock.elapsedTime - hitAt.current) * 70) * hitT * 0.16 : 0;
+    const s = 1 + hitT * 0.10;
+    g.scale.set(s, s, s);
+    if (flashRef.current) flashRef.current.opacity = hitT * 0.55;
   });
   // Mount lifts the rider/driver/sailor above the ground feature
   const yLift =
@@ -681,6 +699,11 @@ function UnitMesh({
 
   return (
     <group ref={groupRef} position={[tx, terrainH + 0.02, tz]}>
+      {/* 受擊紅光 — flares on every troop loss (opacity driven in useFrame). */}
+      <mesh position={[0, 0.55 + yLift, 0]} raycast={() => null}>
+        <sphereGeometry args={[0.52, 12, 10]} />
+        <meshBasicMaterial ref={flashRef} color="#ff3018" transparent opacity={0} depthWrite={false} toneMapped={false} />
+      </mesh>
       {/* Mount or vehicle (cavalry horse / siege cart / navy boat) */}
       <UnitMount unit={unit} onClick={onClick} />
       {/* Rank-and-file host behind the hero (footmen read wrong on a boat). */}
