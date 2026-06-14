@@ -888,7 +888,9 @@ function UnitMesh({
             <div style={{
               height: '100%',
               width: `${Math.round((unit.troops / unit.maxTroops) * 100)}%`,
-              background: unit.troops / unit.maxTroops > 0.5 ? '#7ed68a' : '#b8442e',
+              background: unit.troops / unit.maxTroops > 0.5 ? '#7ed68a'
+                : unit.troops / unit.maxTroops > 0.25 ? '#d4a84a' : '#b8442e',
+              transition: 'width 0.4s ease, background 0.3s',
             }} />
           </div>
         </div>
@@ -1215,13 +1217,22 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
   const groupRef = useRef<THREE.Group>(null);
   const htmlRef = useRef<HTMLDivElement>(null);
   const embedded = useContext(EmbeddedSceneCtx);
+  // 暴擊會心 — scale the number by the damage magnitude; big blows read BIG and
+  // glow hot-gold, small ones stay plain, so hits have a punch hierarchy.
+  const mag = Math.abs(parseInt(text.replace(/[^0-9-]/g, ''), 10)) || 0;
+  const fs = Math.round(18 + Math.min(30, mag / 170));   // 18 → 48 px
+  const hot = mag >= 2600;
+  const dispColor = hot ? '#ffe27a' : color;
   useFrame(() => {
     if (!groupRef.current) return;
     const age = (Date.now() - spawnedAt) / 1000;
     const t = Math.min(1, age / 1.2);
-    groupRef.current.position.y = 1.5 + t * 1.5;
+    groupRef.current.position.y = 1.5 + t * (hot ? 1.9 : 1.5);
     if (htmlRef.current) {
       htmlRef.current.style.opacity = String(1 - t);
+      // Pop-in punch: overshoot to 1.5× then settle in the first 0.12 of life.
+      const pop = t < 0.12 ? 1.5 - (t / 0.12) * 0.5 : 1;
+      htmlRef.current.style.transform = `scale(${pop})`;
     }
   });
   if (embedded) {
@@ -1234,10 +1245,10 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
       <group ref={groupRef} position={[x, 1.5, z]}>
         <Html transform sprite distanceFactor={undefined} style={{ pointerEvents: 'none' }}>
           <div style={{
-            color, fontFamily: 'Songti SC, serif', fontSize: '26px', fontWeight: 'bold',
-            textShadow: `0 0 5px ${color}, 1px 1px 0 #000, -1px -1px 0 #000`,
+            color: dispColor, fontFamily: 'Songti SC, serif', fontSize: `${Math.round(fs * 1.3)}px`, fontWeight: 'bold',
+            textShadow: `0 0 ${hot ? 9 : 5}px ${dispColor}, 1px 1px 0 #000, -1px -1px 0 #000`,
             whiteSpace: 'nowrap', transform: 'scale(0.06)',
-          }}>{text}</div>
+          }}>{hot ? `${text}!` : text}</div>
         </Html>
       </group>
     );
@@ -1246,11 +1257,11 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
     <group ref={groupRef} position={[x, 1.5, z]}>
       <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div ref={htmlRef} style={{
-          color, fontFamily: 'Songti SC, serif',
-          fontSize: '20px', fontWeight: 'bold',
-          textShadow: `0 0 6px ${color}, 0 0 2px #000, 2px 2px 0 #000`,
+          color: dispColor, fontFamily: 'Songti SC, serif',
+          fontSize: `${fs}px`, fontWeight: 'bold',
+          textShadow: `0 0 ${hot ? 10 : 6}px ${dispColor}, 0 0 2px #000, 2px 2px 0 #000`,
           whiteSpace: 'nowrap',
-        }}>{text}</div>
+        }}>{hot ? `${text}!` : text}</div>
       </Html>
     </group>
   );
