@@ -120,6 +120,9 @@ export interface GameState {
   customEvents: import('../types/event').HistoricalEvent[];
   /** Event currently displayed to the player; null if none. */
   pendingEvent: PendingEvent | null;
+  /** 戰略層回饋 — transient confirmation for the player's last issued order
+   *  (委派/march/委任). Not persisted; the HUD pops it and auto-expires it. */
+  actionToast: { key: number; zh: string; en: string; tone: 'ok' | 'warn' } | null;
   /** Active tactical battle screen, if any. */
   tacticalBattle: TacticalBattle | null;
   /** 戰鬥運鏡/特效 — transient batch the headless AI driver pushes each turn so
@@ -343,6 +346,7 @@ export const EMPTY_STATE: GameState = {
   eventFlags: {},
   firedEventIds: [],
   pendingEvent: null,
+  actionToast: null,
   tacticalBattle: null,
   battleFxBatch: null,
   pendingEspionage: [],

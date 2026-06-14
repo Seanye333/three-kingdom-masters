@@ -205,6 +205,8 @@ interface GameStore extends GameState {
   /** 戰鬥運鏡/特效 — the headless AI driver pushes the tactics it cast this turn
    *  so the big-map diorama can play the same FX/sound/shake. Keyed for dedup. */
   pushBattleFx: (events: NonNullable<GameState['battleFxBatch']>['events']) => void;
+  /** 戰略層回饋 — flash a transient confirmation toast in the strategic HUD. */
+  notify: (zh: string, en: string, tone?: 'ok' | 'warn') => void;
   selectArmy: (armyId: EntityId | null) => void;
   redirectArmy: (armyId: EntityId, newTargetId: EntityId) => boolean;
   holdArmy: (armyId: EntityId) => boolean;
@@ -682,6 +684,9 @@ export const useGameStore = create<GameStore>()(
       pushBattleFx: (events) => set((s) => (
         events.length === 0 ? {} : { battleFxBatch: { key: (s.battleFxBatch?.key ?? 0) + 1, events } }
       )),
+      notify: (zh, en, tone = 'ok') => set((s) => ({
+        actionToast: { key: (s.actionToast?.key ?? 0) + 1, zh, en, tone },
+      })),
 
       selectArmy: (armyId) => set(() => ({ selectedArmyId: armyId })),
 
@@ -927,6 +932,10 @@ export const useGameStore = create<GameStore>()(
             [officerId]: { type, cityId, officerId },
           },
         });
+        get().notify(
+          `委派 · ${officer.name.zh}　${def.label.zh}（${city.name.zh}）`,
+          `Dispatched · ${officer.name.en} — ${def.label.en} (${city.name.en})`,
+        );
         return { ok: true };
       },
 
@@ -1041,6 +1050,10 @@ export const useGameStore = create<GameStore>()(
             },
           },
         });
+        get().notify(
+          `出兵 · ${officer.name.zh} 領 ${troops.toLocaleString()} 兵 → ${target.name.zh}（${dur}季抵達）`,
+          `March · ${officer.name.en} leads ${troops.toLocaleString()} → ${target.name.en} (${dur} seasons)`,
+        );
         return { ok: true };
       },
 
@@ -1150,10 +1163,17 @@ export const useGameStore = create<GameStore>()(
       },
 
       delegateCity: (cityId, officerId) => {
-        const next = { ...get().cityDelegations };
+        const s = get();
+        const next = { ...s.cityDelegations };
         if (officerId) next[cityId] = officerId;
         else delete next[cityId];
         set({ cityDelegations: next });
+        const city = s.cities[cityId];
+        const gov = officerId ? s.officers[officerId] : null;
+        if (city) {
+          if (gov) s.notify(`委任太守 · ${gov.name.zh} 治 ${city.name.zh}`, `Governor · ${gov.name.en} now runs ${city.name.en}`);
+          else s.notify(`撤太守 · ${city.name.zh} 收歸親理`, `Governor recalled · ${city.name.en}`, 'warn');
+        }
       },
 
       massMuster: (targetCityId) => {

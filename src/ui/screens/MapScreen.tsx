@@ -7,6 +7,7 @@ import { SEASON_LABEL, MONTH_PHASE_LABEL, firstMonthOfSeason } from '../../game/
 import { WEATHER_LABEL, WIND_LABEL } from '../../game/systems/weather';
 import { MANDATE_LABEL } from '../../game/systems/mandate';
 import { CityPanel } from '../components/CityPanel';
+import { ActionToasts } from '../components/ActionToasts';
 import { RelationshipBrowserModal } from '../components/RelationshipBrowserModal';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { SettingsModal } from '../components/SettingsModal';
@@ -489,6 +490,8 @@ export function MapScreen() {
         {showSchemes && <SchemesModal onClose={() => setShowSchemes(false)} />}
         {showPowerGraph && <PowerGraphModal onClose={() => setShowPowerGraph(false)} />}
       </Suspense>
+      {/* 戰略層回饋 — order-confirmation toasts, top-centre */}
+      <ActionToasts />
       {/* Achievement toast — bottom-right when something just unlocked */}
       {recentAchievementUnlocks.length > 0 && (
         <div

@@ -936,3 +936,13 @@ button:not(:disabled):active {
   animation: tkmFxFlash var(--fx-dur, 0.34s) ease-out forwards;
 }
 @media (prefers-reduced-motion: reduce) { .tkm-fx-flash { animation: none; } }
+
+/* 戰略層回饋 — order-confirmation toast slides down + fades in, then holds. */
+@keyframes tkmActionToast {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  12%  { opacity: 1; transform: translateY(0); }
+  82%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+.tkm-action-toast { animation: tkmActionToast 2.4s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) { .tkm-action-toast { animation: none; } }
