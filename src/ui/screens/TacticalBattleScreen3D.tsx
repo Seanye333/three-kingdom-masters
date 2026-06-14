@@ -3243,6 +3243,12 @@ export function TacticalBattleScreen3D() {
   const [attackArcs, setAttackArcs] = useState<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }[]>([]);
   const [introDone, setIntroDone] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  // 開戰對峙 — a matchup card slams in over the opening swoop, then fades.
+  const [showOpening, setShowOpening] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setShowOpening(false), 2800);
+    return () => clearTimeout(id);
+  }, []);
   const [interactiveDuel, setInteractiveDuel] = useState<{ me: Officer; foe: Officer } | null>(null);
   const [voiceLine, setVoiceLine] = useState<{ text: string; key: number } | null>(null);
   // N7 — signature-tactic banner overlay state
@@ -3884,6 +3890,38 @@ export function TacticalBattleScreen3D() {
           );
         })()}
       </div>
+
+      {/* 開戰對峙 — the two commanders square off as the battle opens. */}
+      {showOpening && !battle.winner && (() => {
+        const cmdr = (side: 'attacker' | 'defender') => {
+          const c = battle.units.find((u) => u.side === side && u.isCommander)
+            ?? battle.units.find((u) => u.side === side);
+          return c ? (officers[c.officerId]?.name.zh ?? '？') : '？';
+        };
+        const tally = (side: 'attacker' | 'defender') =>
+          battle.units.filter((u) => u.side === side).reduce((s, u) => s + u.troops, 0);
+        const me = playerSide ?? 'attacker';
+        const foe = me === 'attacker' ? 'defender' : 'attacker';
+        return (
+          <div className="tkm-victory-sub" style={{
+            position: 'absolute', top: '30%', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 1400, pointerEvents: 'none', textAlign: 'center',
+            fontFamily: 'Songti SC, serif', whiteSpace: 'nowrap',
+          }}>
+            <div style={{ fontSize: '0.9rem', color: '#d4a84a', letterSpacing: '0.5rem', marginBottom: '0.4rem' }}>
+              ⚔ {t('兩軍對壘', 'THE ARMIES MEET')} ⚔
+            </div>
+            <div style={{ fontSize: 'clamp(1.4rem, 5vw, 2.6rem)', fontWeight: 700, color: '#f0e0b0', textShadow: '0 2px 12px #000, 0 0 20px rgba(0,0,0,0.6)' }}>
+              <span style={{ color: '#7ed6e0' }}>{cmdr(me)}</span>
+              <span style={{ color: '#e8a07a', margin: '0 1rem' }}>⚔</span>
+              <span style={{ color: '#ff8a6a' }}>{cmdr(foe)}</span>
+            </div>
+            <div style={{ fontSize: '0.95rem', color: '#a89070', marginTop: '0.3rem', fontFamily: 'ui-monospace, monospace' }}>
+              {tally(me).toLocaleString()} {t('對', 'vs')} {tally(foe).toLocaleString()}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 勝負定格 — the big character slams in over the frozen field, holds a
           beat, then hands off to the results modal. */}
