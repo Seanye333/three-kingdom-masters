@@ -272,6 +272,8 @@ export interface TacticalBattle {
   /** 撤退 — the loser conceded and pulled out in order; survivors escape and
    *  the victor mounts no pursuit (no 掩殺 bonus). */
   withdrew?: boolean;
+  /** 決堤 — a dam map-trap has been broken (one-shot flood). */
+  damBroken?: boolean;
   /** Casualty totals, computed at end. */
   attackerLosses: number;
   defenderLosses: number;

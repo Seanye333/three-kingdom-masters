@@ -977,7 +977,7 @@ export function moveUnit(
   // Reveal any hidden enemy that just became adjacent to the moved unit
   // (and any hidden unit adjacent to a watchtower the moved unit reveals).
   const adj = hexNeighbours(to);
-  return {
+  let next: TacticalBattle = {
     ...b,
     units: b.units.map((u) => {
       if (u.id === unitId) return { ...u, coord: to, ap: u.ap - cost };
@@ -989,6 +989,30 @@ export function moveUnit(
       return u;
     }),
   };
+  // 決堤水淹 — reaching the dam tile breaks it; the surge sweeps every unit
+  // caught on the water (river/bridge), friend or foe alike (水淹七軍).
+  if (!next.damBroken) {
+    const dam = (next.specialTiles ?? []).find(
+      (s) => (s.label.zh.includes('堰') || s.label.zh.includes('堤'))
+        && s.coord.col === to.col && s.coord.row === to.row,
+    );
+    if (dam) {
+      const terrAt = new Map(next.tiles.map((t) => [`${t.coord.col},${t.coord.row}`, t.terrain]));
+      next = {
+        ...next,
+        damBroken: true,
+        units: next.units.map((u) => {
+          const terr = terrAt.get(`${u.coord.col},${u.coord.row}`);
+          return u.troops > 0 && (terr === 'river' || terr === 'bridge')
+            ? { ...u, troops: Math.max(0, u.troops - Math.floor(u.maxTroops * 0.25)), morale: Math.max(0, u.morale - 20) }
+            : u;
+        }),
+        damagePopups: [...(next.damagePopups ?? []), { id: `flood-${Date.now()}`, coord: to, text: '決堤!', color: '#3a9ad0', spawnedAt: Date.now() }],
+        log: [...(next.log ?? []), { turn: next.turn, text: '決堤!漢水滔滔,下游盡成澤國 — 水淹七軍!', kind: 'event' as const }],
+      };
+    }
+  }
+  return next;
 }
 
 /** Max HP a fortification repairs back toward, by kind. */
