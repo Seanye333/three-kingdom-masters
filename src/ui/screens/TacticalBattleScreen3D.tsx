@@ -592,6 +592,11 @@ function UnitRetinue({ troops, color, unitType }: { troops: number; color: strin
   const horseRef = useRef<THREE.InstancedMesh>(null);
   const mounted = unitType === 'cavalry';
   const rideLift = mounted ? 0.26 : 0;   // riders sit above their horses
+  // 兵種立繪 — the host's weapon reads its type: a long pike forest for 槍兵,
+  // short sabres for 騎兵, sparse light arms for 弓兵, medium for the rest.
+  const spearLen = unitType === 'spearmen' ? 1.1 : unitType === 'archers' ? 0.3
+    : unitType === 'cavalry' ? 0.5 : 0.5;
+  const spearColor = unitType === 'archers' ? '#6a5230' : '#3a2818';
   const slots = useMemo(() => {
     const count = Math.min(HOST_MAX, Math.max(6, Math.round(troops / 420)));
     const cols = Math.max(4, Math.round(Math.sqrt(count * 2.4)));   // wide & shallow so it doesn't spill far back
@@ -631,7 +636,8 @@ function UnitRetinue({ troops, color, unitType }: { troops: number; color: strin
       p.set(sl.x, 0.42 * S + lift, sl.z);
       headRef.current.setMatrixAt(i, m.compose(p, q, sc));
       if (sl.spear && spearRef.current) {
-        p.set(sl.x + 0.12 * S, 0.42 * S + lift, sl.z);
+        // Taller pikes stand up from the shoulder; short arms sit at the hand.
+        p.set(sl.x + 0.12 * S, (0.42 * S + lift) + (spearLen - 0.5) * 0.42 * S, sl.z);
         spearRef.current.setMatrixAt(si++, m.compose(p, q, sc));
       }
     }
@@ -658,8 +664,8 @@ function UnitRetinue({ troops, color, unitType }: { troops: number; color: strin
         <meshStandardMaterial color="#e0c498" roughness={0.75} />
       </instancedMesh>
       <instancedMesh ref={spearRef} args={[undefined, undefined, Math.max(1, spearCount)]} castShadow>
-        <cylinderGeometry args={[0.015, 0.015, 0.5, 4]} />
-        <meshStandardMaterial color="#3a2818" />
+        <cylinderGeometry args={[0.015, 0.015, spearLen, 4]} />
+        <meshStandardMaterial color={spearColor} />
       </instancedMesh>
     </group>
   );
