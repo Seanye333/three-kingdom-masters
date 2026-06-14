@@ -2348,6 +2348,61 @@ function FieldClashMelee3D({ marks }: { marks: ClashMark[] }) {
   return <group>{fresh.map((m) => <ClashSite key={`${m.x},${m.y}`} m={m} />)}</group>;
 }
 
+/* 後陣 — an instanced reserve host massed behind each side's front-line
+ * brawlers (a block of soldiers + a forest of spears), so a big clash on the
+ * map reads as armies colliding, not a dozen duellists. Scales with troops. */
+const CLASH_HOST_MAX = IS_MOBILE ? 14 : 34;
+function ClashHost({ side, troops, color }: { side: -1 | 1; troops?: number; color: string }) {
+  const bodyRef = useRef<THREE.InstancedMesh>(null);
+  const spearRef = useRef<THREE.InstancedMesh>(null);
+  const slots = useMemo(() => {
+    const count = Math.min(CLASH_HOST_MAX, Math.max(8, Math.round((troops ?? 8000) / 650)));
+    const cols = Math.max(5, Math.round(Math.sqrt(count * 3)));
+    const out: Array<{ x: number; z: number; ph: number }> = [];
+    for (let i = 0; i < count; i++) {
+      const r = Math.floor(i / cols), c = i % cols;
+      const h = Math.abs(Math.sin(i * 12.9898 + side * 3.1));
+      const z = (c - (cols - 1) / 2) * 0.065 + (h - 0.5) * 0.02;
+      const x = side * (0.62 + r * 0.075);
+      out.push({ x, z, ph: (i * 0.8) % (Math.PI * 2) });
+    }
+    return out;
+  }, [troops, side]);
+  const spearQuat = useMemo(() => new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, side * 0.22)), [side]);
+  useFrame(({ clock }) => {
+    if (!bodyRef.current) return;
+    const t = clock.elapsedTime;
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const p = new THREE.Vector3();
+    const sc = new THREE.Vector3().setScalar(0.9);
+    for (let i = 0; i < slots.length; i++) {
+      const sl = slots[i];
+      const bob = Math.abs(Math.sin(t * 5 + sl.ph)) * 0.015;
+      p.set(sl.x, 0.05 + bob, sl.z);
+      bodyRef.current.setMatrixAt(i, m.compose(p, q, sc));
+      if (spearRef.current) {
+        p.set(sl.x - side * 0.02, 0.12 + bob, sl.z);
+        spearRef.current.setMatrixAt(i, m.compose(p, spearQuat, sc));
+      }
+    }
+    bodyRef.current.instanceMatrix.needsUpdate = true;
+    if (spearRef.current) spearRef.current.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <group>
+      <instancedMesh ref={bodyRef} args={[undefined, undefined, slots.length]} castShadow>
+        <boxGeometry args={[0.03, 0.07, 0.025]} />
+        <meshStandardMaterial color={color} roughness={0.75} />
+      </instancedMesh>
+      <instancedMesh ref={spearRef} args={[undefined, undefined, slots.length]} castShadow>
+        <cylinderGeometry args={[0.003, 0.003, 0.16, 4]} />
+        <meshStandardMaterial color="#2a1d12" roughness={0.8} />
+      </instancedMesh>
+    </group>
+  );
+}
+
 function ClashSite({ m }: { m: ClashMark }) {
   const startRef = useRef<number | null>(null);
   useFrame(({ clock }) => { if (startRef.current == null) startRef.current = clock.elapsedTime; });
@@ -2376,6 +2431,9 @@ function ClashSite({ m }: { m: ClashMark }) {
   }, [m.x, m.y, loser, nA, nB]);
   return (
     <group position={[wx, y, wz]}>
+      {/* Reserve hosts massed behind each front line — armies, not duellists. */}
+      <ClashHost side={-1} troops={m.aTroops} color={colA} />
+      <ClashHost side={1} troops={m.bTroops} color={colB} />
       {brawlers.map((b, i) => (
         <Brawler key={i} desc={b} loser={loser} color={b.side === -1 ? colA : colB} startRef={startRef} />
       ))}
