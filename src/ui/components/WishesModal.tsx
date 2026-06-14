@@ -38,7 +38,7 @@ export function WishesModal({ onClose }: Props) {
           maxHeight: '88vh',
           overflow: 'auto',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
           boxShadow: '0 0 16px rgba(232,200,120,0.12)',
         }}
         onClick={(e) => e.stopPropagation()}

@@ -129,7 +129,7 @@ export function AttackPortPicker({ portId, onClose, onCommit }: Props) {
             background: 'rgba(40, 28, 18, 0.6)',
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             color: '#eef4f8',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
             fontSize: '0.85rem',
           }}>
             <div style={{ marginBottom: '0.4rem' }}>

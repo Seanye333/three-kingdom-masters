@@ -74,7 +74,7 @@ export function TutorialOverlay() {
         width: 'min(400px, 92vw)',
         padding: '1rem 1.25rem',
         color: '#e6edf3',
-        fontFamily: '"Songti SC","Noto Serif SC",serif',
+        fontFamily: 'var(--tkm-font-body)',
         boxShadow: '0 0 24px rgba(212, 168, 74, 0.35)',
       }}
     >

@@ -66,7 +66,7 @@ export function DuelModal({ result, onClose }: Props) {
           40%  { transform: rotate(0deg) scale(2.5); opacity: 1; }
           100% { transform: rotate(30deg) scale(2.5); opacity: 0; }
         }
-        .duel-name { font-family: "Songti SC","Noto Serif SC",serif; }
+        .duel-name { font-family: var(--tkm-font-body); }
       `}</style>
 
       <div
@@ -126,7 +126,7 @@ export function DuelModal({ result, onClose }: Props) {
             style={{
               fontSize: '4rem',
               color: '#e6c473',
-              fontFamily: '"Songti SC", serif',
+              fontFamily: 'var(--tkm-font-body)',
               textShadow: '0 0 14px rgba(212,168,74,0.6)',
               position: 'relative',
             }}
@@ -228,7 +228,7 @@ export function DuelModal({ result, onClose }: Props) {
                   border: '1px solid #e6c473',
                   color: '#e6c473',
                   padding: '0.5rem 2rem',
-                  fontFamily: '"Songti SC", serif',
+                  fontFamily: 'var(--tkm-font-body)',
                   letterSpacing: '0.1rem',
                   cursor: 'pointer',
                 }}
@@ -275,7 +275,7 @@ function RollBox({ label, roll, winner }: { label: string; roll: import('../../g
         boxShadow: winner ? '0 0 10px rgba(212,168,74,0.3)' : undefined,
       }}
     >
-      <div style={{ color: '#e6c473', fontSize: '0.95rem', fontFamily: '"Songti SC", serif', marginBottom: '0.3rem' }}>
+      <div style={{ color: '#e6c473', fontSize: '0.95rem', fontFamily: 'var(--tkm-font-body)', marginBottom: '0.3rem' }}>
         {label}
       </div>
       <div style={{ color: '#aab6c0' }}>{t('武力', 'War')}: {roll.base}</div>

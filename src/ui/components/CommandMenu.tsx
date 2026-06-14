@@ -94,7 +94,7 @@ export function CommandMenu({ cityId }: Props) {
         background: governor ? 'rgba(126, 214, 138, 0.08)' : 'rgba(20, 14, 8, 0.5)',
         border: `1px solid ${governor ? '#5a8a50' : '#26323e'}`,
         padding: '0.35rem 0.6rem', marginBottom: '0.5rem',
-        fontFamily: 'Songti SC, serif', fontSize: '0.78rem', color: '#aab6c0',
+        fontFamily: 'var(--tkm-font-body)', fontSize: '0.78rem', color: '#aab6c0',
       }}>
         <span>
           {t('太守', 'Governor')}{governor ? `:${lang === 'en' ? governor.name.en : governor.name.zh}` : ''}
@@ -325,7 +325,7 @@ function DrillPicker({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
         style={{
           background: '#10161e', border: '1px solid #7ed68a', padding: '1rem 1.2rem',
           minWidth: 320, maxWidth: 440, maxHeight: '80vh', overflow: 'auto',
-          fontFamily: 'Songti SC, serif', color: '#e6edf3',
+          fontFamily: 'var(--tkm-font-body)', color: '#e6edf3',
         }}
       >
         <div style={{ color: '#9ed68a', letterSpacing: '0.08rem', marginBottom: '0.3rem' }}>
@@ -411,7 +411,7 @@ function MarketPanel({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
         onClick={(e) => e.stopPropagation()}
         style={{
           background: '#10161e', border: '1px solid #c8a258', padding: '1rem 1.2rem',
-          minWidth: 320, maxWidth: 420, fontFamily: 'Songti SC, serif', color: '#e6edf3',
+          minWidth: 320, maxWidth: 420, fontFamily: 'var(--tkm-font-body)', color: '#e6edf3',
         }}
       >
         <div style={{ color: '#e8c478', letterSpacing: '0.08rem', marginBottom: '0.2rem' }}>🪙 {t('市易', 'Grain Market')}</div>

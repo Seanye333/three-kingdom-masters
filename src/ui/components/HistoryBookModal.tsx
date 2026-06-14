@@ -47,7 +47,7 @@ export function HistoryBookModal({ onClose }: { onClose: () => void }) {
         style={{
           background: 'linear-gradient(160deg,#2e2418,#10161e)', border: '1px solid #c9a64e',
           width: 'min(680px,100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column',
-          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif',
+          color: '#e6edf3', fontFamily: 'var(--tkm-font-body)',
         }}
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.4rem', borderBottom: '1px solid #2b3845' }}>

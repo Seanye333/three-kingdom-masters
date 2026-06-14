@@ -79,7 +79,7 @@ export function VictoryModal() {
                     <div style={{ color: '#a08050', marginTop: 6, fontFamily: 'ui-monospace, monospace' }}>— {c.year} —</div>
                   )}
                   <span style={{ marginRight: 6 }}>{ICON[c.kind] ?? '·'}</span>
-                  <span style={{ fontFamily: '"Songti SC", serif' }}>{c.zh}</span>
+                  <span style={{ fontFamily: 'var(--tkm-font-body)' }}>{c.zh}</span>
                 </div>
               ));
             })()}

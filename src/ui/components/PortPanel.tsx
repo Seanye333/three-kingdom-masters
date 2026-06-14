@@ -73,7 +73,7 @@ export function PortPanel({ portId, onClose }: Props) {
           border: `2px solid ${ownerColor}`,
           padding: '1rem 1.2rem',
           color: '#eef4f8',
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           minWidth: 320,
           maxWidth: 420,
           boxShadow: `0 0 16px ${ownerColor}`,
@@ -172,7 +172,7 @@ export function PortPanel({ portId, onClose }: Props) {
                 title={t('擴建船塢:解鎖更大戰船、造船更快、港防更固', 'Upgrade dockyard: unlock heavier hulls, faster builds, tougher port')}
                 style={{
                   background: '#13243a', color: '#e6c473', border: '1px solid #e6c473',
-                  padding: '0.3rem 0.6rem', fontSize: '0.74rem', fontFamily: 'Songti SC, serif',
+                  padding: '0.3rem 0.6rem', fontSize: '0.74rem', fontFamily: 'var(--tkm-font-body)',
                   cursor: playerCapitalGold >= upgradeCost ? 'pointer' : 'not-allowed',
                   opacity: playerCapitalGold >= upgradeCost ? 1 : 0.5, marginBottom: '0.35rem',
                 }}
@@ -203,7 +203,7 @@ export function PortPanel({ portId, onClose }: Props) {
                         border: '1px solid ' + (tierOk ? '#3a5a7a' : '#26323e'),
                         padding: '0.25rem 0.5rem',
                         fontSize: '0.72rem',
-                        fontFamily: 'Songti SC, serif',
+                        fontFamily: 'var(--tkm-font-body)',
                         cursor: enabled ? 'pointer' : 'not-allowed',
                         opacity: tierOk ? 1 : 0.55,
                       }}
@@ -230,7 +230,7 @@ export function PortPanel({ portId, onClose }: Props) {
                   border: `1px solid ${reach.ok ? '#b8442e' : '#364654'}`,
                   padding: '0.4rem 0.8rem',
                   cursor: reach.ok ? 'pointer' : 'not-allowed',
-                  fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+                  fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
                   opacity: reach.ok ? 1 : 0.5,
                 }}
                 title={reach.ok
@@ -247,7 +247,7 @@ export function PortPanel({ portId, onClose }: Props) {
                 background: '#1a3a1a', color: '#7ed68a',
                 border: '1px solid #5a7a3a',
                 padding: '0.4rem 0.8rem', cursor: 'pointer',
-                fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+                fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
                 opacity: port.hp >= port.maxHp || playerCapitalGold < 200 ? 0.4 : 1,
               }}
             >{t('修繕', 'Repair')} (+400 HP, −200g)</button>

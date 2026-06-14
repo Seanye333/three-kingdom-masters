@@ -60,7 +60,7 @@ export function RelationsModal({ onClose }: { onClose: () => void }) {
           maxWidth: '94vw', maxHeight: '88vh', overflow: 'auto',
           background: 'linear-gradient(180deg, #221a10, #1a140c)',
           border: '1px solid #8a6f3a', padding: '1rem 1.2rem',
-          fontFamily: 'Songti SC, serif', color: '#e6edf3',
+          fontFamily: 'var(--tkm-font-body)', color: '#e6edf3',
         }}
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.7rem' }}>

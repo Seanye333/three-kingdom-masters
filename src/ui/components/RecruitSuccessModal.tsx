@@ -36,7 +36,7 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
         style={{
           background: 'linear-gradient(165deg,#2e2417,#15100a)', border: `1px solid ${accent}`,
           width: 'min(380px,100%)', padding: '1.2rem 1.3rem', textAlign: 'center',
-          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif',
+          color: '#e6edf3', fontFamily: 'var(--tkm-font-body)',
           boxShadow: `0 0 30px ${accent}44`,
         }}
       >

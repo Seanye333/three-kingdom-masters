@@ -106,7 +106,7 @@ export function FortPanel({ fortId, onClose }: Props) {
           border: `2px solid ${ownerColor}`,
           padding: '1rem 1.2rem',
           color: '#eef4f8',
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           minWidth: 360, maxWidth: 460,
           boxShadow: `0 0 16px ${ownerColor}`,
         }}
@@ -206,7 +206,7 @@ export function FortPanel({ fortId, onClose }: Props) {
                 width: '100%', padding: '0.3rem 0.5rem',
                 background: '#10161e', color: '#eef4f8',
                 border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-                fontFamily: 'Songti SC, serif', fontSize: '0.82rem',
+                fontFamily: 'var(--tkm-font-body)', fontSize: '0.82rem',
                 marginBottom: '0.4rem',
               }}
             >
@@ -242,7 +242,7 @@ export function FortPanel({ fortId, onClose }: Props) {
                 border: `1px solid ${reach.ok ? '#b8442e' : '#364654'}`,
                 padding: '0.4rem 0.8rem',
                 cursor: reach.ok ? 'pointer' : 'not-allowed',
-                fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+                fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
                 opacity: reach.ok ? 1 : 0.5,
               }}
             >{t('攻砦', 'Attack')}</button>
@@ -256,7 +256,7 @@ export function FortPanel({ fortId, onClose }: Props) {
                   background: '#1a3a1a', color: '#7ed68a',
                   border: '1px solid #5a7a3a',
                   padding: '0.4rem 0.8rem', cursor: 'pointer',
-                  fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+                  fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
                   opacity: fort.hp >= fort.maxHp || playerCapitalGold < 150 ? 0.4 : 1,
                 }}
               >{t('修繕', 'Repair')} (+300 HP, −150g)</button>
@@ -273,7 +273,7 @@ export function FortPanel({ fortId, onClose }: Props) {
                       background: '#1a2a3a', color: '#e6c473',
                       border: '1px solid #e6c473',
                       padding: '0.4rem 0.8rem', cursor: 'pointer',
-                      fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+                      fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
                       opacity: playerCapitalGold < cost ? 0.4 : 1,
                     }}
                     title={`Upgrade to Lv${nextLv} (+50% maxHp). Costs ${cost}g.`}

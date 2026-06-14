@@ -35,7 +35,7 @@ export function WordWarModal({ result, onClose }: Props) {
           width: 'min(620px, 95vw)',
           padding: '2rem',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
           textAlign: 'center',
         }}
       >

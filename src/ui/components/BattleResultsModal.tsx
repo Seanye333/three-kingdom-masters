@@ -142,7 +142,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
                 <div className={styles.sectionLabel}>名場面 Highlights</div>
                 {moments.map((m, i) => (
                   <div key={i} style={{
-                    color: '#f2dd9a', fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+                    color: '#f2dd9a', fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
                     padding: '2px 0', borderLeft: '2px solid #e6c473', paddingLeft: 8, margin: '3px 0',
                   }}>{m}</div>
                 ))}

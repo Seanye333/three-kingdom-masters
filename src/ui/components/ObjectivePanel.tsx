@@ -46,7 +46,7 @@ export function ObjectivePanel() {
         style={{
           background: '#10161e', border: '1px solid #c0504a', borderLeft: '3px solid #c0504a',
           padding: '0.5rem 0.8rem', fontSize: '0.78rem', color: '#aab6c0',
-          fontFamily: '"Songti SC", serif', display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 260,
+          fontFamily: 'var(--tkm-font-body)', display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 260,
         }}
       >
         <div style={{ fontSize: '0.6rem', letterSpacing: '0.07rem', color: '#7a8893', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
@@ -84,7 +84,7 @@ export function ObjectivePanel() {
         padding: '0.5rem 0.8rem',
         fontSize: '0.78rem',
         color: '#aab6c0',
-        fontFamily: '"Songti SC", serif',
+        fontFamily: 'var(--tkm-font-body)',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.2rem',

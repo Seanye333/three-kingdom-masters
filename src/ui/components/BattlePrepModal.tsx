@@ -313,7 +313,7 @@ export function BattlePrepModal({
                   border: `1px solid ${siegeWorks === o.id ? '#e6c473' : '#2b3845'}`,
                   color: o.disabled ? '#5a4a38' : siegeWorks === o.id ? '#ffe9a8' : '#aab6c0',
                   cursor: o.disabled ? 'not-allowed' : 'pointer',
-                  fontFamily: 'Songti SC, serif',
+                  fontFamily: 'var(--tkm-font-body)',
                 }}
               >{o.zh} {o.en}</button>
             ))}

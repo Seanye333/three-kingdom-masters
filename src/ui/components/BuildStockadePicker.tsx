@@ -93,7 +93,7 @@ export function BuildStockadePicker({ onClose }: Props) {
                   background: on ? 'rgba(212,168,74,0.16)' : '#10161e',
                   border: `1px solid ${on ? b.color : '#26323e'}`,
                   color: on ? '#eef4f8' : '#a08a60', cursor: 'pointer',
-                  fontFamily: 'Songti SC, serif', textAlign: 'left',
+                  fontFamily: 'var(--tkm-font-body)', textAlign: 'left',
                 }}
               >
                 <div style={{ fontSize: '0.85rem', color: on ? b.color : undefined }}>
@@ -116,7 +116,7 @@ export function BuildStockadePicker({ onClose }: Props) {
               width: '100%', padding: '0.4rem 0.6rem',
               background: '#10161e', color: '#eef4f8',
               border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-              fontFamily: 'Songti SC, serif',
+              fontFamily: 'var(--tkm-font-body)',
             }}
           />
         </div>

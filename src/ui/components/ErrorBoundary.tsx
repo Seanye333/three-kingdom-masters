@@ -40,7 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
             color: '#e6edf3',
             padding: '1rem 1.5rem',
             margin: '1rem',
-            fontFamily: '"Songti SC", serif',
+            fontFamily: 'var(--tkm-font-body)',
           }}
         >
           <div style={{ fontSize: '1.1rem', color: '#b8442e', letterSpacing: '0.07rem' }}>

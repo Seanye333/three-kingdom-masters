@@ -30,7 +30,7 @@ export function CampaignStatsModal({ onClose }: Props) {
           width: 'min(600px,100%)',
           padding: '1.5rem',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
         }}
         onClick={(e) => e.stopPropagation()}
       >

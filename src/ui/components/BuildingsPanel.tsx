@@ -40,7 +40,7 @@ export function BuildingsPanel({ cityId }: Props) {
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: '1.25rem', height: '1.25rem', borderRadius: 3,
             background: '#3a2c14', border: '1px solid #c9a23c',
-            fontFamily: '"Songti SC", serif', fontSize: '0.8rem',
+            fontFamily: 'var(--tkm-font-body)', fontSize: '0.8rem',
           }}>{specialty.glyph}</span>
           <span>{t('特產', 'Specialty')}：{specialty.zh}</span>
           <span style={{ color: '#9a8a60', fontSize: '0.66rem' }}>{specialty.noteZh}</span>

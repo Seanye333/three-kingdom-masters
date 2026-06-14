@@ -38,7 +38,7 @@ export function DebateModal({ me, foe, onDone }: {
       <div style={{
         background: 'linear-gradient(160deg,#1b2531,#0e141b)', border: '1px solid #c9a64e',
         width: 'min(620px,100%)', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-        color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.3rem',
+        color: '#e6edf3', fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.3rem',
       }}>
         <div style={{ textAlign: 'center', fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.04rem', marginBottom: '0.7rem' }}>
           💬 {t('舌戰', 'War of Words')}

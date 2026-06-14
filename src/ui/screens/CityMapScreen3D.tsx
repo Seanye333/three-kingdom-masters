@@ -155,7 +155,7 @@ function InsideBuilding3D({ coord, buildingId, level }: {
           background: 'rgba(20, 14, 8, 0.85)',
           border: `1px solid ${def.color}`,
           padding: '1px 5px',
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           fontSize: '11px',
           color: def.color,
           textAlign: 'center',
@@ -457,7 +457,7 @@ function ConstructionSite3D({ x, z, nameZh }: { x: number; z: number; nameZh: st
       <Html position={[0, 1.5, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{
           background: 'rgba(20, 14, 8, 0.85)', border: '1px solid #c19a3b',
-          padding: '1px 5px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+          padding: '1px 5px', fontFamily: 'var(--tkm-font-body)', fontSize: '11px',
           color: '#e0c060', whiteSpace: 'nowrap', borderRadius: 2,
         }}>
           🔨 {nameZh}·建造中
@@ -860,7 +860,7 @@ function GovernmentHall3D({ x, z, bannerColor }: { x: number; z: number; bannerC
       <FlagPole3D x={-1.5} z={1.4} color={bannerColor} />
       <FlagPole3D x={1.5} z={1.4} color={bannerColor} />
       <Html position={[0, 2.7, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div style={{ background: 'rgba(20,14,8,0.85)', border: '1px solid #d4a84a', padding: '1px 6px', fontFamily: 'Songti SC, serif', fontSize: '11px', color: '#f0d98a', borderRadius: 2, whiteSpace: 'nowrap' }}>
+        <div style={{ background: 'rgba(20,14,8,0.85)', border: '1px solid #d4a84a', padding: '1px 6px', fontFamily: 'var(--tkm-font-body)', fontSize: '11px', color: '#f0d98a', borderRadius: 2, whiteSpace: 'nowrap' }}>
           府衙
         </div>
       </Html>
@@ -912,7 +912,7 @@ function Tavern3D({ x, z }: { x: number; z: number }) {
         <meshStandardMaterial color="#2a2018" />
       </mesh>
       <Html position={[0.62, 1.35, 0.4]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div style={{ background: '#9a2a2a', border: '1px solid #f0d0a0', color: '#f5e8c8', fontFamily: 'Songti SC, serif', fontSize: '13px', padding: '2px 5px', writingMode: 'vertical-rl' }}>酒</div>
+        <div style={{ background: '#9a2a2a', border: '1px solid #f0d0a0', color: '#f5e8c8', fontFamily: 'var(--tkm-font-body)', fontSize: '13px', padding: '2px 5px', writingMode: 'vertical-rl' }}>酒</div>
       </Html>
     </group>
   );
@@ -1567,7 +1567,7 @@ function Pagoda3D({ x, z }: { x: number; z: number }) {
         <meshStandardMaterial color="#e8c860" metalness={0.6} roughness={0.35} />
       </mesh>
       <Html position={[0, topY + 0.7, 0]} center distanceFactor={11} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
+        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'var(--tkm-font-body)', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
           寶塔
         </div>
       </Html>
@@ -1666,7 +1666,7 @@ function DrumTower3D({ x, z }: { x: number; z: number }) {
       <group position={[0, 2.0, 0]}><ChineseRoof3D size={1.45} color="#2f3a48" ornament beasts /></group>
       <group position={[0, 2.45, 0]}><ChineseRoof3D size={0.95} color="#2f3a48" ornament /></group>
       <Html position={[0, 3.0, 0]} center distanceFactor={11} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
+        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'var(--tkm-font-body)', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
           鼓樓
         </div>
       </Html>
@@ -1712,7 +1712,7 @@ function BellTower3D({ x, z }: { x: number; z: number }) {
       <group position={[0, 2.15, 0]}><ChineseRoof3D size={1.45} color="#2f3a48" ornament beasts /></group>
       <group position={[0, 2.6, 0]}><ChineseRoof3D size={0.95} color="#2f3a48" ornament /></group>
       <Html position={[0, 3.15, 0]} center distanceFactor={11} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
+        <div style={{ background: 'rgba(20,14,8,0.8)', border: '1px solid #c19a3b', padding: '0 5px', fontFamily: 'var(--tkm-font-body)', fontSize: '10px', color: '#e0c060', borderRadius: 2, whiteSpace: 'nowrap' }}>
           鐘樓
         </div>
       </Html>
@@ -1840,7 +1840,7 @@ function Farmland3D({ x, z, lush = 0.5 }: { x: number; z: number; lush?: number 
       </group>
       <Villager3D x={-1.15} z={0.95} seed={88} />
       <Html position={[0, 1.2, 0]} center distanceFactor={11} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div style={{ background: 'rgba(20,14,8,0.78)', border: '1px solid #7a8a3a', padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: '10px', color: '#bcd07a', borderRadius: 2, whiteSpace: 'nowrap' }}>
+        <div style={{ background: 'rgba(20,14,8,0.78)', border: '1px solid #7a8a3a', padding: '0 5px', fontFamily: 'var(--tkm-font-body)', fontSize: '10px', color: '#bcd07a', borderRadius: 2, whiteSpace: 'nowrap' }}>
           屯田
         </div>
       </Html>
@@ -2243,7 +2243,7 @@ function HinterlandSlot3D({
         <Html center position={[0, 1.0, 0]} distanceFactor={26} occlude={false}>
           <div style={{
             color: occupied ? '#c0a878' : '#f0d98a',
-            fontFamily: 'Songti SC, serif', fontSize: '13px',
+            fontFamily: 'var(--tkm-font-body)', fontSize: '13px',
             letterSpacing: '1px', whiteSpace: 'nowrap',
             textShadow: '0 1px 3px #000', pointerEvents: 'none',
           }}>
@@ -2410,7 +2410,7 @@ function Hinterland3D({
                 borderRadius: 3,
                 padding: '2px 7px',
                 color: n.rel === 'self' ? '#7ed68a' : n.rel === 'other' ? '#e0a0a0' : '#c0a878',
-                fontFamily: 'Songti SC, serif', fontSize: '12px',
+                fontFamily: 'var(--tkm-font-body)', fontSize: '12px',
                 letterSpacing: '1px', whiteSpace: 'nowrap',
                 textShadow: '0 1px 2px #000', pointerEvents: 'none',
               }}>
@@ -2480,7 +2480,7 @@ function Hinterland3D({
               <Html center position={[0, 1.95, 0]} distanceFactor={28} occlude={false}>
                 <div style={{
                   color: f.owned ? '#f0d98a' : '#e0a0a0',
-                  fontFamily: 'Songti SC, serif', fontSize: '12px',
+                  fontFamily: 'var(--tkm-font-body)', fontSize: '12px',
                   letterSpacing: '1px', whiteSpace: 'nowrap',
                   textShadow: '0 1px 3px #000', pointerEvents: 'none',
                 }}>{def.name.zh}</div>
@@ -2522,7 +2522,7 @@ function Hinterland3D({
               <Html center position={[0, 1.95, 0]} distanceFactor={28} occlude={false}>
                 <div style={{
                   color: a.own ? '#9ec9f0' : '#f0a0a0',
-                  fontFamily: 'Songti SC, serif', fontSize: '11px',
+                  fontFamily: 'var(--tkm-font-body)', fontSize: '11px',
                   letterSpacing: '0.5px', whiteSpace: 'nowrap',
                   textShadow: '0 1px 3px #000', pointerEvents: 'none',
                 }}>
@@ -2563,7 +2563,7 @@ function Hinterland3D({
                     <Html center position={[0, 1.7, 0]} distanceFactor={28} occlude={false}>
                       <div style={{
                         color: s.owned ? '#f0d98a' : '#e0a0a0',
-                        fontFamily: 'Songti SC, serif', fontSize: '11px', whiteSpace: 'nowrap',
+                        fontFamily: 'var(--tkm-font-body)', fontSize: '11px', whiteSpace: 'nowrap',
                         textShadow: '0 1px 3px #000', pointerEvents: 'none',
                       }}>{s.nameZh}</div>
                     </Html>
@@ -2588,7 +2588,7 @@ function Hinterland3D({
                     <Html center position={[0, 1.3, 0]} distanceFactor={28} occlude={false}>
                       <div style={{
                         color: p.owned ? '#88b7e8' : '#c0a878',
-                        fontFamily: 'Songti SC, serif', fontSize: '11px', whiteSpace: 'nowrap',
+                        fontFamily: 'var(--tkm-font-body)', fontSize: '11px', whiteSpace: 'nowrap',
                         textShadow: '0 1px 3px #000', pointerEvents: 'none',
                       }}>⚓ {p.nameZh}</div>
                     </Html>
@@ -3286,7 +3286,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         zIndex: 10,
       }}>
-        <div style={{ color: '#d4a84a', fontFamily: 'Songti SC, serif', letterSpacing: '0.1rem' }}>
+        <div style={{ color: '#d4a84a', fontFamily: 'var(--tkm-font-body)', letterSpacing: '0.1rem' }}>
           <span style={{ fontSize: '1.3rem' }}>{city.name.zh}</span>
           <span style={{ fontSize: '0.85rem', color: size.color, marginLeft: '0.6rem' }}>{size.name.zh}</span>
           <span style={{ fontSize: '0.7rem', color: '#8a7050', marginLeft: '0.8rem' }}>
@@ -3303,7 +3303,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
               border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
               color: showOverlays ? '#d4a84a' : '#8a7050',
               padding: '0.3rem 0.6rem',
-              fontFamily: 'Songti SC, serif', fontSize: '0.7rem', cursor: 'pointer',
+              fontFamily: 'var(--tkm-font-body)', fontSize: '0.7rem', cursor: 'pointer',
               letterSpacing: '0.1rem',
             }}
           >
@@ -3314,7 +3314,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
             style={{
               background: '#1a3a5a', color: '#88b7e8',
               border: '1px solid #88b7e8', padding: '0.3rem 0.7rem',
-              cursor: 'pointer', fontFamily: 'Songti SC, serif', fontSize: '0.7rem',
+              cursor: 'pointer', fontFamily: 'var(--tkm-font-body)', fontSize: '0.7rem',
               letterSpacing: '0.1rem',
             }}
           >
@@ -3416,7 +3416,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
               border: '1px solid #d4a84a',
               padding: '0.8rem',
               color: '#c0a878',
-              fontFamily: 'Songti SC, serif',
+              fontFamily: 'var(--tkm-font-body)',
               fontSize: '0.78rem',
               maxHeight: 'calc(100vh - 80px)',
               overflow: 'auto',
@@ -3546,7 +3546,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
                 border: '1px solid #d4a84a',
                 padding: '0.8rem',
                 color: '#c0a878',
-                fontFamily: 'Songti SC, serif',
+                fontFamily: 'var(--tkm-font-body)',
                 fontSize: '0.78rem',
                 maxHeight: 'calc(100vh - 80px)',
                 overflow: 'auto',
@@ -3649,7 +3649,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
             background: 'rgba(20, 14, 8, 0.8)',
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             padding: '0.3rem 0.6rem',
-            color: '#8a7050', fontFamily: 'Songti SC, serif',
+            color: '#8a7050', fontFamily: 'var(--tkm-font-body)',
             fontSize: '0.7rem', letterSpacing: '0.05rem',
           }}>
             點金色八角位 → 城外防禦 · 點地基(金框) → 城内營建
@@ -3664,7 +3664,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
             background: 'rgba(20, 14, 8, 0.94)',
             border: `1px solid ${inspect.color}`, borderRadius: 4,
             padding: '0.6rem 0.9rem',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
             boxShadow: '0 4px 18px rgba(0,0,0,0.5)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -3732,7 +3732,7 @@ function CityMapScreen3DInner({ city, cityId, onClose, onSwitch2D }: {
           background: 'rgba(20, 14, 8, 0.82)',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
           padding: '0.34rem 0.6rem',
-          color: '#b8a274', fontFamily: 'Songti SC, serif',
+          color: '#b8a274', fontFamily: 'var(--tkm-font-body)',
           fontSize: '0.66rem', lineHeight: 1.55, textAlign: 'right',
         }}>
           <div style={{ color: '#8a7858', fontSize: '0.6rem', letterSpacing: '0.05rem', marginBottom: 2 }}>城景 · 實況</div>

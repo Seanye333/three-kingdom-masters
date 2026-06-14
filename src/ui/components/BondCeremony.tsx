@@ -74,7 +74,7 @@ export function BondCeremony({ a, b, titleZh, titleEn, color, year, onDone }: Pr
             ...anim('tkmSealStamp 0.85s cubic-bezier(0.2,1.2,0.3,1) both'),
           }}
         >
-          <span style={{ fontSize: '3.4rem', color: '#fff8e6', fontFamily: '"Songti SC", serif', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>義</span>
+          <span style={{ fontSize: '3.4rem', color: '#fff8e6', fontFamily: 'var(--tkm-font-body)', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>義</span>
         </div>
 
         {/* Right officer */}
@@ -101,13 +101,13 @@ export function BondCeremony({ a, b, titleZh, titleEn, color, year, onDone }: Pr
           ...anim('tkmCalligraphyReveal 0.9s ease-out 0.35s both'),
         }}
       >
-        <div style={{ fontSize: '2.6rem', color: '#f2dd9a', fontFamily: '"Songti SC","Noto Serif SC",serif', textShadow: `0 0 18px ${hexA(color, 0.7)}, 0 2px 6px rgba(0,0,0,0.6)` }}>
+        <div style={{ fontSize: '2.6rem', color: '#f2dd9a', fontFamily: 'var(--tkm-font-body)', textShadow: `0 0 18px ${hexA(color, 0.7)}, 0 2px 6px rgba(0,0,0,0.6)` }}>
           {titleZh}
         </div>
         <div style={{ fontSize: '0.95rem', color: '#aab6c0', fontStyle: 'italic', letterSpacing: '0.07rem', marginTop: '0.4rem' }}>
           {lang === 'zh' ? '' : titleEn}
         </div>
-        <div style={{ fontSize: '1.05rem', color: '#e6edf3', marginTop: '0.6rem', fontFamily: '"Songti SC", serif' }}>
+        <div style={{ fontSize: '1.05rem', color: '#e6edf3', marginTop: '0.6rem', fontFamily: 'var(--tkm-font-body)' }}>
           {(lang === 'en' ? a.name.en : a.name.zh)} <span style={{ color: color }}>&amp;</span> {(lang === 'en' ? b.name.en : b.name.zh)}
         </div>
       </div>
@@ -121,7 +121,7 @@ function Figure({ officer, color, year, lang, style }: { officer: Officer; color
       <div style={{ borderRadius: '50%', boxShadow: `0 0 24px ${hexA(color, 0.7)}`, border: `2px solid ${color}` }}>
         <OfficerPortrait officer={officer} size={104} forceColor={color} year={year} />
       </div>
-      <div style={{ fontSize: '1.05rem', color: '#eef4f8', fontFamily: '"Songti SC", serif', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+      <div style={{ fontSize: '1.05rem', color: '#eef4f8', fontFamily: 'var(--tkm-font-body)', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
         {lang === 'en' ? officer.name.en : officer.name.zh}
       </div>
     </div>

@@ -43,7 +43,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
             border: '1px solid #e6c473',
             padding: '0.6rem 0.8rem',
             color: '#e6edf3',
-            fontFamily: '"Songti SC", serif',
+            fontFamily: 'var(--tkm-font-body)',
             width: 320,
             pointerEvents: 'none',
             zIndex: 1000,

@@ -78,7 +78,7 @@ export function DeedsModal({ onClose }: Props) {
           borderTop: '3px solid #e6c473',  // gold — 金石之功
           width: 'min(1100px,100%)', maxHeight: '90vh',
           display: 'flex', flexDirection: 'column', color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
           boxShadow: '0 0 18px rgba(212,168,74,0.15)',
         }}
         onClick={(e) => e.stopPropagation()}

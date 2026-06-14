@@ -144,7 +144,7 @@ export function EndingsModal({ onClose }: Props) {
           width: 'min(640px,100%)',
           padding: '2.5rem',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
           boxShadow: '0 0 60px rgba(212,168,74,0.4)',
         }}
       >

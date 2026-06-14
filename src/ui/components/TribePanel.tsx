@@ -93,7 +93,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
           border: `2px solid ${color}`,
           padding: '1rem 1.2rem',
           color: '#eef4f8',
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           minWidth: 360, maxWidth: 470,
           boxShadow: `0 0 16px ${color}`,
         }}
@@ -155,7 +155,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
               style={{
                 width: '100%', padding: '0.3rem 0.5rem',
                 background: '#10161e', color: '#eef4f8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-                fontFamily: 'Songti SC, serif', fontSize: '0.82rem', marginBottom: '0.4rem',
+                fontFamily: 'var(--tkm-font-body)', fontSize: '0.82rem', marginBottom: '0.4rem',
               }}
             >
               {candidates.map(({ officer: o, city }) => (
@@ -185,7 +185,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
               background: '#3a1a1a', color: reach.ok ? '#ff8060' : '#97a4ae',
               border: `1px solid ${reach.ok ? '#b8442e' : '#364654'}`,
               padding: '0.4rem 0.8rem', cursor: reach.ok ? 'pointer' : 'not-allowed',
-              fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+              fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
               opacity: reach.ok ? 1 : 0.5,
             }}
           >{t('征討', 'Subjugate')}</button>
@@ -197,7 +197,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
               background: '#1a2a3a', color: '#e6c473',
               border: '1px solid #e6c473',
               padding: '0.4rem 0.8rem', cursor: playerCapitalGold < 400 ? 'not-allowed' : 'pointer',
-              fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+              fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
               opacity: playerCapitalGold < 400 ? 0.4 : 1,
             }}
           >{t('招撫', 'Placate')} (−400g)</button>

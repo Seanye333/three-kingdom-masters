@@ -44,7 +44,7 @@ export function ActionToasts() {
           style={{
             background: 'rgba(20, 14, 8, 0.94)',
             border: `1px solid ${x.tone === 'warn' ? '#c08a4a' : '#6fae73'}`,
-            color: '#eef4f8', fontFamily: 'Songti SC, serif', fontSize: '0.84rem',
+            color: '#eef4f8', fontFamily: 'var(--tkm-font-body)', fontSize: '0.84rem',
             padding: '0.34rem 0.85rem', borderRadius: 4,
             boxShadow: '0 2px 12px rgba(0,0,0,0.55)', whiteSpace: 'nowrap',
             overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '92vw',

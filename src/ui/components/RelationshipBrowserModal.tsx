@@ -110,7 +110,7 @@ export function RelationshipBrowserModal({ onClose, officersOverride }: Props) {
           background: '#141c25', border: '1px solid #e6c473',
           width: 'min(1100px, 96vw)', maxHeight: '94vh',
           display: 'flex', flexDirection: 'column',
-          color: '#aab6c0', fontFamily: 'Songti SC, serif',
+          color: '#aab6c0', fontFamily: 'var(--tkm-font-body)',
         }}
       >
         {/* Header */}

@@ -63,7 +63,7 @@ export function InstallPrompt() {
       position: 'fixed', left: 10, right: 10, bottom: 10, zIndex: 950,
       background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid #e6c473',
       borderRadius: 6, padding: '0.7rem 0.9rem', boxShadow: '0 4px 18px rgba(0,0,0,0.6)',
-      fontFamily: '"Songti SC","Noto Serif SC",serif', color: '#e6edf3',
+      fontFamily: 'var(--tkm-font-body)', color: '#e6edf3',
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
       <span style={{ fontSize: '1.4rem' }}>📲</span>

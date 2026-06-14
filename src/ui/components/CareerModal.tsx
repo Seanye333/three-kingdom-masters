@@ -33,7 +33,7 @@ export function CareerModal({ onClose }: Props) {
         <div
           style={{
             background: '#1b2531', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '2rem',
-            color: '#aab6c0', fontFamily: '"Songti SC", serif', textAlign: 'center',
+            color: '#aab6c0', fontFamily: 'var(--tkm-font-body)', textAlign: 'center',
           }}
         >
           {t('一代記模式未啟用。請於新遊戲中選擇主角武將。', 'Chronicle mode is not active. Start a new game with a career officer.')}
@@ -63,7 +63,7 @@ export function CareerModal({ onClose }: Props) {
           display: 'flex',
           flexDirection: 'column',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
         }}
         onClick={(e) => e.stopPropagation()}
       >

@@ -34,7 +34,7 @@ export function ArmiesPanel() {
         style={{
           background: 'rgba(20, 14, 9, 0.88)', border: '1px solid #6a5536',
           color: '#e6edf3', padding: '0.3rem 0.55rem', cursor: 'pointer',
-          fontFamily: '"Songti SC", serif', fontSize: '0.72rem',
+          fontFamily: 'var(--tkm-font-body)', fontSize: '0.72rem',
           pointerEvents: 'auto',
         }}
       >⚔ 在途 {mine.length}</button>
@@ -46,7 +46,7 @@ export function ArmiesPanel() {
       background: 'rgba(20, 14, 9, 0.86)',
       border: '1px solid #6a5536',
       padding: '0.35rem 0.5rem',
-      fontFamily: '"Songti SC", serif',
+      fontFamily: 'var(--tkm-font-body)',
       fontSize: '0.72rem',
       color: '#e6edf3',
       minWidth: 150,
@@ -74,7 +74,7 @@ export function ArmiesPanel() {
                 border: `1px solid ${armies[selectedArmyId].holding ? '#a8c87a' : '#5a7a3a'}`,
                 color: armies[selectedArmyId].holding ? '#c8e8a0' : '#a8c87a',
                 fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
-                fontFamily: '"Songti SC", serif',
+                fontFamily: 'var(--tkm-font-body)',
               }}
             >{armies[selectedArmyId].holding ? '解除' : '駐守'}</button>
             <button
@@ -82,7 +82,7 @@ export function ArmiesPanel() {
               style={{
                 background: '#2a2410', border: '1px solid #b89a4a', color: '#e8d09a',
                 fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
-                fontFamily: '"Songti SC", serif',
+                fontFamily: 'var(--tkm-font-body)',
               }}
               title="從最近的友城輸糧補給此軍(免其糧盡逃散)"
             >補給</button>
@@ -92,7 +92,7 @@ export function ArmiesPanel() {
                 style={{
                   background: '#1a2030', border: '1px solid #5a78a0', color: '#a8c0e8',
                   fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
-                  fontFamily: '"Songti SC", serif',
+                  fontFamily: 'var(--tkm-font-body)',
                 }}
                 title="分出一半兵力與一名副將,駐守當前格"
               >分兵</button>
@@ -102,7 +102,7 @@ export function ArmiesPanel() {
               style={{
                 background: '#3a1410', border: '1px solid #b8442e', color: '#e8a890',
                 fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
-                fontFamily: '"Songti SC", serif',
+                fontFamily: 'var(--tkm-font-body)',
               }}
             >召回</button>
           </div>

@@ -77,7 +77,7 @@ export function ScenicPanel({ siteId, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: '#10161e', border: `2px solid ${color}`,
-          padding: '1rem 1.2rem', color: '#eef4f8', fontFamily: 'Songti SC, serif',
+          padding: '1rem 1.2rem', color: '#eef4f8', fontFamily: 'var(--tkm-font-body)',
           minWidth: 360, maxWidth: 470, boxShadow: `0 0 16px ${color}`,
         }}
       >
@@ -132,7 +132,7 @@ export function ScenicPanel({ siteId, onClose }: Props) {
               onChange={(e) => setPickOfficer(e.target.value)}
               style={{
                 width: '100%', padding: '0.3rem 0.5rem', background: '#10161e', color: '#eef4f8',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontFamily: 'Songti SC, serif', fontSize: '0.82rem',
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontFamily: 'var(--tkm-font-body)', fontSize: '0.82rem',
               }}
             >
               {candidates.map(({ officer: o, city }) => (
@@ -154,7 +154,7 @@ export function ScenicPanel({ siteId, onClose }: Props) {
               border: `1px solid ${reach.ok ? color : '#364654'}`,
               padding: '0.4rem 0.9rem',
               cursor: reach.ok && !(looted && !hermitAvailable) ? 'pointer' : 'not-allowed',
-              fontFamily: 'Songti SC, serif', fontSize: '0.9rem',
+              fontFamily: 'var(--tkm-font-body)', fontSize: '0.9rem',
               opacity: reach.ok && !(looted && !hermitAvailable) ? 1 : 0.5,
             }}
           >{looted && !hermitAvailable ? t('已無所獲', 'Nothing left') : t('訪賢尋寶', 'Visit')}</button>

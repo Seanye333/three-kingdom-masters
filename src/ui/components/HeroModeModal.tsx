@@ -52,7 +52,7 @@ export function HeroModeModal({ onClose }: Props) {
           display: 'flex',
           flexDirection: 'column',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
         }}
         onClick={(e) => e.stopPropagation()}
       >

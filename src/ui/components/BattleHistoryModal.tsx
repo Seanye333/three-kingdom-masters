@@ -90,7 +90,7 @@ export function BattleHistoryModal({ onClose }: Props) {
             display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))',
             gap: '0.5rem', padding: '0.6rem 1rem', borderBottom: '1px solid #2b3845',
             background: 'rgba(20,16,12,0.4)',
-            fontFamily: '"Songti SC", serif', fontSize: '0.78rem',
+            fontFamily: 'var(--tkm-font-body)', fontSize: '0.78rem',
           }}>
             <Stat label="總戰" value={stats.total} color="#aab6c0" />
             <Stat label="勝" value={stats.won} color="#7ed68a" />

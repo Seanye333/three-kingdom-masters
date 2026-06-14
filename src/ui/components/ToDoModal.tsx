@@ -168,7 +168,7 @@ export function ToDoModal({ onClose, onOpenLetters }: { onClose: () => void; onO
       <div onClick={(e) => e.stopPropagation()} style={{
         background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
         width: 'min(560px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e6edf3',
-        fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
+        fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.2rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
           <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>

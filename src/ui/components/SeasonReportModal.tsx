@@ -106,10 +106,10 @@ export function SeasonReportModal() {
           </div>
         </header>
 
-        {/* 季度旁白 — chronicler's gloss on the season */}
+        {/* 季度旁白 — chronicler's gloss on the season (serif for flavour) */}
         <div style={{
           textAlign: 'center', fontStyle: 'italic', color: '#bda06a',
-          fontFamily: '"Songti SC","Noto Serif SC",serif', fontSize: '0.9rem',
+          fontFamily: 'var(--tkm-font-serif)', fontSize: '0.9rem',
           padding: '0.55rem 1rem 0.2rem', lineHeight: 1.5,
         }}>
           {lang === 'en' ? narration.en : lang === 'both' ? `${narration.zh} · ${narration.en}` : narration.zh}
@@ -125,7 +125,7 @@ export function SeasonReportModal() {
                 display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                 background: 'rgba(0,0,0,0.25)', border: `1px solid ${s.color}55`,
                 borderRadius: 12, padding: '0.12rem 0.6rem',
-                color: s.color, fontSize: '0.82rem', fontFamily: 'Songti SC, serif',
+                color: s.color, fontSize: '0.82rem', fontFamily: 'var(--tkm-font-body)',
               }}>
                 <b style={{ fontSize: '0.95rem' }}>{s.icon}{s.count}</b>
                 <span style={{ opacity: 0.8 }}>{s.label}</span>

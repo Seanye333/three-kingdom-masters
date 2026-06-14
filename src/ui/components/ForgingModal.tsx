@@ -61,7 +61,7 @@ export function ForgingModal({ onClose }: Props) {
           maxHeight: '90vh',
           display: 'flex', flexDirection: 'column',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
           boxShadow: '0 0 16px rgba(245,90,32,0.15)',
         }}
         onClick={(e) => e.stopPropagation()}

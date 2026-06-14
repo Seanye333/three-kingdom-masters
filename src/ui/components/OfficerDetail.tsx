@@ -1017,7 +1017,7 @@ function CampaignChronicleBlock({ officer }: { officer: Officer }) {
       {paragraphs.map((p, i) => (
         <p key={i} style={{
           margin: '0 0 0.35rem', fontSize: '0.8rem', lineHeight: 1.7,
-          color: '#cdb88f', fontFamily: '"Songti SC", serif',
+          color: '#cdb88f', fontFamily: 'var(--tkm-font-body)',
         }}>
           {lang === 'en' ? p.en : lang === 'both' ? `${p.zh} — ${p.en}` : p.zh}
         </p>
@@ -1052,7 +1052,7 @@ function BiographyBlock({ officer }: { officer: Officer }) {
           style={{
             fontSize: '0.7rem',
             color: '#7a8893',
-            fontFamily: '"Songti SC", serif',
+            fontFamily: 'var(--tkm-font-body)',
           }}
           title={lang === 'en' ? 'Historical lifespan' : '歷史生卒'}
         >
@@ -1068,7 +1068,7 @@ function BiographyBlock({ officer }: { officer: Officer }) {
             fontSize: '0.85rem',
             lineHeight: 1.7,
             color: '#e6c473',
-            fontFamily: '"Songti SC","Noto Serif SC",serif',
+            fontFamily: 'var(--tkm-font-body)',
           }}
         >
           {bio.zh}

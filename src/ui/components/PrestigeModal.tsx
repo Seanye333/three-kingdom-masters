@@ -95,5 +95,5 @@ export function PrestigeModal({ onClose }: Props) {
 }
 
 const overlay: CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' };
-const panel: CSSProperties = { background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: 'min(720px,100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif' };
+const panel: CSSProperties = { background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: 'min(720px,100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', color: '#e6edf3', fontFamily: 'var(--tkm-font-body)' };
 const header: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.2rem', borderBottom: '1px solid #2b3845' };

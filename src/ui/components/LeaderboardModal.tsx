@@ -51,7 +51,7 @@ export function LeaderboardModal({ date, onClose }: { date: string; onClose: () 
         style={{
           background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid #e6c473',
           width: 'min(420px,100%)', maxHeight: '82vh', display: 'flex', flexDirection: 'column',
-          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
+          color: '#e6edf3', fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.2rem',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>

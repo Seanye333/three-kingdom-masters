@@ -144,10 +144,19 @@ body {
   --tkm-gap-lg: 1rem;
   --tkm-gap-xl: 1.5rem;
 
-  /* Type scale */
+  /* Type — a clean modern CJK sans for the UI, serif kept for flavour, a
+     calligraphic brush face for grand titles, tabular mono for numbers. */
   --tkm-font-zh: 'Ma Shan Zheng', 'Songti SC', 'Noto Serif SC', serif;
-  --tkm-font-body: 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  --tkm-font-body: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', 'Hiragino Sans GB', sans-serif;
+  --tkm-font-serif: 'Songti SC', 'Noto Serif SC', Georgia, serif;
   --tkm-font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale — one ladder so headings/body/captions stay in proportion. */
+  --tkm-fs-h1:   1.35rem;
+  --tkm-fs-h2:   1.05rem;
+  --tkm-fs-body: 0.9rem;
+  --tkm-fs-sm:   0.78rem;
+  --tkm-fs-xs:   0.68rem;
 }
 
 *,
@@ -168,8 +177,10 @@ body {
   background: var(--tkm-bg);
   color: var(--tkm-text-body);
   font-family: var(--tkm-font-body);
-  /* CJK serif wants air between lines; the default ~1.2 read cramped. */
+  /* Comfortable measure for CJK; the default ~1.2 read cramped. */
   line-height: 1.55;
+  /* Lining, tabular figures so every column of numbers lines up. */
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

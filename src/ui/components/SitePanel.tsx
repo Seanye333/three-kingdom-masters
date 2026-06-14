@@ -84,7 +84,7 @@ export function SitePanel({ siteId, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: '#10161e', border: `2px solid ${ownerColor}`,
-          padding: '1rem 1.2rem', color: '#eef4f8', fontFamily: 'Songti SC, serif',
+          padding: '1rem 1.2rem', color: '#eef4f8', fontFamily: 'var(--tkm-font-body)',
           minWidth: 360, maxWidth: 460, boxShadow: `0 0 16px ${ownerColor}`,
         }}
       >
@@ -156,7 +156,7 @@ export function SitePanel({ siteId, onClose }: Props) {
               }}
               style={{
                 width: '100%', padding: '0.3rem 0.5rem', background: '#10161e', color: '#eef4f8',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontFamily: 'Songti SC, serif', fontSize: '0.82rem', marginBottom: '0.4rem',
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontFamily: 'var(--tkm-font-body)', fontSize: '0.82rem', marginBottom: '0.4rem',
               }}
             >
               {candidates.map(({ officer: o, city }) => (
@@ -186,7 +186,7 @@ export function SitePanel({ siteId, onClose }: Props) {
                 background: '#3a1a1a', color: reach.ok ? '#ff8060' : '#97a4ae',
                 border: `1px solid ${reach.ok ? '#b8442e' : '#364654'}`,
                 padding: '0.4rem 0.9rem', cursor: reach.ok ? 'pointer' : 'not-allowed',
-                fontFamily: 'Songti SC, serif', fontSize: '0.9rem', opacity: reach.ok ? 1 : 0.5,
+                fontFamily: 'var(--tkm-font-body)', fontSize: '0.9rem', opacity: reach.ok ? 1 : 0.5,
               }}
             >{verb}{t(meta.zh, '')} {t('', meta.en)}</button>
           </div>

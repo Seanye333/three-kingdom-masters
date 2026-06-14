@@ -77,7 +77,7 @@ export function LegionsModal({ onClose }: { onClose: () => void }) {
         style={{
           background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(640px,100%)', maxHeight: '88vh', overflowY: 'auto',
-          color: '#e6edf3', fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.4rem',
+          color: '#e6edf3', fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.4rem',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>

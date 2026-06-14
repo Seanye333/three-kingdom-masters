@@ -574,7 +574,7 @@ export function MapScreen() {
                     border: `1px solid ${simSpeed === sp ? '#a890d0' : '#4a3a5a'}`,
                     color: simSpeed === sp ? '#d0c0f0' : '#8a7aa0',
                     padding: '0.2rem 0.5rem', borderRadius: 4, cursor: 'pointer',
-                    fontFamily: 'Songti SC, serif', fontSize: '0.78rem',
+                    fontFamily: 'var(--tkm-font-body)', fontSize: '0.78rem',
                   }}
                 >{sp}×</button>
               ))}
@@ -595,7 +595,7 @@ export function MapScreen() {
                   marginRight: 8, cursor: 'pointer',
                   background: 'rgba(200,60,40,0.2)', border: '1px solid #e0603a',
                   color: '#ffb088', padding: '0.2rem 0.6rem', borderRadius: 4,
-                  fontFamily: 'Songti SC, serif', fontSize: '0.8rem', whiteSpace: 'nowrap',
+                  fontFamily: 'var(--tkm-font-body)', fontSize: '0.8rem', whiteSpace: 'nowrap',
                 }}
               >
                 ⚠ {threats.length} {t('城受襲', threats.length > 1 ? 'under threat' : 'threatened')}
@@ -614,7 +614,7 @@ export function MapScreen() {
                 border: `1px solid ${idleCount > 0 ? '#e6c473' : '#6fae73'}`,
                 color: idleCount > 0 ? '#f2dd9a' : '#9ad6a8',
                 padding: '0.2rem 0.6rem', borderRadius: 4,
-                fontFamily: 'Songti SC, serif', fontSize: '0.8rem', whiteSpace: 'nowrap',
+                fontFamily: 'var(--tkm-font-body)', fontSize: '0.8rem', whiteSpace: 'nowrap',
               }}
             >
               {idleCount > 0 ? `⚑ ${idleCount} ${t('閒置', 'idle')}` : `✓ ${t('全員已令', 'all set')}`}
@@ -628,7 +628,7 @@ export function MapScreen() {
                   marginRight: 8, cursor: 'pointer',
                   background: 'rgba(126,214,138,0.16)', border: '1px solid #6fae73',
                   color: '#9ad6a8', padding: '0.2rem 0.55rem', borderRadius: 4,
-                  fontFamily: 'Songti SC, serif', fontSize: '0.8rem', whiteSpace: 'nowrap',
+                  fontFamily: 'var(--tkm-font-body)', fontSize: '0.8rem', whiteSpace: 'nowrap',
                 }}
               >
                 ⚡ {t('委派', 'Assign')}
@@ -729,7 +729,7 @@ export function MapScreen() {
             border: '2px solid #e6c473',
             padding: '0.7rem 1rem',
             color: '#e6c473',
-            fontFamily: '"Songti SC", serif',
+            fontFamily: 'var(--tkm-font-body)',
             cursor: 'pointer',
             zIndex: 980,
           }}
@@ -757,7 +757,7 @@ export function MapScreen() {
             border: '2px solid #c9a64e',
             padding: '0.7rem 1rem',
             color: '#e6c473',
-            fontFamily: '"Songti SC", serif',
+            fontFamily: 'var(--tkm-font-body)',
             cursor: 'pointer',
             zIndex: 980,
             boxShadow: '0 0 14px rgba(193, 154, 59, 0.4)',
@@ -800,7 +800,7 @@ export function MapScreen() {
             border: '2px solid #d96a4a',
             padding: '0.7rem 1rem',
             color: '#e2a07a',
-            fontFamily: '"Songti SC", serif',
+            fontFamily: 'var(--tkm-font-body)',
             cursor: 'pointer',
             zIndex: 980,
             boxShadow: '0 0 14px rgba(217, 106, 74, 0.4)',

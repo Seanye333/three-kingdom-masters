@@ -160,7 +160,7 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                           background: '#10161e', color: '#eef4f8',
                           border: '1px solid #e6c473',
                           padding: '2px 6px', fontSize: 13,
-                          fontFamily: 'Songti SC, serif',
+                          fontFamily: 'var(--tkm-font-body)',
                           width: '100%',
                         }}
                       />

@@ -55,7 +55,7 @@ export function ChronicleModal({ onClose }: { onClose: () => void }) {
           background: 'linear-gradient(180deg, #221a10 0%, #1a140c 100%)',
           border: '1px solid #8a6f3a',
           boxShadow: '0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(20,12,4,0.6)',
-          fontFamily: 'Songti SC, serif', color: '#e6edf3',
+          fontFamily: 'var(--tkm-font-body)', color: '#e6edf3',
         }}
       >
         {/* Scroll header — title seal style */}

@@ -1038,7 +1038,7 @@ function UnitMesh({
           background: 'rgba(20, 14, 8, 0.88)',
           border: `1.5px solid ${unit.isCommander ? '#d4a84a' : color}`,
           padding: '2px 6px',
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           fontSize: '12px',
           color: '#f0e0b0',
           whiteSpace: 'nowrap',
@@ -1321,7 +1321,7 @@ export function DefenseStructure({
           background: 'rgba(20, 14, 8, 0.85)',
           border: `1px solid ${visual.color}`,
           padding: '1px 5px',
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           fontSize: '11px',
           color: visual.color,
           textAlign: 'center',
@@ -1500,7 +1500,7 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
       <group ref={groupRef} position={[x, 1.5, z]}>
         <Html transform sprite distanceFactor={undefined} style={{ pointerEvents: 'none' }}>
           <div style={{
-            color: dispColor, fontFamily: 'Songti SC, serif', fontSize: `${Math.round(fs * 1.3)}px`, fontWeight: 'bold',
+            color: dispColor, fontFamily: 'var(--tkm-font-body)', fontSize: `${Math.round(fs * 1.3)}px`, fontWeight: 'bold',
             textShadow: `0 0 ${hot ? 9 : 5}px ${dispColor}, 1px 1px 0 #000, -1px -1px 0 #000`,
             whiteSpace: 'nowrap', transform: 'scale(0.06)',
           }}>{hot ? `${text}!` : text}</div>
@@ -1512,7 +1512,7 @@ function DamagePopup3D({ coord, text, color, spawnedAt }: {
     <group ref={groupRef} position={[x, 1.5, z]}>
       <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div ref={htmlRef} style={{
-          color: dispColor, fontFamily: 'Songti SC, serif',
+          color: dispColor, fontFamily: 'var(--tkm-font-body)',
           fontSize: `${fs}px`, fontWeight: 'bold',
           textShadow: `0 0 ${hot ? 10 : 6}px ${dispColor}, 0 0 2px #000, 2px 2px 0 #000`,
           whiteSpace: 'nowrap',
@@ -2717,7 +2717,7 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
       {!embedded && <Html position={[0, 0.4, 0]} center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{
           color: '#fff',
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           fontSize: '14px',
           fontWeight: 'bold',
           background: 'rgba(20, 14, 8, 0.85)',
@@ -3770,7 +3770,7 @@ export function TacticalBattleScreen3D() {
         background: 'rgba(20, 14, 8, 0.85)',
         borderBottom: '1px solid #5a4530',
         color: '#f0e0b0',
-        fontFamily: 'Songti SC, serif',
+        fontFamily: 'var(--tkm-font-body)',
         display: 'flex', alignItems: 'center', gap: '1rem',
       }}>
         <strong>{t('戰術戰鬥', 'Tactical Battle')} · 3D</strong>
@@ -3941,7 +3941,7 @@ export function TacticalBattleScreen3D() {
           style={{
             background: '#5a4530', color: '#f0e0b0', border: '1px solid #d4a84a',
             padding: '0.3rem 0.7rem', cursor: 'pointer',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
             opacity: !myTurn ? 0.4 : 1,
           }}
         >{t('結束回合', 'End Turn')}</button>
@@ -3953,7 +3953,7 @@ export function TacticalBattleScreen3D() {
             marginLeft: 'auto',
             background: '#16261a', color: '#9ed68a', border: '1px solid #5a8a3a',
             padding: '0.3rem 0.8rem', cursor: 'pointer',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
           }}
           title={t('回大地圖觀戰 — 戰鬥在原地繼續', 'Watch from the world map — the battle continues in place')}
         >🌏 {t('大地圖', 'World')}</button>
@@ -3969,7 +3969,7 @@ export function TacticalBattleScreen3D() {
             marginLeft: '0.4rem',
             background: '#3a1a16', color: '#f0c0b0', border: '1px solid #b8584a',
             padding: '0.3rem 0.8rem', cursor: 'pointer',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
           }}
           title={battle.practice ? t('結束演習', 'End the drill') : t('退出戰鬥', 'Leave the battle')}
         >✕ {battle.practice ? t('結束演習', 'End Drill') : t('退出', 'Exit')}</button>
@@ -4058,7 +4058,7 @@ export function TacticalBattleScreen3D() {
             border: '1px solid #b8442e',
             padding: '0.6rem 0.9rem',
             color: '#f0e0b0',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
             minWidth: 200,
             boxShadow: '0 0 16px rgba(184, 68, 46, 0.4)',
           }}>
@@ -4085,7 +4085,7 @@ export function TacticalBattleScreen3D() {
               border: '1px solid #d4a84a',
               padding: '0.45rem 1.2rem',
               color: '#f0e0b0',
-              fontFamily: 'Songti SC, serif',
+              fontFamily: 'var(--tkm-font-body)',
               fontSize: '0.95rem',
               pointerEvents: 'none',
               animation: 'tkmVoiceFade 3.6s ease-out forwards',
@@ -4111,7 +4111,7 @@ export function TacticalBattleScreen3D() {
             }}
           >
             <div style={{
-              fontFamily: 'Songti SC, serif',
+              fontFamily: 'var(--tkm-font-body)',
               fontSize: '3.4rem',
               color: '#ffd47a',
               letterSpacing: '0.5rem',
@@ -4123,7 +4123,7 @@ export function TacticalBattleScreen3D() {
             </div>
             <div style={{
               marginTop: '0.4rem',
-              fontFamily: 'Songti SC, serif',
+              fontFamily: 'var(--tkm-font-body)',
               fontSize: '0.9rem',
               color: '#e8c878',
               letterSpacing: '0.07rem',
@@ -4151,7 +4151,7 @@ export function TacticalBattleScreen3D() {
               <div style={{
                 position: 'absolute', top: 12, right: 12, minWidth: 168,
                 background: 'rgba(20, 14, 8, 0.92)', border: `1px solid ${verdictColor}`,
-                padding: '0.5rem 0.7rem', color: '#f0e0b0', fontFamily: 'Songti SC, serif',
+                padding: '0.5rem 0.7rem', color: '#f0e0b0', fontFamily: 'var(--tkm-font-body)',
                 fontSize: '0.82rem', boxShadow: `0 0 14px ${verdictColor}44`,
               }}>
                 <div style={{ fontWeight: 'bold', color: verdictColor, marginBottom: '0.25rem' }}>
@@ -4217,7 +4217,7 @@ export function TacticalBattleScreen3D() {
               border: `1px solid ${config.color}`,
               padding: '0.4rem 0.9rem',
               color: config.color,
-              fontFamily: 'Songti SC, serif',
+              fontFamily: 'var(--tkm-font-body)',
               fontSize: '0.9rem',
               pointerEvents: 'none',
             }}>
@@ -4257,7 +4257,7 @@ export function TacticalBattleScreen3D() {
           <div className="tkm-victory-sub" style={{
             position: 'absolute', top: '30%', left: '50%', transform: 'translateX(-50%)',
             zIndex: 1400, pointerEvents: 'none', textAlign: 'center',
-            fontFamily: 'Songti SC, serif', whiteSpace: 'nowrap',
+            fontFamily: 'var(--tkm-font-body)', whiteSpace: 'nowrap',
           }}>
             <div style={{ fontSize: '0.9rem', color: '#d4a84a', letterSpacing: '0.5rem', marginBottom: '0.4rem' }}>
               ⚔ {t('兩軍對壘', 'THE ARMIES MEET')} ⚔
@@ -4291,12 +4291,12 @@ export function TacticalBattleScreen3D() {
             background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.5) 100%)',
           }}>
             <div className="tkm-victory-slam" style={{
-              fontFamily: 'Songti SC, serif', fontWeight: 'bold', fontSize: 'min(40vh, 30vw)',
+              fontFamily: 'var(--tkm-font-body)', fontWeight: 'bold', fontSize: 'min(40vh, 30vw)',
               color: col, lineHeight: 1,
               textShadow: `0 0 30px ${col}, 0 0 8px #000, 4px 6px 0 rgba(0,0,0,0.5)`,
             }}>{ch}</div>
             <div className="tkm-victory-sub" style={{
-              fontFamily: 'Songti SC, serif', fontSize: 'clamp(1rem, 4vw, 2rem)',
+              fontFamily: 'var(--tkm-font-body)', fontSize: 'clamp(1rem, 4vw, 2rem)',
               color: col, letterSpacing: '0.14rem', marginTop: '0.5rem',
               textShadow: '0 2px 8px #000',
             }}>{sub}</div>
@@ -4445,7 +4445,7 @@ function UnitPanel3D({
     background: 'rgba(40, 28, 18, 0.7)',
     border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
     color: '#f0e0b0',
-    fontFamily: 'Songti SC, serif',
+    fontFamily: 'var(--tkm-font-body)',
     fontSize: '0.78rem',
     cursor: 'pointer',
     textAlign: 'left',
@@ -4464,7 +4464,7 @@ function UnitPanel3D({
       border: '1px solid #d4a84a',
       padding: '0.7rem 0.8rem',
       color: '#f0e0b0',
-      fontFamily: 'Songti SC, serif',
+      fontFamily: 'var(--tkm-font-body)',
       boxShadow: '0 0 16px rgba(212, 168, 74, 0.4)',
       overflowY: 'auto',
     }}>
@@ -4487,7 +4487,7 @@ function UnitPanel3D({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: `0 0 10px ${rc}66`,
             }}>
-              <span style={{ fontSize: '2rem', fontWeight: 700, color: '#f4e8c8', fontFamily: 'Songti SC, serif', textShadow: '0 2px 4px #000' }}>{surname}</span>
+              <span style={{ fontSize: '2rem', fontWeight: 700, color: '#f4e8c8', fontFamily: 'var(--tkm-font-body)', textShadow: '0 2px 4px #000' }}>{surname}</span>
               <span style={{
                 position: 'absolute', bottom: -1, right: -1, fontSize: '0.62rem',
                 background: rc, color: '#1a120a', padding: '0 3px', fontWeight: 700, borderRadius: 2,

@@ -57,7 +57,7 @@ export function DiplomacyGraphModal({ onClose }: Props) {
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(820px,100%)',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
         }}
         onClick={(e) => e.stopPropagation()}
       >

@@ -1572,7 +1572,7 @@ function City3D({
        *  with a ★. The realm-name overlay layers on top when zoomed right out. */}
       {(
         <Html position={[0, height + 0.6, 0]} center distanceFactor={8.5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-          <div style={{ fontFamily: 'Songti SC, serif', textAlign: 'center', width: 96 }}>
+          <div style={{ fontFamily: 'var(--tkm-font-body)', textAlign: 'center', width: 96 }}>
             <div style={{
               display: 'inline-block',
               fontSize: isOwn ? '13px' : '12px',
@@ -2170,7 +2170,7 @@ function SupplyLines3D() {
             <Html position={[wx, y + 1.0, wz]} center distanceFactor={9} zIndexRange={[40, 30]} style={{ pointerEvents: 'none' }}>
               <div style={{
                 background: 'rgba(40,14,8,0.9)', border: '1px solid #e0552a', borderRadius: 3,
-                padding: '1px 7px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+                padding: '1px 7px', fontFamily: 'var(--tkm-font-body)', fontSize: '11px',
                 color: '#f0b0a0', whiteSpace: 'nowrap', letterSpacing: '1px',
               }}>⚠ 斷補 — 不通都城</div>
             </Html>
@@ -2360,7 +2360,7 @@ function QueuedBattles3D() {
             <Html position={[wx, y + 0.7, wz]} center distanceFactor={10} zIndexRange={[45, 35]} style={{ pointerEvents: 'none' }}>
               <div style={{
                 background: 'rgba(40, 14, 8, 0.88)', border: '1px solid #e0552a', borderRadius: 3,
-                padding: '1px 7px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+                padding: '1px 7px', fontFamily: 'var(--tkm-font-body)', fontSize: '11px',
                 color: '#f0b0a0', whiteSpace: 'nowrap', letterSpacing: '1px',
               }}>⚔ {s.zh}</div>
             </Html>
@@ -3470,7 +3470,7 @@ function Forts3D({ onFortClick, hideNearPx }: {
             {/* Label + HP bar */}
             <Html position={[0, 1.10, 0]} center distanceFactor={10} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
               <div style={{
-                fontFamily: 'Songti SC, serif',
+                fontFamily: 'var(--tkm-font-body)',
                 fontSize: '10px',
                 color: '#f0e8d0',
                 background: 'rgba(20, 14, 8, 0.78)',
@@ -3644,7 +3644,7 @@ function Port3D({ port, color, onClick }: {
       {/* Label + HP bar — drei Html */}
       <Html position={[0, 0.85, 0]} center distanceFactor={9} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
           fontSize: '11px',
           color: '#f0e8d0',
           background: 'rgba(20, 14, 8, 0.78)',
@@ -4353,7 +4353,7 @@ function DiplomacyLines3D({ cities, forces }: {
             <Html position={l.mid} center distanceFactor={11} zIndexRange={[28, 18]} style={{ pointerEvents: 'none' }}>
               <div style={{
                 background: 'rgba(20,14,8,0.88)', border: `1px solid ${st.color}`, borderRadius: 3,
-                padding: '1px 6px', fontFamily: 'Songti SC, serif', fontSize: 10,
+                padding: '1px 6px', fontFamily: 'var(--tkm-font-body)', fontSize: 10,
                 color: st.color, whiteSpace: 'nowrap', letterSpacing: '1px',
               }}>
                 {st.zh} {l.score > 0 ? `+${l.score}` : l.score}
@@ -4451,7 +4451,7 @@ function EventMarks3D({ cities, hidePx, visibleCityIds, onPick }: {
                     style={{
                       width: 20, height: 20, borderRadius: '50%', cursor: 'pointer',
                       background: 'rgba(20,14,8,0.92)', border: `1px solid ${st.border}`,
-                      color: st.color, fontFamily: 'Songti SC, serif', fontSize: 12,
+                      color: st.color, fontFamily: 'var(--tkm-font-body)', fontSize: 12,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       boxShadow: '0 1px 5px rgba(0,0,0,0.5)',
                     }}
@@ -5072,7 +5072,7 @@ function HexWorldTerrain({ winter, cities, forces, territoryOwnership, fogCityId
           <Html position={[hoverTile.x, hoverTile.topY + 0.35, hoverTile.z]} center distanceFactor={9} zIndexRange={[30, 20]} style={{ pointerEvents: 'none' }}>
             <div style={{
               background: 'rgba(20, 14, 8, 0.88)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
-              padding: '2px 7px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+              padding: '2px 7px', fontFamily: 'var(--tkm-font-body)', fontSize: '11px',
               color: '#e8d9b0', whiteSpace: 'nowrap', letterSpacing: '0.5px',
             }}>
               {KIND_ZH[hoverTile.kind] ?? hoverTile.kind}{road ? ' · 道' : ''}
@@ -5651,7 +5651,7 @@ function EspionageAgents3D({ cities }: { cities: Record<string, City> }) {
           <Html position={[0, 0.3, 0]} center distanceFactor={10} zIndexRange={[7, 0]} style={{ pointerEvents: 'none' }}>
             <div style={{
               background: 'rgba(20,12,28,0.82)', border: '1px solid #7a5a9a', borderRadius: 3,
-              padding: '0 5px', color: '#c8a8e0', fontFamily: '"Songti SC", serif', fontSize: 9.5, whiteSpace: 'nowrap',
+              padding: '0 5px', color: '#c8a8e0', fontFamily: 'var(--tkm-font-body)', fontSize: 9.5, whiteSpace: 'nowrap',
             }}>諜 {r.label}</div>
           </Html>
         </group>
@@ -6082,7 +6082,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
                 background: 'rgba(26, 16, 10, 0.92)', color: '#f0d98a',
                 border: '1px solid #d4a84a', borderRadius: 3,
                 padding: '3px 10px', cursor: 'pointer',
-                fontFamily: 'Songti SC, serif', fontSize: '13px',
+                fontFamily: 'var(--tkm-font-body)', fontSize: '13px',
                 letterSpacing: '1px', whiteSpace: 'nowrap',
                 boxShadow: '0 0 10px rgba(212,168,74,0.45)',
               }}
@@ -6180,7 +6180,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
               <Html key={`l${i}`} position={[wx + r.rpx * PIXEL_TO_WORLD * 0.7071, 0.25, wz - r.rpx * PIXEL_TO_WORLD * 0.7071]} center distanceFactor={11} zIndexRange={[26, 16]} style={{ pointerEvents: 'none' }}>
                 <div style={{
                   background: 'rgba(20,14,8,0.82)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
-                  padding: '0 5px', fontFamily: 'Songti SC, serif', fontSize: 10, color: '#f0d98a',
+                  padding: '0 5px', fontFamily: 'var(--tkm-font-body)', fontSize: 10, color: '#f0d98a',
                   whiteSpace: 'nowrap',
                 }}>{r.zh}</div>
               </Html>
@@ -6204,7 +6204,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
           <Html position={[wx, y + 1.35, wz]} center distanceFactor={9} zIndexRange={[42, 32]} style={{ pointerEvents: 'none' }}>
             <div style={{
               background: 'rgba(20,14,8,0.9)', border: '1px solid #f0d98a', borderRadius: 3,
-              padding: '2px 8px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+              padding: '2px 8px', fontFamily: 'var(--tkm-font-body)', fontSize: '11px',
               color: '#f0d98a', whiteSpace: 'nowrap', letterSpacing: '1px',
             }}>
               改道 → {to.name.zh} · 約 {ticks} 旬
@@ -6227,7 +6227,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
           <Html position={[wx, y + 1.35, wz]} center distanceFactor={9} zIndexRange={[42, 32]} style={{ pointerEvents: 'none' }}>
             <div style={{
               background: 'rgba(20,14,8,0.9)', border: '1px solid #d4a84a', borderRadius: 3,
-              padding: '2px 8px', fontFamily: 'Songti SC, serif', fontSize: '11px',
+              padding: '2px 8px', fontFamily: 'var(--tkm-font-body)', fontSize: '11px',
               color: '#f0d98a', whiteSpace: 'nowrap', letterSpacing: '1px',
             }}>
               {from.name.zh} → {to.name.zh} · 行軍約 {ticks} 旬
@@ -6267,7 +6267,7 @@ function CityQuickRing({ own, onEnter, onMarch, onRecruit, onMuster }: {
           top: -Math.sin(rad) * R - 23,
           width: 46, height: 46, borderRadius: '50%',
           background: 'rgba(20,14,8,0.92)', border: '1px solid #d4a84a',
-          color: '#f0e0b0', cursor: 'pointer', fontFamily: 'Songti SC, serif',
+          color: '#f0e0b0', cursor: 'pointer', fontFamily: 'var(--tkm-font-body)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           gap: 1, padding: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.55)',
         }}
@@ -6300,7 +6300,7 @@ function CityQuickRing({ own, onEnter, onMarch, onRecruit, onMuster }: {
             background: armed ? 'rgba(120,30,20,0.94)' : 'rgba(20,14,8,0.92)',
             border: `1px solid ${armed ? '#ff6a50' : '#b8584a'}`,
             color: armed ? '#ffd0c0' : '#e8b0a0', cursor: 'pointer',
-            fontFamily: 'Songti SC, serif', fontSize: 12, letterSpacing: 2,
+            fontFamily: 'var(--tkm-font-body)', fontSize: 12, letterSpacing: 2,
             padding: '0.32rem 0', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.55)',
             whiteSpace: 'nowrap',
           }}
@@ -6365,7 +6365,7 @@ function CitySearchBox({ onJump, compact }: {
     );
   }
   return (
-    <div style={{ position: 'relative', fontFamily: 'Songti SC, serif', display: 'flex', gap: 4 }}>
+    <div style={{ position: 'relative', fontFamily: 'var(--tkm-font-body)', display: 'flex', gap: 4 }}>
       {compact && (
         <button
           onClick={() => { setOpen(false); setQ(''); }}
@@ -6465,7 +6465,7 @@ function ArmyOrdersHint() {
       position: 'absolute', bottom: battleBarUp ? 64 : 14, left: '50%', transform: 'translateX(-50%)',
       zIndex: 12, display: 'flex', alignItems: 'center', gap: '0.6rem',
       background: 'rgba(20, 14, 8, 0.92)', border: '1px solid #d4a84a', borderRadius: 4,
-      padding: '0.4rem 0.8rem', fontFamily: 'Songti SC, serif',
+      padding: '0.4rem 0.8rem', fontFamily: 'var(--tkm-font-body)',
       boxShadow: '0 2px 12px rgba(0,0,0,0.55)',
       flexWrap: 'wrap', justifyContent: 'center', maxWidth: '94vw',
     }}>
@@ -6827,7 +6827,7 @@ export function StrategicMap3D() {
             style={{
               pointerEvents: 'auto', background: 'rgba(20, 14, 8, 0.88)', color: '#d4a84a',
               border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.55rem', cursor: 'pointer',
-              fontFamily: 'Songti SC, serif', fontSize: '0.75rem',
+              fontFamily: 'var(--tkm-font-body)', fontSize: '0.75rem',
             }}
           >🎯 {t('目標', 'Goal')}</button>
         ) : (
@@ -6860,12 +6860,12 @@ export function StrategicMap3D() {
         <span style={{
           background: 'rgba(20, 14, 8, 0.85)', color: '#d4a84a',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.7rem',
-          fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+          fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
         }}>{SEASON_ZH[season]} {season}</span>
         <span style={{
           background: 'rgba(20, 14, 8, 0.85)', color: '#a8c4e0',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.7rem',
-          fontFamily: 'Songti SC, serif', fontSize: '0.85rem',
+          fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
         }}>{WEATHER_ZH[weather.kind]}{weather.windPower >= 2 ? ` ${weather.windPower}` : ''}</span>
       </div>
 
@@ -6876,7 +6876,7 @@ export function StrategicMap3D() {
           background: 'rgba(20, 14, 8, 0.85)', color: '#a89070',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           padding: '0.3rem 0.6rem',
-          fontFamily: 'Songti SC, serif', fontSize: '0.72rem',
+          fontFamily: 'var(--tkm-font-body)', fontSize: '0.72rem',
           pointerEvents: 'none',
         }}>{t('拖曳旋轉 · 滾輪縮放 · 1-9 圖層 · Tab 巡城 · 空格過旬 · Esc 取消', 'drag rotate · scroll zoom · 1-9 overlays · Tab cycle cities · Space end turn · Esc cancel')}</div>
       )}
@@ -6944,7 +6944,7 @@ export function StrategicMap3D() {
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             padding: '0.3rem 0.55rem',
             cursor: 'pointer',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
             fontSize: '0.78rem',
           }}
           title={t('築壘寨 / 箭樓 / 投石臺 — 施設可轟擊路過敵軍', 'Build stockade / arrow tower / catapult — facilities shell passing enemies')}
@@ -6958,7 +6958,7 @@ export function StrategicMap3D() {
             border: `1px solid ${mapStyle === 'hex' ? '#d4a84a' : '#4a5a3a'}`,
             padding: '0.3rem 0.55rem',
             cursor: 'pointer',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
             fontSize: '0.78rem',
           }}
           title={t('切換地圖風格 — 棋盤六角地塊 / 畫卷地圖(實驗)', 'Toggle map style — hex-tile board / painted scroll (experimental)')}
@@ -6972,7 +6972,7 @@ export function StrategicMap3D() {
             border: `1px solid ${fogOfWar ? '#8a96ac' : '#5a4530'}`,
             padding: '0.3rem 0.55rem',
             cursor: 'pointer',
-            fontFamily: 'Songti SC, serif',
+            fontFamily: 'var(--tkm-font-body)',
             fontSize: '0.78rem',
           }}
           title={t('戰爭迷霧 — 只看得見自己城池與行軍縱隊周邊的敵情;烽火台照常預警', 'Fog of war — intel limited to what your cities and columns can see; beacons still warn')}
@@ -6982,7 +6982,7 @@ export function StrategicMap3D() {
           style={{
             marginLeft: 8, background: '#241c12', color: '#c0a878',
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.3rem 0.55rem',
-            cursor: 'pointer', fontFamily: 'Songti SC, serif', fontSize: '0.78rem',
+            cursor: 'pointer', fontFamily: 'var(--tkm-font-body)', fontSize: '0.78rem',
           }}
           title={t('把當前天下大勢存成 PNG', 'Save the current realm view as a PNG')}
         >📷 {t('大勢', 'Snap')}</button>
@@ -7090,7 +7090,7 @@ export function StrategicMap3D() {
             position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
             zIndex: 13, display: 'flex', alignItems: 'center', gap: IS_MOBILE ? '0.35rem' : '0.55rem',
             background: 'rgba(20, 14, 8, 0.94)', border: '1px solid #b8584a', borderRadius: 4,
-            padding: IS_MOBILE ? '0.3rem 0.5rem' : '0.4rem 0.8rem', fontFamily: 'Songti SC, serif',
+            padding: IS_MOBILE ? '0.3rem 0.5rem' : '0.4rem 0.8rem', fontFamily: 'var(--tkm-font-body)',
             boxShadow: '0 2px 14px rgba(0,0,0,0.6)',
             // Phones: wrap the chips instead of overflowing off-screen.
             flexWrap: 'wrap', justifyContent: 'center', maxWidth: '94vw',
@@ -7250,7 +7250,7 @@ export function StrategicMap3D() {
         <div style={{
           position: 'absolute', top: 56, left: 12, zIndex: 12,
           display: 'flex', flexDirection: 'column', gap: 4,
-          fontFamily: 'Songti SC, serif',
+          fontFamily: 'var(--tkm-font-body)',
         }}>
           {[...beaconAlerts.threatened].slice(0, 4).map((id) => (
             <button

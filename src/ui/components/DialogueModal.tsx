@@ -60,7 +60,7 @@ export function DialogueModal() {
           width: 'min(560px,100%)',
           padding: '2rem',
           color: '#e6edf3',
-          fontFamily: '"Songti SC","Noto Serif SC",serif',
+          fontFamily: 'var(--tkm-font-body)',
           animation: 'tkmScrollUnfurl 0.7s cubic-bezier(0.16,1,0.3,1) both',
           transformOrigin: 'top center',
           position: 'relative',

@@ -151,7 +151,7 @@ export function LocatorMap({
       </svg>
       <div style={{
         color: '#7a8893', fontSize: '0.58rem', letterSpacing: '0.05rem',
-        textAlign: 'center', marginTop: 1, fontFamily: 'Songti SC, serif',
+        textAlign: 'center', marginTop: 1, fontFamily: 'var(--tkm-font-body)',
       }}>
         {win?.kind === 'battle'
           ? t('戰場位置', 'Battlefield location')

@@ -72,7 +72,7 @@ export function PrestigeCeremony({ officer, titleId, color, year, onDone }: Prop
         <div style={{ borderRadius: '50%', border: `3px solid ${accent}`, boxShadow: `0 0 32px ${hexA(accent, 0.8)}`, ...anim('tkmPortraitRise 0.8s cubic-bezier(0.2,0.9,0.3,1) both') }}>
           <OfficerPortrait officer={officer} size={132} forceColor={color} year={year} />
         </div>
-        <div style={{ fontSize: '1.15rem', color: '#eef4f8', fontFamily: '"Songti SC", serif', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+        <div style={{ fontSize: '1.15rem', color: '#eef4f8', fontFamily: 'var(--tkm-font-body)', textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
           {lang === 'en' ? officer.name.en : officer.name.zh}
         </div>
 
@@ -86,7 +86,7 @@ export function PrestigeCeremony({ officer, titleId, color, year, onDone }: Prop
             ...anim('tkmBannerUnfurl 0.7s cubic-bezier(0.2,1.1,0.3,1) 0.4s both'),
           }}
         >
-          <span style={{ fontSize: '2.4rem', color: '#fff8e6', fontFamily: '"Songti SC","Noto Serif SC",serif', fontWeight: 'bold', letterSpacing: '0.1rem', textShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>
+          <span style={{ fontSize: '2.4rem', color: '#fff8e6', fontFamily: 'var(--tkm-font-body)', fontWeight: 'bold', letterSpacing: '0.1rem', textShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>
             {title.name.zh}
           </span>
         </div>
