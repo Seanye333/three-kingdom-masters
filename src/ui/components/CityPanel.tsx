@@ -204,6 +204,8 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
   const playerForceId = useGameStore((s) => s.playerForceId);
   const dispatchConvoy = useGameStore((s) => s.dispatchConvoy);
   const officers = useGameStore((s) => s.officers);
+  const standingRoutes = useGameStore((s) => s.standingRoutes);
+  const setStandingRoute = useGameStore((s) => s.setStandingRoute);
   const [open, setOpen] = useState(false);
   const [destId, setDestId] = useState('');
   const city = allCities[cityId];
@@ -267,6 +269,18 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
           {row(t('運糧', 'Grain'), foodAmts, city.food, 'food')}
           {row(t('運金', 'Gold'), goldAmts, city.gold, 'gold')}
           {row(t('運兵', 'Troops'), troopAmts, Math.max(0, city.troops - 100), 'troops')}
+          {dest && (() => {
+            const active = (standingRoutes ?? []).some((r) => r.fromCityId === cityId && r.toCityId === dest.id);
+            return (
+              <button
+                onClick={() => setStandingRoute(cityId, dest.id, !active)}
+                title={t('常運糧道 — 每季自動把餘糧運往此城', 'Standing route — auto-ship surplus grain here each season')}
+                style={{ ...btn, alignSelf: 'flex-start', background: active ? 'rgba(126,214,138,0.18)' : '#2a1f15', borderColor: active ? '#6fae73' : '#3a2d20', color: active ? '#9ad6a8' : '#d4a84a' }}
+              >
+                {active ? t('↻ 常運中(點此取消)', '↻ Standing route on') : t('↻ 設為常運糧道', '↻ Make standing route')}
+              </button>
+            );
+          })()}
           <span style={{ fontSize: '0.68rem', color: adjacent ? '#7ed68a' : '#e0a070' }}>
             {adjacent ? t('鄰城近運,損耗極低', 'adjacent — minimal loss') : t('遠運按路程耗糧,需數季', 'loss & time scale with the haul')}
             {woodenOx && t(' · 木牛流馬減半', ' · Wooden Ox halves loss')}

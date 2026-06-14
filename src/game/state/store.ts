@@ -253,6 +253,9 @@ interface GameStore extends GameState {
   /** 召回輜重 — turn a convoy around; its cargo returns to the origin city (lost
    *  if that city has since fallen). */
   recallConvoy: (id: EntityId) => void;
+  /** 常運糧道 — toggle a standing supply route (auto-ships surplus grain each
+   *  season from → to). */
+  setStandingRoute: (fromCityId: EntityId, toCityId: EntityId, on: boolean) => void;
   /** 借糧 — ask a friendly force to send grain to your capital. Allies and NAP
    *  partners (or anyone you're on good terms with) oblige; the grain comes out
    *  of their own stores. */
@@ -1317,6 +1320,12 @@ export const useGameStore = create<GameStore>()(
         }
       },
 
+      setStandingRoute: (fromCityId, toCityId, on) => {
+        const state = get();
+        const routes = (state.standingRoutes ?? []).filter((r) => !(r.fromCityId === fromCityId && r.toCityId === toCityId));
+        set({ standingRoutes: on ? [...routes, { fromCityId, toCityId }] : routes });
+      },
+
       createLegion: (legion) => {
         const id = `legion-${(get().legions ?? []).reduce((m, l) => Math.max(m, Number(l.id.split('-')[1] ?? 0)), 0) + 1}`;
         set({ legions: [...(get().legions ?? []), { ...legion, id }] });
@@ -1736,6 +1745,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           tradePartners: state.tradePartners,
           inflation: state.inflation,
           convoys: state.convoys,
+          standingRoutes: state.standingRoutes,
           seasonBoundary,
         });
         // Prepend AI diplomatic announcements to the report.

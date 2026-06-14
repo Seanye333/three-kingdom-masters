@@ -233,6 +233,9 @@ export interface GameState {
   inflation: number;
   /** 輜重 — supply convoys (運糧/運金車) crawling between your cities. */
   convoys: Record<EntityId, import('../systems/convoy').Convoy>;
+  /** 常運糧道 — standing supply routes: each season any surplus grain at the
+   *  source auto-ships to the destination. */
+  standingRoutes: Array<{ fromCityId: EntityId; toCityId: EntityId }>;
   /** 細作開眼 — cities lit by successful espionage, ticks of intel left.
    *  Decremented each half-month; consumed by the fog-of-war view. */
   espionageReveals: Record<EntityId, number>;
@@ -410,6 +413,7 @@ export const EMPTY_STATE: GameState = {
   tradePartners: [],
   inflation: 0,
   convoys: {},
+  standingRoutes: [],
   espionageReveals: {},
   cityDelegations: {},
   legions: [],
@@ -655,6 +659,7 @@ export function loadScenario(
     tradePartners: state.tradePartners ?? [],
     inflation: state.inflation ?? 0,
     convoys: state.convoys ?? {},
+    standingRoutes: state.standingRoutes ?? [],
     commandTemplates: state.commandTemplates,
     autoBuildQueues: {},
     pendingDialogue: null,

@@ -64,6 +64,8 @@ export interface ResolutionInput {
   inflation?: number;
   /** 輜重 — supply convoys in transit between the player's cities. */
   convoys?: Record<EntityId, Convoy>;
+  /** 常運糧道 — player standing routes; each season auto-ships surplus grain. */
+  standingRoutes?: Array<{ fromCityId: EntityId; toCityId: EntityId }>;
   rng?: () => number;
   weather?: import('./weather').Weather;
   /**
@@ -1475,6 +1477,27 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       const seasons = Math.max(2, marchDurationFor(rich, poor, input.date.season));
       const id = `ai-convoy-${fid}-${input.date.year}-${input.date.season}-${aiSeq++}`;
       nextConvoys[id] = { id, forceId: fid, fromCityId: rich.id, toCityId: poor.id, food: ship, gold: 0, troops: 0, seasonsRemaining: seasons, totalSeasons: seasons };
+    }
+
+    // 常運糧道 — the player's standing routes auto-ship any surplus grain each
+    // season (a basic, no-frills haul; manual convoys still get naval/木牛流馬).
+    if (playerFid) {
+      let srSeq = 0;
+      for (const r of input.standingRoutes ?? []) {
+        const src = cities[r.fromCityId];
+        const dst = cities[r.toCityId];
+        if (!src || !dst || src.ownerForceId !== playerFid || dst.ownerForceId !== playerFid) continue;
+        if (src.food <= 8000) continue; // only ship genuine surplus
+        if (Object.values(nextConvoys).some((cv) => cv.forceId === playerFid && cv.fromCityId === r.fromCityId && cv.toCityId === r.toCityId)) continue;
+        const ship = Math.min(src.food - 5000, 5000);
+        if (ship < 1000) continue;
+        const seasons = Math.max(1, marchDurationFor(src, dst, input.date.season));
+        const keep = 1 - Math.min(0.4, 0.06 * (seasons - 1));
+        cities[r.fromCityId] = { ...cities[r.fromCityId], food: cities[r.fromCityId].food - ship };
+        const id = `route-convoy-${r.fromCityId}-${r.toCityId}-${input.date.year}-${input.date.season}-${srSeq++}`;
+        nextConvoys[id] = { id, forceId: playerFid, fromCityId: r.fromCityId, toCityId: r.toCityId, food: Math.floor(ship * keep), gold: 0, troops: 0, seasonsRemaining: seasons, totalSeasons: seasons };
+        entries.push({ cityId: r.toCityId, kind: 'income', text: `Standing route ships ${Math.floor(ship * keep)} grain toward ${dst.name.en}.`, textZh: `常運糧道發 ${Math.floor(ship * keep).toLocaleString()} 糧往 ${dst.name.zh}。` });
+      }
     }
   }
 
