@@ -1208,6 +1208,46 @@ function SnowParticles({ count = 600, bounds }: { count?: number; bounds: { x: n
     </instancedMesh>
   );
 }
+/** 風向 — faint motion-streaks drifting across the field in the wind direction,
+ *  so the wind that fuels 火계/順風 isn't just a HUD word. */
+function WindStreaks({ bounds, dir }: { bounds: { x: number; z: number }; dir: 'east' | 'west' | 'south' | 'north' }) {
+  const count = IS_MOBILE ? 36 : 72;
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const [dvx, dvz] = dir === 'east' ? [1, 0] : dir === 'west' ? [-1, 0] : dir === 'south' ? [0, 1] : [0, -1];
+  const alongZ = dir === 'north' || dir === 'south';
+  const seeds = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * bounds.x * 1.7,
+      z: (Math.random() - 0.5) * bounds.z * 1.7,
+      y: 0.4 + Math.random() * 3.2,
+      len: 0.6 + Math.random() * 0.8,
+    })),
+  [count, bounds.x, bounds.z]);
+  useFrame((_, delta) => {
+    if (!meshRef.current) return;
+    const sp = 9 * delta;
+    const hx = bounds.x * 0.9, hz = bounds.z * 0.9;
+    for (let i = 0; i < count; i++) {
+      const s = seeds[i];
+      s.x += dvx * sp; s.z += dvz * sp;
+      if (s.x > hx) s.x = -hx; else if (s.x < -hx) s.x = hx;
+      if (s.z > hz) s.z = -hz; else if (s.z < -hz) s.z = hz;
+      dummy.position.set(s.x, s.y, s.z);
+      dummy.rotation.set(0, alongZ ? Math.PI / 2 : 0, 0);
+      dummy.scale.set(s.len, 1, 1);
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} raycast={() => null}>
+      <boxGeometry args={[0.5, 0.018, 0.018]} />
+      <meshBasicMaterial color="#e8e4d6" transparent opacity={0.22} depthWrite={false} />
+    </instancedMesh>
+  );
+}
 
 /* ─── Damage number floating up from a hex ─────────────────────── */
 function DamagePopup3D({ coord, text, color, spawnedAt }: {
@@ -2686,6 +2726,9 @@ export function BattleScene({
           {/* Weather particles */}
           {battle.weather === 'rain' && <RainParticles bounds={bounds} />}
           {battle.weather === 'snow' && <SnowParticles bounds={bounds} />}
+          {battle.weather === 'wind' && battle.windDirection && battle.windDirection !== 'calm' && (
+            <WindStreaks bounds={bounds} dir={battle.windDirection} />
+          )}
         </>
       )}
       <FieldDressing tiles={tiles} />
