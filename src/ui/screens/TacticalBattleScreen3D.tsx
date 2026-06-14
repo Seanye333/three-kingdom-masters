@@ -1250,7 +1250,7 @@ export { stratagemFxKind, tacticFxKind, tacticFxSpec, FX_DURATION };
 /* 戰鬥運鏡 — a quick zoom-punch on heavy casts. Lives in the Canvas; dips the
  * camera FOV inward then eases it back, so 天雷/落石/火계 land with a kick.
  * FOV-only, so it never fights OrbitControls (which drives position/target). */
-function BattleCinematics({ trigger }: { trigger: { key: number; weight: number } | null }) {
+export function BattleCinematics({ trigger }: { trigger: { key: number; weight: number } | null }) {
   const { camera } = useThree();
   const baseFov = useRef<number | null>(null);
   const pulse = useRef(0);

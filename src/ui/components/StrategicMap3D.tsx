@@ -17,8 +17,8 @@ import type { City, Force, HexCoord, Port, Season } from '../../game/types';
 import { FACILITY_DEFS, isHostilePermitted } from '../../game/types';
 // The battle diorama reuses the real battle scene (embedded mode) + its hex
 // coordinate helper, so the fight on the world map IS the fight.
-import { BattleScene, hexWorld as battleHexWorld, FX_DURATION, SIGNATURE_FLAVOR } from '../screens/TacticalBattleScreen3D';
-import { tacticFxSpec, type StratagemFxInstance } from '../../game/data/stratagemFx';
+import { BattleScene, BattleCinematics, hexWorld as battleHexWorld, FX_DURATION, SIGNATURE_FLAVOR } from '../screens/TacticalBattleScreen3D';
+import { tacticFxSpec, FX_IMPACT, type StratagemFxInstance, type StratagemFxKind } from '../../game/data/stratagemFx';
 import { categoryOfTactic } from '../../game/data/officerAttributes';
 // In-place battle commanding — the SAME pure battle ops the fullscreen uses.
 import { unitAt, canMove, canAttack, moveUnit, attackUnits, endTurn, applyStratagem, hexDistance } from '../../game/systems/tactical';
@@ -6562,6 +6562,30 @@ export function StrategicMap3D() {
   // tacticId set = a personal/signature tactic riding an underlying stratagem.
   const [dioCast, setDioCast] = useState<{ id: StratagemId; tacticId?: string } | null>(null);
   const [dioFx, setDioFx] = useState<StratagemFxInstance[]>([]);
+  // 戰鬥運鏡 — same impact kick as the tactical screen, on the big-map battle.
+  const [cine, setCine] = useState<{ key: number; weight: number; color: string } | null>(null);
+  const cineCount = useRef(0);
+  const mapCanvasWrapRef = useRef<HTMLDivElement>(null);
+  const punchFx = (kind: StratagemFxKind, color: string) => {
+    const weight = FX_IMPACT[kind];
+    if (weight > 0) setCine({ key: ++cineCount.current, weight, color });
+  };
+  useEffect(() => {
+    if (!cine || cine.weight <= 0) return;
+    const el = mapCanvasWrapRef.current;
+    if (!el || typeof el.animate !== 'function') return;
+    const a = cine.weight >= 2 ? 10 : 4.5;
+    el.animate(
+      [
+        { transform: 'translate(0,0) scale(1)' },
+        { transform: `translate(${a}px,${-a * 0.7}px) scale(1.03)` },
+        { transform: `translate(${-a}px,${a * 0.6}px) scale(1.03)` },
+        { transform: `translate(${a * 0.6}px,${a * 0.5}px) scale(1.02)` },
+        { transform: 'translate(0,0) scale(1)' },
+      ],
+      { duration: cine.weight >= 2 ? 420 : 250, easing: 'ease-out' },
+    );
+  }, [cine?.key]);  // eslint-disable-line react-hooks/exhaustive-deps
   // 單挑 — armed duel waiting for an adjacent enemy commander; the bout itself
   // runs in the same DuelGameModal the fullscreen uses.
   const [dioDuelArm, setDioDuelArm] = useState(false);
@@ -6606,6 +6630,7 @@ export function StrategicMap3D() {
           const fxCoord = isSelf ? sel0.coord : c;
           setDioFx((arr) => [...arr, { id: fxId, coord: fxCoord, spec, spawnedAt: fxId }]);
           playFxSfx(spec.kind);
+          punchFx(spec.kind, spec.color);
           const lifeMs = (FX_DURATION[spec.kind] ?? 1.5) * 1000 + 200;
           setTimeout(() => setDioFx((arr) => arr.filter((f) => f.id !== fxId)), lifeMs);
         }
@@ -6842,6 +6867,19 @@ export function StrategicMap3D() {
       </div>
       )}
 
+      <div ref={mapCanvasWrapRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      {/* 戰鬥運鏡 — impact flash for big-map casts, remounted per cast */}
+      {cine && cine.weight > 0 && (
+        <div
+          key={cine.key}
+          className="tkm-fx-flash"
+          style={{
+            ['--fx-color']: cine.color,
+            ['--fx-peak']: cine.weight >= 2 ? 0.38 : 0.22,
+            ['--fx-dur']: cine.weight >= 2 ? '0.42s' : '0.3s',
+          } as React.CSSProperties}
+        />
+      )}
       <Canvas
         // Phones: shadow maps are the single biggest GPU cost on this scene.
         shadows={!IS_MOBILE}
@@ -6850,6 +6888,7 @@ export function StrategicMap3D() {
         // preserveDrawingBuffer lets the 📷 button read the frame back.
         gl={{ antialias: !IS_MOBILE, preserveDrawingBuffer: true }}
       >
+        <BattleCinematics trigger={cine} />
         <Suspense fallback={null}>
           <ZoomLODTracker onChange={setZoomLod} />
           <ZoomLODCtx.Provider value={zoomLod}>
@@ -6892,6 +6931,7 @@ export function StrategicMap3D() {
           )}
         </Suspense>
       </Canvas>
+      </div>
 
       {/* 快捷輪盤的 DOM 端 — the pickers the ring opens (ordinary modals,
           they live outside the Canvas). */}
