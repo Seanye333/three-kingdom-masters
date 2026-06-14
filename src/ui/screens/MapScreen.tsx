@@ -183,6 +183,38 @@ export function MapScreen() {
     }).length,
   );
   const endSeason = useGameStore((s) => s.endSeason);
+  // 季內進度 — how many of the player's officers still await an order this turn
+  // (idle, in a self-run city, not training/marching). Nudges "use your turn".
+  const idleCount = useGameStore((s) => {
+    if (!s.playerForceId) return 0;
+    const delegated = new Set(Object.keys(s.cityDelegations ?? {}));
+    const training = new Set(s.pendingTrainings.map((tr) => tr.officerId));
+    let n = 0;
+    for (const o of Object.values(s.officers)) {
+      if (o.forceId !== s.playerForceId || o.task) continue;
+      if (training.has(o.id)) continue;
+      const city = o.locationCityId ? s.cities[o.locationCityId] : null;
+      if (!city || city.ownerForceId !== s.playerForceId || delegated.has(city.id)) continue;
+      n++;
+    }
+    return n;
+  });
+  const selectCityFromHud = useGameStore((s) => s.selectCity);
+  // Jump to the first city that still has an idle commander.
+  const jumpToIdle = () => {
+    const s = useGameStore.getState();
+    if (!s.playerForceId) return;
+    const delegated = new Set(Object.keys(s.cityDelegations ?? {}));
+    const training = new Set(s.pendingTrainings.map((tr) => tr.officerId));
+    for (const o of Object.values(s.officers)) {
+      if (o.forceId !== s.playerForceId || o.task) continue;
+      if (training.has(o.id)) continue;
+      const city = o.locationCityId ? s.cities[o.locationCityId] : null;
+      if (!city || city.ownerForceId !== s.playerForceId || delegated.has(city.id)) continue;
+      selectCityFromHud(city.id);
+      return;
+    }
+  };
   const reset = useGameStore((s) => s.reset);
   const weather = useGameStore((s) => s.weather);
   const mandate = useGameStore((s) =>
@@ -420,16 +452,36 @@ export function MapScreen() {
             {autoSim ? t('⏸ 暫停推演', '⏸ Pause') : t('▶ 繼續推演', '▶ Resume')}
           </button>
         ) : (
-          <button
-            className={styles.advanceButton}
-            onClick={advanceTurn}
-          >
-            {hotSeatPlayers.length > 1
-              ? t(`結束 ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? '回合'} →`,
-                  `End ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? 'Turn'} →`)
-              : t(`下旬 ${monthNum}月${phaseInfo.zh} →`,
-                  `End ${monthNum}m ${phaseInfo.zh} →`)}
-          </button>
+          <>
+            {/* 季內進度 — idle-commander nudge; click to jump to the first. */}
+            <button
+              onClick={jumpToIdle}
+              disabled={idleCount === 0}
+              title={idleCount > 0
+                ? t('尚有未派遣的武將 — 點擊前往', 'Idle commanders await orders — click to jump')
+                : t('全員已令', 'every commander has an order')}
+              style={{
+                marginRight: 8, cursor: idleCount > 0 ? 'pointer' : 'default',
+                background: idleCount > 0 ? 'rgba(212,168,74,0.18)' : 'rgba(110,174,115,0.14)',
+                border: `1px solid ${idleCount > 0 ? '#d4a84a' : '#6fae73'}`,
+                color: idleCount > 0 ? '#f0d98a' : '#9ad6a8',
+                padding: '0.2rem 0.6rem', borderRadius: 4,
+                fontFamily: 'Songti SC, serif', fontSize: '0.8rem', whiteSpace: 'nowrap',
+              }}
+            >
+              {idleCount > 0 ? `⚑ ${idleCount} ${t('閒置', 'idle')}` : `✓ ${t('全員已令', 'all set')}`}
+            </button>
+            <button
+              className={styles.advanceButton}
+              onClick={advanceTurn}
+            >
+              {hotSeatPlayers.length > 1
+                ? t(`結束 ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? '回合'} →`,
+                    `End ${hotSeatPlayers[hotSeatActiveIndex]?.label ?? 'Turn'} →`)
+                : t(`下旬 ${monthNum}月${phaseInfo.zh} →`,
+                    `End ${monthNum}m ${phaseInfo.zh} →`)}
+            </button>
+          </>
         )}
       </header>
 
