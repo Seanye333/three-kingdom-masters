@@ -21,7 +21,7 @@ import { processAging } from './aging';
 import { handleSearch, resolveInternalAffairs, type LostItemRef } from './commands';
 import { handleMarch } from './combat';
 import { tickDiplomacy } from './diplomacy';
-import { tickCityEconomy } from './economy';
+import { tickCityEconomy, tradeTreatyGrants } from './economy';
 import { appointmentBonusFor } from './appointmentEffects';
 import { MILITARY_RANKS_BY_ID } from '../data/titles';
 import { rollEvents } from './events';
@@ -56,6 +56,8 @@ export interface ResolutionInput {
   buildings?: import('../types').Building[];
   /** 稅率 — per-force taxation; missing entries resolve to 'normal'. */
   taxPolicy?: Record<EntityId, import('../types').TaxRate>;
+  /** 通商條約 — force ids the player has trade treaties with (mutual income). */
+  tradePartners?: EntityId[];
   rng?: () => number;
   weather?: import('./weather').Weather;
   /**
@@ -1072,6 +1074,25 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         text: `${city.name.en}: ${tick.desertion} troops deserted from starvation.`,
         textZh: `${city.name.zh}：因缺糧，逃兵 ${tick.desertion} 名。`,
       });
+    }
+  }
+
+  // 通商歲入 — credit each peaceful trade treaty's mutual income to capitals.
+  if (seasonBoundary && input.tradePartners && input.tradePartners.length > 0 && input.playerForceId) {
+    const grants = tradeTreatyGrants(input.tradePartners, input.diplomacy, input.playerForceId);
+    for (const [fid, gold] of Object.entries(grants)) {
+      const cap = forces[fid]?.capitalCityId;
+      const c = cap ? cities[cap] : undefined;
+      if (!cap || !c || c.ownerForceId !== fid) continue;
+      cities[cap] = { ...c, gold: c.gold + gold };
+      if (fid === input.playerForceId) {
+        entries.push({
+          cityId: cap,
+          kind: 'income',
+          text: `${c.name.en}: +${gold} gold from trade treaties.`,
+          textZh: `${c.name.zh}：通商歲入 金 +${gold}。`,
+        });
+      }
     }
   }
 

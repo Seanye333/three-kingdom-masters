@@ -1,4 +1,5 @@
-import type { City, Officer, Season, TaxRate } from '../types';
+import type { City, Officer, Season, TaxRate, EntityId, DiplomaticState } from '../types';
+import { getRelation } from '../types';
 import { cityPolicyEffects } from './policyEffects';
 import { citySize, populationDelta } from './citySize';
 import { aggregateSlotEffects } from '../data/defenseBuildings';
@@ -6,6 +7,31 @@ import { effectivePrestigeEffects } from '../data/prestige';
 import { specialtyEconomy } from '../data/specialties';
 
 export const FOOD_PER_TROOP_PER_SEASON = 0.25;
+
+/** 通商歲入 — gold each party to a trade treaty earns per season. */
+export const TRADE_INCOME_PER_TREATY = 200;
+
+/**
+ * 通商條約 — for each of the player's trade treaties that's still at peace
+ * (allied or under a non-aggression pact), BOTH the player and the partner earn
+ * a steady commerce income. Returns a forceId → gold map to credit to capitals.
+ * A treaty falls dormant during open war (neutral status) and revives at peace.
+ */
+export function tradeTreatyGrants(
+  tradePartners: EntityId[],
+  diplomacy: DiplomaticState,
+  playerForceId: EntityId,
+): Record<EntityId, number> {
+  const grants: Record<EntityId, number> = {};
+  for (const partnerId of tradePartners) {
+    const rel = getRelation(diplomacy, playerForceId, partnerId);
+    if (rel.status === 'allied' || rel.status === 'non-aggression') {
+      grants[playerForceId] = (grants[playerForceId] ?? 0) + TRADE_INCOME_PER_TREATY;
+      grants[partnerId] = (grants[partnerId] ?? 0) + TRADE_INCOME_PER_TREATY;
+    }
+  }
+  return grants;
+}
 
 /** 稅率之效 — 輕稅得民心而少入,重稅厚斂而失心。'normal' is the historical
  *  baseline, so an untouched force (and every AI) behaves exactly as before. */

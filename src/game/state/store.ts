@@ -249,6 +249,9 @@ interface GameStore extends GameState {
    *  partners (or anyone you're on good terms with) oblige; the grain comes out
    *  of their own stores. */
   requestGrain: (targetForceId: EntityId) => { ok: boolean; accepted?: boolean; message: string };
+  /** 通商條約 — open commerce with a force you're at peace with; both earn a
+   *  steady gold income each season while the peace holds. */
+  proposeTradeTreaty: (targetForceId: EntityId) => { ok: boolean; accepted?: boolean; message: string };
   /** 委任太守 — set (or clear with null) a city's standing governor. */
   delegateCity: (cityId: EntityId, officerId: EntityId | null) => void;
   /** 軍團都督 — form a legion (id auto-assigned). */
@@ -1639,6 +1642,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           forts: state.forts,
           sites: state.sites,
           taxPolicy: state.taxPolicy,
+          tradePartners: state.tradePartners,
           seasonBoundary,
         });
         // Prepend AI diplomatic announcements to the report.
@@ -3784,6 +3788,28 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           `${target.name.en} sends ${grant.toLocaleString()} grain to ${myCap.name.en}`,
         );
         return { ok: true, accepted: true, message: `${target.name.zh} 濟糧 ${grant.toLocaleString()}。` };
+      },
+
+      proposeTradeTreaty: (targetForceId) => {
+        const state = get();
+        if (!state.playerForceId) return { ok: false, message: 'No player force.' };
+        const target = state.forces[targetForceId];
+        if (!target) return { ok: false, message: 'Invalid force.' };
+        const rel = getRelation(state.diplomacy, state.playerForceId, targetForceId);
+        if (rel.status !== 'allied' && rel.status !== 'non-aggression') {
+          return { ok: false, message: '需先締盟或締結互不侵犯,方可通商。' };
+        }
+        if ((state.tradePartners ?? []).includes(targetForceId)) {
+          return { ok: true, accepted: true, message: '通商條約已在。' };
+        }
+        // Allies trade readily; a NAP partner needs to be on decent terms.
+        const accepted = rel.status === 'allied' || rel.score >= 10;
+        if (!accepted) {
+          return { ok: true, accepted: false, message: `${target.name.zh}婉拒通商之議。` };
+        }
+        set({ tradePartners: [...(state.tradePartners ?? []), targetForceId] });
+        get().notify(`通商條約 · 與 ${target.name.zh} 互市`, `Trade treaty signed with ${target.name.en}`);
+        return { ok: true, accepted: true, message: `通商條約締成 — 商旅互通,兩國歲入俱增。` };
       },
 
       breakAlliance: (targetForceId) => {

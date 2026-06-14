@@ -224,6 +224,9 @@ export interface GameState {
    *  Rises when you march on their cities or tear up a pact; soothed by tribute
    *  and honoured agreements. A bitter foe is far harder to make peace with. */
   grudges: Record<EntityId, number>;
+  /** 通商條約 — force ids the player holds a trade treaty with. Both parties
+   *  earn steady commerce income each season while at peace. */
+  tradePartners: EntityId[];
   /** 細作開眼 — cities lit by successful espionage, ticks of intel left.
    *  Decremented each half-month; consumed by the fog-of-war view. */
   espionageReveals: Record<EntityId, number>;
@@ -398,6 +401,7 @@ export const EMPTY_STATE: GameState = {
   taxPolicy: {},
   credibility: {},
   grudges: {},
+  tradePartners: [],
   espionageReveals: {},
   cityDelegations: {},
   legions: [],
@@ -640,6 +644,7 @@ export function loadScenario(
     taxPolicy: state.taxPolicy ?? {},
     credibility: state.credibility ?? {},
     grudges: state.grudges ?? {},
+    tradePartners: state.tradePartners ?? [],
     commandTemplates: state.commandTemplates,
     autoBuildQueues: {},
     pendingDialogue: null,
