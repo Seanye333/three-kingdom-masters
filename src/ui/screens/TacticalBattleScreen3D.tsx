@@ -691,6 +691,12 @@ function UnitMesh({
     const s = 1 + hitT * 0.10;
     g.scale.set(s, s, s);
     if (flashRef.current) flashRef.current.opacity = hitT * 0.55;
+    // 士氣低落 — a unit near breaking sways nervously, so you can SEE which
+    // line is about to rout (and which enemy to push).
+    if (unit.troops > 0 && hitT === 0 && unit.morale < 35) {
+      const fear = (35 - unit.morale) / 35;
+      g.rotation.z = Math.sin(clock.elapsedTime * 5.5 + tx * 3) * fear * 0.07;
+    }
     // 陣亡 — once wiped out, the husk topples, sinks and fades before it's
     // pruned, instead of blinking out of existence.
     if (unit.troops <= 0) {
