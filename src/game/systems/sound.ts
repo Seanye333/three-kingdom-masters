@@ -669,6 +669,9 @@ export function stopBattleAmbience(): void {
 let musicTimer: ReturnType<typeof setInterval> | null = null;
 let musicGainNode: GainNode | null = null;
 let musicExtra: AudioNode[] = [];
+/** The track currently sounding — lets playMusic() ignore same-track calls so
+ *  repeated effect runs don't restart the music mid-phrase. */
+let currentTrack: MusicTrack = null;
 
 export type MusicTrack = 'peace' | 'tension' | 'battle' | 'victory' | 'defeat' | null;
 
@@ -793,8 +796,11 @@ function warDrum(c: AudioContext, dry: AudioNode, wet: AudioNode | null): void {
 }
 
 export function playMusic(track: MusicTrack): void {
+  // Same track already sounding → leave it be (no restart churn).
+  if (track && track === currentTrack && musicTimer) return;
   stopMusic();
   if (!track || !enabled) return;
+  currentTrack = track;
   const c = getCtx();
   if (!c) return;
   unlockAudio();
@@ -842,6 +848,7 @@ export function playMusic(track: MusicTrack): void {
 }
 
 export function stopMusic(): void {
+  currentTrack = null;
   if (musicTimer) {
     clearInterval(musicTimer);
     musicTimer = null;

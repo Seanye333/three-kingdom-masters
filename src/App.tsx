@@ -35,6 +35,18 @@ export default function App() {
   const pendingEvent = useGameStore((s) => s.pendingEvent);
   const victoryStatus = useGameStore((s) => s.victoryStatus);
   const tacticalBattle = useGameStore((s) => s.tacticalBattle);
+  // 戰略層音樂分層 — the realm breathes tension when an enemy field army is
+  // marching on one of your cities; otherwise the strategic theme stays at peace.
+  const underThreat = useGameStore((s) => {
+    const pid = s.playerForceId;
+    if (!pid) return false;
+    for (const a of Object.values(s.armies)) {
+      if (a.forceId === pid || a.cellTarget) continue;
+      const c = s.cities[a.targetCityId];
+      if (c && c.ownerForceId === pid) return true;
+    }
+    return false;
+  });
 
   // Sound preference syncs to the engine.
   useEffect(() => {
@@ -54,8 +66,8 @@ export default function App() {
     if (tacticalBattle && !tacticalBattle.winner) playMusic('battle');
     else if (victoryStatus === 'victory') playMusic('victory');
     else if (victoryStatus === 'defeat') playMusic('defeat');
-    else if (scenarioId) playMusic('peace');
-  }, [tacticalBattle?.id, tacticalBattle?.winner, victoryStatus, scenarioId, soundEnabled]);
+    else if (scenarioId) playMusic(underThreat ? 'tension' : 'peace');
+  }, [tacticalBattle?.id, tacticalBattle?.winner, victoryStatus, scenarioId, soundEnabled, underThreat]);
 
   // Unlock audio on the very first user interaction (click anywhere).
   useEffect(() => {
