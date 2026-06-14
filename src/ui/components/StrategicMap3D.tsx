@@ -4049,8 +4049,9 @@ function buildMistMask(): THREE.Texture {
     for (let x = 0; x < W; x++) {
       const px = (x / W) * PX_W, py = (y / H) * PX_H;
       const { h } = sampleTerrain(px, py);
-      // Mist pools on low land (valleys, river flats); none on water or hills.
-      const alpha = h > 0 && h < 0.16 ? (1 - h / 0.16) * 0.9 : 0;
+      // Mist pools only in the deepest valleys/river flats — kept sparse so it
+      // never curtains the map at a grazing camera angle.
+      const alpha = h > 0 && h < 0.1 ? (1 - h / 0.1) * 0.5 : 0;
       const i = (y * W + x) * 4;
       d[i] = 226; d[i + 1] = 230; d[i + 2] = 236;
       d[i + 3] = Math.round(alpha * 255);
@@ -4080,14 +4081,14 @@ function ValleyMist() {
   const texture = useMemo(() => buildMistMask(), []);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    if (matRef.current) matRef.current.opacity = 0.2 + Math.sin(t * 0.5) * 0.1;
+    if (matRef.current) matRef.current.opacity = 0.08 + Math.sin(t * 0.5) * 0.04;
     // Slow drift so the mist creeps across the valley floors.
     texture.offset.x = (t * 0.004) % 1;
     texture.offset.y = (t * 0.0025) % 1;
   });
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={geom} renderOrder={2}>
-      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.25} depthWrite={false} />
+      <meshBasicMaterial ref={matRef} map={texture} transparent opacity={0.1} depthWrite={false} />
     </mesh>
   );
 }
