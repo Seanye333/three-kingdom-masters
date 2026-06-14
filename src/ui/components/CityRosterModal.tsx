@@ -1,0 +1,84 @@
+import { useMemo, useState } from 'react';
+import { useGameStore } from '../../game/state/store';
+import { useT } from '../i18n';
+
+type Col = 'agriculture' | 'commerce' | 'troops' | 'population' | 'loyalty' | 'gold';
+
+/**
+ * 郡縣一覽 — a sortable roster of your cities: 農/商/兵/民/忠/金 at a glance, so a
+ * wide realm is governed from one table instead of clicking every dot.
+ */
+export function CityRosterModal({ onClose }: { onClose: () => void }) {
+  const t = useT();
+  const cities = useGameStore((s) => s.cities);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const selectCity = useGameStore((s) => s.selectCity);
+  const [sortBy, setSortBy] = useState<Col>('troops');
+
+  const rows = useMemo(() => Object.values(cities)
+    .filter((c) => c.ownerForceId === playerForceId)
+    .sort((a, b) => (b[sortBy] as number) - (a[sortBy] as number)),
+  [cities, playerForceId, sortBy]);
+
+  const cols: Array<{ key: Col; zh: string; en: string }> = [
+    { key: 'agriculture', zh: '農', en: 'Agr' },
+    { key: 'commerce', zh: '商', en: 'Com' },
+    { key: 'troops', zh: '兵', en: 'Troops' },
+    { key: 'population', zh: '民', en: 'Pop' },
+    { key: 'loyalty', zh: '忠', en: 'Loy' },
+    { key: 'gold', zh: '金', en: 'Gold' },
+  ];
+  const sum = (k: Col) => rows.reduce((s, c) => s + (c[k] as number), 0);
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: 'linear-gradient(160deg,#2a1f15,#1a1410)', border: '1px solid #5a4530',
+        width: 'min(720px,100%)', maxHeight: '86vh', overflowY: 'auto', color: '#e8d9b0',
+        fontFamily: '"Songti SC","Noto Serif SC",serif', padding: '1rem 1.2rem',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.6rem' }}>
+          <div style={{ fontSize: '1.15rem', color: '#d4a84a', letterSpacing: '0.2rem' }}>🏯 {t('郡縣一覽', 'Cities')} <span style={{ color: '#8a7050', fontSize: '0.8rem' }}>({rows.length})</span></div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#d4a84a', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+          <thead>
+            <tr style={{ color: '#8a7050', borderBottom: '1px solid #4a3520' }}>
+              <th style={{ textAlign: 'left', padding: '4px 6px' }}>{t('城', 'City')}</th>
+              {cols.map((c) => (
+                <th key={c.key} onClick={() => setSortBy(c.key)} style={{
+                  textAlign: 'right', padding: '4px 6px', cursor: 'pointer',
+                  color: sortBy === c.key ? '#f0d98a' : '#8a7050',
+                }}>{t(c.zh, c.en)}{sortBy === c.key ? ' ▾' : ''}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((c) => (
+              <tr key={c.id} onClick={() => { selectCity(c.id); onClose(); }} style={{ cursor: 'pointer', borderBottom: '1px solid #2a2014' }}>
+                <td style={{ padding: '3px 6px', color: c.ruined ? '#a06a5a' : '#f0e0b0' }}>{c.name.zh}{c.ruined ? ' 🔥' : ''}</td>
+                {cols.map((col) => (
+                  <td key={col.key} style={{ textAlign: 'right', padding: '3px 6px', fontFamily: 'ui-monospace, monospace', color: col.key === 'loyalty' && c.loyalty < 40 ? '#e8704a' : '#c0a878' }}>
+                    {(c[col.key] as number).toLocaleString()}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+          {rows.length > 0 && (
+            <tfoot>
+              <tr style={{ color: '#d4a84a', borderTop: '1px solid #4a3520', fontWeight: 'bold' }}>
+                <td style={{ padding: '4px 6px' }}>{t('合計', 'Total')}</td>
+                {cols.map((col) => (
+                  <td key={col.key} style={{ textAlign: 'right', padding: '4px 6px', fontFamily: 'ui-monospace, monospace' }}>
+                    {col.key === 'loyalty' ? Math.round(sum('loyalty') / rows.length) : sum(col.key).toLocaleString()}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+    </div>
+  );
+}
