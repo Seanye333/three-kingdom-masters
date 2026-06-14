@@ -643,7 +643,7 @@ function UnitRetinue({ troops, color, unitType }: { troops: number; color: strin
 }
 
 function UnitMesh({
-  unit, terrainH, isPlayer, selected, onClick, isWounded,
+  unit, terrainH, isPlayer, selected, onClick, isWounded, lunge,
 }: {
   unit: TacticalUnit;
   terrainH: number;
@@ -651,6 +651,8 @@ function UnitMesh({
   selected: boolean;
   onClick: () => void;
   isWounded?: boolean;
+  /** 突刺 — when this unit just struck a melee blow, thrust toward the target. */
+  lunge?: { to: HexCoord; at: number } | null;
 }) {
   const [tx, tz] = hexWorld(unit.coord.col, unit.coord.row);
   const color = isPlayer ? '#3a7dd9' : '#b8442e';
@@ -696,6 +698,16 @@ function UnitMesh({
     if (unit.troops > 0 && hitT === 0 && unit.morale < 35) {
       const fear = (35 - unit.morale) / 35;
       g.rotation.z = Math.sin(clock.elapsedTime * 5.5 + tx * 3) * fear * 0.07;
+    }
+    // 突刺 — thrust toward the melee target on a strike, then recoil back.
+    if (lunge && unit.troops > 0) {
+      const [lx, lz] = hexWorld(lunge.to.col, lunge.to.row);
+      const dx = lx - tx, dz = lz - tz;
+      const len = Math.hypot(dx, dz) || 1;
+      const since = (Date.now() - lunge.at) / 1000;
+      const lungeT = since >= 0 && since < 0.4 ? Math.sin((since / 0.4) * Math.PI) : 0;
+      tgt.x += (dx / len) * lungeT * 0.38;
+      tgt.z += (dz / len) * lungeT * 0.38;
     }
     // 陣亡 — once wiped out, the husk topples, sinks and fades before it's
     // pruned, instead of blinking out of existence.
@@ -2664,6 +2676,8 @@ export function BattleScene({
         const h = tile ? TERRAIN_HEIGHT[tile.terrain] : 0.1;
         const isPlayer = playerSide ? u.side === playerSide : u.side === 'attacker';
         const isWounded = officers[u.officerId]?.status === 'wounded';
+        const arc = attackArcs.find((a) => a.kind === 'melee'
+          && a.from.col === u.coord.col && a.from.row === u.coord.row);
         return (
           <UnitMesh
             key={u.id}
@@ -2673,6 +2687,7 @@ export function BattleScene({
             selected={selectedId === u.id}
             onClick={() => onTileClick(u.coord)}
             isWounded={isWounded}
+            lunge={arc ? { to: arc.to, at: arc.spawnedAt } : null}
           />
         );
       })}
