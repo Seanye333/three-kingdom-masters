@@ -11,11 +11,14 @@ export function ConvoyModal({ onClose }: { onClose: () => void }) {
   const t = useT();
   const convoys = useGameStore((s) => s.convoys);
   const cities = useGameStore((s) => s.cities);
+  const playerForceId = useGameStore((s) => s.playerForceId);
   const recallConvoy = useGameStore((s) => s.recallConvoy);
 
   const rows = useMemo(
-    () => Object.values(convoys).sort((a, b) => a.seasonsRemaining - b.seasonsRemaining),
-    [convoys],
+    () => Object.values(convoys)
+      .filter((c) => c.forceId === playerForceId)
+      .sort((a, b) => a.seasonsRemaining - b.seasonsRemaining),
+    [convoys, playerForceId],
   );
 
   const cargoText = (c: typeof rows[number]) =>

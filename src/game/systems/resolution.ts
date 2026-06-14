@@ -15,6 +15,7 @@ import { generateTerritories, terrainRoute, positionAlongRoute, marchDestCoords,
 import { terrainMarchCost, describeBattleSite, geoToPixel, WORLD_SCALE, isLand } from '../data/geography';
 import { navalEngagement } from './navalBattle';
 import { cityPos } from '../data/cityGeo';
+import { marchDurationFor } from '../data/cities';
 import { FACILITY_DEFS, type Fort } from '../types/fort';
 import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
@@ -1420,6 +1421,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       const raided = resolveConvoyRaids(nextConvoys, dangers, cities);
       nextConvoys = raided.convoys;
       for (const r of raided.raids) {
+        if (r.convoy.forceId !== input.playerForceId) continue; // only surface the player's own convoys
         const cargo = [r.convoy.food > 0 ? `糧${r.convoy.food.toLocaleString()}` : '', r.convoy.gold > 0 ? `金${r.convoy.gold.toLocaleString()}` : '', r.convoy.troops > 0 ? `兵${r.convoy.troops.toLocaleString()}` : ''].filter(Boolean).join('、');
         entries.push({
           cityId: r.convoy.toCityId,
@@ -1428,6 +1430,31 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
           textZh: r.repelled ? `往${r.toName}之輜重擊退劫掠,押運折損。` : `往${r.toName}之輜重遭劫 — ${cargo} 盡失!`,
         });
       }
+    }
+
+    // AI 運輸 — a rival with a glutted city and a starving one runs its own
+    // grain convoy between them. These crawl the map too, so they can be raided
+    // when they pass a player stronghold (your garrison sorties on their supply).
+    const playerFid = input.playerForceId;
+    const aiByForce: Record<string, City[]> = {};
+    for (const c of Object.values(cities)) {
+      if (!c.ownerForceId || c.ownerForceId === playerFid) continue;
+      (aiByForce[c.ownerForceId] ??= []).push(c);
+    }
+    let aiSeq = 0;
+    for (const [fid, cs] of Object.entries(aiByForce)) {
+      if (cs.length < 2 || rng() >= 0.3) continue;
+      if (Object.values(nextConvoys).some((cv) => cv.forceId === fid)) continue; // one at a time
+      const sorted = [...cs].sort((a, b) => b.food - a.food);
+      const rich = sorted[0];
+      const poor = sorted[sorted.length - 1];
+      if (rich.food < 8000 || poor.food > 3000) continue;
+      const ship = Math.min(rich.food - 5000, 4000);
+      if (ship < 1000) continue;
+      cities[rich.id] = { ...cities[rich.id], food: cities[rich.id].food - ship };
+      const seasons = Math.max(2, marchDurationFor(rich, poor, input.date.season));
+      const id = `ai-convoy-${fid}-${input.date.year}-${input.date.season}-${aiSeq++}`;
+      nextConvoys[id] = { id, forceId: fid, fromCityId: rich.id, toCityId: poor.id, food: ship, gold: 0, troops: 0, seasonsRemaining: seasons, totalSeasons: seasons };
     }
   }
 
