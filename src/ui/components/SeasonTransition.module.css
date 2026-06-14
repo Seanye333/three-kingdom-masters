@@ -1,0 +1,77 @@
+/* 季度過場 — a brief water-ink card that washes over the realm when the season
+   turns (春→夏→秋→冬). Fades in, holds, fades out (~1.5s); a click skips it. */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  animation: tkmSeasonInOut 1.5s ease-in-out forwards;
+}
+
+.card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  animation: tkmSeasonCard 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.bigChar {
+  font-family: var(--tkm-font-zh, 'Ma Shan Zheng', 'Songti SC', serif);
+  font-size: clamp(5rem, 16vw, 9rem);
+  line-height: 1;
+  text-shadow: 0 0 40px currentColor;
+}
+
+.line {
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  animation: tkmSeasonLine 1.5s ease-out forwards;
+}
+
+.year {
+  font-family: var(--tkm-font-serif, 'Songti SC', serif);
+  font-size: 1.4rem;
+  letter-spacing: 0.45rem;
+  text-indent: 0.45rem;
+  color: var(--tkm-text-h1, #eef3f7);
+}
+
+.en {
+  font-size: 0.8rem;
+  letter-spacing: 0.35rem;
+  text-indent: 0.35rem;
+  text-transform: uppercase;
+  color: var(--tkm-text-muted, #7a8893);
+}
+
+@keyframes tkmSeasonInOut {
+  0% { opacity: 0; }
+  16% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes tkmSeasonCard {
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  20% { opacity: 1; transform: none; }
+  82% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-10px) scale(1.02); }
+}
+
+@keyframes tkmSeasonLine {
+  0% { width: 0; }
+  30% { width: 180px; }
+  100% { width: 180px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root { animation-duration: 0.8s; }
+  .card,
+  .line { animation: none; }
+}

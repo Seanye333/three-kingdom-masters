@@ -28,6 +28,7 @@ import { ForcesOverview } from '../components/ForcesOverview';
 import { OfficersTab } from '../components/OfficersTab';
 import { SaveSlotsModal } from '../components/SaveSlotsModal';
 import { SeasonReportModal } from '../components/SeasonReportModal';
+import { SeasonTransition } from '../components/SeasonTransition';
 import { BattleTheaterModal } from '../components/BattleTheaterModal';
 import { StrategicMap3D } from '../components/StrategicMap3D';
 import { TutorialOverlay } from '../components/TutorialOverlay';
@@ -663,6 +664,9 @@ export function MapScreen() {
         <CityPanel />
       </main>
 
+      {/* 季度過場 — washes a season card over the realm when 春→夏→秋→冬 turns,
+          settling just above the season report it then reveals. */}
+      <SeasonTransition />
       <ErrorBoundary fallbackLabel="Season report panel crashed">
         <SeasonReportModal />
       </ErrorBoundary>
