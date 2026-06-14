@@ -231,6 +231,8 @@ export interface GameState {
    *  inflation (0–100), which saps every city's tax income until it eases. 0 by
    *  default, so a realm that never mints is wholly unaffected. */
   inflation: number;
+  /** 輜重 — supply convoys (運糧/運金車) crawling between your cities. */
+  convoys: Record<EntityId, import('../systems/convoy').Convoy>;
   /** 細作開眼 — cities lit by successful espionage, ticks of intel left.
    *  Decremented each half-month; consumed by the fog-of-war view. */
   espionageReveals: Record<EntityId, number>;
@@ -407,6 +409,7 @@ export const EMPTY_STATE: GameState = {
   grudges: {},
   tradePartners: [],
   inflation: 0,
+  convoys: {},
   espionageReveals: {},
   cityDelegations: {},
   legions: [],
@@ -651,6 +654,7 @@ export function loadScenario(
     grudges: state.grudges ?? {},
     tradePartners: state.tradePartners ?? [],
     inflation: state.inflation ?? 0,
+    convoys: state.convoys ?? {},
     commandTemplates: state.commandTemplates,
     autoBuildQueues: {},
     pendingDialogue: null,

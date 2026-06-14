@@ -1946,6 +1946,81 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
   );
 }
 
+/** 輜重車隊 — supply convoys crawling the roads between the player's cities,
+ *  carrying grain (gold cart) or coin (pale cart). Mirrors the army column's
+ *  route interpolation but renders a single ox-cart and never fights. */
+function Convoys({
+  cities,
+  convoys,
+}: {
+  cities: Record<string, import('../../game/types').City>;
+  convoys: Record<string, import('../../game/systems/convoy').Convoy>;
+}) {
+  const list = useMemo(() => {
+    const out: Array<{ id: string; route: Array<{ x: number; y: number }>; t: number; gold: boolean }> = [];
+    for (const c of Object.values(convoys)) {
+      const from = cities[c.fromCityId];
+      const to = cities[c.toCityId];
+      if (!from || !to) continue;
+      const [fx, fy] = cityPixel(from.id, from.coords.x, from.coords.y);
+      const [tx, ty] = cityPixel(to.id, to.coords.x, to.coords.y);
+      const route = terrainRoute(fx, fy, tx, ty);
+      const elapsed = c.totalSeasons - c.seasonsRemaining;
+      const t = Math.min(0.96, Math.max(0.04, (elapsed + 0.5) / Math.max(1, c.totalSeasons)));
+      out.push({ id: c.id, route, t, gold: c.gold > 0 && c.food <= 0 });
+    }
+    return out;
+  }, [cities, convoys]);
+
+  return (
+    <>
+      {list.map((c) => (
+        <ConvoyCart key={c.id} route={c.route} t={c.t} gold={c.gold} />
+      ))}
+    </>
+  );
+}
+
+function ConvoyCart({ route, t, gold }: { route: Array<{ x: number; y: number }>; t: number; gold: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (!groupRef.current || route.length === 0) return;
+    const here = positionAlongRoute(route, t);
+    const ahead = positionAlongRoute(route, Math.min(0.99, t + 0.05));
+    const [wx, wz] = pxToWorld(here.x, here.y);
+    const [wx2, wz2] = pxToWorld(ahead.x, ahead.y);
+    groupRef.current.position.set(wx, sampleTerrainHeight(wx, wz) + 0.05, wz);
+    if (wx2 !== wx || wz2 !== wz) groupRef.current.rotation.y = Math.atan2(wx2 - wx, wz2 - wz);
+  });
+  const cargoColor = gold ? '#e8c84a' : '#d8c88a';
+  return (
+    <group ref={groupRef} scale={ARMY_TOKEN_SCALE * 0.8}>
+      {/* cart bed */}
+      <mesh position={[0, 0.16, 0]} castShadow>
+        <boxGeometry args={[0.34, 0.18, 0.5]} />
+        <meshStandardMaterial color="#6a4a28" roughness={0.9} />
+      </mesh>
+      {/* cargo heap */}
+      <mesh position={[0, 0.32, 0]} castShadow>
+        <boxGeometry args={[0.28, 0.16, 0.42]} />
+        <meshStandardMaterial color={cargoColor} roughness={0.85} />
+      </mesh>
+      {/* two wheels */}
+      {([-0.2, 0.2] as const).map((sx, i) => (
+        <mesh key={i} position={[sx, 0.08, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.09, 0.09, 0.05, 8]} />
+          <meshStandardMaterial color="#2a1c10" />
+        </mesh>
+      ))}
+      {/* draft ox up front */}
+      <mesh position={[0, 0.16, -0.42]} castShadow>
+        <boxGeometry args={[0.18, 0.18, 0.3]} />
+        <meshStandardMaterial color="#4a3420" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
 /** Drifting dust puffs kicked up behind the marching column. */
 function MarchDust() {
   const ref = useRef<THREE.Group>(null);
@@ -5680,6 +5755,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
   const mergeArmyInto = useGameStore((s) => s.mergeArmyInto);
   const startFieldBattle = useGameStore((s) => s.startFieldBattle);
   const armiesState = useGameStore((s) => s.armies);
+  const convoysState = useGameStore((s) => s.convoys);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const handleArmyClick = (officerId: string) => {
     const clicked = armiesState[officerId];
@@ -5904,6 +5980,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <Landmarks3D cities={cities} />
       <UniqueLandmarks3D cities={cities} />
       <MarchingArmies cities={cities} pendingCommands={visibleCommands} forces={forces} officers={officers} ports={portsForMarch} selectedArmyId={selectedArmyId3D} onArmyClick={handleArmyClick} hideNearPx={battleSitePx} />
+      <Convoys cities={cities} convoys={convoysState} />
       {overlayMode === 'supply' && <SupplyLines3D />}
       {overlayMode === 'diplomacy' && <DiplomacyLines3D cities={cities} forces={forces} />}
       <FieldBattleMarks3D marks={fieldBattleMarks} />

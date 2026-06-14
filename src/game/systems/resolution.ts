@@ -22,6 +22,7 @@ import { handleSearch, resolveInternalAffairs, type LostItemRef } from './comman
 import { handleMarch } from './combat';
 import { tickDiplomacy } from './diplomacy';
 import { tickCityEconomy, tradeTreatyGrants } from './economy';
+import { stepConvoys, type Convoy } from './convoy';
 import { appointmentBonusFor } from './appointmentEffects';
 import { MILITARY_RANKS_BY_ID } from '../data/titles';
 import { rollEvents } from './events';
@@ -60,6 +61,8 @@ export interface ResolutionInput {
   tradePartners?: EntityId[];
   /** 通貨膨脹 — the player's inflation level (0–100); saps player tax income. */
   inflation?: number;
+  /** 輜重 — supply convoys in transit between the player's cities. */
+  convoys?: Record<EntityId, Convoy>;
   rng?: () => number;
   weather?: import('./weather').Weather;
   /**
@@ -89,6 +92,8 @@ export interface ResolutionOutput {
   /** Persistent field armies still on the map after this season (derived
    *  from in-transit marches — the canonical "unit on the map" layer). */
   armies?: Record<EntityId, import('../types').Army>;
+  /** 輜重 — supply convoys still in transit after this season's step. */
+  convoys?: Record<EntityId, Convoy>;
   /** Field-battle sites this season (ambush/camp-storm/clash) to mark on the
    *  map. Coords in 1000×720 map space. */
   fieldBattleMarks?: Array<{
@@ -1363,6 +1368,26 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   // 7. Advance date.
   const nextDate = advanceSeason(input.date);
 
+  // 8. 輜重 — advance supply convoys; the cargo of those that arrive empties
+  // into the destination city (forfeited if it fell mid-haul). Season only.
+  let nextConvoys = input.convoys ?? {};
+  if (seasonBoundary && Object.keys(nextConvoys).length > 0) {
+    const stepped = stepConvoys(nextConvoys, cities);
+    nextConvoys = stepped.convoys;
+    cities = stepped.cities;
+    for (const a of stepped.arrivals) {
+      const parts: string[] = [];
+      if (a.convoy.food > 0) parts.push(`糧 +${a.convoy.food.toLocaleString()}`);
+      if (a.convoy.gold > 0) parts.push(`金 +${a.convoy.gold.toLocaleString()}`);
+      entries.push({
+        cityId: a.convoy.toCityId,
+        kind: 'income',
+        text: `Supply convoy reached ${a.toName}: ${parts.join(', ') || 'empty'}.`,
+        textZh: `輜重抵 ${a.toName}：${parts.join('、') || '空車'}。`,
+      });
+    }
+  }
+
   return {
     date: nextDate,
     cities,
@@ -1373,6 +1398,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     report: { date: { year: input.date.year, season: input.date.season }, entries },
     keptCommands: Object.keys(keptCommands).length > 0 ? keptCommands : undefined,
     armies: outArmies,
+    convoys: nextConvoys,
     territoryOwnership,
     fieldBattleMarks: fieldBattleMarks.length > 0 ? fieldBattleMarks : undefined,
     pendingFieldBattles: pendingFieldBattles.length > 0 ? pendingFieldBattles : undefined,

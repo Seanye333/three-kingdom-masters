@@ -193,15 +193,16 @@ export function CityPanel() {
 }
 
 /**
- * 運糧 — ship grain from this city to another of yours. Adjacent cities (linked
- * on the supply network) arrive in full; a longer haul loses 12% on the road.
+ * 運糧 / 運金 — dispatch a supply cart from this city to another of yours. It
+ * crawls the map over a few seasons and empties on arrival; adjacent hauls
+ * (on the supply network) arrive in full, longer ones lose 12% on the road.
  */
 function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPlayerCity: boolean }) {
   const t = useT();
   const lang = useLanguage();
   const allCities = useGameStore((s) => s.cities);
   const playerForceId = useGameStore((s) => s.playerForceId);
-  const transferGrain = useGameStore((s) => s.transferGrain);
+  const dispatchConvoy = useGameStore((s) => s.dispatchConvoy);
   const [open, setOpen] = useState(false);
   const [destId, setDestId] = useState('');
   const city = allCities[cityId];
@@ -214,18 +215,29 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
   if (!isPlayerCity || !city || dests.length === 0) return null;
   const dest = allCities[destId] ?? dests[0];
   const adjacent = dest ? city.adjacentCityIds.includes(dest.id) : false;
-  const amounts = [1000, 5000, Math.floor(city.food / 2)].filter((a) => a >= 500);
+  const foodAmts = [1000, 5000, Math.floor(city.food / 2)].filter((a) => a >= 500);
+  const goldAmts = [500, 2000, Math.floor(city.gold / 2)].filter((a) => a >= 200);
   const btn: CSSProperties = {
     background: '#2a1f15', border: '1px solid #3a2d20', color: '#d4a84a',
     padding: '0.2rem 0.55rem', fontFamily: 'inherit', fontSize: '0.72rem', cursor: 'pointer',
   };
+  const row = (label: string, amts: number[], have: number, cargo: 'food' | 'gold') => (
+    <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
+      <span style={{ fontSize: '0.72rem', color: '#8a7050', minWidth: '2.2rem' }}>{label}</span>
+      {amts.map((a) => (
+        <button key={a} style={btn} disabled={have < a} onClick={() => dest && dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0)}>
+          {a.toLocaleString()}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <section className={styles.section}>
       <h3 className={styles.sectionTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span>{t('運糧', 'Ship Grain')}</span>
+        <span>{t('輜重', 'Convoy')}</span>
         <button onClick={() => setOpen((v) => !v)} style={{ ...btn, fontSize: '0.65rem' }}>
-          {open ? t('收起', 'close') : t('調撥 ⇨', 'ship ⇨')}
+          {open ? t('收起', 'close') : t('派車 ⇨', 'send ⇨')}
         </button>
       </h3>
       {open && (
@@ -237,20 +249,15 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
           >
             {dests.map((c) => (
               <option key={c.id} value={c.id}>
-                {(lang === 'en' ? c.name.en : c.name.zh)} · {t('糧', 'grain')} {c.food.toLocaleString()}{city.adjacentCityIds.includes(c.id) ? t(' · 鄰', ' · adj') : ''}
+                {(lang === 'en' ? c.name.en : c.name.zh)} · {t('糧', 'grain')}{c.food.toLocaleString()}{city.adjacentCityIds.includes(c.id) ? t(' · 鄰', ' · adj') : ''}
               </option>
             ))}
           </select>
-          <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {amounts.map((a) => (
-              <button key={a} style={btn} disabled={city.food < a} onClick={() => dest && transferGrain(cityId, dest.id, a)}>
-                {a.toLocaleString()}
-              </button>
-            ))}
-            <span style={{ fontSize: '0.68rem', color: adjacent ? '#7ed68a' : '#e0a070' }}>
-              {adjacent ? t('鄰城直運,無耗', 'adjacent — no loss') : t('遠運耗 12%', '−12% en route')}
-            </span>
-          </div>
+          {row(t('運糧', 'Grain'), foodAmts, city.food, 'food')}
+          {row(t('運金', 'Gold'), goldAmts, city.gold, 'gold')}
+          <span style={{ fontSize: '0.68rem', color: adjacent ? '#7ed68a' : '#e0a070' }}>
+            {adjacent ? t('鄰城直運,無耗,1 季抵達', 'adjacent — no loss, ~1 season') : t('遠運耗 12%,需數季', '−12% en route, a few seasons')}
+          </span>
         </div>
       )}
     </section>

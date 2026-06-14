@@ -245,9 +245,11 @@ interface GameStore extends GameState {
   welcomeEmperor: () => { ok: boolean; reason?: string };
   /** 市易 — convert gold↔food at the city's current market rate. */
   tradeFood: (cityId: EntityId, kind: 'buy' | 'sell', amount: number) => { ok: boolean; got: number };
-  /** 運糧 — ship grain from one of your cities to another. Adjacent cities (on
-   *  the supply network) arrive in full; a longer haul loses 12% on the road. */
-  transferGrain: (fromCityId: EntityId, toCityId: EntityId, amount: number) => { ok: boolean; delivered: number };
+  /** 運糧/運金 — dispatch a supply convoy carrying grain and/or gold from one of
+   *  your cities to another. It crawls the map over `seasons` and empties its
+   *  cargo on arrival; adjacent hauls arrive in full, longer ones lose 12% on
+   *  the road. Cargo is deducted from the source at dispatch. */
+  dispatchConvoy: (fromCityId: EntityId, toCityId: EntityId, food: number, gold: number) => { ok: boolean; seasons: number };
   /** 借糧 — ask a friendly force to send grain to your capital. Allies and NAP
    *  partners (or anyone you're on good terms with) oblige; the grain comes out
    *  of their own stores. */
@@ -1232,30 +1234,46 @@ export const useGameStore = create<GameStore>()(
         return { ok: true, got: gold };
       },
 
-      transferGrain: (fromCityId, toCityId, amount) => {
+      dispatchConvoy: (fromCityId, toCityId, food, gold) => {
         const state = get();
+        const pid = state.playerForceId;
+        if (!pid) return { ok: false, seasons: 0 };
         const from = state.cities[fromCityId];
         const to = state.cities[toCityId];
-        if (!from || !to || fromCityId === toCityId) return { ok: false, delivered: 0 };
-        if (from.ownerForceId !== state.playerForceId || to.ownerForceId !== state.playerForceId) return { ok: false, delivered: 0 };
-        const ship = Math.min(Math.max(0, Math.floor(amount)), from.food);
-        if (ship <= 0) return { ok: false, delivered: 0 };
+        if (!from || !to || fromCityId === toCityId) return { ok: false, seasons: 0 };
+        if (from.ownerForceId !== pid || to.ownerForceId !== pid) return { ok: false, seasons: 0 };
+        const shipFood = Math.min(Math.max(0, Math.floor(food)), from.food);
+        const shipGold = Math.min(Math.max(0, Math.floor(gold)), from.gold);
+        if (shipFood <= 0 && shipGold <= 0) return { ok: false, seasons: 0 };
         // 漕運損耗 — adjacent cities ship along the supply network with no loss;
         // a longer overland haul spills 12% to spoilage and escort rations.
         const adjacent = from.adjacentCityIds.includes(toCityId);
-        const delivered = adjacent ? ship : Math.floor(ship * 0.88);
+        const keep = adjacent ? 1 : 0.88;
+        const arriveFood = Math.floor(shipFood * keep);
+        const arriveGold = Math.floor(shipGold * keep);
+        const seasons = Math.max(1, marchDurationFor(from, to, state.date.season));
+        const id = `convoy-${fromCityId}-${toCityId}-${state.date.year}-${state.date.season}-${Object.keys(state.convoys ?? {}).length}`;
         set({
           cities: {
             ...state.cities,
-            [fromCityId]: { ...from, food: from.food - ship },
-            [toCityId]: { ...to, food: to.food + delivered },
+            [fromCityId]: { ...from, food: from.food - shipFood, gold: from.gold - shipGold },
+          },
+          convoys: {
+            ...state.convoys,
+            [id]: {
+              id, forceId: pid,
+              fromCityId, toCityId,
+              food: arriveFood, gold: arriveGold,
+              seasonsRemaining: seasons, totalSeasons: seasons,
+            },
           },
         });
+        const cargo = [arriveFood > 0 ? `糧 ${arriveFood.toLocaleString()}` : '', arriveGold > 0 ? `金 ${arriveGold.toLocaleString()}` : ''].filter(Boolean).join('、');
         get().notify(
-          `運糧 · ${from.name.zh} → ${to.name.zh} 糧 ${delivered.toLocaleString()}${adjacent ? '' : `（耗 ${(ship - delivered).toLocaleString()}）`}`,
-          `Grain · ${from.name.en} → ${to.name.en}: ${delivered.toLocaleString()}${adjacent ? '' : ` (−${(ship - delivered).toLocaleString()} en route)`}`,
+          `輜重啟運 · ${from.name.zh} → ${to.name.zh}(${cargo},${seasons}季抵達)`,
+          `Convoy dispatched · ${from.name.en} → ${to.name.en} (${seasons} seasons)`,
         );
-        return { ok: true, delivered };
+        return { ok: true, seasons };
       },
 
       createLegion: (legion) => {
@@ -1676,6 +1694,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           taxPolicy: state.taxPolicy,
           tradePartners: state.tradePartners,
           inflation: state.inflation,
+          convoys: state.convoys,
           seasonBoundary,
         });
         // Prepend AI diplomatic announcements to the report.
@@ -3303,6 +3322,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           tradeRoutes: nextTradeRoutes,
           territoryOwnership: result.territoryOwnership ?? state.territoryOwnership ?? {},
           armies: result.armies ?? {},
+          convoys: result.convoys ?? {},
           endingsAchieved,
           campaignStats: {
             ...state.campaignStats,
