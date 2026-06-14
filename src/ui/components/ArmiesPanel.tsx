@@ -104,26 +104,41 @@ export function ArmiesPanel() {
         const remaining = Math.max(1, Math.round((1 - a.progress) * a.totalSeasons));
         const troopLabel = a.troops >= 1000 ? `${(a.troops / 1000).toFixed(1)}k` : `${a.troops}`;
         const selected = a.id === selectedArmyId;
+        const pct = Math.max(0, Math.min(100, Math.round(a.progress * 100)));
+        const dest = a.cellTarget ? '野地' : (target?.name.zh ?? '?');
+        // Three unambiguous states: 駐守 (parked, won't move) · 行軍 (advancing) ·
+        // 抵達在即 (arriving next season).
+        const status = a.holding
+          ? { icon: '⏸', text: '駐守', color: '#a8c87a', tip: '原地駐守,本季不前進(可「解除」續行)' }
+          : remaining <= 1
+            ? { icon: '⚑', text: `${dest}·抵達在即`, color: '#f0d98a', tip: '下季抵達目的地' }
+            : { icon: '▸', text: `${dest}·${remaining}季`, color: '#c0a878', tip: `行軍中 · 已行 ${pct}%` };
         return (
           <div
             key={a.id}
             onClick={() => selectArmy(selected ? null : a.id)}
+            title={status.tip}
             style={{
-              display: 'flex', justifyContent: 'space-between', gap: 6, lineHeight: 1.5,
-              cursor: 'pointer', padding: '0 2px',
+              lineHeight: 1.4, cursor: 'pointer', padding: '1px 2px',
               background: selected ? 'rgba(212, 168, 74, 0.22)' : 'transparent',
               outline: selected ? '1px solid #d4a84a' : 'none',
             }}
           >
-            <span style={{ color: '#ffe9a8', whiteSpace: 'nowrap' }}>
-              {cmdr?.name.zh ?? '？'}
-              <span style={{ color: '#8a7050', marginLeft: 4, fontSize: '0.62rem', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}</span>
-            </span>
-            <span style={{ color: a.holding ? '#a8c87a' : '#c0a878', whiteSpace: 'nowrap' }}>
-              {a.holding ? '駐守中'
-                : a.cellTarget ? `▸野地 ${a.totalSeasons > 1 ? `${remaining}季` : ''}`
-                : `▸${target?.name.zh ?? '?'} ${a.totalSeasons > 1 ? `${remaining}季` : ''}`}
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              <span style={{ color: '#ffe9a8', whiteSpace: 'nowrap' }}>
+                {cmdr?.name.zh ?? '？'}
+                <span style={{ color: '#8a7050', marginLeft: 4, fontSize: '0.62rem', fontFamily: 'ui-monospace, monospace' }}>{troopLabel}</span>
+              </span>
+              <span style={{ color: status.color, whiteSpace: 'nowrap' }}>
+                {status.icon} {status.text}
+              </span>
+            </div>
+            {/* advancement bar — only for armies actually on the move */}
+            {!a.holding && a.totalSeasons > 1 && (
+              <div style={{ height: 3, background: '#2a2010', borderRadius: 2, marginTop: 1, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: status.color, transition: 'width 0.3s' }} />
+              </div>
+            )}
           </div>
         );
       })}
