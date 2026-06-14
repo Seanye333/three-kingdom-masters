@@ -29,6 +29,28 @@
   animation: tkmModalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* scrollBody mode: a fixed header sits above a body that scrolls on its own,
+   so long lists don't carry the title away. The frame itself stops scrolling. */
+.frameScroll {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.frameScroll .headerBar {
+  padding: 0.9rem 1.3rem;
+  border-bottom: 1px solid var(--tkm-border, #2b3845);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.bodyScroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+}
+
 @keyframes tkmBackdropIn {
   from { opacity: 0; }
   to { opacity: 1; }

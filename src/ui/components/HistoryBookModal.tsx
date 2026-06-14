@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { composeHistoryBook, historyBookToText } from '../../game/systems/historyBook';
 import { useT } from '../i18n';
+import { Modal } from './Modal';
 
 /**
  * 本朝史書 — the compiled scroll, readable mid-campaign (annals so far)
@@ -38,34 +39,23 @@ export function HistoryBookModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div
-      onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}
+    <Modal
+      onClose={onClose}
+      scrollBody
+      width="min(680px, 100%)"
+      maxHeight="88vh"
+      padding="1rem 1.6rem"
+      frameStyle={{ background: 'linear-gradient(160deg,#2e2418,#10161e)', border: '1px solid #c9a64e' }}
+      icon="📜"
+      title={`《${forceName}本紀》`}
+      badge={victoryStatus === 'playing' ? t('未完之卷 — 至今實錄', 'The unfinished scroll — annals so far') : t('定本', 'Definitive edition')}
+      headerRight={
+        <button
+          onClick={exportText}
+          style={{ background: '#1b2531', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#e6c473', padding: '0.3rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem' }}
+        >⬇ {t('導出', 'Export')}</button>
+      }
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'linear-gradient(160deg,#2e2418,#10161e)', border: '1px solid #c9a64e',
-          width: 'min(680px,100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column',
-          color: '#e6edf3', fontFamily: 'var(--tkm-font-body)',
-        }}
-      >
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '1rem 1.4rem', borderBottom: '1px solid #2b3845' }}>
-          <div>
-            <div style={{ fontSize: '1.35rem', color: '#e6c473', letterSpacing: '0.1rem' }}>📜 《{forceName}本紀》</div>
-            <div style={{ fontSize: '0.72rem', color: '#7a8893', fontStyle: 'italic' }}>
-              {victoryStatus === 'playing' ? t('未完之卷 — 至今實錄', 'The unfinished scroll — annals so far') : t('定本', 'Definitive edition')}
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={exportText}
-              style={{ background: '#1b2531', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#e6c473', padding: '0.3rem 0.8rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem' }}
-            >⬇ {t('導出', 'Export')}</button>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
-          </div>
-        </header>
-        <div style={{ overflowY: 'auto', padding: '1rem 1.6rem', flex: 1 }}>
           {sections.map((sec) => (
             <div key={sec.title} style={{ marginBottom: '1.1rem' }}>
               <div style={{
@@ -77,8 +67,6 @@ export function HistoryBookModal({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           ))}
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

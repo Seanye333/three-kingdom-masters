@@ -17,8 +17,10 @@ export interface ModalProps {
   maxHeight?: string;
   /** Stacking order of the backdrop. Default 900. */
   zIndex?: number;
-  /** Padding of the frame interior. Default '1rem 1.2rem'. */
+  /** Padding of the frame interior (or of the scrolling body, when scrollBody). Default '1rem 1.2rem'. */
   padding?: string;
+  /** Fixed header above a self-scrolling body — for long lists that mustn't carry the title away. */
+  scrollBody?: boolean;
   /** Hide the × close button (rare — confirm dialogs that own their buttons). */
   hideClose?: boolean;
   /** Whether clicking the backdrop closes. Default true. */
@@ -49,6 +51,7 @@ export function Modal({
   maxHeight = '86vh',
   zIndex = 900,
   padding = '1rem 1.2rem',
+  scrollBody = false,
   hideClose = false,
   closeOnBackdrop = true,
   closeOnEsc = true,
@@ -68,6 +71,30 @@ export function Modal({
 
   const hasHeader = title != null || icon != null || headerRight != null || !hideClose;
 
+  const frameClasses = [styles.frame];
+  if (scrollBody) frameClasses.push(styles.frameScroll);
+  if (className) frameClasses.push(className);
+
+  const header = hasHeader ? (
+    <div className={scrollBody ? `${styles.header} ${styles.headerBar}` : styles.header}>
+      <div className={styles.title}>
+        {icon != null && <span className={styles.icon}>{icon}</span>}
+        {title}
+        {badge != null && <span className={styles.badge}>{badge}</span>}
+      </div>
+      {(headerRight != null || !hideClose) && (
+        <div className={styles.headerRight}>
+          {headerRight}
+          {!hideClose && (
+            <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
+              ×
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  ) : null;
+
   return (
     <div
       className={styles.backdrop}
@@ -76,38 +103,26 @@ export function Modal({
       role="presentation"
     >
       <div
-        className={className ? `${styles.frame} ${className}` : styles.frame}
-        style={{ width, maxHeight, padding, ...frameStyle }}
+        className={frameClasses.join(' ')}
+        style={{ width, maxHeight, ...(scrollBody ? null : { padding }), ...frameStyle }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
       >
-        {hasHeader && (
-          <div className={styles.header}>
-            <div className={styles.title}>
-              {icon != null && <span className={styles.icon}>{icon}</span>}
-              {title}
-              {badge != null && <span className={styles.badge}>{badge}</span>}
+        {scrollBody ? (
+          <>
+            {header}
+            <div className={styles.bodyScroll} style={{ padding }}>
+              {children}
             </div>
-            {(headerRight != null || !hideClose) && (
-              <div className={styles.headerRight}>
-                {headerRight}
-                {!hideClose && (
-                  <button
-                    type="button"
-                    className={styles.closeBtn}
-                    onClick={onClose}
-                    aria-label="Close"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          </>
+        ) : (
+          <>
+            {header}
+            {children}
+          </>
         )}
-        {children}
       </div>
     </div>
   );

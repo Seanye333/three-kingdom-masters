@@ -5,6 +5,7 @@ import {
 } from '../../game/systems/achievements';
 import type { AchievementProgress } from '../../game/types';
 import { useDesc } from '../i18n';
+import { Modal } from './Modal';
 
 interface Props {
   onClose: () => void;
@@ -29,42 +30,15 @@ export function AchievementsModal({ onClose }: Props) {
   const completedCount = Object.keys(done).length;
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.75)',
-        display: 'grid', placeItems: 'center',
-        zIndex: 900, padding: '1rem',
-      }}
-      onClick={onClose}
+    <Modal
+      onClose={onClose}
+      scrollBody
+      padding="0"
+      width="min(900px, 100%)"
+      maxHeight="90vh"
+      title="勳功"
+      badge={`Achievements (${completedCount} / ${ACHIEVEMENTS.length})`}
     >
-      <div
-        style={{
-          background: 'linear-gradient(160deg,#1b2531,#10161e)',
-          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-          width: 'min(900px,100%)',
-          maxHeight: '90vh',
-          display: 'flex', flexDirection: 'column',
-          color: '#e6edf3',
-          fontFamily: 'var(--tkm-font-body)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header
-          style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-            padding: '1rem 1.5rem', borderBottom: '1px solid #2b3845',
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '1.4rem', color: '#e6c473', letterSpacing: '0.07rem' }}>勳功</div>
-            <div style={{ fontSize: '0.85rem', color: '#7a8893', fontStyle: 'italic' }}>
-              Achievements ({completedCount} / {ACHIEVEMENTS.length})
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-        </header>
-
         {progress && (
           <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid #2b3845', fontSize: '0.78rem', color: '#aab6c0', fontFamily: 'ui-monospace, monospace' }}>
             Total kills: {progress.counters.kills.toLocaleString()} ·
@@ -122,7 +96,6 @@ export function AchievementsModal({ onClose }: Props) {
             );
           })}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { useT } from '../i18n';
+import { Modal } from './Modal';
 
 /**
  * 大勢 — the realm as lines: one per living force, power over time.
@@ -70,22 +71,7 @@ export function PowerGraphModal({ onClose }: { onClose: () => void }) {
   }, [history, forces, cities]);
 
   return (
-    <div
-      onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 900, padding: '1rem' }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-          width: 'min(640px,100%)', color: '#e6edf3',
-          fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.3rem',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-          <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.08rem' }}>📈 {t('天下大勢', 'Balance of Power')}</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#e6c473', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
-        </div>
+    <Modal onClose={onClose} width="min(640px, 100%)" padding="1rem 1.3rem" icon="📈" title={t('天下大勢', 'Balance of Power')}>
         {history.length < 2 ? (
           <div style={{ color: '#7a8893', fontSize: '0.85rem', padding: '1.5rem 0' }}>
             {t('史官尚在磨墨 — 過幾旬再來看曲線。', 'The historians are still grinding ink — give it a few seasons.')}
@@ -155,7 +141,6 @@ export function PowerGraphModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }
