@@ -1193,9 +1193,12 @@ export function attackUnits(
   if (attackerDemoralized) damage = Math.floor(damage * 0.8);
   if (attackerStarving) damage = Math.floor(damage * 0.85); // 糧盡兵疲
 
-  // Critical hit on natural high roll.
-  const isCrit = rng() < 0.12;
-  if (isCrit) damage = Math.floor(damage * 1.6);
+  // 特技臨陣 — martial skills make the blow tell: more frequent, harder crits.
+  const MARTIAL = ['god-of-war', 'flying-general', 'sage-of-war', 'brave', 'tiger-vanguard',
+    'little-conqueror', 'tiger-of-jiangdong', 'iron-vow'];
+  const martialSkill = (ao?.skills ?? []).find((s) => MARTIAL.includes(s));
+  const isCrit = rng() < (martialSkill ? 0.22 : 0.12);
+  if (isCrit) damage = Math.floor(damage * (martialSkill ? 1.8 : 1.6));
 
   const newTroops = Math.max(0, target.troops - damage);
   const moraleLoss = Math.floor((damage / Math.max(1, target.maxTroops)) * 50);
@@ -1219,7 +1222,7 @@ export function attackUnits(
     {
       id: `dmg-${Date.now()}-1`,
       coord: target.coord,
-      text: `${fromRear ? '背 ' : ''}-${damage.toLocaleString()}${isCrit ? '!' : ''}`,
+      text: `${martialSkill && isCrit ? '★' : ''}${fromRear ? '背 ' : ''}-${damage.toLocaleString()}${isCrit ? '!' : ''}`,
       color: isCrit ? '#ffce4a' : fromRear ? '#ff9a3a' : '#ff6a4a',
       spawnedAt: Date.now(),
     },
@@ -1236,6 +1239,13 @@ export function attackUnits(
 
   // Voice lines.
   const log = b.log ? [...b.log] : [];
+  if (isCrit && martialSkill && ao) {
+    const SKILL_ZH: Record<string, string> = {
+      'god-of-war': '武神', 'flying-general': '飛將', 'sage-of-war': '兵聖', 'brave': '勇猛',
+      'tiger-vanguard': '虎臣', 'little-conqueror': '小霸王', 'tiger-of-jiangdong': '江東之虎', 'iron-vow': '鐵誓',
+    };
+    log.push({ turn: b.turn, text: `${ao.name.zh}【${SKILL_ZH[martialSkill] ?? '武技'}】會心一擊!`, kind: 'event' });
+  }
   const attackVoice = pickVoiceLine(attacker.officerId, isCrit ? 'critical' : 'attack', rng);
   if (attackVoice) {
     log.push({ turn: b.turn, text: attackVoice, speaker: attacker.officerId, kind: 'voice' });
