@@ -5800,7 +5800,9 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <Ocean />
       {season !== 'winter' && <CoastFoam />}
       {mapStyle === 'classic' && <Lakes3D />}
-      {mapStyle === 'classic' && <RiverRibbons frozen={season === 'winter'} />}
+      {/* 河流流光 — the smooth shimmering ribbon rides BOTH maps; on the hex
+          quilt it flows as living water down the blue channel of river tiles. */}
+      <RiverRibbons frozen={season === 'winter'} />
       {mapStyle === 'classic' && season === 'winter' && <SnowBlanket />}
       {season !== 'winter' && <SeasonGroundTint season={season} />}
       {/* Forests plant at the shared height function, so the same trees stand
