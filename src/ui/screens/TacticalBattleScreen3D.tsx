@@ -1029,6 +1029,9 @@ function UnitMesh({
             {unit.effects.some((e) => e.kind === 'burning') && (
               <span style={{ color: '#f55a20', marginLeft: 3 }}>🔥</span>
             )}
+            {unit.effects.some((e) => e.kind === 'starving') && (
+              <span style={{ color: '#caa45a', marginLeft: 3 }} title="糧盡兵疲">糧</span>
+            )}
           </div>
           <div style={{
             height: 2,
@@ -3654,6 +3657,14 @@ export function TacticalBattleScreen3D() {
         <span style={{ fontSize: '0.85rem', color: '#d4a84a' }}>
           {t('第', 'Turn')} {battle.turn} {t('回', '')} · {myTurn ? <span style={{ color: '#7ed68a' }}>{t('我方回合', 'YOUR TURN')}</span> : <span style={{ color: '#ff7050' }}>{t('敵方回合', 'ENEMY TURN')}</span>}
         </span>
+        {battle.turn >= 10 && (
+          <span style={{
+            fontSize: '0.72rem', padding: '2px 7px',
+            background: 'rgba(90,40,20,0.5)', border: '1px solid #c0703a', color: '#e0a070',
+          }} title="久戰糧道枯竭 — 雙方傷害遞減">
+            ⏳ {t('久戰', 'Fatigue')} −{Math.min(40, 5 * (battle.turn - 9))}%
+          </span>
+        )}
         {myTurn && (() => {
           const live = battle.units.filter((u) => u.side === playerSide && u.troops > 0);
           const ready = live.filter((u) => u.ap > 0).length;
