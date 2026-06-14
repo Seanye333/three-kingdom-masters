@@ -3145,10 +3145,13 @@ export function TacticalBattleScreen3D() {
     }
   }, [battle, officers, playerSide, start, battleSpeed, difficulty, autoPilot]);
 
-  // Show results modal when a winner is decided.
+  // 勝負定格 — on decision, a dramatic camera kick (FOV punch + hitstop) and a
+  // slam-in banner play before the results modal slides in.
   useEffect(() => {
     if (battle?.winner && !showResults) {
-      const id = setTimeout(() => setShowResults(true), 800);
+      const won = playerSide && battle.winner === playerSide;
+      setCine({ key: ++cineCount.current, weight: 3, color: won ? '#ffd54a' : '#ff5030' });
+      const id = setTimeout(() => setShowResults(true), 1500);
       return () => clearTimeout(id);
     }
   }, [battle?.winner, showResults]);
@@ -3673,6 +3676,33 @@ export function TacticalBattleScreen3D() {
           );
         })()}
       </div>
+
+      {/* 勝負定格 — the big character slams in over the frozen field, holds a
+          beat, then hands off to the results modal. */}
+      {battle.winner && !showResults && (() => {
+        const won = !!playerSide && battle.winner === playerSide;
+        const ch = won ? '勝' : '敗';
+        const col = won ? '#ffd54a' : '#e8584a';
+        const sub = won ? t('凱旋', 'Victory') : t('敗北', 'Defeat');
+        return (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 1500, pointerEvents: 'none',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.5) 100%)',
+          }}>
+            <div className="tkm-victory-slam" style={{
+              fontFamily: 'Songti SC, serif', fontWeight: 'bold', fontSize: 'min(40vh, 30vw)',
+              color: col, lineHeight: 1,
+              textShadow: `0 0 30px ${col}, 0 0 8px #000, 4px 6px 0 rgba(0,0,0,0.5)`,
+            }}>{ch}</div>
+            <div className="tkm-victory-sub" style={{
+              fontFamily: 'Songti SC, serif', fontSize: 'clamp(1rem, 4vw, 2rem)',
+              color: col, letterSpacing: '0.4rem', marginTop: '0.5rem',
+              textShadow: '0 2px 8px #000',
+            }}>{sub}</div>
+          </div>
+        );
+      })()}
 
       {showResults && battle.winner && (
         <BattleResultsModal

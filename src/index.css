@@ -946,3 +946,17 @@ button:not(:disabled):active {
 }
 .tkm-action-toast { animation: tkmActionToast 2.4s ease-out forwards; }
 @media (prefers-reduced-motion: reduce) { .tkm-action-toast { animation: none; } }
+
+/* 戰鬥定格 — victory/defeat character slams in over the frozen battlefield. */
+@keyframes tkmVictorySlam {
+  0%   { opacity: 0; transform: scale(2.6); filter: blur(6px); }
+  55%  { opacity: 1; transform: scale(0.92); filter: blur(0); }
+  70%  { transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.tkm-victory-slam { animation: tkmVictorySlam 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+@keyframes tkmVictorySub { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+.tkm-victory-sub { animation: tkmVictorySub 0.5s ease-out 0.45s both; }
+@media (prefers-reduced-motion: reduce) {
+  .tkm-victory-slam, .tkm-victory-sub { animation: none; opacity: 1; }
+}
