@@ -8,6 +8,7 @@ import { TrainingPicker } from './TrainingPicker';
 import { cityHasAcademy, cityHasMentors } from '../../game/systems/training';
 import { foodRate } from '../../game/systems/market';
 import { OfficerPicker } from './OfficerPicker';
+import { Icon, type IconName } from './Icon';
 import styles from './CommandMenu.module.css';
 import { useT, useLanguage, useDesc } from '../i18n';
 
@@ -17,8 +18,8 @@ interface Props {
 
 const EMPTY_DELEGATIONS: Record<string, string> = {};
 
-const INTERNAL_ORDER: InternalAffairsType[] = [
-  // ── Basic (always available) ──
+// 基本內政 — always available.
+const BASIC_ORDER: InternalAffairsType[] = [
   'develop-agriculture',
   'develop-commerce',
   'build-defense',
@@ -27,7 +28,9 @@ const INTERNAL_ORDER: InternalAffairsType[] = [
   'garrison',
   'search',
   'encourage-migration',
-  // ── Tier-2 (requires 城 tier+) ──
+];
+// 大型工程 — unlocked once the city reaches a higher tier.
+const MAJOR_ORDER: InternalAffairsType[] = [
   'major-agriculture',
   'major-commerce',
   'major-defense',
@@ -84,6 +87,48 @@ export function CommandMenu({ cityId }: Props) {
   );
   const governorId = delegations[cityId];
   const governor = governorId ? officersMap[governorId] : null;
+
+  const currentSize = citySize(city);
+  const majorUnlocked = MAJOR_ORDER.some((type) => meetsMinSize(currentSize.id, COMMAND_DEFS[type].minSize));
+
+  // Small full-width divider that labels a band of related orders.
+  const groupHead = (key: string, icon: IconName, label: string) => (
+    <div
+      key={key}
+      style={{
+        gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 6,
+        fontSize: '0.64rem', color: '#8a98a4', letterSpacing: '0.14rem',
+        marginTop: key === 'basic' ? 0 : 6, paddingBottom: 3, borderBottom: '1px solid #1d2731',
+      }}
+    >
+      <Icon name={icon} size={11} color="#8a98a4" />{label}
+    </div>
+  );
+
+  const renderInternal = (type: InternalAffairsType) => {
+    const def = COMMAND_DEFS[type];
+    const canAfford = city.gold >= def.goldCost;
+    const tierOk = meetsMinSize(currentSize.id, def.minSize);
+    if (!tierOk) return null; // tier-locked orders simply don't show
+    const minSizeDef = def.minSize ? CITY_SIZES_BY_ID[def.minSize] : null;
+    const reason = !canAfford ? t('金錢不足', 'Not enough gold') : desc(def);
+    return (
+      <button
+        key={type}
+        className={styles.cmdButton}
+        onClick={() => setModal({ kind: 'internal', type })}
+        disabled={!canAfford}
+        title={reason}
+      >
+        <span className={styles.cmdLabelZh}>
+          {lang === 'en' ? def.label.en : def.label.zh}
+          {def.minSize && <span style={{ fontSize: '0.55rem', color: '#7a8893', marginLeft: 4 }}>★{lang === 'en' ? minSizeDef?.name.en : minSizeDef?.name.zh}+</span>}
+        </span>
+        {lang === 'both' && <span className={styles.cmdLabelEn}>{def.label.en}</span>}
+        <span className={styles.cmdCost}>{def.goldCost}g</span>
+      </button>
+    );
+  };
 
   return (
     <>
@@ -162,34 +207,11 @@ export function CommandMenu({ cityId }: Props) {
       )}
 
       <div className={styles.menu}>
-        {INTERNAL_ORDER.map((type) => {
-          const def = COMMAND_DEFS[type];
-          const canAfford = city.gold >= def.goldCost;
-          const currentSize = citySize(city);
-          const tierOk = meetsMinSize(currentSize.id, def.minSize);
-          const minSizeDef = def.minSize ? CITY_SIZES_BY_ID[def.minSize] : null;
-          const lockedReason = !tierOk && minSizeDef
-            ? t(`需要 ${minSizeDef.name.zh}+ 級城市`, `Requires ${minSizeDef.name.en}+ tier`)
-            : null;
-          const reason = lockedReason ?? (!canAfford ? t('金錢不足', 'Not enough gold') : desc(def));
-          if (!tierOk) return null;
-          return (
-            <button
-              key={type}
-              className={styles.cmdButton}
-              onClick={() => setModal({ kind: 'internal', type })}
-              disabled={!canAfford}
-              title={reason}
-            >
-              <span className={styles.cmdLabelZh}>
-                {lang === 'en' ? def.label.en : def.label.zh}
-                {def.minSize && <span style={{ fontSize: '0.55rem', color: '#7a8893', marginLeft: 4 }}>★{lang === 'en' ? minSizeDef?.name.en : minSizeDef?.name.zh}+</span>}
-              </span>
-              {lang === 'both' && <span className={styles.cmdLabelEn}>{def.label.en}</span>}
-              <span className={styles.cmdCost}>{def.goldCost}g</span>
-            </button>
-          );
-        })}
+        {groupHead('basic', 'scroll', t('基本內政', 'Internal Affairs'))}
+        {BASIC_ORDER.map(renderInternal)}
+        {majorUnlocked && groupHead('major', 'city', t('大型工程', 'Major Works'))}
+        {majorUnlocked && MAJOR_ORDER.map(renderInternal)}
+        {groupHead('mil', 'war', t('軍事 · 特務', 'Military & Special'))}
         <button
           className={`${styles.cmdButton} ${styles.marchButton}`}
           onClick={() => setModal({ kind: 'march' })}
