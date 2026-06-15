@@ -86,14 +86,23 @@ export function ToDoModal({ onClose, onOpenLetters }: { onClose: () => void; onO
           .map((id) => cities[id])
           .filter((s) => s && s.ownerForceId === playerForceId && s.food > 4000)
           .sort((a, b) => b.food - a.food)[0];
+        // 押運 — pick the ablest idle officer in the relief city to run the haul.
+        const escort = relief
+          ? (officersByCity[relief.id] ?? [])
+              .filter((o) => o.forceId === playerForceId && (o.status === 'idle' || o.status === 'active') && !o.task)
+              .sort((a, b) => b.stats.politics - a.stats.politics)[0]
+          : undefined;
+        const canRelieve = relief && escort;
         list.push({
           key: `food:${c.id}`, icon: '🌾', tone: 'urgent',
           zh: `${c.name.zh} 糧秣告急`, en: `${c.name.en} running out of grain`,
-          sub: relief
-            ? t(`存糧 ${c.food.toLocaleString()} — 點擊由 ${relief.name.zh} 調糧`, `${c.food.toLocaleString()} stored — click to ship grain from ${relief.name.en}`)
-            : t(`存糧 ${c.food.toLocaleString()},下季缺糧逃兵`, `${c.food.toLocaleString()} stored — desertion next season`),
-          onClick: relief
-            ? () => { dispatchConvoy(relief.id, c.id, Math.min(relief.food - 3000, 5000), 0); playSfx('coin'); onClose(); }
+          sub: canRelieve
+            ? t(`存糧 ${c.food.toLocaleString()} — 點擊遣 ${escort!.name.zh} 自 ${relief!.name.zh} 調糧`, `${c.food.toLocaleString()} stored — click to send ${escort!.name.en} with grain from ${relief!.name.en}`)
+            : relief
+              ? t(`存糧 ${c.food.toLocaleString()} — ${relief.name.zh} 有糧但無閒將押運`, `${c.food.toLocaleString()} stored — ${relief.name.en} has grain but no idle officer to escort`)
+              : t(`存糧 ${c.food.toLocaleString()},下季缺糧逃兵`, `${c.food.toLocaleString()} stored — desertion next season`),
+          onClick: canRelieve
+            ? () => { dispatchConvoy(relief!.id, c.id, Math.min(relief!.food - 3000, 5000), 0, 0, escort!.id); playSfx('coin'); onClose(); }
             : jump(c.id),
         });
       }

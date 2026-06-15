@@ -1457,6 +1457,10 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     nextConvoys = stepped.convoys;
     cities = stepped.cities;
     for (const a of stepped.arrivals) {
+      // 押運武将抵達 — the escort reappears in the destination city.
+      if (a.convoy.officerId && officers[a.convoy.officerId]) {
+        officers[a.convoy.officerId] = { ...officers[a.convoy.officerId], locationCityId: a.convoy.toCityId, status: 'idle' };
+      }
       const parts: string[] = [];
       if (a.convoy.food > 0) parts.push(`糧 +${a.convoy.food.toLocaleString()}`);
       if (a.convoy.gold > 0) parts.push(`金 +${a.convoy.gold.toLocaleString()}`);
@@ -1467,6 +1471,20 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
         text: `Supply convoy reached ${a.toName}: ${parts.join(', ') || 'empty'}.`,
         textZh: `輜重抵 ${a.toName}：${parts.join('、') || '空車'}。`,
       });
+    }
+    // Destination lost mid-haul — the column (and its escort) is taken.
+    for (const f of stepped.forfeited) {
+      if (f.officerId && officers[f.officerId]) {
+        officers[f.officerId] = { ...officers[f.officerId], status: 'imprisoned', locationCityId: f.toCityId, task: null };
+        if (f.forceId === input.playerForceId) {
+          entries.push({
+            cityId: f.toCityId,
+            kind: 'desertion',
+            text: `${officers[f.officerId].name.en} and his supply column were lost — the destination had fallen.`,
+            textZh: `${officers[f.officerId].name.zh}押運之輜重連人帶貨,沒於已陷之地。`,
+          });
+        }
+      }
     }
 
     // 劫糧道 — convoys passing a hostile stronghold risk a sortie; lawless
@@ -1504,13 +1522,22 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
       const raided = resolveConvoyRaids(nextConvoys, dangers, cities);
       nextConvoys = raided.convoys;
       for (const r of raided.raids) {
+        // A column overrun in a raid loses its escort to capture.
+        if (!r.repelled && r.convoy.officerId && officers[r.convoy.officerId]) {
+          officers[r.convoy.officerId] = { ...officers[r.convoy.officerId], status: 'imprisoned', locationCityId: r.convoy.toCityId, task: null };
+        }
         if (r.convoy.forceId !== input.playerForceId) continue; // only surface the player's own convoys
+        const esc = r.convoy.officerId ? officers[r.convoy.officerId] : null;
         const cargo = [r.convoy.food > 0 ? `糧${r.convoy.food.toLocaleString()}` : '', r.convoy.gold > 0 ? `金${r.convoy.gold.toLocaleString()}` : '', r.convoy.troops > 0 ? `兵${r.convoy.troops.toLocaleString()}` : ''].filter(Boolean).join('、');
         entries.push({
           cityId: r.convoy.toCityId,
           kind: r.repelled ? 'income' : 'desertion',
-          text: r.repelled ? `A convoy bound for ${r.toName} fought off a raid.` : `A convoy bound for ${r.toName} was raided — ${cargo} lost!`,
-          textZh: r.repelled ? `往${r.toName}之輜重擊退劫掠,押運折損。` : `往${r.toName}之輜重遭劫 — ${cargo} 盡失!`,
+          text: r.repelled
+            ? `A convoy bound for ${r.toName} fought off a raid.`
+            : `A convoy bound for ${r.toName} was raided — ${cargo} lost${esc ? ` and ${esc.name.en} taken` : ''}!`,
+          textZh: r.repelled
+            ? `往${r.toName}之輜重擊退劫掠,押運折損。`
+            : `往${r.toName}之輜重遭劫 — ${cargo} 盡失${esc ? `,${esc.name.zh}被擒` : ''}!`,
         });
       }
     }

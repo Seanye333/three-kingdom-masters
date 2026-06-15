@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { stepConvoys, resolveConvoyRaids, provisionNeeded, consumeRations, type Convoy } from './convoy';
+import { stepConvoys, resolveConvoyRaids, provisionNeeded, consumeRations, convoyCapacity, convoySpeedMul, type Convoy } from './convoy';
+import { mkOfficer } from '../../test/factories';
 import type { City } from '../types';
 
 const mkCity = (id: string, over: Partial<City> = {}): City => ({
@@ -89,5 +90,29 @@ describe('隨軍糧 — march provisions & rationing', () => {
     expect(r.starved).toBe(true);
     expect(r.food).toBe(0);
     expect(r.troops).toBe(4500); // −10%
+  });
+});
+
+describe('押運武将 — capacity & pace set by the officer', () => {
+  it('capacity scales with 政治', () => {
+    const able = mkOfficer({ id: 'able', stats: { politics: 90 } });
+    const plain = mkOfficer({ id: 'plain', stats: { politics: 30 } });
+    expect(convoyCapacity(able)).toBeGreaterThan(convoyCapacity(plain));
+  });
+
+  it('an able, diligent quartermaster outpaces a poor, lazy one', () => {
+    const good = mkOfficer({ id: 'g', stats: { politics: 90 }, traits: ['diligent'] as never });
+    const bad = mkOfficer({ id: 'b', stats: { politics: 30 }, traits: ['lazy'] as never });
+    expect(convoySpeedMul(good)).toBeLessThan(convoySpeedMul(bad));
+    expect(convoySpeedMul(good)).toBeGreaterThanOrEqual(0.65);
+    expect(convoySpeedMul(bad)).toBeLessThanOrEqual(1.4);
+  });
+
+  it('a column whose destination fell mid-haul is reported forfeited', () => {
+    const convoys = { cv1: mkConvoy({ id: 'cv1', officerId: 'esc', toCityId: 'b', seasonsRemaining: 1 }) };
+    const cities = { a: mkCity('a'), b: mkCity('b', { ownerForceId: 'enemy' }) };
+    const r = stepConvoys(convoys, cities);
+    expect(r.arrivals).toHaveLength(0);
+    expect(r.forfeited.map((c) => c.id)).toContain('cv1');
   });
 });

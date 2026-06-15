@@ -2,6 +2,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import { cityEconCap } from '../../game/systems/citySize';
 import { useGameStore } from '../../game/state/store';
 import { playSfx } from '../../game/systems/sound';
+import { convoyCapacity, convoySpeedMul } from '../../game/systems/convoy';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { cityPolicyEffects, lockedPolicies } from '../../game/systems/policyEffects';
 import { POLICY_DEFS } from '../../game/data/officerAttributes';
@@ -210,7 +211,17 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
   const [open, setOpen] = useState(false);
   const [destId, setDestId] = useState('');
   const [cautious, setCautious] = useState(false);
+  const [escortId, setEscortId] = useState('');
   const city = allCities[cityId];
+  // 押運武将 — available officers standing in this city, by 政治 (sets capacity).
+  const escorts = useMemo(
+    () => Object.values(officers)
+      .filter((o) => o.forceId === playerForceId && o.locationCityId === cityId && (o.status === 'idle' || o.status === 'active') && !o.task)
+      .sort((a, b) => b.stats.politics - a.stats.politics),
+    [officers, playerForceId, cityId],
+  );
+  const escort = officers[escortId] && escorts.some((o) => o.id === escortId) ? officers[escortId] : escorts[0];
+  const cap = escort ? convoyCapacity(escort) : 0;
   const woodenOx = useMemo(
     () => Object.values(officers).some((o) => o.forceId === playerForceId && o.status !== 'dead' && (o.skills ?? []).includes('wooden-ox')),
     [officers, playerForceId],
@@ -238,8 +249,9 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
         <button
           key={a}
           style={btn}
-          disabled={have < a}
-          onClick={() => { if (dest) { dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0, cargo === 'troops' ? a : 0, cautious); playSfx('coin'); } }}
+          disabled={have < a || !escort || a > cap}
+          title={!escort ? t('需一名駐城武將押運', 'needs an officer in this city to escort') : a > cap ? t(`超出押運官載量 (${cap.toLocaleString()})`, `over escort capacity (${cap.toLocaleString()})`) : undefined}
+          onClick={() => { if (dest && escort) { dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0, cargo === 'troops' ? a : 0, escort.id, cautious); playSfx('coin'); } }}
         >
           {a.toLocaleString()}
         </button>
@@ -268,6 +280,25 @@ function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPl
               </option>
             ))}
           </select>
+          {escorts.length === 0 ? (
+            <span style={{ fontSize: '0.7rem', color: '#e0a070' }}>{t('需一名駐城武將押運輜重(載量依其政治)', 'A convoy needs an idle officer in this city to escort it (capacity scales with 政治).')}</span>
+          ) : (
+            <>
+              <select
+                value={escort?.id ?? ''}
+                onChange={(e) => setEscortId(e.target.value)}
+                style={{ background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473', padding: '0.25rem', fontFamily: 'inherit', fontSize: '0.78rem' }}
+              >
+                {escorts.map((o) => (
+                  <option key={o.id} value={o.id}>{t('押運', 'Escort')}:{(lang === 'en' ? o.name.en : o.name.zh)} · {t('政', 'POL')}{o.stats.politics}</option>
+                ))}
+              </select>
+              <span style={{ fontSize: '0.68rem', color: '#7a8893' }}>
+                {t(`載量上限 ${cap.toLocaleString()}`, `capacity ${cap.toLocaleString()}`)}
+                {escort && convoySpeedMul(escort) <= 0.92 ? t(' · 行速快', ' · swift') : escort && convoySpeedMul(escort) >= 1.08 ? t(' · 行速慢', ' · slow') : ''}
+              </span>
+            </>
+          )}
           {row(t('運糧', 'Grain'), foodAmts, city.food, 'food')}
           {row(t('運金', 'Gold'), goldAmts, city.gold, 'gold')}
           {row(t('運兵', 'Troops'), troopAmts, Math.max(0, city.troops - 100), 'troops')}

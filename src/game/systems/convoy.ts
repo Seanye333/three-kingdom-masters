@@ -1,5 +1,29 @@
-import type { City, EntityId } from '../types';
+import type { City, EntityId, Officer } from '../types';
 import { FOOD_PER_TROOP_PER_SEASON } from './economy';
+
+/* ─── 押運武将 — a convoy is run by an officer, and his measure decides how
+   much it can haul and how fast. 政治 (administration) sets the load a column
+   can manage; 政治 + 性情 (traits) set its pace. ──────────────────────────── */
+
+const CONVOY_CAP_BASE = 3000;
+const CONVOY_CAP_PER_POL = 220;
+
+/** Most a single officer can shepherd in one column (food + gold + troops). */
+export function convoyCapacity(officer: Officer): number {
+  return CONVOY_CAP_BASE + Math.max(0, officer.stats.politics) * CONVOY_CAP_PER_POL;
+}
+
+/** Travel-time multiplier (lower = faster). A capable, diligent quartermaster
+ *  moves a column briskly; a poor or idle one dawdles. Clamped 0.65–1.4×. */
+export function convoySpeedMul(officer: Officer): number {
+  let mul = 1 - (officer.stats.politics - 50) * 0.004;
+  const traits = officer.traits ?? [];
+  if (traits.includes('diligent' as never)) mul -= 0.12;
+  if (traits.includes('lazy' as never)) mul += 0.18;
+  if (traits.includes('cautious' as never)) mul += 0.08;
+  if (traits.includes('reckless' as never)) mul -= 0.06;
+  return Math.max(0.65, Math.min(1.4, mul));
+}
 
 /** 隨軍糧 — grain a column needs to march its whole planned journey. */
 export function provisionNeeded(troops: number, totalSeasons: number): number {
@@ -23,6 +47,10 @@ export function consumeRations(food: number, troops: number): { food: number; tr
 export interface Convoy {
   id: EntityId;
   forceId: EntityId;
+  /** 押運武将 — the officer escorting the column (travels with it). Set on a
+   *  player's manual haul; absent on background auto-supply (AI relief,
+   *  standing routes), which move as small unled caravans. */
+  officerId?: EntityId;
   fromCityId: EntityId;
   toCityId: EntityId;
   /** Cargo as it will ARRIVE. */
@@ -44,6 +72,8 @@ export interface ConvoyStepResult {
   convoys: Record<EntityId, Convoy>;
   cities: Record<EntityId, City>;
   arrivals: Array<{ convoy: Convoy; toName: string }>;
+  /** Columns whose destination was lost mid-haul — cargo (and escort) forfeited. */
+  forfeited: Convoy[];
 }
 
 /**
@@ -58,6 +88,7 @@ export function stepConvoys(
   const nextConvoys: Record<EntityId, Convoy> = {};
   let nextCities = cities;
   const arrivals: ConvoyStepResult['arrivals'] = [];
+  const forfeited: Convoy[] = [];
   for (const c of Object.values(convoys)) {
     const remaining = c.seasonsRemaining - 1;
     if (remaining > 0) {
@@ -71,10 +102,11 @@ export function stepConvoys(
         [c.toCityId]: { ...dest, food: dest.food + c.food, gold: dest.gold + c.gold, troops: dest.troops + c.troops },
       };
       arrivals.push({ convoy: c, toName: dest.name.zh });
+    } else {
+      forfeited.push(c); // destination lost mid-haul — column captured/scattered
     }
-    // delivered or forfeited → the convoy is retired (not carried forward)
   }
-  return { convoys: nextConvoys, cities: nextCities, arrivals };
+  return { convoys: nextConvoys, cities: nextCities, arrivals, forfeited };
 }
 
 export interface ConvoyRaidResult {

@@ -33,7 +33,7 @@ import { ITEMS_BY_ID } from '../data/items';
 import { marchDurationFor } from '../data/cities';
 import { terrainRoute, positionAlongRoute, marchDestCoords } from '../data/territories';
 import { cityPos, CITY_GEO_OVERRIDES } from '../data/cityGeo';
-import { provisionNeeded } from '../systems/convoy';
+import { provisionNeeded, convoyCapacity, convoySpeedMul } from '../systems/convoy';
 import { terrainTypeAt, isRiverside, WORLD_SCALE } from '../data/geography';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
@@ -255,7 +255,7 @@ interface GameStore extends GameState {
    *  your cities to another. It crawls the map over `seasons` and empties its
    *  cargo on arrival; adjacent hauls arrive in full, longer ones lose 12% on
    *  the road. Cargo is deducted from the source at dispatch. */
-  dispatchConvoy: (fromCityId: EntityId, toCityId: EntityId, food: number, gold: number, troops?: number, cautious?: boolean) => { ok: boolean; seasons: number };
+  dispatchConvoy: (fromCityId: EntityId, toCityId: EntityId, food: number, gold: number, troops: number, officerId: EntityId, cautious?: boolean) => { ok: boolean; seasons: number; reason?: string };
   /** 召回輜重 — turn a convoy around; its cargo returns to the origin city (lost
    *  if that city has since fallen). */
   recallConvoy: (id: EntityId) => void;
@@ -1278,7 +1278,7 @@ export const useGameStore = create<GameStore>()(
         return { ok: true, got: gold };
       },
 
-      dispatchConvoy: (fromCityId, toCityId, food, gold, troops = 0, cautious = false) => {
+      dispatchConvoy: (fromCityId, toCityId, food, gold, troops = 0, officerId, cautious = false) => {
         const state = get();
         const pid = state.playerForceId;
         if (!pid) return { ok: false, seasons: 0 };
@@ -1286,10 +1286,27 @@ export const useGameStore = create<GameStore>()(
         const to = state.cities[toCityId];
         if (!from || !to || fromCityId === toCityId) return { ok: false, seasons: 0 };
         if (from.ownerForceId !== pid || to.ownerForceId !== pid) return { ok: false, seasons: 0 };
-        const shipFood = Math.min(Math.max(0, Math.floor(food)), from.food);
-        const shipGold = Math.min(Math.max(0, Math.floor(gold)), from.gold);
+        // 押運武将 — a column must be run by an available officer standing in the
+        // source city; his 政治 caps the load and (with his temperament) sets the pace.
+        const officer = state.officers[officerId];
+        if (!officer || officer.forceId !== pid) return { ok: false, seasons: 0, reason: 'need an officer' };
+        if (officer.locationCityId !== fromCityId) return { ok: false, seasons: 0, reason: 'officer not in this city' };
+        if (officer.task || state.pendingCommands[officerId]) return { ok: false, seasons: 0, reason: 'officer is busy' };
+        if (state.pendingTrainings.some((tr) => tr.officerId === officerId)) return { ok: false, seasons: 0, reason: 'officer is training' };
+        let shipFood = Math.min(Math.max(0, Math.floor(food)), from.food);
+        let shipGold = Math.min(Math.max(0, Math.floor(gold)), from.gold);
         // Keep a token garrison behind — never ship the city's last 100 men.
-        const shipTroops = Math.min(Math.max(0, Math.floor(troops)), Math.max(0, from.troops - 100));
+        let shipTroops = Math.min(Math.max(0, Math.floor(troops)), Math.max(0, from.troops - 100));
+        // 載量 — clamp the total to what this officer can shepherd (scaling down
+        // proportionally if the player asked for more than his 政治 allows).
+        const cap = convoyCapacity(officer);
+        const total = shipFood + shipGold + shipTroops;
+        if (total > cap && total > 0) {
+          const scale = cap / total;
+          shipFood = Math.floor(shipFood * scale);
+          shipGold = Math.floor(shipGold * scale);
+          shipTroops = Math.floor(shipTroops * scale);
+        }
         if (shipFood <= 0 && shipGold <= 0 && shipTroops <= 0) return { ok: false, seasons: 0 };
         // 木牛流馬 — Zhuge Liang's logistics device (an officer skill). In a
         // force's service it speeds transport ~40% and halves road spoilage.
@@ -1314,6 +1331,8 @@ export const useGameStore = create<GameStore>()(
         let effSeasons = baseSeasons;
         if (naval) effSeasons = Math.round(effSeasons * 0.7);
         if (woodenOx) effSeasons = Math.round(effSeasons * 0.6);
+        // 押運之能 — the officer's administration + temperament set the pace.
+        effSeasons = Math.max(1, Math.round(effSeasons * convoySpeedMul(officer)));
         if (cautious) effSeasons += 1; // 謹慎避敵 — the safer back-roads take longer
         const seasons = Math.max(1, effSeasons);
         const id = `convoy-${fromCityId}-${toCityId}-${state.date.year}-${state.date.season}-${Object.keys(state.convoys ?? {}).length}`;
@@ -1322,10 +1341,16 @@ export const useGameStore = create<GameStore>()(
             ...state.cities,
             [fromCityId]: { ...from, food: from.food - shipFood, gold: from.gold - shipGold, troops: from.troops - shipTroops },
           },
+          // The escorting officer rides out with the column (off the rosters
+          // until it arrives, where they reappear).
+          officers: {
+            ...state.officers,
+            [officerId]: { ...officer, locationCityId: null, task: null },
+          },
           convoys: {
             ...state.convoys,
             [id]: {
-              id, forceId: pid,
+              id, forceId: pid, officerId,
               fromCityId, toCityId,
               food: arriveFood, gold: arriveGold, troops: arriveTroops,
               seasonsRemaining: seasons, totalSeasons: seasons,
@@ -1349,14 +1374,21 @@ export const useGameStore = create<GameStore>()(
         const convoys = { ...state.convoys };
         delete convoys[id];
         const home = state.cities[c.fromCityId];
+        // The escort rides home with the column (back onto the roster).
+        const oid = c.officerId;
+        const escort = oid ? state.officers[oid] : null;
+        const officersBack = oid && escort
+          ? { ...state.officers, [oid]: { ...escort, locationCityId: c.fromCityId, status: 'idle' as const, task: null } }
+          : state.officers;
         if (home && home.ownerForceId === c.forceId) {
           set({
             convoys,
+            officers: officersBack,
             cities: { ...state.cities, [c.fromCityId]: { ...home, food: home.food + c.food, gold: home.gold + c.gold, troops: home.troops + c.troops } },
           });
           get().notify(`輜重召回 · 貨返 ${home.name.zh}`, `Convoy recalled to ${home.name.en}`);
         } else {
-          set({ convoys });
+          set({ convoys, officers: officersBack });
         }
       },
 
