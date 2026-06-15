@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId } from '../../game/types';
 import { AttackPortPicker } from './AttackPortPicker';
+import { Name } from './Name';
 import { canPlayerAttackPort } from '../../game/data/ports';
 import { SHIP_CLASSES, SHIP_CLASSES_BY_ID, shipMeetsTier, shipBuildSeasons, SHIP_MIN_TIER, portUpgradeCost, PORT_MAX_NAVAL_TIER } from '../../game/data/ships';
 import type { ShipClass } from '../../game/types';
@@ -82,9 +83,8 @@ export function PortPanel({ portId, onClose }: Props) {
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
-              ⚓ {port.name.zh}
+              ⚓ <Name pair={port.name} />
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#97a4ae' }}>{port.name.en}</div>
           </div>
           <button onClick={onClose} style={{
             background: 'transparent', border: 'none', color: '#97a4ae',

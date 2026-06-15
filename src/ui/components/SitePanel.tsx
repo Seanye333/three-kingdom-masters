@@ -188,7 +188,7 @@ export function SitePanel({ siteId, onClose }: Props) {
                 padding: '0.4rem 0.9rem', cursor: reach.ok ? 'pointer' : 'not-allowed',
                 fontFamily: 'var(--tkm-font-body)', fontSize: '0.9rem', opacity: reach.ok ? 1 : 0.5,
               }}
-            >{verb}{t(meta.zh, '')} {t('', meta.en)}</button>
+            >{verb}{t(meta.zh, meta.en)}</button>
           </div>
         )}
 

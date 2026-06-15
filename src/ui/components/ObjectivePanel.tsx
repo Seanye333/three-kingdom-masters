@@ -3,6 +3,7 @@ import { SCENARIO_OBJECTIVES } from '../../game/data';
 import { evaluateGoal, findObjectiveFor } from '../../game/systems/objectives';
 import { findChallenge } from '../../game/data/challenges';
 import { useGameStore } from '../../game/state/store';
+import { Name } from './Name';
 
 export function ObjectivePanel() {
   const scenarioId = useGameStore((s) => s.scenarioId);
@@ -54,8 +55,7 @@ export function ObjectivePanel() {
           <span style={{ color: '#c0504a' }}>{'★'.repeat(challenge.star)}</span>
         </div>
         <div style={{ fontSize: '0.95rem', color: tint }}>
-          {challenge.name.zh}{' '}
-          <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>{challenge.name.en}</span>
+          <Name pair={challenge.name} />
         </div>
         <div style={{ fontSize: '0.7rem', fontFamily: 'ui-monospace, monospace', display: 'flex', justifyContent: 'space-between' }}>
           <span>
@@ -95,10 +95,7 @@ export function ObjectivePanel() {
         Objective · 目標
       </div>
       <div style={{ fontSize: '0.95rem', color: primaryRes.status === 'success' ? '#7ed68a' : primaryRes.status === 'failure' ? '#b8442e' : '#e6c473' }}>
-        {objective.primary.title.zh}{' '}
-        <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>
-          {objective.primary.title.en}
-        </span>
+        <Name pair={objective.primary.title} />
       </div>
       <div style={{ fontSize: '0.7rem', fontFamily: 'ui-monospace, monospace' }}>
         {primaryRes.status === 'success' && '✓ 達成 Achieved'}

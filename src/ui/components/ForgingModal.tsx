@@ -2,13 +2,15 @@ import { useMemo, useState } from 'react';
 import { FORGE_RECIPES, ITEMS_BY_ID } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId } from '../../game/types';
-import { useDesc } from '../i18n';
+import { useDesc, useLanguage } from '../i18n';
+import { Name } from './Name';
 
 interface Props {
   onClose: () => void;
 }
 
 export function ForgingModal({ onClose }: Props) {
+  const lang = useLanguage();
   const cities = useGameStore((s) => s.cities);
   const buildings = useGameStore((s) => s.buildings);
   const lostItems = useGameStore((s) => s.lostItems);
@@ -115,8 +117,8 @@ export function ForgingModal({ onClose }: Props) {
           {pickedCity && (
             <>
               <div style={{ fontSize: '0.78rem', color: '#7a8893', marginBottom: '0.5rem' }}>
-                Treasury at {pickedCity.name.en}: <strong style={{ color: '#c9a64e' }}>{pickedCity.gold}g</strong> ·
-                Items here: {itemsInCity.length}
+                {lang === 'en' ? 'Treasury at ' : '府庫 · '}<Name pair={pickedCity.name} />: <strong style={{ color: '#c9a64e' }}>{pickedCity.gold}g</strong> ·
+                {lang === 'en' ? ` Items here: ${itemsInCity.length}` : ` 存物 ${itemsInCity.length}`}
               </div>
               {FORGE_RECIPES.map((r) => {
                 const result = ITEMS_BY_ID[r.resultItemId];
@@ -137,10 +139,7 @@ export function ForgingModal({ onClose }: Props) {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                       <div style={{ color: '#e6c473', fontSize: '1rem' }}>
-                        → {result?.name.zh}{' '}
-                        <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>
-                          {result?.name.en}
-                        </span>
+                        → <Name pair={result?.name} />
                       </div>
                       <button
                         onClick={() => handle(r.id)}

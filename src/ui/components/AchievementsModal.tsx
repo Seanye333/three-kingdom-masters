@@ -6,6 +6,7 @@ import {
 import type { AchievementProgress } from '../../game/types';
 import { useDesc } from '../i18n';
 import { Modal } from './Modal';
+import { Name } from './Name';
 
 interface Props {
   onClose: () => void;
@@ -76,10 +77,7 @@ export function AchievementsModal({ onClose }: Props) {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <div style={{ color: unlocked ? color : '#6a5238', fontSize: '0.95rem' }}>
-                    {unlocked ? '✓' : '✗'} {a.name.zh}
-                    <span style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic', marginLeft: '0.4rem' }}>
-                      {a.name.en}
-                    </span>
+                    {unlocked ? '✓' : '✗'} <Name pair={a.name} />
                   </div>
                   <span style={{
                     fontFamily: 'ui-monospace, monospace',

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId } from '../../game/types';
 import styles from './MarriagePicker.module.css';
+import { Name } from './Name';
 import { useT } from '../i18n';
 
 interface Props {
@@ -105,8 +106,7 @@ export function AttackPortPicker({ portId, onClose, onCommit }: Props) {
                         setTroops(Math.min(2000, city.troops));
                       }}
                     >
-                      <span className={styles.officerNameZh}>{o.name.zh}</span>
-                      <span className={styles.officerNameEn}>{o.name.en}</span>
+                      <span className={styles.officerNameZh}><Name pair={o.name} /></span>
                       <span className={styles.officerCha}>
                         WAR <strong>{o.stats.war}</strong>
                         {' · '}LED <strong>{o.stats.leadership}</strong>

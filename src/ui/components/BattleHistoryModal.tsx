@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { SEASON_LABEL } from '../../game/types';
 import type { HistoricBattle, Season } from '../../game/types';
 import { BattleDetailModal } from './BattleDetailModal';
+import { Name } from './Name';
 import styles from './BattleHistoryModal.module.css';
 
 interface Props {
@@ -179,7 +180,7 @@ export function BattleHistoryModal({ onClose }: Props) {
                           style={{ background: aForce.color }}
                         />
                       )}
-                      {aCommander?.name.en ?? '?'}
+                      {aCommander ? <Name pair={aCommander.name} /> : '?'}
                     </span>
                     <span className={styles.versus}>vs</span>
                     <span className={styles.sideTag}>
@@ -189,7 +190,7 @@ export function BattleHistoryModal({ onClose }: Props) {
                           style={{ background: dForce.color }}
                         />
                       )}
-                      {dCommander?.name.en ?? '?'}
+                      {dCommander ? <Name pair={dCommander.name} /> : '?'}
                     </span>
                   </span>
                   <span className={`${styles.outcomeCell} ${outcomeClass}`}>

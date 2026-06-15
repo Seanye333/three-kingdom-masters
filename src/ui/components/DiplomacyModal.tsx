@@ -15,6 +15,7 @@ import { getRelation } from '../../game/types';
 import { MarriagePicker } from './MarriagePicker';
 import { HostagePicker } from './HostagePicker';
 import { Icon } from './Icon';
+import { Name } from './Name';
 import { useT } from '../i18n';
 import styles from './DiplomacyModal.module.css';
 
@@ -129,8 +130,7 @@ export function DiplomacyModal({ onClose }: Props) {
                     style={{ background: row.color }}
                   />
                   <div className={styles.forceNames}>
-                    <span className={styles.nameZh}>{row.zh}</span>
-                    <span className={styles.nameEn}>{row.en}</span>
+                    <span className={styles.nameZh}><Name pair={{ zh: row.zh, en: row.en }} /></span>
                   </div>
                   <div className={styles.relationBlock}>
                     <RelationBar score={row.relation.score} />

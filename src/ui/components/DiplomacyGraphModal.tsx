@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { getRelation, pairKey } from '../../game/types';
+import { Name } from './Name';
 
 interface Props {
   onClose: () => void;
@@ -97,10 +98,7 @@ export function DiplomacyGraphModal({ onClose }: Props) {
                 {p.force.name.zh.charAt(0)}
               </text>
               <text x={p.x} y={p.y + 58} textAnchor="middle" fontSize="12" fill="#e6edf3" fontFamily="Songti SC, serif">
-                {p.force.name.zh}
-              </text>
-              <text x={p.x} y={p.y + 72} textAnchor="middle" fontSize="9" fill="#7a8893" fontStyle="italic" fontFamily="ui-monospace, monospace">
-                {p.force.name.en}
+                <Name pair={p.force.name} />
               </text>
             </g>
           ))}

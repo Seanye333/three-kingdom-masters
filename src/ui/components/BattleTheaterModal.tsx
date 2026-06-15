@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import type { BattleDetail } from '../../game/types';
 import { OfficerPortrait } from './OfficerPortrait';
+import { useLanguage } from '../i18n';
 import { pickVoiceLine } from '../../game/data/voiceLines';
 import { playSfx } from '../../game/systems/sound';
 
@@ -20,6 +21,7 @@ const PHASE_LABEL: Record<string, { zh: string; en: string; sfx: 'horn' | 'sword
 const PHASE_MS = 2200;
 
 export function BattleTheaterModal({ battle, onClose }: Props) {
+  const lang = useLanguage();
   const officers = useGameStore((s) => s.officers);
   const forces = useGameStore((s) => s.forces);
   const cities = useGameStore((s) => s.cities);
@@ -136,22 +138,26 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
       >
         {/* Title row */}
         <div style={{ textAlign: 'center', marginBottom: '1.2rem' }}>
-          <div style={{
-            fontFamily: 'var(--tkm-font-zh)',
-            fontSize: '1.8rem',
-            color: 'var(--tkm-text-h2, #e6c473)',
-            letterSpacing: '0.14rem',
-          }}>
-            {city?.name.zh ?? '?'} 之戰
-          </div>
-          <div style={{
-            fontSize: '0.78rem',
-            color: 'var(--tkm-text-muted)',
-            letterSpacing: '0.07rem',
-            marginTop: '0.2rem',
-          }}>
-            Battle of {city?.name.en ?? '?'}
-          </div>
+          {lang !== 'en' && (
+            <div style={{
+              fontFamily: 'var(--tkm-font-zh)',
+              fontSize: '1.8rem',
+              color: 'var(--tkm-text-h2, #e6c473)',
+              letterSpacing: '0.14rem',
+            }}>
+              {city?.name.zh ?? '?'} 之戰
+            </div>
+          )}
+          {lang !== 'zh' && (
+            <div style={{
+              fontSize: '0.78rem',
+              color: 'var(--tkm-text-muted)',
+              letterSpacing: '0.07rem',
+              marginTop: '0.2rem',
+            }}>
+              Battle of {city?.name.en ?? '?'}
+            </div>
+          )}
         </div>
 
         {/* Two armies */}
