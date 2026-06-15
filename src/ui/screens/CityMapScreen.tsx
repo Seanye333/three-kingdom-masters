@@ -10,7 +10,7 @@ import { previewBattlefield } from '../../game/systems/tactical';
 import { citySize } from '../../game/systems/citySize';
 import type { City, EntityId, BuildingId } from '../../game/types';
 import { MapDefs, MapFrame, CompassRose, TerrainArt, TERRAIN_FILL_URL } from '../components/hexMapShared';
-import { useDesc, useLanguage } from '../i18n';
+import { useDesc, useLanguage, pickName } from '../i18n';
 
 /**
  * Full-screen city map — renders the SAME hex battlefield that tactical
@@ -70,6 +70,7 @@ const INSIDE_BUILDING_GLYPH: Record<BuildingId, { glyph: string; color: string }
 
 
 export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityId; onClose: () => void; onSwitch3D?: () => void }) {
+  const lang = useLanguage();
   const city = useGameStore((s) => s.cities[cityId]);
   const playerForceId = useGameStore((s) => s.playerForceId);
   const forces = useGameStore((s) => s.forces);
@@ -242,7 +243,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
               {city.name.zh} 戰場地圖 — <span style={{ color: size.color }}>{size.name.zh}</span>
             </div>
             <div style={{ fontSize: '0.68rem', color: 'var(--tkm-text-muted)', letterSpacing: '0.1rem' }}>
-              {preview.namedMapName ? `${preview.namedMapName.zh} · ${preview.namedMapName.en}` : `${preview.width}×${preview.height} battlefield`}
+              {preview.namedMapName ? pickName(preview.namedMapName, lang) : (lang === 'en' ? `${preview.width}×${preview.height} battlefield` : `${preview.width}×${preview.height} 戰場`)}
               {' · '}{builtCount}/8 建築
               {total.defenseBonus > 0 && ` · +${total.defenseBonus} 守備`}
               {total.rangedPrestrike > 0 && ` · 預射 ${total.rangedPrestrike}`}
@@ -488,7 +489,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                 textAnchor="end" fontSize="9"
                 fill="#e6c473" letterSpacing="0.3em"
               >
-                守方 DEFENDER
+                {lang === 'en' ? 'DEFENDER' : '守方'}
               </text>
               {/* Attacker side label */}
               <text
@@ -496,7 +497,7 @@ export function CityMapScreen({ cityId, onClose, onSwitch3D }: { cityId: EntityI
                 fontSize="9"
                 fill="#b8442e" letterSpacing="0.3em"
               >
-                攻方 ATTACKER →
+                {lang === 'en' ? 'ATTACKER →' : '攻方 →'}
               </text>
               {/* Decorative frame + compass — drawn last so they sit on top. */}
               <MapFrame width={svgWidth} height={svgHeight} />
