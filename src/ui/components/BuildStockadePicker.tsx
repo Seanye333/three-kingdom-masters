@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { FACILITY_DEFS, type EntityId, type FacilityKind } from '../../game/types';
 import styles from './MarriagePicker.module.css';
+import { Name } from './Name';
 import { useT, useLanguage } from '../i18n';
 
 interface Props { onClose: () => void; }
@@ -136,8 +137,7 @@ export function BuildStockadePicker({ onClose }: Props) {
                       className={`${styles.officerButton} ${pickCityId === c.id ? styles.officerSelected : ''}`}
                       onClick={() => setPickCityId(c.id)}
                     >
-                      <span className={styles.officerNameZh}>{c.name.zh}</span>
-                      <span className={styles.officerNameEn}>{c.name.en}</span>
+                      <span className={styles.officerNameZh}><Name pair={c.name} /></span>
                       <span className={styles.officerCha}>
                         {t('兵', 'TROOPS')} <strong>{c.troops.toLocaleString()}</strong>
                       </span>
