@@ -3,7 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { SCENIC_BY_ID, canVisitScenic } from '../../game/data/scenicSites';
 import { ITEMS } from '../../game/data/items';
 import type { EntityId } from '../../game/types';
-import { useT } from '../i18n';
+import { useT, useLanguage, pickName } from '../i18n';
 
 interface Props {
   siteId: string;
@@ -20,6 +20,7 @@ export function ScenicPanel({ siteId, onClose }: Props) {
   const scenicLooted = useGameStore((s) => s.scenicLooted);
   const visitScenicSite = useGameStore((s) => s.visitScenicSite);
   const t = useT();
+  const lang = useLanguage();
 
   const [pickOfficer, setPickOfficer] = useState<EntityId | null>(null);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
@@ -83,8 +84,8 @@ export function ScenicPanel({ siteId, onClose }: Props) {
       >
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>⛰ {site.name.zh}</div>
-            <div style={{ fontSize: '0.72rem', color: '#97a4ae' }}>{site.name.en} · {t('名所', 'Scenic Site')}</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>⛰ {pickName(site.name, lang)}</div>
+            <div style={{ fontSize: '0.72rem', color: '#97a4ae' }}>{t('名所', 'Scenic Site')}</div>
           </div>
           <button onClick={onClose} style={{
             background: 'transparent', border: 'none', color: '#97a4ae',
@@ -137,7 +138,7 @@ export function ScenicPanel({ siteId, onClose }: Props) {
             >
               {candidates.map(({ officer: o, city }) => (
                 <option key={o.id} value={o.id}>
-                  {o.name.zh} (CHR {o.stats.charisma}) @ {city.name.zh}
+                  {pickName(o.name, lang)} (CHR {o.stats.charisma}) @ {pickName(city.name, lang)}
                 </option>
               ))}
             </select>

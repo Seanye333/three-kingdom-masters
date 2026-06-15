@@ -2,6 +2,7 @@ import { useGameStore } from '../../game/state/store';
 import type { BattleDetail, BattleSideDetail, Officer } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
 import { Name } from './Name';
+import { useLanguage } from '../i18n';
 import styles from './BattleDetailModal.module.css';
 
 interface Props {
@@ -15,16 +16,19 @@ export function BattleDetailModal({ battle, onClose }: Props) {
   const cities = useGameStore((s) => s.cities);
 
   const city = cities[battle.cityId];
+  const lang = useLanguage();
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <div>
-            <div className={styles.titleZh}>{battle.ambush ? '伏擊' : battle.campAssault ? '拔寨' : battle.field ? '野戰' : '戰況'}</div>
-            <div className={styles.titleEn}>
-              {battle.ambush ? 'Ambush — near ' : battle.campAssault ? 'Camp Stormed — near ' : battle.field ? 'Field Battle — near ' : 'Battle Report — '}{city?.name.en ?? battle.cityId}
-            </div>
+            {lang !== 'en' && <div className={styles.titleZh}>{battle.ambush ? '伏擊' : battle.campAssault ? '拔寨' : battle.field ? '野戰' : '戰況'}</div>}
+            {lang !== 'zh' && (
+              <div className={styles.titleEn}>
+                {battle.ambush ? 'Ambush — near ' : battle.campAssault ? 'Camp Stormed — near ' : battle.field ? 'Field Battle — near ' : 'Battle Report — '}{city?.name.en ?? battle.cityId}
+              </div>
+            )}
           </div>
           <button className={styles.closeButton} onClick={onClose}>
             ×
@@ -125,14 +129,14 @@ export function BattleDetailModal({ battle, onClose }: Props) {
 
         {battle.duelWinnerId && battle.duelLoserId && (
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Duel 一騎打</h3>
+            <h3 className={styles.sectionTitle}>{lang === 'en' ? 'Duel' : '一騎打'}</h3>
             <div className={styles.duelLine}>
-              <strong>{officers[battle.duelWinnerId]?.name.en ?? battle.duelWinnerId}</strong>{' '}
-              slew{' '}
+              <strong>{officers[battle.duelWinnerId] ? <Name pair={officers[battle.duelWinnerId].name} /> : battle.duelWinnerId}</strong>{' '}
+              {lang === 'en' ? 'slew' : '陣斬'}{' '}
               <strong style={{ textDecoration: 'line-through' }}>
-                {officers[battle.duelLoserId]?.name.en ?? battle.duelLoserId}
+                {officers[battle.duelLoserId] ? <Name pair={officers[battle.duelLoserId].name} /> : battle.duelLoserId}
               </strong>{' '}
-              on the field.
+              {lang === 'en' ? 'on the field.' : '於陣前。'}
             </div>
           </section>
         )}

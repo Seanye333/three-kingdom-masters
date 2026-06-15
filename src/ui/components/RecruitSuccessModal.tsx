@@ -52,10 +52,10 @@ export function RecruitSuccessModal({ officer, onClose }: { officer: Officer; on
         </div>
 
         <div style={{ fontSize: '1.4rem', color: '#f2dd9a' }}>
-          {officer.name.zh}
-          {officer.courtesyName && <span style={{ fontSize: '0.8rem', color: '#7a8893', marginLeft: 6 }}>字 {officer.courtesyName.zh}</span>}
+          {lang === 'en' ? officer.name.en : officer.name.zh}
+          {officer.courtesyName && <span style={{ fontSize: '0.8rem', color: '#7a8893', marginLeft: 6 }}>{lang === 'en' ? `(${officer.courtesyName.en})` : `字 ${officer.courtesyName.zh}`}</span>}
         </div>
-        <div style={{ fontSize: '0.78rem', color: '#97a4ae', fontStyle: 'italic', marginBottom: '0.7rem' }}>{officer.name.en}</div>
+        {lang === 'both' && <div style={{ fontSize: '0.78rem', color: '#97a4ae', fontStyle: 'italic', marginBottom: '0.7rem' }}>{officer.name.en}</div>}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 4, marginBottom: '0.7rem' }}>
           {stats.map(([zh, v, en]) => (

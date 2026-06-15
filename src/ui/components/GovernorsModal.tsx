@@ -3,6 +3,7 @@ import { PROVINCES } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { Officer } from '../../game/types';
 import { useT, useLanguage, useDesc } from '../i18n';
+import { Name } from './Name';
 
 interface Props {
   onClose: () => void;
@@ -96,8 +97,7 @@ export function GovernorsModal({ onClose }: Props) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {governor ? (
                           <span style={{ fontSize: '0.85rem', color: '#e6c473' }}>
-                            {governor.name.zh}{' '}
-                            <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{governor.name.en}</span>
+                            <Name pair={governor.name} />
                           </span>
                         ) : (
                           <span style={{ fontSize: '0.75rem', color: '#364654', fontStyle: 'italic' }}>未任命 unassigned</span>
@@ -145,7 +145,7 @@ export function GovernorsModal({ onClose }: Props) {
                                   }}
                                 >
                                   <div style={{ color: '#e6c473' }}>
-                                    {o.name.zh} <span style={{ fontSize: '0.65rem', color: '#7a8893' }}>{o.name.en}</span>
+                                    <Name pair={o.name} />
                                   </div>
                                   <div style={{ fontSize: '0.65rem', color: '#7a8893', fontFamily: 'ui-monospace, monospace' }}>
                                     政 {o.stats.politics} · 知 {o.stats.intelligence} · 魅 {o.stats.charisma}

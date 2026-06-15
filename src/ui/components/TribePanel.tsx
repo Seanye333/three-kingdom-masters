@@ -3,7 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { TRIBES_BY_ID } from '../../game/data/tribes';
 import { canCampaignTribe } from '../../game/systems/tribes';
 import type { EntityId } from '../../game/types';
-import { useT } from '../i18n';
+import { useT, useLanguage, pickName } from '../i18n';
 
 interface Props {
   tribeId: string;
@@ -28,6 +28,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
   const subjugateTribe = useGameStore((s) => s.subjugateTribe);
   const placateTribe = useGameStore((s) => s.placateTribe);
   const t = useT();
+  const lang = useLanguage();
 
   const [pickOfficer, setPickOfficer] = useState<EntityId | null>(null);
   const [troops, setTroops] = useState(5000);
@@ -101,7 +102,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>
-              ⛺ {tribe.name.zh}
+              ⛺ {pickName(tribe.name, lang)}
             </div>
             <div style={{ fontSize: '0.72rem', color: '#97a4ae' }}>
               {tribe.name.en} · {t('異族部落', 'Frontier Tribe')}
@@ -160,7 +161,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
             >
               {candidates.map(({ officer: o, city }) => (
                 <option key={o.id} value={o.id}>
-                  {o.name.zh} (WAR {o.stats.war}) @ {city.name.zh} ({city.troops.toLocaleString()}t)
+                  {pickName(o.name, lang)} (WAR {o.stats.war}) @ {pickName(city.name, lang)} ({city.troops.toLocaleString()}t)
                 </option>
               ))}
             </select>

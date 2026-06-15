@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { FACILITY_DEFS, type EntityId } from '../../game/types';
 import { canPlayerAttackFort } from '../../game/data/forts';
-import { useT } from '../i18n';
+import { useT, useLanguage, pickName } from '../i18n';
 
 interface Props {
   fortId: EntityId;
@@ -28,6 +28,7 @@ export function FortPanel({ fortId, onClose }: Props) {
   const repairFort = useGameStore((s) => s.repairFort);
   const upgradeFort = useGameStore((s) => s.upgradeFort);
   const t = useT();
+  const lang = useLanguage();
 
   const [pickOfficer, setPickOfficer] = useState<EntityId | null>(null);
   const [troops, setTroops] = useState(2000);
@@ -114,7 +115,7 @@ export function FortPanel({ fortId, onClose }: Props) {
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>
-              {SUBTYPE_LABEL[fort.subtype] ?? '⚔'} {fort.name.zh}
+              {SUBTYPE_LABEL[fort.subtype] ?? '⚔'} {pickName(fort.name, lang)}
             </div>
             <div style={{ fontSize: '0.72rem', color: '#97a4ae' }}>
               {fort.name.en} · {fac ? t(fac.name.zh, fac.name.en) : fort.subtype === 'stockade' ? t('壘', 'Stockade') : t('砦', 'Fort')}
@@ -212,7 +213,7 @@ export function FortPanel({ fortId, onClose }: Props) {
             >
               {candidates.map(({ officer: o, city }) => (
                 <option key={o.id} value={o.id}>
-                  {o.name.zh} (WAR {o.stats.war}) @ {city.name.zh} ({city.troops.toLocaleString()}t)
+                  {pickName(o.name, lang)} (WAR {o.stats.war}) @ {pickName(city.name, lang)} ({city.troops.toLocaleString()}t)
                 </option>
               ))}
             </select>

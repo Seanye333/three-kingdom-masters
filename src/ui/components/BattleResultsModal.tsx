@@ -91,23 +91,23 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
 
         <div className={styles.body}>
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Casualties</div>
+            <div className={styles.sectionLabel}>{lang === 'en' ? 'Casualties' : '傷亡'}</div>
             <div className={styles.statRow}>
-              <span className={styles.statSide}>Attacker losses</span>
+              <span className={styles.statSide}>{lang === 'en' ? 'Attacker losses' : '攻方折損'}</span>
               <span className={`${styles.statValue} ${styles.statValueAttack}`}>
                 {resolution.attackerLosses.toLocaleString()}
               </span>
-              <span className={styles.statValue}>troops</span>
+              <span className={styles.statValue}>{lang === 'en' ? 'troops' : '兵'}</span>
             </div>
             <div className={styles.statRow}>
-              <span className={styles.statSide}>Defender losses</span>
+              <span className={styles.statSide}>{lang === 'en' ? 'Defender losses' : '守方折損'}</span>
               <span className={`${styles.statValue} ${styles.statValueDefend}`}>
                 {resolution.defenderLosses.toLocaleString()}
               </span>
-              <span className={styles.statValue}>troops</span>
+              <span className={styles.statValue}>{lang === 'en' ? 'troops' : '兵'}</span>
             </div>
             <div className={styles.statRow}>
-              <span className={styles.statSide}>Turns elapsed</span>
+              <span className={styles.statSide}>{lang === 'en' ? 'Turns elapsed' : '歷時回合'}</span>
               <span className={styles.statValue} style={{ gridColumn: '2 / -1' }}>
                 {battle.turn}
               </span>
@@ -118,14 +118,14 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
           {(() => {
             const recap = battleRecap(battle, officers);
             const rows: Array<[string, string]> = [];
-            if (recap.exchangeRatio != null) rows.push(['戰損比 Exchange', `1 : ${recap.exchangeRatio}`]);
-            if (recap.toughest) rows.push(['最堅韌 Toughest', `${recap.toughest.name}(存 ${Math.round(recap.toughest.keptPct * 100)}%)`]);
-            if (recap.pillar) rows.push(['中流砥柱 Pillar', `${recap.pillar.name}(${recap.pillar.troops.toLocaleString()})`]);
-            if (recap.schemesCast > 0) rows.push(['計謀 Schemes', `${recap.schemesCast} 次`]);
+            if (recap.exchangeRatio != null) rows.push([lang === 'en' ? 'Exchange' : '戰損比', `1 : ${recap.exchangeRatio}`]);
+            if (recap.toughest) rows.push([lang === 'en' ? 'Toughest' : '最堅韌', lang === 'en' ? `${recap.toughest.name} (${Math.round(recap.toughest.keptPct * 100)}% kept)` : `${recap.toughest.name}(存 ${Math.round(recap.toughest.keptPct * 100)}%)`]);
+            if (recap.pillar) rows.push([lang === 'en' ? 'Pillar' : '中流砥柱', `${recap.pillar.name}(${recap.pillar.troops.toLocaleString()})`]);
+            if (recap.schemesCast > 0) rows.push([lang === 'en' ? 'Schemes' : '計謀', lang === 'en' ? `${recap.schemesCast}x` : `${recap.schemesCast} 次`]);
             if (rows.length === 0) return null;
             return (
               <div className={styles.section}>
-                <div className={styles.sectionLabel}>復盤 Recap</div>
+                <div className={styles.sectionLabel}>{lang === 'en' ? 'Recap' : '復盤'}</div>
                 {rows.map(([k, v]) => (
                   <div key={k} className={styles.statRow}>
                     <span className={styles.statSide}>{k}</span>
@@ -144,7 +144,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
             if (moments.length === 0) return null;
             return (
               <div className={styles.section}>
-                <div className={styles.sectionLabel}>名場面 Highlights</div>
+                <div className={styles.sectionLabel}>{lang === 'en' ? 'Highlights' : '名場面'}</div>
                 {moments.map((m, i) => (
                   <div key={i} style={{
                     color: '#f2dd9a', fontFamily: 'var(--tkm-font-body)', fontSize: '0.85rem',
@@ -172,8 +172,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
                   >
                     <OfficerPortrait officer={o} size={40} forceColor={f?.color} year={currentYear} />
                     <div style={{ flex: 1 }}>
-                      <span className={styles.officerName}>{o.name.zh}</span>
-                      <span className={styles.officerNameEn}>{o.name.en}</span>
+                      <span className={styles.officerName}>{pickName(o.name, lang)}</span>
                     </div>
                     <span className={styles.officerStat}>
                       <OfficerStats officer={o} keys={['war', 'leadership']} /> → 捕虜
@@ -197,8 +196,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                       <OfficerPortrait officer={o} size={40} forceColor={f?.color} year={currentYear} />
                       <div style={{ flex: 1 }}>
-                        <span className={styles.officerName}>{o.name.zh}</span>
-                        <span className={styles.officerNameEn}>{o.name.en}</span>
+                        <span className={styles.officerName}>{pickName(o.name, lang)}</span>
                       </div>
                       <span className={styles.officerStat}>† fell</span>
                     </div>

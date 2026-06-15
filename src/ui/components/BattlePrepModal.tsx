@@ -13,7 +13,7 @@ import type {
 import { OfficerStats } from './OfficerStats';
 import { Name } from './Name';
 import styles from './BattlePrepModal.module.css';
-import { useLanguage, useDesc } from '../i18n';
+import { useLanguage, useDesc, pickName } from '../i18n';
 
 interface Props {
   sourceCityId: EntityId;
@@ -279,9 +279,9 @@ export function BattlePrepModal({
         <div className={styles.body}>
           <div className={styles.context}>
             <div className={styles.ctxCard}>
-              <div className={styles.ctxLabel}>Map 戰場</div>
+              <div className={styles.ctxLabel}>{lang === 'en' ? 'Map' : '戰場'}</div>
               <div className={styles.ctxValue}>
-                {namedMap ? namedMap.name.zh + ' ' + namedMap.name.en : 'Procedural'}
+                {namedMap ? pickName(namedMap.name, lang) : (lang === 'en' ? 'Procedural' : '隨機地形')}
               </div>
             </div>
             <div className={styles.ctxCard}>

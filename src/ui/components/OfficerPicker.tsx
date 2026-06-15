@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import type { EntityId, InternalAffairsType } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
+import { Name } from './Name';
 import styles from './OfficerPicker.module.css';
 import { useT, useLanguage, useDesc } from '../i18n';
 import { commandFitMultiplier } from '../../game/systems/traitEffects';
@@ -147,10 +148,9 @@ export function OfficerPicker({ cityId, commandType, onClose }: Props) {
                         <span style={{ marginRight: 5, color: isPicked ? '#e6c473' : '#6a5a40' }}>{isPicked ? '☑' : '☐'}</span>
                         {recommended && <span style={{ color: '#e6c473', marginRight: 4 }}>⭐</span>}
                         {liability && <span style={{ color: '#b8442e', marginRight: 4 }}>⚠</span>}
-                        {o.name.zh}
+                        <Name pair={o.name} />
                         {isTraining && <span style={{ marginLeft: '0.4rem', fontSize: '0.7rem', color: '#88b7e8', fontStyle: 'italic' }}>⏳ {t('培訓中', 'training')}</span>}
                       </span>
-                      <span className={styles.officerNameEn}>{o.name.en}</span>
                       <span className={styles.officerStat}>
                         {def.stat.toUpperCase().slice(0, 3)}{' '}
                         <strong>{o.stats[def.stat]}</strong>

@@ -444,8 +444,7 @@ function MilitaryTab({
             return (
               <div key={r.id} className={styles.rankRow}>
                 <div>
-                  <span className={styles.rankName}>{r.name.zh}</span>
-                  <span className={styles.rankNameEn}>{r.name.en}</span>
+                  <span className={styles.rankName}><Name pair={r.name} /></span>
                 </div>
                 <div className={styles.rankReq}>
                   req W/L ≥ {r.minStat}
@@ -538,8 +537,7 @@ function HistoryTab({
                     </span>
                   )}
                   {h.kind === 'appoint' ? '拜' : '罷'}{' '}
-                  <strong>{o.name.zh}</strong>{' '}
-                  <span className={styles.officerStats}>{o.name.en}</span>
+                  <strong><Name pair={o.name} /></strong>
                   {' 為 '}
                   <span style={{ color: '#e6c473' }}>{def.name.zh}</span>
                   {h.reason && h.kind === 'revoke' && (
