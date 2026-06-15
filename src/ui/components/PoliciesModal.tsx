@@ -1,5 +1,6 @@
 import { POLICY_DEFS } from '../../game/data/officerAttributes';
 import { CatalogModal, type CatalogItem, type CatalogCategory } from './CatalogModal';
+import { useLanguage } from '../i18n';
 
 const POLICY_CATEGORY: Record<string, string> = {
   // ── economy ──
@@ -375,6 +376,195 @@ export const POLICY_DESC: Record<string, string> = {
   'liaodong-buffer':   '遼東緩衝 — 公孫氏邊境。遼東叛亂 −80%。',
 };
 
+// English descriptions — shown in English mode (falls back to zh if missing).
+export const POLICY_DESC_EN: Record<string, string> = {
+  // economy
+  tuntian:             'Tuntian — soldier-farmers work the land. Food output +25%, recruitment +10%.',
+  hydraulics:          'Hydraulics — dykes and irrigation. Agriculture cap +15, water-attack defense +20%.',
+  commerce:            'Commerce — open markets, spur trade. Commerce cap +15, gold income +20%.',
+  'salt-monopoly':     'Salt Monopoly — state salt trade. +60 gold/season, loyalty −1 (dear salt).',
+  'iron-monopoly':     'Iron Monopoly — state ironworks. Weapon output +30%, city defense +10%.',
+  coinage:             'Coinage — mint standard cash. Commerce income +15%, inflation curbed.',
+  'silk-trade':        'Silk Road — open the western trade routes. Gold income +25%, +1 diplomacy with Liang/western tribes.',
+  'tea-trade':         'Tea-Horse Trade — trade with the Qiang for horses. Horse husbandry +15%, border stability +1.',
+  'land-reform':       'Land Reform — redistribute fields. Loyalty +5, agriculture +10%, +1 gentry hostility.',
+  'poor-relief':       'Poor Relief — ever-normal granaries, famine grain. Plague chance −30%, loyalty +1/season.',
+  // civil
+  scholarship:         'Scholarship — found academies, nurture talent. Recruit success +20%, new officers INT +5.',
+  legalism:            'Legalism — strict law, firm rule. City loyalty +10, revolt chance halved.',
+  rites:               'Rites & Music — ritual to settle the people. Loyalty +1/season, civil-officer efficiency +15%.',
+  medicine:            'Medicine — field physicians. Plague chance −50%, wound recovery −1 season.',
+  'nine-grade':        'Nine-Rank System — Chen Qun’s reform. Able gentry scions auto-promote (high INT); commoners rise hard.',
+  inspection:          'Inspection — censorate oversees officials. Corruption −50%, treasury never leaks.',
+  'ancestor-rites':    'Ancestral Rites — rites of imperial legitimacy. Royal-clan loyalty +10, bonus to founding ceremonies.',
+  astronomy:           'Astronomy — read the heavens. Omen prediction +1, mystic-art tactics strengthened.',
+  'calendar-reform':   'Calendar Reform — promulgate a new calendar. Farming timing +5%, court prestige +5.',
+  // military
+  engineering:         'Engineering — siege-engine research. Siege damage +25%, city defense +10%.',
+  recruitment:         'Drilling — train elite troops. Troop cap +20%, soldier quality +1.',
+  smithing:            'Smithing — forge fine arms. Weapon items +5 edge, officer attack +5.',
+  'horse-stewardship': 'Horse Stewardship — breed mounts, reform cavalry. Cavalry power +20%, new-horse rate +10%.',
+  'military-theory':   'Military Theory — study the art of war. Formation effect +15%, stratagem success +10%.',
+  'naval-academy':     'Naval Academy — train marines and warships. Naval combat +30%, river/coast defense bolstered.',
+  'crossbow-corps':    'Crossbow Corps — mass repeating crossbows. Archer range +1, volley damage +20%.',
+  'border-garrison':   'Border Garrison — permanent frontier troops. Border-city defense +25%, incursions −30%.',
+  'siege-school':      'Siege School — professional engineers. Siege speed +30%, wall wear −20%.',
+  // diplomacy / intel
+  'alliance-marriage': 'Marriage Alliance — wed a neighbor’s house. +30 relations with the target force, stable pacts.',
+  'tribute-system':    'Tribute System — assert suzerainty. Vassal forces pay +50 gold/season.',
+  'spy-network':       'Spy Network — train agents. Enemy intel range +1 city, stratagem success +15%.',
+  propaganda:          'Manifesto — draft a call to arms. Pre-battle enemy desertion +5%, allies +15% willing to join.',
+  'frontier-pacification': 'Pacify the Frontier — win hearts in the south. Southern/Liang tribal revolts −60%, can levy tribal troops.',
+  // new economy
+  granary:             'Granary — ever-normal stores. Stable grain prices, no famine victims, −20 gold/season upkeep.',
+  'maritime-trade':    'Maritime Trade — open coastal ports. +80 gold/season, needs a port city. A Wu specialty.',
+  'silk-loom':         'Sericulture — promote silk. Commerce +10, can produce silk for tribute/export.',
+  'ox-plowing':        'Ox Plowing — heavy ox-drawn ploughs. Agriculture cap +12, farming time −15%.',
+  'fish-salt':         'Fishing & Salt — coastal fisheries and salt. Food +15%, +40 gold/season, needs a coastal city.',
+  // new military
+  fortifications:      'Fortifications — reinforced walls and towers. City defense +30%, siege time +30%.',
+  'ambush-corps':      'Ambush Corps — trained for forest/mountain ambush. Ambush-tactic success +25%, forest/mountain power +15%.',
+  'mountain-warfare':  'Mountain Warfare — highland marching and combat. Mountain movement ×2, mountain damage +20%.',
+  conscription:        'Conscription — mass forced levy. Troop cap +35%, but loyalty −1/season and agriculture −10%.',
+  'elite-guards':      'Elite Guards — train a bodyguard corps. Commander escort +40 troops, commander death rate −50%.',
+  arsenal:             'Arsenal — central armory. Auto-issues weapons on campaign, −15g/month upkeep.',
+  // new civil
+  'imperial-academy':  'Imperial Academy — found the Taixue. Scholar officers +1 INT/season, trains Confucian officials.',
+  'post-roads':        'Post Roads — national relay stations. Order reach +1 city/season, march speed +10%.',
+  'community-granary': 'Community Granary — village mutual-aid stores. Auto-relief in disasters, loyalty +3, −30 gold/season.',
+  'court-music':       'Court Music — proper court music. Civil-officer efficiency +10%, +5 envoy courtesy.',
+  // cultural / religious
+  buddhism:            'Buddhism — build temples, ordain monks. Loyalty +3/season; a few leave farm/war (−5%).',
+  taoism:              'Taoism — found Daoist abbeys. Plague −30%, mystic-art tactics +10% success.',
+  divination:          'Divination — Office of the Grand Diviner. Glimpse fate before big decisions, +1 pre-battle intel.',
+  // new diplomacy / intel
+  'hostage-system':    'Hostage System — hold foreign nobles. Pact stability ×2, betrayal cost ×3.',
+  assassins:           'Assassins — train deathsmen. Send assassins against enemy officers; success scales with INT.',
+  'counter-intel':     'Counter-Intelligence — hunt enemy spies. Enemy spy success −50%, can plant false intel.',
+  'defector-reward':   'Clemency — reward defectors. Defeated enemy officers +20% to surrender.',
+  // Phase 3 economy
+  'iron-tools':        'Iron Tools — iron farm tools spread. Agriculture +20%, needs the iron-mining policy.',
+  'caravan-protection':'Caravan Guard — relay posts along roads. Caravan losses −50%, commerce +10%.',
+  'horse-trade':       'Horse Market — frontier horse fairs. +30 horses/season, trade with Qiang/Xiongnu.',
+  'copper-mining':     'Copper Mining — work copper. +50 gold/season, needs a copper-resource city.',
+  'iron-mining':       'Iron Mining — work iron. Smithing efficiency +50%, needs an iron-resource city.',
+  timber:              'Forestry — logging camps. Ship/siege-engine cost −30%.',
+  'pearl-trade':       'Pearl Trade — coastal pearl diving. +60 gold/season, needs a coastal city. A Wu specialty.',
+  'jade-trade':        'Jade Trade — western jade trade. +40 gold, diplomatic gifts +1 grade.',
+  corvee:              'Corvée — levy laborers. Construction speed ×1.5, loyalty −2/season.',
+  'tax-light':         'Light Taxes — ease the burden. Loyalty +5, but gold income −20%.',
+  // Phase 3 military
+  'watch-towers':      'Beacon Towers — frontier fire-signals. Invasion warning +1 season.',
+  'garrison-rotation': 'Garrison Rotation — rotate defenders. Defender morale loss −30%, fatigue −50%.',
+  'chariot-corps':     'Chariot Corps — war-chariot units. Plains power +20%, mountains −30%.',
+  'shield-wall':       'Shield Wall — massed shieldmen. Arrow damage −30%, magic/fire damage −10%.',
+  'naval-fireships':   'Fireships — fire-attack ships. Can chain-and-burn enemy ships, damage ×2.',
+  'naval-rams':        'Ramming Prows — ram tactics. Naval first-strike +40%, can sink enemy ships.',
+  'horse-armor':       'Barding — armored cavalry. Cavalry defense +30%, but movement −1.',
+  'mountain-stronghold': 'Mountain Stronghold — highland forts. Mountain-city defense +25%, can levy hill militia.',
+  // Phase 3 civil
+  'household-register':'Household Register — census rolls. Tax +10%, conscription efficiency +20%.',
+  examination:         'Recommendation — Han recommendation system. 1–2 hermits found nationwide each season.',
+  'mourning-rites':    'Mourning Rites — formal funeral rites. Gentry loyalty +5, but −20 gold/season.',
+  library:             'Library — establish a book repository. Scholar officers’ INT recovery +1/season.',
+  'music-bureau':      'Music Bureau — collect folk songs. Civil officers’ CHA recovery +1/season.',
+  'school-village':    'Village Schools — schools everywhere. Commoner-officer recruitment +20%, cultured population +5%.',
+  'imperial-edict':    'Imperial Edict — decree under empire. Coalitions can take joint action, morale +5.',
+  // religion
+  'five-emperors':     'Rite of Five Emperors — sacrifice to the Five Emperors. Royal legitimacy +10, founding bonus.',
+  'mountain-spirit':   'Mountain-Spirit Rite — worship mountain gods. Mountain-city loyalty +5, +1 hillfolk allegiance.',
+  'river-god':         'River-God Rite — worship river gods. Flood damage halved, +3 navy morale on sortie.',
+  // Phase 3 diplomacy
+  'envoy-bureau':      'Office of Envoys — diplomatic corps. Send 3 envoys at once, diplomacy efficiency +30%.',
+  'frontier-market':   'Frontier Market — border trade fairs. +50 gold/season from tribal trade, but spy risk +1.',
+  'captives-ransom':   'Ransom — buy back captives. Less morale loss, can recover captured officers.',
+  // Phase 4 economy
+  'gold-mining':       'Gold Mining — work gold. +120 gold/season, needs a (rare) gold-resource city.',
+  'forest-conservation':'Forest Reserve — protected logging zones. Timber-policy efficiency +30%, erosion −1.',
+  pottery:             'Pottery — pottery workshops. Commerce +5/season, ample everyday goods.',
+  lacquerware:         'Lacquerware — fine lacquer. Luxury export, diplomatic gifts +1 grade.',
+  'merchant-guild':    'Merchant Guild — found trade guilds. Commerce +12, but merchant-gentry influence +1.',
+  'river-customs':     'River Tolls — river checkpoints. +50 gold/season, river-transport efficiency −5%.',
+  'pawn-bureau':       'Pawn Bureau — state pawnshops. Famine-year +30 gold (pawn income), loyalty −1.',
+  'court-treasury':    'Privy Purse — the ruler’s private treasury. Luxury self-funds; gifts don’t drain the state.',
+  'bamboo-craft':      'Bamboo Craft — bamboo workshops. Light industry +5%, needs a bamboo resource.',
+  'sericulture-tax':   'Mulberry Tax — dedicated silk-field tax. +35 gold/season, but silk-loom efficiency −10%.',
+  // Phase 4 military
+  'archery-school':    'Archery School — train at the archery rite. Archer accuracy +15%, recruits’ WAR slightly up.',
+  'military-drill':    'Grand Review — great muster. All-army morale +5%, +1 season of battle-readiness.',
+  'supply-train':      'Supply Train — logistics columns. Expeditions seldom run dry, grain upkeep −20%.',
+  'siege-tower':       'Siege Tower — siege towers. Siege damage +30%, wall durability −15%.',
+  'engineer-corps':    'Engineer Corps — combat engineers. Bridge/road/trench work at ×2 speed.',
+  'frontier-cavalry':  'Frontier Cavalry — borderland riders. Light cavalry +20% mobility, can patrol the frontier.',
+  'mountain-passes':   'Mountain Passes — fortify the passes. Mountain-pass defense +35%, needs a mountain city.',
+  watchnight:          'Curfew — night curfew. Unrest chance −30%, loyalty −1/season.',
+  'spear-corps':       'Spear Corps — long-spear regiments. +25% vs cavalry, steady on the plains.',
+  'assault-troops':    'Assault Troops — deathsmen shock units. First-round charge +40% damage, but high casualties.',
+  // Phase 4 civil
+  'noble-titles':      'Noble Titles — grant peerages. Officer loyalty +10, but gentrification deepens over time.',
+  'imperial-tour':     'Imperial Tour — the ruler progresses. Loyalty +5 along the route, but luxury cost ×2.',
+  'charity-house':     'Charity House — homes for the destitute. Loyalty +3, plague −20%, −25 gold/season.',
+  mediation:           'Village Pact — local mediation. Unrest chance −15%, loyalty +2.',
+  'standardize-weights':'Standard Measures — unify weights. Commerce +10%, tax +5%, admin efficiency +5.',
+  'standardize-script':'Standard Script — unify writing. Cultured population +5%, admin efficiency +10%.',
+  'map-survey':        'Cartography — survey the realm. Military scouting +1 level, optimized march routes.',
+  'crime-amnesty':     'Amnesty — pardon the realm. Loyalty +8 (one-time), but banditry +10%.',
+  // religion
+  'temple-building':   'Temple Building — build temples widely. Loyalty +3, but −40 gold/season; some people ordain.',
+  'new-year-rites':    'New Year Court — grand New Year audience. +10% morale at year’s start, all envoys attend.',
+  alchemy:             'Alchemy — Daoist elixirs. May find longevity elixirs; chance to extend officer lifespan.',
+  'soul-prayer':       'Soul Prayer — rites for the war dead. Post-battle morale recovery +10%.',
+  // Phase 4 diplomacy
+  bribery:             'Bribery — bribe enemy officials. Intel gain +30%, enemy loyalty −5%.',
+  'propaganda-songs':  'Children’s Rhymes — spread political ditties. Enemy loyalty −1/season, hard to trace.',
+  'nanman-tribute':    'Nanman Tribute — collect southern tribute. +40 gold + 1 elephant/season, needs frontier-pacification.',
+  // Phase 5 economy
+  ironworks:           'State Ironworks — national iron-smelting. Weapon output +25%, pairs with iron-mining.',
+  shipyard:            'Shipyard — large shipyards. +5 new ships/season, navy size +20%.',
+  canal:               'Canal — dig a canal. Grain transport ×2, −80 gold one-time build cost.',
+  'water-mill':        'Water Mill — water-powered mills. Grain output +12%, needs a river city.',
+  weaving:             'Weaving — state textile mills. Commerce +8, winter clothing for the troops.',
+  'silver-mining':     'Silver Mining — work silver. +90 gold/season, needs a (rare) silver-resource city.',
+  'tea-cultivation':   'Tea Plantation — grow tea. Tea commerce +10, exportable.',
+  bridges:             'Bridges — build bridges widely. March speed +10%, easier water transport.',
+  caravansary:         'Caravansary — wayside inns. Merchant fatigue −50%, commerce +5%.',
+  'river-dredging':    'River Dredging — dredge channels regularly. Flood −50%, water transport +15%.',
+  'horse-breeding':    'State Pastures — national horse farms. +50 new horses/season, faster cavalry replenishment.',
+  'famine-loans':      'Famine Loans — lend grain in lean years. Loyalty holds in disasters, −60 gold lent out.',
+  // Phase 5 military
+  'skirmish-corps':    'Skirmishers — harassing skirmishers. Forest ambush +20%, but weak head-on.',
+  'light-cavalry':     'Light Cavalry — scouting riders. Intel range +1 city, cavalry mobility +1.',
+  'bandit-suppression': 'Bandit Suppression — pacify the hills. Bandits −80%, security +20%, loyalty +3.',
+  'pirate-suppression': 'Pirate Suppression — clear coastal raiders. Coastal safety +25%, commerce +10%.',
+  'veteran-pension':   'Veteran Pension — care for old soldiers. Officer natural death −10%, soldier loyalty +5%.',
+  'military-academy':  'Military Academy — officers’ college. New officers WAR/LED +5 each season.',
+  'moat-construction': 'Moat — encircling moat. City defense +20%, besieger casualties +25%.',
+  'camp-discipline':   'Camp Discipline — strict discipline. Troops spare civilians, loyalty +3, officer loyalty +10.',
+  'river-watchtower':  'River Watchtower — riverside lookouts. Riverbank early warning +1 season.',
+  'coastal-fortress':  'Coastal Fortress — seaside strongholds. Sea-invasion defense +30%, pirates −50%.',
+  // Phase 5 civil
+  'six-ministers':     'Three Excellencies & Nine Ministers — central office reform. Admin efficiency +25%, gentry influence +1.',
+  protocol:            'Court Protocol — court etiquette. Diplomatic courtesy +1 grade, no breaches of decorum.',
+  'royal-physicians':  'Imperial Physicians — the Imperial Medical Office. May extend emperor/minister lifespans, plague −20%.',
+  'imperial-guard':    'Imperial Guard — palace guards. Capital revolt nearly impossible, −30 gold/season.',
+  'official-promotion': 'Promotion System — regular promotion. Officer promotion speed +20%.',
+  'royal-park':        'Royal Park — imperial gardens. Royal indulgence: loyalty −3, luxury +50/season.',
+  'prefecture-reform': 'Commandery Reform — redraw commanderies. Admin efficiency +15%, local influence −1.',
+  'land-survey':       'Land Survey — measure all fields. Tax +15%, loyalty −2 (magnate resistance).',
+  // religion
+  'sky-altar':         'Round Altar — sacrifice to Heaven. Imperial legitimacy +15, founding rites +1 grade.',
+  'earth-altar':       'Square Altar — sacrifice to Earth. Harvest prayers, agriculture +5%.',
+  'mountain-pilgrimage': 'Pilgrimage — pilgrimage to the Five Peaks. Holy-mountain city loyalty +5, can train Daoists.',
+  'ancestral-temple':  'Ancestral Temple — temple rites. Royal-clan loyalty +15, legitimate succession.',
+  // Phase 5 frontier diplomacy
+  'xianbei-buffer':    'Xianbei Buffer — a frontier buffer zone. Xianbei incursions −60%, +border horse-trade.',
+  'xiongnu-tribute':   'Xiongnu Tribute — the Xiongnu submit. +30 gold + 20 horses/season.',
+  'qiang-pacification': 'Qiang Pacification — soothe the Liang Qiang. Revolts −70%, can levy Qiang riders.',
+  'wuhuan-buffer':     'Wuhuan Buffer — govern the Wuhuan. Northeast frontier +50% stability.',
+  'jiao-pacification': 'Jiaozhou Pacification — pacify the southern Yue. Southern cities +5 loyalty, opens South Sea trade.',
+  'liaodong-buffer':   'Liaodong Buffer — the Gongsun frontier. Liaodong revolts −80%.',
+};
+
 const CATEGORIES: CatalogCategory[] = [
   { key: 'economy',   zh: '民政', en: 'Economy',   color: '#b8c87a' },
   { key: 'civil',     zh: '文教', en: 'Civil',     color: '#88b7e8' },
@@ -385,11 +575,12 @@ const CATEGORIES: CatalogCategory[] = [
 interface Props { onClose: () => void; }
 
 export function PoliciesModal({ onClose }: Props) {
+  const lang = useLanguage();
   const items: CatalogItem[] = Object.entries(POLICY_DEFS).map(([id, def]) => ({
     id,
     zh: def.zh,
     en: def.en,
-    description: POLICY_DESC[id] ?? '',
+    description: (lang === 'en' ? (POLICY_DESC_EN[id] ?? POLICY_DESC[id]) : POLICY_DESC[id]) ?? '',
     category: POLICY_CATEGORY[id] ?? 'civil',
   }));
   return (
