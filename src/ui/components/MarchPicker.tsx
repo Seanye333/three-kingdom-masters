@@ -4,7 +4,7 @@ import { COMMAND_DEFS } from '../../game/systems/commands';
 import { navalReachableCityIds } from '../../game/data/ports';
 import { marchDurationFor } from '../../game/data/cities';
 import { generateTerritories, terrainRoute } from '../../game/data/territories';
-import { useT } from '../i18n';
+import { useT, useLanguage } from '../i18n';
 import { BattlePrepModal } from './BattlePrepModal';
 import type { EntityId } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
@@ -178,6 +178,7 @@ export function MarchPicker({ cityId, onClose }: Props) {
   };
 
   const t = useT();
+  const lang = useLanguage();
   const adjustTroops = (delta: number) => {
     setTroops((t) => Math.max(0, Math.min(maxTroops, t + delta)));
   };
@@ -331,8 +332,8 @@ export function MarchPicker({ cityId, onClose }: Props) {
                     className={`${styles.officerButton} ${officerId === o.id ? styles.officerSelected : ''}`}
                     onClick={() => setOfficerId(o.id)}
                   >
-                    <span className={styles.officerNameZh}>{o.name.zh}</span>
-                    <span className={styles.officerNameEn}>{o.name.en}</span>
+                    {lang !== 'en' && <span className={styles.officerNameZh}>{o.name.zh}</span>}
+                    {lang !== 'zh' && <span className={styles.officerNameEn}>{o.name.en}</span>}
                     <span className={styles.officerWar}>
                       <OfficerStats officer={o} keys={['leadership', 'war']} />
                     </span>
@@ -361,11 +362,15 @@ export function MarchPicker({ cityId, onClose }: Props) {
                       disabled={disabled}
                       style={disabled ? { opacity: 0.35, cursor: 'not-allowed' } : undefined}
                     >
-                      <span className={styles.officerNameZh}>
-                        {picked ? '✓ ' : ''}
-                        {o.name.zh}
-                      </span>
-                      <span className={styles.officerNameEn}>{o.name.en}</span>
+                      {lang !== 'en' && (
+                        <span className={styles.officerNameZh}>
+                          {picked ? '✓ ' : ''}
+                          {o.name.zh}
+                        </span>
+                      )}
+                      {lang !== 'zh' && (
+                        <span className={styles.officerNameEn}>{picked && lang === 'en' ? '✓ ' : ''}{o.name.en}</span>
+                      )}
                       <span className={styles.officerWar}>
                         <OfficerStats officer={o} keys={['leadership', 'war']} />
                       </span>

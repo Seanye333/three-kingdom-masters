@@ -8,6 +8,7 @@ import { DYNASTY_DEFS, type Dynasty } from '../../game/data/dynasties';
 import type { EntityId, Officer, OfficerStats } from '../../game/types';
 import { OfficerDetail } from './OfficerDetail';
 import { OfficerHoverCard } from './OfficerHoverCard';
+import { useLanguage, pickName } from '../i18n';
 import styles from './OfficersTab.module.css';
 
 function topStatKey(s: OfficerStats): keyof OfficerStats {
@@ -50,6 +51,7 @@ export function OfficersTab({ onClose }: Props) {
   const officers = useGameStore((s) => s.officers);
   const forces = useGameStore((s) => s.forces);
   const cities = useGameStore((s) => s.cities);
+  const lang = useLanguage();
   const playerForceId = useGameStore((s) => s.playerForceId);
   const currentYear = useGameStore((s) => s.date.year);
 
@@ -339,11 +341,11 @@ export function OfficersTab({ onClose }: Props) {
                 officer={o}
                 forceId={o.forceId}
                 forceName={
-                  o.forceId
-                    ? forces[o.forceId]?.name.zh ?? '—'
+                  o.forceId && forces[o.forceId]
+                    ? pickName(forces[o.forceId]!.name, lang)
                     : o.status === 'imprisoned'
-                      ? '捕虜'
-                      : '浪人'
+                      ? (lang === 'en' ? 'Captive' : '捕虜')
+                      : (lang === 'en' ? 'Free agent' : '浪人')
                 }
                 forceColor={
                   o.forceId
@@ -351,8 +353,8 @@ export function OfficersTab({ onClose }: Props) {
                     : '#364654'
                 }
                 locationName={
-                  o.locationCityId
-                    ? cities[o.locationCityId]?.name.zh ?? '—'
+                  o.locationCityId && cities[o.locationCityId]
+                    ? pickName(cities[o.locationCityId]!.name, lang)
                     : '—'
                 }
                 currentYear={currentYear}
@@ -394,8 +396,9 @@ function OfficerRow({
   highlight,
   onClick,
 }: RowProps) {
+  const lang = useLanguage();
   const age = currentYear - o.birthYear;
-  const task = o.task ? COMMAND_DEFS[o.task]?.label.zh : null;
+  const task = o.task ? (lang === 'en' ? COMMAND_DEFS[o.task]?.label.en : COMMAND_DEFS[o.task]?.label.zh) : null;
   const top = topStatKey(o.stats);
   const tacticsCount = deriveTactics(o.stats, o.id).length;
   const formationsCount = deriveFormations(o.stats, o.id).length;
@@ -409,11 +412,11 @@ function OfficerRow({
     >
       <OfficerHoverCard officer={o}>
         <span className={styles.rowName}>
-          <span className={styles.rowNameZh}>{o.name.zh}</span>
-          <span className={styles.rowNameEn}>{o.name.en}</span>
+          {lang !== 'en' && <span className={styles.rowNameZh}>{o.name.zh}</span>}
+          {lang !== 'zh' && <span className={styles.rowNameEn}>{o.name.en}</span>}
           {o.courtesyName && (
             <span className={styles.rowCourtesy}>
-              ({o.courtesyName.zh})
+              ({pickName(o.courtesyName, lang)})
             </span>
           )}
         </span>

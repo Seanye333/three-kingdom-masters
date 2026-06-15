@@ -742,13 +742,13 @@ export function MapScreen() {
           }}
         >
           <div className="tkm-ach-toast-title" style={{ fontSize: '0.7rem', color: '#c9a64e' }}>
-            勳功 UNLOCKED
+            {t('勳功', 'UNLOCKED')}
           </div>
           <div style={{ fontSize: '0.95rem', marginTop: '0.2rem' }}>
-            {recentAchievementUnlocks.length} new achievement{recentAchievementUnlocks.length > 1 ? 's' : ''}
+            {t(`${recentAchievementUnlocks.length} 項新成就`, `${recentAchievementUnlocks.length} new achievement${recentAchievementUnlocks.length > 1 ? 's' : ''}`)}
           </div>
           <div style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic' }}>
-            click to dismiss
+            {t('點擊關閉', 'click to dismiss')}
           </div>
         </div>
       )}
@@ -773,7 +773,7 @@ export function MapScreen() {
           }}
         >
           <div style={{ fontSize: '0.65rem', letterSpacing: '0.1rem', color: '#c9a64e' }}>
-            稱號 EARNED
+            {t('稱號', 'EARNED')}
           </div>
           {recentDeedTitles.slice(-3).map((g, i) => {
             const o = officersForToast[g.officerId];
@@ -791,7 +791,7 @@ export function MapScreen() {
             </div>
           )}
           <div style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic', marginTop: '0.2rem' }}>
-            click to dismiss
+            {t('點擊關閉', 'click to dismiss')}
           </div>
         </div>
       )}
@@ -816,7 +816,7 @@ export function MapScreen() {
           }}
         >
           <div style={{ fontSize: '0.65rem', letterSpacing: '0.1rem', color: '#d96a4a' }}>
-            威名 PRESTIGE
+            {t('威名', 'PRESTIGE')}
           </div>
           {recentPrestige.slice(-3).map((g, i) => {
             const o = officersForToast[g.officerId];
@@ -834,7 +834,7 @@ export function MapScreen() {
             </div>
           )}
           <div style={{ fontSize: '0.7rem', color: '#7a8893', fontStyle: 'italic', marginTop: '0.2rem' }}>
-            click to dismiss
+            {t('點擊關閉', 'click to dismiss')}
           </div>
         </div>
       )}
