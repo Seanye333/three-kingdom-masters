@@ -436,7 +436,7 @@ function MarketPanel({ cityId, onClose }: { cityId: EntityId; onClose: () => voi
           minWidth: 320, maxWidth: 420, fontFamily: 'var(--tkm-font-body)', color: '#e6edf3',
         }}
       >
-        <div style={{ color: '#e8c478', letterSpacing: '0.08rem', marginBottom: '0.2rem' }}>🪙 {t('市易', 'Grain Market')}</div>
+        <div style={{ color: '#e8c478', letterSpacing: '0.08rem', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="gold" size={15} color="#e8c478" />{t('市易', 'Grain Market')}</div>
         <div style={{ fontSize: '0.72rem', color: '#7a8893', marginBottom: '0.7rem' }}>
           {t(`時價:1金 ≈ ${rate.toFixed(1)}糧(市稅一成)· 庫:${city.gold}金 / ${city.food.toLocaleString()}糧`,
              `Rate: 1g ≈ ${rate.toFixed(1)} food (10% spread) · ${city.gold}g / ${city.food.toLocaleString()} food`)}

@@ -14,6 +14,7 @@ import type {
 import { getRelation } from '../../game/types';
 import { MarriagePicker } from './MarriagePicker';
 import { HostagePicker } from './HostagePicker';
+import { Icon } from './Icon';
 import { useT } from '../i18n';
 import styles from './DiplomacyModal.module.css';
 
@@ -101,7 +102,7 @@ export function DiplomacyModal({ onClose }: Props) {
             <div className={styles.titleZh}>外交</div>
             <div className={styles.titleEn}>
               {t('國庫金：', 'Diplomacy — Capital Gold:')}{' '}
-              <strong>{playerCapitalGold.toLocaleString()}</strong>
+              <Icon name="gold" size={13} color="#e6c473" style={{ verticalAlign: '-0.12em' }} /> <strong>{playerCapitalGold.toLocaleString()}</strong>
               {' · '}
               <span title={t('背盟則損,守信漸復;低信譽他國難與結盟。', 'Falls when you break pacts, recovers as you honour them; low credibility makes others wary.')}>
                 {t('信譽', 'Credibility')}{' '}
@@ -138,11 +139,11 @@ export function DiplomacyModal({ onClose }: Props) {
                 </div>
 
                 <div className={styles.metaRow}>
-                  <span>
-                    {t('城', 'Cities')} <strong>{row.cities}</strong>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Icon name="city" size={12} color="#8a98a4" />{t('城', 'Cities')} <strong>{row.cities}</strong>
                   </span>
-                  <span>
-                    {t('兵', 'Troops')} <strong>{row.troops.toLocaleString()}</strong>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Icon name="war" size={12} color="#8a98a4" />{t('兵', 'Troops')} <strong>{row.troops.toLocaleString()}</strong>
                   </span>
                   {(grudges[row.id] ?? 0) >= 15 && (
                     <span title={t('對我方積怨 — 越高越難議和結盟', 'Resentment toward you — high grudges make pacts hard')}>

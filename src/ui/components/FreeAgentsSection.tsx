@@ -5,6 +5,7 @@ import { eloquence } from '../../game/systems/debate';
 import type { EntityId } from '../../game/types';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import { OfficerStats } from './OfficerStats';
+import { Icon } from './Icon';
 import { DebateModal } from './DebateModal';
 import { RecruitSuccessModal } from './RecruitSuccessModal';
 import styles from './FreeAgentsSection.module.css';
@@ -109,7 +110,7 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
                         onClick={() => invite(o.id, { bribe: BRIBE_AMOUNT })}
                         disabled={cityGold < BRIBE_AMOUNT}
                         title={cityGold < BRIBE_AMOUNT ? `需 ${BRIBE_AMOUNT} 金` : `贈金 ${BRIBE_AMOUNT} 以動其心`}
-                      >💰 賄賂 ({BRIBE_AMOUNT}g)</button>
+                      ><Icon name="gold" size={11} /> 賄賂 ({BRIBE_AMOUNT}g)</button>
                     </>
                   )}
                 </div>
