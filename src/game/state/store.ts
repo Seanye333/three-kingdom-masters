@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { idbStorage } from './idbStorage';
 import type {
   BuildingId,
+  City,
   CivicTitleId,
   Command,
   EdictKind,
@@ -42,6 +43,7 @@ import {
   findFiringEventIn,
 } from '../systems/historicalEvents';
 import { resolveEspionage } from '../systems/espionage';
+import { tickEmbeddedSpies, PLANT_SPY_COST } from '../systems/spies';
 import {
   resolveTribeRaids,
   canCampaignTribe,
@@ -430,6 +432,10 @@ interface GameStore extends GameState {
     targetOfficerId?: EntityId,
   ) => { ok: boolean; reason?: string };
   cancelEspionage: (opId: EntityId) => void;
+  /** 潛伏 — plant one of your officers as a persistent spy in an enemy city. */
+  plantSpy: (agentOfficerId: EntityId, targetCityId: EntityId) => { ok: boolean; reason?: string };
+  /** Extract an embedded spy safely before they are exposed. */
+  recallSpy: (spyId: EntityId) => void;
   issueEdict: (
     kind: EdictKind,
     targetForceId?: EntityId,
@@ -1916,6 +1922,38 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           if (cid) espionageRevealsNext[cid] = 6;
         }
 
+        // 潛伏細作 — persistent agents tick each season: ongoing intel, quiet
+        // loyalty erosion, rising exposure, and capture at 100. Mutations fold
+        // back into espResult so postCities/postOfficers inherit them.
+        let embeddedSpiesNext = state.embeddedSpies ?? [];
+        let spyGrudgeBumps: Record<EntityId, number> = {};
+        if (seasonBoundary && embeddedSpiesNext.length > 0) {
+          const spyTick = tickEmbeddedSpies({
+            spies: embeddedSpiesNext,
+            cities: espResult.cities,
+            officers: espResult.officers,
+            playerForceId: state.playerForceId,
+            rng: Math.random,
+          });
+          Object.assign(espResult.cities, spyTick.cities);
+          Object.assign(espResult.officers, spyTick.officers);
+          for (const [cid, ticks] of Object.entries(spyTick.reveals)) {
+            espionageRevealsNext[cid] = Math.max(espionageRevealsNext[cid] ?? 0, ticks);
+          }
+          if (spyTick.entries.length > 0) result.report.entries.push(...spyTick.entries);
+          embeddedSpiesNext = spyTick.spies;
+          spyGrudgeBumps = spyTick.grudgeBumps;
+        }
+        const grudgesAfterSpies: Record<EntityId, number> = Object.keys(spyGrudgeBumps).length > 0
+          ? (() => {
+              const g = { ...(state.grudges ?? {}) };
+              for (const [fid, d] of Object.entries(spyGrudgeBumps)) {
+                g[fid] = Math.max(0, Math.min(100, (g[fid] ?? 0) + d));
+              }
+              return g;
+            })()
+          : (state.grudges ?? {});
+
         // Resolve tribe raids.
         const tribeResult = resolveTribeRaids({
           state: state.tribeState,
@@ -3386,6 +3424,8 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           eventFlags: postFlags,
           firedEventIds: postFiredIds,
           pendingEspionage: [],
+          embeddedSpies: embeddedSpiesNext,
+          grudges: grudgesAfterSpies,
           tribeState: { ...tribeResult.state, aggression: nextAggression as typeof tribeResult.state.aggression },
           scenicLooted: nextScenicLooted,
           buildings: bld.buildings,
@@ -5150,6 +5190,63 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         });
       },
 
+      plantSpy: (agentOfficerId, targetCityId) => {
+        const state = get();
+        if (!state.playerForceId) return { ok: false, reason: 'no force' };
+        const agent = state.officers[agentOfficerId];
+        if (!agent) return { ok: false, reason: 'invalid' };
+        if (agent.forceId !== state.playerForceId) return { ok: false, reason: 'not your officer' };
+        if (agent.status !== 'idle' && agent.status !== 'active') return { ok: false, reason: 'officer unavailable' };
+        if (agent.task) return { ok: false, reason: 'officer is busy' };
+        if (state.embeddedSpies.some((s) => s.agentOfficerId === agentOfficerId))
+          return { ok: false, reason: 'already undercover' };
+        const target = state.cities[targetCityId];
+        if (!target || !target.ownerForceId || target.ownerForceId === state.playerForceId)
+          return { ok: false, reason: 'must target an enemy city' };
+        const origin = agent.locationCityId ? state.cities[agent.locationCityId] : null;
+        if (!origin || origin.ownerForceId !== state.playerForceId)
+          return { ok: false, reason: 'agent must be in one of your cities' };
+        if (origin.gold < PLANT_SPY_COST)
+          return { ok: false, reason: `need ${PLANT_SPY_COST}g at ${origin.name.en}` };
+        set({
+          embeddedSpies: [
+            ...state.embeddedSpies,
+            {
+              id: `spy-${agentOfficerId}`,
+              agentOfficerId,
+              targetCityId,
+              originCityId: origin.id,
+              targetForceId: target.ownerForceId,
+              plantedYear: state.date.year,
+              exposure: 0,
+            },
+          ],
+          cities: { ...state.cities, [origin.id]: { ...origin, gold: origin.gold - PLANT_SPY_COST } },
+          officers: { ...state.officers, [agentOfficerId]: { ...agent, task: null, locationCityId: targetCityId } },
+        });
+        return { ok: true };
+      },
+
+      recallSpy: (spyId) => {
+        const state = get();
+        const spy = state.embeddedSpies.find((s) => s.id === spyId);
+        if (!spy) return;
+        const agent = state.officers[spy.agentOfficerId];
+        let home: City | null = state.cities[spy.originCityId] ?? null;
+        if (!home || home.ownerForceId !== state.playerForceId) {
+          home = Object.values(state.cities).find((c) => c.ownerForceId === state.playerForceId) ?? null;
+        }
+        set({
+          embeddedSpies: state.embeddedSpies.filter((s) => s.id !== spyId),
+          officers: agent
+            ? {
+                ...state.officers,
+                [spy.agentOfficerId]: { ...agent, status: 'idle', task: null, locationCityId: home ? home.id : agent.locationCityId },
+              }
+            : state.officers,
+        });
+      },
+
       issueEdict: (kind, targetForceId) => {
         const state = get();
         const def = EDICTS_BY_KIND[kind];
@@ -6647,6 +6744,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           ...loaded,
           tribeState: loaded.tribeState ?? EMPTY_STATE.tribeState,
           pendingEspionage: loaded.pendingEspionage ?? [],
+          embeddedSpies: loaded.embeddedSpies ?? [],
           edictHistory: loaded.edictHistory ?? [],
           edictCooldowns: loaded.edictCooldowns ?? {},
           appointments: loaded.appointments ?? [],
@@ -6716,6 +6814,7 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         firedEventIds: state.firedEventIds,
         customEvents: state.customEvents,
         pendingEspionage: state.pendingEspionage,
+        embeddedSpies: state.embeddedSpies,
         edictHistory: state.edictHistory,
         edictCooldowns: state.edictCooldowns,
         tribeState: state.tribeState,

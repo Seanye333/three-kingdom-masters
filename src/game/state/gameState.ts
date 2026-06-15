@@ -134,6 +134,8 @@ export interface GameState {
   battleFxBatch: { key: number; events: Array<{ tacticId?: string; stratagemId: import('../types').StratagemId; coord: import('../types').HexCoord }> } | null;
   /** Pending espionage ops queued for next season's resolution. */
   pendingEspionage: EspionageOp[];
+  /** 潛伏細作 — persistent undercover agents embedded in enemy cities. */
+  embeddedSpies: import('../types').EmbeddedSpy[];
   /** Historical record of all issued edicts. */
   edictHistory: IssuedEdict[];
   /** Per-edict cooldown tracking: season-count when each kind is available again. */
@@ -376,6 +378,7 @@ export const EMPTY_STATE: GameState = {
   tacticalBattle: null,
   battleFxBatch: null,
   pendingEspionage: [],
+  embeddedSpies: [],
   edictHistory: [],
   edictCooldowns: {},
   tribeState: createInitialTribeState(),
@@ -610,6 +613,7 @@ export function loadScenario(
     tacticalBattle: null,
     battleFxBatch: null,
     pendingEspionage: [],
+    embeddedSpies: [],
     espionageReveals: {},
     cityDelegations: {},
     legions: [],

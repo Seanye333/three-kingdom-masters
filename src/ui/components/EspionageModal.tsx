@@ -17,6 +17,9 @@ export function EspionageModal({ onClose }: Props) {
   const pendingEspionage = useGameStore((s) => s.pendingEspionage);
   const queueEspionage = useGameStore((s) => s.queueEspionage);
   const cancelEspionage = useGameStore((s) => s.cancelEspionage);
+  const embeddedSpies = useGameStore((s) => s.embeddedSpies);
+  const plantSpy = useGameStore((s) => s.plantSpy);
+  const recallSpy = useGameStore((s) => s.recallSpy);
   const lang = useLanguage();
   const desc = useDesc();
 
@@ -103,6 +106,20 @@ export function EspionageModal({ onClose }: Props) {
     return Math.max(0.05, Math.min(0.95, chance));
   }, [def, pickedAgentId, pickedTargetForceId, pickedTargetOfficerId, officers]);
 
+  const plant = () => {
+    if (!pickedAgentId || !pickedTargetCityId) return;
+    const r = plantSpy(pickedAgentId, pickedTargetCityId);
+    if (r.ok) {
+      setPickedKind(null);
+      setPickedAgentId(null);
+      setPickedTargetForceId(null);
+      setPickedTargetCityId(null);
+      setPickedTargetOfficerId(null);
+    } else {
+      alert(r.reason ?? 'Failed');
+    }
+  };
+
   const submit = () => {
     if (!canConfirm || !pickedKind || !pickedAgentId || !pickedTargetForceId) return;
     const r = queueEspionage(
@@ -171,6 +188,27 @@ export function EspionageModal({ onClose }: Props) {
                         className={styles.cancelBtn}
                         onClick={() => cancelEspionage(op.id)}
                       >×</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {embeddedSpies.length > 0 && (
+              <div className={styles.pending}>
+                <div className={styles.colLabel}>{lang === 'en' ? 'Embedded' : '潛伏細作'} ({embeddedSpies.length})</div>
+                {embeddedSpies.map((spy) => {
+                  const agent = officers[spy.agentOfficerId];
+                  const city = cities[spy.targetCityId];
+                  const exp = Math.min(100, Math.round(spy.exposure));
+                  return (
+                    <div key={spy.id} className={styles.pendingOp} style={{ display: 'block' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                        <span>{(lang === 'en' ? agent?.name.en : agent?.name.zh) ?? '?'} → {(lang === 'en' ? city?.name.en : city?.name.zh) ?? '?'}</span>
+                        <button className={styles.cancelBtn} title={lang === 'en' ? 'Recall' : '召回'} onClick={() => recallSpy(spy.id)}>↩</button>
+                      </div>
+                      <div title={`${lang === 'en' ? 'Exposure' : '暴露'} ${exp}%`} style={{ height: 5, background: '#10161e', border: '1px solid #2b3845', marginTop: 3 }}>
+                        <div style={{ width: `${exp}%`, height: '100%', background: exp > 66 ? '#b8442e' : exp > 33 ? '#e6c473' : '#7ed68a' }} />
+                      </div>
                     </div>
                   );
                 })}
@@ -296,6 +334,14 @@ export function EspionageModal({ onClose }: Props) {
               </span>
             </div>
           )}
+          <button
+            className={styles.confirmBtn}
+            disabled={!pickedAgentId || !pickedTargetCityId}
+            onClick={plant}
+            title={lang === 'en' ? 'Embed a persistent undercover agent in this city' : '派遣常駐潛伏細作於此城（持續刺探/侵蝕,有暴露風險)'}
+          >
+            {lang === 'en' ? 'Plant Spy' : '潛伏'}
+          </button>
           <button className={styles.confirmBtn} disabled={!canConfirm} onClick={submit}>
             Queue Op
           </button>

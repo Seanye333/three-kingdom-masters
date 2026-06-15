@@ -52,3 +52,25 @@ export interface EspionageResult {
   success: boolean;
   message: string;
 }
+
+/**
+ * 潛伏細作 — a persistent undercover agent planted in an enemy city. Unlike a
+ * one-shot op, it lives across seasons: each season it keeps the city revealed
+ * (intel), quietly erodes its loyalty, and risks discovery as exposure climbs.
+ * Recall the agent to extract them safely; let exposure hit 100 and they are
+ * caught (imprisoned in the enemy city, and the lord's resentment rises).
+ */
+export interface EmbeddedSpy {
+  id: EntityId;
+  /** Your officer, undercover (their locationCityId sits in the target city). */
+  agentOfficerId: EntityId;
+  /** The enemy city they are embedded in. */
+  targetCityId: EntityId;
+  /** The city they left from — where recall returns them. */
+  originCityId: EntityId;
+  /** The force that owned the target city when planted (for resentment on discovery). */
+  targetForceId: EntityId;
+  plantedYear: number;
+  /** 0–100; rises each season by target vigilance − agent stealth. ≥100 = caught. */
+  exposure: number;
+}
