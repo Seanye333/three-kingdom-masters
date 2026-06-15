@@ -1,5 +1,6 @@
 import { useGameStore } from '../../game/state/store';
 import { Seal } from './Seal';
+import { useLanguage, pickName } from '../i18n';
 import styles from './VictoryModal.module.css';
 
 export function VictoryModal() {
@@ -12,6 +13,7 @@ export function VictoryModal() {
   const acknowledge = useGameStore((s) => s.acknowledgeVictory);
   const reset = useGameStore((s) => s.reset);
   const chronicle = useGameStore((s) => s.chronicle ?? []);
+  const lang = useLanguage();
 
   if (victoryStatus !== 'victory' && victoryStatus !== 'defeat') return null;
   const isVictory = victoryStatus === 'victory';
@@ -22,13 +24,13 @@ export function VictoryModal() {
         <div className={styles.banner} style={{ position: 'relative' }}>
           {isVictory ? (
             <>
-              <div className={styles.bannerZh}>天下統一</div>
-              <div className={styles.bannerEn}>The Realm United</div>
+              {lang !== 'en' && <div className={styles.bannerZh}>天下統一</div>}
+              {lang !== 'zh' && <div className={styles.bannerEn}>The Realm United</div>}
             </>
           ) : (
             <>
-              <div className={styles.bannerZh}>滅亡</div>
-              <div className={styles.bannerEn}>Annihilation</div>
+              {lang !== 'en' && <div className={styles.bannerZh}>滅亡</div>}
+              {lang !== 'zh' && <div className={styles.bannerEn}>Annihilation</div>}
             </>
           )}
           {/* 朱印 — the record is stamped: 「統一」 in triumph, 「終」 at the end. */}
@@ -48,7 +50,7 @@ export function VictoryModal() {
               In the {date.season} of <strong>{date.year} AD</strong>, every city
               of the empire flies the banner of{' '}
               <strong style={{ color: playerForce?.color }}>
-                {playerForce?.name.zh} {playerForce?.name.en}
+                {playerForce ? pickName(playerForce.name, lang) : ''}
               </strong>
               . The Three Kingdoms era ends — your name shall be written in the
               records of the Han successor.
@@ -58,7 +60,7 @@ export function VictoryModal() {
               In the {date.season} of <strong>{date.year} AD</strong>, the last
               city of{' '}
               <strong style={{ color: playerForce?.color }}>
-                {playerForce?.name.zh} {playerForce?.name.en}
+                {playerForce ? pickName(playerForce.name, lang) : ''}
               </strong>{' '}
               fell. Your campaign is over.
             </>

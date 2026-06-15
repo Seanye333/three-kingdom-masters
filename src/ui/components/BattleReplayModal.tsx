@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { SEASON_LABEL } from '../../game/types';
+import { useLanguage, pickName } from '../i18n';
 
 interface Props {
   onClose: () => void;
@@ -16,6 +17,7 @@ export function BattleReplayModal({ onClose }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<0.5 | 1 | 2 | 4>(1);
   const [filter, setFilter] = useState('');
+  const lang = useLanguage();
 
   const snapshot = replay && replay.snapshots[turnIdx] ? replay.snapshots[turnIdx] : replay?.finalBattle ?? null;
   const totalSnaps = replay?.snapshots.length ?? 0;
@@ -133,7 +135,7 @@ export function BattleReplayModal({ onClose }: Props) {
             {replay ? (
               <>
                 <div style={{ fontSize: '1.2rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
-                  {replay.cityName.zh} {replay.cityName.en}
+                  {pickName(replay.cityName, lang)}
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#7a8893', marginBottom: '1rem' }}>
                   {replay.year} {SEASON_LABEL[replay.season].zh} ·{' '}

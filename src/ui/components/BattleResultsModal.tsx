@@ -7,6 +7,7 @@ import type { TacticalBattle } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
 import styles from './BattleResultsModal.module.css';
 import { OfficerPortrait } from './OfficerPortrait';
+import { useLanguage, pickName } from '../i18n';
 
 interface Props {
   battle: TacticalBattle;
@@ -18,6 +19,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
   const officers = useGameStore((s) => s.officers);
   const currentYear = useGameStore((s) => s.date.year);
   const forces = useGameStore((s) => s.forces);
+  const lang = useLanguage();
   const resolution = resolveBattleEnd(battle, officers);
   const won = resolution.winner === playerSide;
   const winnerZh = won ? '勝利' : resolution.winner ? '敗北' : '引分';
@@ -41,14 +43,16 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
     <div className={styles.backdrop}>
       <div className={styles.modal}>
         <div className={styles.headerBanner}>
-          <div
-            className={`${styles.bannerZh} ${
-              won ? styles.bannerZhVictory : styles.bannerZhDefeat
-            }`}
-          >
-            {winnerZh}
-          </div>
-          <div className={styles.bannerEn}>{winnerEn}</div>
+          {lang !== 'en' && (
+            <div
+              className={`${styles.bannerZh} ${
+                won ? styles.bannerZhVictory : styles.bannerZhDefeat
+              }`}
+            >
+              {winnerZh}
+            </div>
+          )}
+          {lang !== 'zh' && <div className={styles.bannerEn}>{winnerEn}</div>}
         </div>
 
         {speaker && victoryLine && (
@@ -76,7 +80,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
                   letterSpacing: '0.05rem',
                 }}
               >
-                {speaker.name.zh} {speaker.name.en}
+                {pickName(speaker.name, lang)}
               </div>
               <div className="tkm-voiceline" style={{ marginTop: '0.2rem' }}>
                 「{victoryLine}」

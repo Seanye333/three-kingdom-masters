@@ -1,5 +1,6 @@
 import { useGameStore } from '../../game/state/store';
 import { OfficerAvatar } from './OfficerAvatar';
+import { useLanguage, pickName } from '../i18n';
 
 interface Props {
   onClose: () => void;
@@ -15,6 +16,7 @@ export function WishesModal({ onClose }: Props) {
   const currentYear = useGameStore((s) => s.date.year);
   const currentSeason = useGameStore((s) => s.date.season);
   const nowAbs = currentYear * 4 + SEASON_IDX[currentSeason];
+  const lang = useLanguage();
 
   return (
     <div
@@ -122,7 +124,7 @@ export function WishesModal({ onClose }: Props) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <div style={{ fontSize: '0.9rem', color: isInfo ? '#7ed68a' : '#e6c473' }}>
                       {isInfo && <span style={{ marginRight: '0.4rem', letterSpacing: '0.07rem' }}>上書</span>}
-                      {o?.name.zh} {o?.name.en}
+                      {o ? pickName(o.name, lang) : ''}
                       {grievance >= 2 && (
                         <span style={{ marginLeft: '0.5rem', color: '#b8442e', fontSize: '0.72rem' }}>
                           怨次 {grievance}
