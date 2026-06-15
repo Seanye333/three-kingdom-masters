@@ -154,6 +154,22 @@ export const ACHIEVEMENTS: Achievement[] = [
     unlockReward: { type: 'color', value: '#ffce4a' },
   },
   {
+    id: 'ach-unify-tyrant',
+    name: { en: 'Unification by the Sword', zh: '霸道一統' },
+    description: 'Unify the realm while ruling by fear (low loyalty).',
+    descriptionZh: '以威而非以德一統天下(民忠低落)。',
+    tier: 'legendary',
+    trigger: { kind: 'reach-ending', targetId: 'unify-tyrant' },
+  },
+  {
+    id: 'ach-endured',
+    name: { en: 'Outlasted the Age', zh: '久御四海' },
+    description: 'Reach the year 265 still holding a real domain, without unifying.',
+    descriptionZh: '至 265 年仍據四城以上而未一統——熬過了亂世。',
+    tier: 'gold',
+    trigger: { kind: 'reach-ending', targetId: 'endured' },
+  },
+  {
     id: 'ach-restore-han',
     name: { en: 'The Han Restored', zh: '漢室再興' },
     description: 'Reach the Restore Han ending.',

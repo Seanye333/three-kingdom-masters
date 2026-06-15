@@ -49,12 +49,14 @@ export type Difficulty = 'easy' | 'normal' | 'hard';
 
 /** Reasons a game has been won. */
 export type EndingKind =
-  | 'unify'             // 統一 — control every city
+  | 'unify'             // 統一 — control every city, people content (avg loyalty ≥ 50)
+  | 'unify-tyrant'      // 霸道一統 — control every city, but ruled by fear (avg loyalty < 50)
   | 'restore-han'       // 漢室再興 — playing as a Liu, hold Luoyang + Chang'an + Xuchang
   | 'hegemon'           // 霸業 — NON-Liu holding all three Han capitals (rule by the sword)
   | 'tripartite'        // 三国鼎立 — three kingdoms balanced (each holds 1/3+)
   | 'recluse'           // 隐士退隐 — small force, high loyalty, after year 220
   | 'emperor'           // 即位 — enthronement issued and held for 5 years
+  | 'endured'           // 久御四海 — outlasted the age: year ≥ 265, still holding ≥ 4 cities
   | 'defeat';           // lost
 
 /** A historical event that has fired this session and is awaiting acknowledgement. */

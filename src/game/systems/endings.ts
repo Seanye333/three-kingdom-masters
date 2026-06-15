@@ -26,7 +26,11 @@ export function checkEndings(ctx: EndingContext): EndingResult | null {
     (c) => c.ownerForceId === ctx.playerForceId,
   );
   if (playerCities.length === 0) return defeat();
-  if (playerCities.length === totalCities) return unify();
+  if (playerCities.length === totalCities) {
+    // 王道 vs 霸道 — did you win the realm's heart, or only its land?
+    const avgLoy = playerCities.reduce((s, c) => s + c.loyalty, 0) / playerCities.length;
+    return avgLoy < 50 ? unifyTyrant() : unify();
+  }
 
   // Restore Han: playing as a Liu, hold Luoyang + Chang'an + Xuchang.
   const ruler = playerForceRuler(ctx);
@@ -77,6 +81,10 @@ export function checkEndings(ctx: EndingContext): EndingResult | null {
     return emperor();
   }
 
+  // Endured: no unification, but you outlasted the age (the era ends 280) and
+  // still hold a real domain. Lowest priority — only if nothing grander fits.
+  if (ctx.date.year >= 265 && playerCities.length >= 4) return endured();
+
   return null;
 }
 
@@ -96,6 +104,30 @@ function unify(): EndingResult {
       '汉室倾颓数十年,战乱无休。今卿一统九州,百姓重见天日。史官将此功记入青史,千秋万代,永传其名。',
     textEn:
       'For decades the Han crumbled and the realm bled. Now you have brought all nine provinces under one banner. The people see daylight again. The historians enter your name into the record — to be remembered for ten thousand generations.',
+  };
+}
+
+function unifyTyrant(): EndingResult {
+  return {
+    kind: 'unify-tyrant',
+    titleZh: '霸道一統',
+    titleEn: 'Unification by the Sword',
+    textZh:
+      '九州盡入版圖,然非以德而以威。 城邑俯首,非心服也,畏卿之兵耳。 史官提筆而躊躇:一統之功則大矣,然「苛政猛於虎」之譏,亦千載難磨。 願卿守成之日,化威為德。',
+    textEn:
+      'All nine provinces are yours — won not by virtue but by force. The cities bow, yet not in their hearts: it is your soldiers they fear. The historian hesitates, brush in hand. The feat of unification is vast — but the old reproach, "tyranny is fiercer than a tiger," will not wear away in a thousand years. May the days of keeping the peace turn that fear to love.',
+  };
+}
+
+function endured(): EndingResult {
+  return {
+    kind: 'endured',
+    titleZh: '久御四海',
+    titleEn: 'Outlasted the Age',
+    textZh:
+      '群雄並起,旋起旋滅,而卿之旗,歷數十寒暑而不倒。 天下未一,然亂世將終,卿猶巍然守其疆土。 後人翻檢青史,於興亡更迭之間,屢見卿名 —— 不為最強,而為最久。',
+    textEn:
+      'Warlords rose and fell, rose and fell — yet your banner still stands after decades of frost and heat. The realm is not united, but the age of chaos draws to its close, and there you remain, holding your borders unbroken. Later readers, leafing through the chronicles of rise and ruin, meet your name again and again — not the mightiest, but the most enduring.',
   };
 }
 

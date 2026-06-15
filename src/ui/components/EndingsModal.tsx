@@ -118,6 +118,43 @@ function EndingArtwork({ kind }: { kind: EndingKind }) {
           <circle cx="360" cy="74" r="3.4" fill="#e6c473" />
         </g>
       )}
+
+      {kind === 'unify-tyrant' && (
+        <g>
+          {/* Dark mountains under a stark red sun */}
+          <path d="M 0 150 L 70 105 L 110 135 L 180 90 L 230 130 L 300 95 L 370 130 L 440 100 L 520 130 L 520 180 L 0 180 Z" fill="#2a2228" stroke="#b8442e" strokeWidth="1" />
+          <circle cx="372" cy="60" r="20" fill="#b8442e" opacity="0.85" />
+          {/* One dominant banner */}
+          <line x1="150" y1="58" x2="150" y2="160" stroke="#e6c473" strokeWidth="1.6" />
+          <path d="M 150 58 L 202 64 L 193 79 L 150 77 Z" fill="#b8442e" stroke="#e6c473" strokeWidth="0.6" />
+          {/* A palisade of spears — the realm held at the point of the blade */}
+          <g stroke="#e6c473" strokeWidth="1.4" strokeLinecap="round" fill="#e6c473">
+            <line x1="92" y1="160" x2="92" y2="120" /><path d="M 92 120 L 88 111 L 96 111 Z" stroke="none" />
+            <line x1="116" y1="160" x2="116" y2="115" /><path d="M 116 115 L 112 106 L 120 106 Z" stroke="none" />
+            <line x1="186" y1="160" x2="186" y2="115" /><path d="M 186 115 L 182 106 L 190 106 Z" stroke="none" />
+            <line x1="210" y1="160" x2="210" y2="120" /><path d="M 210 120 L 206 111 L 214 111 Z" stroke="none" />
+          </g>
+        </g>
+      )}
+
+      {kind === 'endured' && (
+        <g>
+          {/* Quiet hills under a low, ageing sun */}
+          <path d="M 0 155 L 90 120 L 160 145 L 250 110 L 340 145 L 430 120 L 520 150 L 520 180 L 0 180 Z" fill="#26323e" stroke="#e6c473" strokeWidth="0.8" />
+          <circle cx="250" cy="42" r="16" fill="#e6c473" opacity="0.55" />
+          {/* Banners of the fallen, lying broken */}
+          <g stroke="#5a4a38" strokeWidth="2" strokeLinecap="round">
+            <line x1="78" y1="150" x2="122" y2="159" />
+            <line x1="378" y1="148" x2="422" y2="159" />
+            <line x1="300" y1="156" x2="342" y2="150" />
+          </g>
+          <path d="M 122 159 L 144 150 L 141 159 Z" fill="#3a2a2a" opacity="0.7" />
+          <path d="M 378 148 L 356 142 L 360 150 Z" fill="#3a2a2a" opacity="0.7" />
+          {/* One banner still standing tall through the years */}
+          <line x1="250" y1="60" x2="250" y2="150" stroke="#e6c473" strokeWidth="2" />
+          <path d="M 250 60 L 298 66 L 289 81 L 250 79 Z" fill="#b8442e" stroke="#e6c473" strokeWidth="0.6" />
+        </g>
+      )}
     </svg>
   );
 }
