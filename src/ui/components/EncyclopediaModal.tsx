@@ -8,6 +8,7 @@ import {
   getBiography,
 } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
+import { OfficerStats } from './OfficerStats';
 import { CODEX_SETS, codexSetProgress, loadCodex } from '../../game/systems/codex';
 import { useDesc } from '../i18n';
 
@@ -140,7 +141,7 @@ export function EncyclopediaModal({ onClose }: Props) {
                   {o.courtesyName && <span style={{ color: '#7a8893', fontSize: '0.78rem', marginLeft: '0.4rem' }}>({o.courtesyName.zh})</span>}
                 </div>
                 <div style={metaLine}>
-                  W{o.stats.war} L{o.stats.leadership} I{o.stats.intelligence} P{o.stats.politics} C{o.stats.charisma} · {o.birthYear}{o.deathYear ? `–${o.deathYear}` : ''}
+                  <OfficerStats officer={o} /> · {o.birthYear}{o.deathYear ? `–${o.deathYear}` : ''}
                 </div>
                 <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.4rem' }}>{bio.zh}</div>
               </div>

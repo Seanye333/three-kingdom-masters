@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, Officer } from '../../game/types';
+import { OfficerStats } from './OfficerStats';
 import styles from './MarriagePicker.module.css';
 import { useT } from '../i18n';
 
@@ -157,7 +158,7 @@ function Column({ label, color, officers, cities, picked, onPick }: ColumnProps)
                   <span className={styles.officerNameZh}>{o.name.zh}</span>
                   <span className={styles.officerNameEn}>{o.name.en}</span>
                   <span className={styles.officerCha}>
-                    {t('魅', 'CHA')} <strong>{o.stats.charisma}</strong>
+                    <OfficerStats officer={o} keys={['charisma']} />
                   </span>
                   {city && (
                     <span className={styles.officerCity}>{city.name.zh}</span>

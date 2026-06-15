@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { CIVIC_TITLES, CIVIC_TITLES_BY_ID, MILITARY_RANKS } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { Appointment, CivicTitleId, EntityId, MilitaryRankId, Officer } from '../../game/types';
+import { OfficerStats } from './OfficerStats';
 import styles from './TitlesModal.module.css';
 import { useDesc } from '../i18n';
 
@@ -321,7 +322,7 @@ function CivicTab({
                               {o.name.zh} {o.name.en}
                             </span>
                             <span className={styles.officerStats}>
-                              POL {o.stats.politics} · INT {o.stats.intelligence}
+                              <OfficerStats officer={o} keys={['politics', 'intelligence']} />
                             </span>
                           </button>
                         ))}
@@ -427,7 +428,7 @@ function MilitaryTab({
               {o.name.zh} {o.name.en} — <span className={styles.rankName}>{o.rank}</span>
             </span>
             <span className={styles.officerStats}>
-              W{o.stats.war} L{o.stats.leadership}
+              <OfficerStats officer={o} keys={['war', 'leadership']} />
             </span>
           </button>
         ))}

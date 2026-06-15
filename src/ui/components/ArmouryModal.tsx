@@ -3,6 +3,7 @@ import { ITEMS } from '../../game/data';
 import type { Item } from '../../game/data/items';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, Officer } from '../../game/types';
+import { OfficerStats } from './OfficerStats';
 import styles from './ArmouryModal.module.css';
 import { useT, useDesc } from '../i18n';
 
@@ -299,7 +300,7 @@ export function ArmouryModal({ onClose }: Props) {
                               </span>
                               <span className={styles.officerStats}>
                                 {fitStat.slice(0, 3).toUpperCase()}{o.stats[fitStat]}
-                                {' · '}W{o.stats.war} L{o.stats.leadership}
+                                {' · '}<OfficerStats officer={o} keys={['war', 'leadership']} />
                                 {o.equipment.length > 0 && (
                                   <span className={styles.officerHas}> · holds {o.equipment.length}</span>
                                 )}

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ESPIONAGE_DEFS } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, EspionageKind, Officer } from '../../game/types';
+import { OfficerStats } from './OfficerStats';
 import styles from './EspionageModal.module.css';
 import { useLanguage, useDesc } from '../i18n';
 
@@ -228,7 +229,7 @@ export function EspionageModal({ onClose }: Props) {
                   onClick={() => setPickedAgentId(o.id)}
                 >
                   <span>{o.name.zh} {o.name.en}</span>
-                  <span className={styles.optionStats}>INT {o.stats.intelligence}</span>
+                  <span className={styles.optionStats}><OfficerStats officer={o} keys={['intelligence']} /></span>
                 </button>
               ))}
             </div>
@@ -267,7 +268,7 @@ export function EspionageModal({ onClose }: Props) {
                       onClick={() => setPickedTargetOfficerId(o.id)}
                     >
                       <span>{o.name.zh} {o.name.en}</span>
-                      <span className={styles.optionStats}>L{o.loyalty} · I{o.stats.intelligence}</span>
+                      <span className={styles.optionStats}>L{o.loyalty} · <OfficerStats officer={o} keys={['intelligence']} /></span>
                     </button>
                   ))}
                 </div>

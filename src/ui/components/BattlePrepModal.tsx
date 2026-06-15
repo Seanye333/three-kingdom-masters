@@ -10,6 +10,7 @@ import type {
   Officer,
   UnitType,
 } from '../../game/types';
+import { OfficerStats } from './OfficerStats';
 import styles from './BattlePrepModal.module.css';
 import { useLanguage, useDesc } from '../i18n';
 
@@ -381,7 +382,7 @@ export function BattlePrepModal({
                   <span className={styles.unitNameEn}>{o.name.en}</span>
                 </div>
                 <div className={styles.unitStat}>
-                  W{o.stats.war} L{o.stats.leadership} I{o.stats.intelligence}
+                  <OfficerStats officer={o} keys={['war', 'leadership', 'intelligence']} />
                 </div>
                 <select
                   className={styles.typeSelect}

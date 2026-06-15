@@ -4,6 +4,7 @@ import { useGameStore } from '../../game/state/store';
 import { pickVoiceLine } from '../../game/data/voiceLines';
 import { getDeathPoem } from '../../game/data/deathPoems';
 import type { TacticalBattle } from '../../game/types';
+import { OfficerStats } from './OfficerStats';
 import styles from './BattleResultsModal.module.css';
 import { OfficerPortrait } from './OfficerPortrait';
 
@@ -171,7 +172,7 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
                       <span className={styles.officerNameEn}>{o.name.en}</span>
                     </div>
                     <span className={styles.officerStat}>
-                      W{o.stats.war} L{o.stats.leadership} → 捕虜
+                      <OfficerStats officer={o} keys={['war', 'leadership']} /> → 捕虜
                     </span>
                   </div>
                 );

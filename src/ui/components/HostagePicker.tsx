@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId } from '../../game/types';
 import styles from './MarriagePicker.module.css';   // reuse the same styles
+import { OfficerStats } from './OfficerStats';
 import { useT } from '../i18n';
 
 interface Props {
@@ -87,8 +88,7 @@ export function HostagePicker({ targetForceId, onClose }: Props) {
                         <span className={styles.officerNameZh}>{o.name.zh}</span>
                         <span className={styles.officerNameEn}>{o.name.en}</span>
                         <span className={styles.officerCha}>
-                          CHA <strong>{o.stats.charisma}</strong>
-                          {' · '}WAR <strong>{o.stats.war}</strong>
+                          <OfficerStats officer={o} keys={['charisma', 'war']} />
                         </span>
                         {city && (
                           <span className={styles.officerCity}>{city.name.zh}</span>
