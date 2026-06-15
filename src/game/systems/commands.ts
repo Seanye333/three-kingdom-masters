@@ -228,11 +228,18 @@ export function resolveInternalAffairs(
       // City size also limits the per-action max so a Hamlet can't recruit huge armies.
       const sizeMax = Math.floor(size.troopCap / 10);
       const fromPop = Math.min(max, sizeMax, Math.floor(city.population / 100));
+      const popDrawn = fromPop * 2;
+      // 民怨 — conscription pulls men from the fields and breeds resentment, the
+      // harder you levy relative to the populace the worse. Sustained recruiting
+      // must be balanced with 撫民 or the city turns restive.
+      const loyaltyHit = fromPop > 0
+        ? Math.min(8, 1 + Math.round((popDrawn / Math.max(1, city.population)) * 250))
+        : 0;
       return {
         success: fromPop > 0,
-        delta: { troops: fromPop, population: -fromPop * 2 },
-        message: `${officer.name.en} recruited ${fromPop} troops (${size.name.zh} cap ${sizeMax}/turn; population −${fromPop * 2}).`,
-        messageZh: `${officer.name.zh}徵兵 ${fromPop} 卒 (${size.name.zh}每季上限 ${sizeMax};民減 ${fromPop * 2})。`,
+        delta: { troops: fromPop, population: -popDrawn, loyalty: loyaltyHit ? -loyaltyHit : 0 },
+        message: `${officer.name.en} recruited ${fromPop} troops (${size.name.zh} cap ${sizeMax}/turn; population −${popDrawn}, loyalty −${loyaltyHit}).`,
+        messageZh: `${officer.name.zh}徵兵 ${fromPop} 卒 (${size.name.zh}每季上限 ${sizeMax};民減 ${popDrawn},民忠 −${loyaltyHit})。`,
       };
     }
     case 'improve-loyalty': {
