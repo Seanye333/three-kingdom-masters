@@ -3,7 +3,8 @@ import { EDICTS, IMPERIAL_RANKS, IMPERIAL_RANKS_BY_ID } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { EdictKind, EntityId } from '../../game/types';
 import styles from './CourtModal.module.css';
-import { useLanguage, useDesc } from '../i18n';
+import { useLanguage, useDesc, pickName } from '../i18n';
+import { Name } from './Name';
 import { canPromoteToRank, nextImperialRank } from '../../game/systems/imperialEffects';
 import { canWelcomeEmperor, emperorCustodian } from '../../game/systems/emperor';
 import { deriveCourtFactions, FACTION_LABEL } from '../../game/systems/courtFactions';
@@ -111,8 +112,8 @@ export function CourtModal({ onClose }: Props) {
 
         <div className={styles.rankSummary}>
           <div>
-            <div className={styles.rankCurrent}>{currentRankDef.name.zh}</div>
-            <div className={styles.rankCurrentEn}>{currentRankDef.name.en}</div>
+            {lang !== 'en' && <div className={styles.rankCurrent}>{currentRankDef.name.zh}</div>}
+            {lang !== 'zh' && <div className={styles.rankCurrentEn}>{currentRankDef.name.en}</div>}
           </div>
           <div className={styles.rankDesc}>
             Imperial standing: tier {currentRankDef.tier} of {IMPERIAL_RANKS.length - 1}.
@@ -148,7 +149,7 @@ export function CourtModal({ onClose }: Props) {
                     letterSpacing: '0.07rem',
                   }}
                 >
-                  進爵 → {nextDef.name.zh} {nextDef.name.en}
+                  {lang === 'en' ? 'Promote → ' : '進爵 → '}<Name pair={nextDef.name} />
                 </button>
                 {!check.ok && !isEmperorPath && (
                   <div style={{ fontSize: '0.7rem', color: '#7a8893' }}>{(check as { reason: string }).reason}</div>
@@ -209,9 +210,9 @@ export function CourtModal({ onClose }: Props) {
                   <div className={styles.edictDesc}>{desc(e)}</div>
                   <div className={styles.edictMeta}>
                     <span className={styles.metaGold}>{e.goldCost}g</span>
-                    <span className={styles.metaRank}>req {minRankDef.name.en}</span>
+                    <span className={styles.metaRank}>{lang === 'en' ? 'req ' : '需 '}<Name pair={minRankDef.name} /></span>
                     {e.cooldownSeasons < 99 && (
-                      <span className={styles.metaCd}>CD {e.cooldownSeasons} seasons</span>
+                      <span className={styles.metaCd}>{lang === 'en' ? `CD ${e.cooldownSeasons} seasons` : `冷卻 ${e.cooldownSeasons} 旬`}</span>
                     )}
                   </div>
                   {needsTarget && (
@@ -223,14 +224,14 @@ export function CourtModal({ onClose }: Props) {
                           onClick={() => setEdictTargets((s) => ({ ...s, [e.kind]: f.id }))}
                         >
                           <span className={styles.dot} style={{ background: f.color }} />
-                          {f.name.zh}
+                          <Name pair={f.name} />
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
                 <button className={styles.issueBtn} onClick={() => issue(e.kind)} disabled={!canIssue}>
-                  {cd ? 'On CD' : !meetsRank ? `Need ${minRankDef.name.en}` : 'Issue'}
+                  {cd ? (lang === 'en' ? 'On CD' : '冷卻中') : !meetsRank ? (lang === 'en' ? `Need ${minRankDef.name.en}` : `需${minRankDef.name.zh}`) : (lang === 'en' ? 'Issue' : '頒令')}
                 </button>
               </div>
             );
@@ -249,8 +250,8 @@ export function CourtModal({ onClose }: Props) {
                     {h.issuedYear} {h.issuedSeason}
                   </span>
                   {' — '}
-                  {def?.name.zh ?? h.kind}
-                  {target && ` → ${target.name.zh}`}
+                  {def ? pickName(def.name, lang) : h.kind}
+                  {target && ` → ${pickName(target.name, lang)}`}
                 </div>
               );
             })}

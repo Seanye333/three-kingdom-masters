@@ -4,7 +4,8 @@ import { useGameStore } from '../../game/state/store';
 import type { Appointment, CivicTitleId, EntityId, MilitaryRankId, Officer } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
 import styles from './TitlesModal.module.css';
-import { useDesc } from '../i18n';
+import { useDesc, useLanguage } from '../i18n';
+import { Name } from './Name';
 
 function pickBestFit(
   officers: Officer[],
@@ -239,6 +240,7 @@ function CivicTab({
   onRevoke: (officerId: EntityId) => void;
 }) {
   const desc = useDesc();
+  const lang = useLanguage();
   /** Sort ownOfficers by stat fit desc with recommendation flag for top fit. */
   const officersSortedFor = (stat: 'leadership' | 'war' | 'intelligence' | 'politics' | 'charisma'): Array<{ o: Officer; recommended: boolean }> => {
     const heldIds = new Set(appointments.map((a) => a.officerId));
@@ -261,13 +263,12 @@ function CivicTab({
             <div key={t.id} className={styles.titleCard}>
               <div className={styles.titleNameRow}>
                 <div>
-                  <span className={styles.titleName}>{t.name.zh}</span>
-                  <span className={styles.titleNameEn}> {t.name.en}</span>
+                  <span className={styles.titleName}><Name pair={t.name} /></span>
                 </div>
                 <span className={styles.officerStats}>{t.primaryStat.slice(0, 3).toUpperCase()}</span>
               </div>
               <div className={styles.titleDesc}>{desc(t)}</div>
-              <div className={styles.pickerLabel}>Prefects of your cities</div>
+              <div className={styles.pickerLabel}>{lang === 'en' ? 'Prefects of your cities' : '太守任命'}</div>
               {ownCities.map((c) => {
                 const holder = titleHolders[`prefect-${c.id}`];
                 const picking = pickingTitle === 'prefect' && prefectCityId === c.id;
@@ -275,12 +276,11 @@ function CivicTab({
                   <div key={c.id}>
                     <div className={styles.holderRow}>
                       <span className={styles.holder}>
-                        <strong>{c.name.zh}</strong>{' '}
-                        <span className={styles.officerStats}>{c.name.en}</span>
+                        <strong><Name pair={c.name} /></strong>
                         {' — '}
                         {holder ? (
                           <span>
-                            {holder.name.zh} {holder.name.en}
+                            <Name pair={holder.name} />
                             {titleHolderAppts[`prefect-${c.id}`] && (
                               <span className={styles.officerStats} style={{ marginLeft: '0.5rem' }}>
                                 {tenureLabel(titleHolderAppts[`prefect-${c.id}`])}
@@ -319,7 +319,7 @@ function CivicTab({
                           >
                             <span>
                               {recommended && <span style={{ color: '#e6c473' }}>★ </span>}
-                              {o.name.zh} {o.name.en}
+                              <Name pair={o.name} />
                             </span>
                             <span className={styles.officerStats}>
                               <OfficerStats officer={o} keys={['politics', 'intelligence']} />
@@ -343,8 +343,7 @@ function CivicTab({
           <div key={t.id} className={styles.titleCard}>
             <div className={styles.titleNameRow}>
               <div>
-                <span className={styles.titleName}>{t.name.zh}</span>
-                <span className={styles.titleNameEn}> {t.name.en}</span>
+                <span className={styles.titleName}><Name pair={t.name} /></span>
               </div>
               <span className={styles.officerStats}>{t.primaryStat.slice(0, 3).toUpperCase()}</span>
             </div>
@@ -353,8 +352,7 @@ function CivicTab({
               <span className={styles.holder}>
                 {holder ? (
                   <>
-                    {holder.name.zh}{' '}
-                    <span className={styles.officerStats}>{holder.name.en}</span>
+                    <Name pair={holder.name} />
                     {titleHolderAppts[t.id] && (
                       <span className={styles.officerStats} style={{ marginLeft: '0.5rem' }}>
                         {tenureLabel(titleHolderAppts[t.id])}
@@ -387,7 +385,7 @@ function CivicTab({
                   >
                     <span>
                       {recommended && <span style={{ color: '#e6c473' }}>★ </span>}
-                      {o.name.zh} {o.name.en}
+                      <Name pair={o.name} />
                     </span>
                     <span className={styles.officerStats}>
                       {t.primaryStat.slice(0, 3).toUpperCase()} {o.stats[t.primaryStat]}
@@ -413,9 +411,10 @@ function MilitaryTab({
   const [selectedId, setSelectedId] = useState<EntityId | null>(null);
   const selected = selectedId ? ownOfficers.find((o) => o.id === selectedId) : null;
 
+  const lang = useLanguage();
   return (
     <div>
-      <div className={styles.pickerLabel}>Select officer</div>
+      <div className={styles.pickerLabel}>{lang === 'en' ? 'Select officer' : '選擇武將'}</div>
       <div className={styles.picker} style={{ marginBottom: '1rem' }}>
         {ownOfficers.map((o) => (
           <button
@@ -425,7 +424,7 @@ function MilitaryTab({
             style={o.id === selectedId ? { borderColor: '#e6c473', background: '#1b2531' } : undefined}
           >
             <span>
-              {o.name.zh} {o.name.en} — <span className={styles.rankName}>{o.rank}</span>
+              <Name pair={o.name} /> — <span className={styles.rankName}>{o.rank}</span>
             </span>
             <span className={styles.officerStats}>
               <OfficerStats officer={o} keys={['war', 'leadership']} />
@@ -436,7 +435,7 @@ function MilitaryTab({
       {selected && (
         <div>
           <div className={styles.pickerLabel}>
-            Promote {selected.name.zh} {selected.name.en} (W{selected.stats.war} L{selected.stats.leadership})
+            {lang === 'en' ? 'Promote ' : '冊封 '}<Name pair={selected.name} />
           </div>
           {MILITARY_RANKS.map((r) => {
             const eligible =
@@ -505,17 +504,18 @@ function HistoryTab({
     'lost-city': '失城', 'missing': '不知所終', 'replaced': '罷免',
     'manual': '罷免',
   };
+  const lang = useLanguage();
   return (
     <div>
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
         <button
           className={`${styles.tab} ${filter === 'mine' ? styles.tabActive : ''}`}
           onClick={() => setFilter('mine')}
-        >我軍 Mine</button>
+        >{lang === 'en' ? 'Mine' : '我軍'}</button>
         <button
           className={`${styles.tab} ${filter === 'all' ? styles.tabActive : ''}`}
           onClick={() => setFilter('all')}
-        >全部 All</button>
+        >{lang === 'en' ? 'All' : '全部'}</button>
       </div>
       {rows.length === 0 ? (
         <div className={styles.empty}>尚無任官紀錄。</div>
