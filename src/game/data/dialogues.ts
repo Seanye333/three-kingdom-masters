@@ -975,6 +975,157 @@ export const DIALOGUE_EVENTS: DialogueEvent[] = [
       },
     ],
   },
+
+  // ── Chain 3: 失竊的稅銀 — robbed convoy → a season later, the trail pays off
+  //    (caught a corrupt official) or the cover-up festers (bandits return). ──
+  {
+    id: 'dlg-tax-silver',
+    speaker: { zh: '度支官', en: 'Treasury Clerk' },
+    text: {
+      zh: '解送府庫之稅銀,中途為人劫去,押運卒言遇蒙面之眾,然語多閃爍。',
+      en: 'A convoy of tax silver bound for the treasury was waylaid on the road. The guards speak of masked bandits — but their story keeps slipping.',
+    },
+    choices: [
+      {
+        label: { zh: '嚴查到底', en: 'Run the matter to ground' },
+        effects: [{ kind: 'gold', delta: -50 }, { kind: 'set-flag', flag: 'tax-silver-probe' }],
+        outcome: { zh: '密遣幹吏,順藤摸瓜,且看下季分曉。', en: 'You send sharp men down the trail. Next season will tell where it leads.' },
+        followupEventId: 'dlg-tax-silver-caught',
+      },
+      {
+        label: { zh: '息事寧人', en: 'Let it quietly drop' },
+        effects: [{ kind: 'set-flag', flag: 'tax-silver-hushed' }],
+        outcome: { zh: '案遂不了了之,然其風聲,已入宵小之耳。', en: 'The case is hushed — but word of it has reached the wrong ears.' },
+        followupEventId: 'dlg-tax-silver-festers',
+      },
+      {
+        label: { zh: '自認損失', en: 'Write off the loss' },
+        effects: [{ kind: 'none' }],
+        outcome: { zh: '君曰:「財去人安。」遂不復究。', en: '"Coin lost, peace kept," you say, and pursue it no further.' },
+      },
+    ],
+    conditions: { minYear: 188 },
+  },
+  {
+    id: 'dlg-tax-silver-caught',
+    speaker: { zh: '幹吏', en: 'Investigator' },
+    text: {
+      zh: '查得劫銀者,竟是本郡一縣令,監守自盜,贓銀尚埋於其後園。',
+      en: 'The trail closes on a county magistrate of your own — he robbed the silver he was sworn to guard. The loot is still buried in his garden.',
+    },
+    choices: [
+      {
+        label: { zh: '抄沒家產', en: 'Confiscate his estate' },
+        effects: [{ kind: 'gold', delta: 120 }],
+        outcome: { zh: '贓款盡入府庫,並抄其家,小有所獲。', en: 'The silver returns to the treasury, and his estate with it.' },
+      },
+      {
+        label: { zh: '明正典刑', en: 'Execute him by the law' },
+        effects: [{ kind: 'none' }],
+        outcome: { zh: '梟首示眾,百官凜然,自此無敢貪墨。', en: 'His head goes up at the gate. The officials pale — and the pilfering stops.' },
+      },
+      {
+        label: { zh: '念其舊功,網開一面', en: 'Spare him for past service' },
+        effects: [{ kind: 'gold', delta: 40 }],
+        outcome: { zh: '令其退贓罷官,寬而不縱,士論稱平。', en: 'You make him return the silver and strip his post — mercy without licence. The verdict is called just.' },
+      },
+    ],
+    conditions: { requiresFlag: 'tax-silver-probe' },
+  },
+  {
+    id: 'dlg-tax-silver-festers',
+    speaker: { zh: '亭長', en: 'Village Constable' },
+    text: {
+      zh: '前番劫銀之事既不究,賊膽益壯,今聚眾據山,反遣人下書,索「過路之資」。',
+      en: 'Since the silver theft went unpunished, the bandits have grown bold — now holed up in the hills, they send word demanding a "toll for safe passage."',
+    },
+    choices: [
+      {
+        label: { zh: '發兵清剿', en: 'Send troops to root them out' },
+        effects: [{ kind: 'gold', delta: -90 }],
+        outcome: { zh: '一鼓蕩平,山道復安,然耗錢糧不少。', en: 'You break them in one push; the roads are safe again — at no small cost.' },
+      },
+      {
+        label: { zh: '暫納其貢以安商旅', en: 'Pay them off to keep the roads open' },
+        effects: [{ kind: 'gold', delta: -50 }],
+        outcome: { zh: '輸金買安,商旅雖通,然養虎之患,終非長策。', en: 'Gold buys quiet and the caravans roll — but a fed tiger is no lasting peace.' },
+      },
+    ],
+    conditions: { requiresFlag: 'tax-silver-hushed' },
+  },
+
+  // ── Chain 4: 流亡名士 — a famed scholar in exile passes through; how you
+  //    treat him decides whether he stays, or merely speaks well of you. ──
+  {
+    id: 'dlg-exiled-scholar',
+    speaker: { zh: '門吏', en: 'Gate Clerk' },
+    text: {
+      zh: '一名士避亂過境,海內知其名,然布衣芒鞋,落魄如寒儒。將軍待之如何?',
+      en: 'A scholar of realm-wide fame passes through, fleeing the wars — yet he comes in plain cloth and straw sandals, down on his luck. How will you receive him?',
+    },
+    choices: [
+      {
+        label: { zh: '築館厚待', en: 'House him in honour' },
+        effects: [{ kind: 'gold', delta: -80 }, { kind: 'set-flag', flag: 'scholar-hosted' }],
+        outcome: { zh: '築精舍,饋束脩,禮之甚恭。下季觀其去留。', en: 'You build him fine lodging and ply him with gifts. Next season will show if he stays.' },
+        followupEventId: 'dlg-exiled-scholar-stays',
+      },
+      {
+        label: { zh: '以禮相送', en: 'See him off with courtesy' },
+        effects: [{ kind: 'set-flag', flag: 'scholar-sent-off' }],
+        outcome: { zh: '贈以路資,親送出境,不敢慢之。', en: 'You give him travelling money and see him to the border yourself — no slight offered.' },
+        followupEventId: 'dlg-exiled-scholar-praised',
+      },
+      {
+        label: { zh: '置之不理', en: 'Pay him no mind' },
+        effects: [{ kind: 'none' }],
+        outcome: { zh: '一寒士耳,何足掛齒。名士默然而去。', en: '"A penniless scholar — what of it?" He leaves without a word.' },
+      },
+    ],
+    conditions: { minYear: 190 },
+  },
+  {
+    id: 'dlg-exiled-scholar-stays',
+    speaker: { zh: '名士', en: 'The Scholar' },
+    text: {
+      zh: '名士感君厚遇,願留為賓客,且言:「某之同道數人,亦避地在近,可為君致之。」',
+      en: 'Moved by your generosity, the scholar agrees to stay as a guest — and adds: "Several of my fellows shelter nearby. I could bring them to you."',
+    },
+    choices: [
+      {
+        label: { zh: '廣設講席,招其同道', en: 'Open a hall and gather his circle' },
+        effects: [{ kind: 'gold', delta: -60 }],
+        outcome: { zh: '名士相引而至,一時談者盈門,文教為之一振。', en: 'His circle follows him in; the halls fill with discourse, and learning flourishes under your roof.' },
+      },
+      {
+        label: { zh: '委以參謀', en: 'Take him as a counsellor' },
+        effects: [{ kind: 'none' }],
+        outcome: { zh: '名士入幕參謀,所獻多切時要。', en: 'He joins your council, and his counsel cuts to the heart of the hour.' },
+      },
+    ],
+    conditions: { requiresFlag: 'scholar-hosted' },
+  },
+  {
+    id: 'dlg-exiled-scholar-praised',
+    speaker: { zh: '使者', en: 'Messenger' },
+    text: {
+      zh: '前番禮送之名士,所至盛稱君之賢。有一隱者聞之,不遠千里,前來求見。',
+      en: 'The scholar you saw off has been praising your character wherever he goes. A recluse, hearing it, has travelled a thousand li to seek you out.',
+    },
+    choices: [
+      {
+        label: { zh: '厚幣聘之', en: 'Engage him with rich gifts' },
+        effects: [{ kind: 'gold', delta: -70 }],
+        outcome: { zh: '厚幣既至,隱者感而留之,賢名益遠。', en: 'The gifts move him; he stays, and your name for worthiness spreads further still.' },
+      },
+      {
+        label: { zh: '虛位以待', en: 'Keep a seat open and let him choose' },
+        effects: [{ kind: 'none' }],
+        outcome: { zh: '君不強留,隱者歎服其量,自願效力。', en: 'You press him for nothing; impressed by your restraint, he offers his service freely.' },
+      },
+    ],
+    conditions: { requiresFlag: 'scholar-sent-off' },
+  },
 ];
 
 /** Lookup by id for branching follow-ups. */
