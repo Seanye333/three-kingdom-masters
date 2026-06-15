@@ -18,6 +18,7 @@ import { PrestigeModal } from '../components/PrestigeModal';
 import { BondCeremony } from '../components/BondCeremony';
 import { PrestigeCeremony } from '../components/PrestigeCeremony';
 import { AnimatedNumber } from '../components/AnimatedNumber';
+import { Icon } from '../components/Icon';
 import { DialogueModal } from '../components/DialogueModal';
 import { ArmiesPanel } from '../components/ArmiesPanel';
 import { CourtModal } from '../components/CourtModal';
@@ -418,10 +419,10 @@ export function MapScreen() {
               />
               <span className={styles.playerName}>{playerForce.name.zh}</span>
               <span className={styles.playerNameEn}>{t('', playerForce.name.en)}</span>
-              <span style={{ marginLeft: 10, fontSize: '0.82rem', color: '#c8b07a', fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap' }}>
-                <span style={{ color: '#7a8893' }}>{t('金', 'Gold')}</span> <AnimatedNumber value={playerGold} flash />
-                <span style={{ color: '#7a8893', marginLeft: 8 }}>{t('糧', 'Grain')}</span> <AnimatedNumber value={playerFood} flash />
-                <span style={{ color: '#7a8893', marginLeft: 8 }}>{t('兵', 'Troops')}</span> <AnimatedNumber value={playerTroops} flash />
+              <span style={{ marginLeft: 10, fontSize: '0.82rem', color: '#d6dde4', fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 11 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('金', 'Gold')}><Icon name="gold" size={13} color="#e6c473" /><AnimatedNumber value={playerGold} flash /></span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('糧', 'Grain')}><Icon name="grain" size={13} color="#d8c88a" /><AnimatedNumber value={playerFood} flash /></span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('兵', 'Troops')}><Icon name="war" size={13} color="#9ec0d8" /><AnimatedNumber value={playerTroops} flash /></span>
               </span>
             </>
           )}
