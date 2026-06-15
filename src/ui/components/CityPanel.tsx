@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { cityEconCap } from '../../game/systems/citySize';
 import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { cityPolicyEffects, lockedPolicies } from '../../game/systems/policyEffects';
 import { POLICY_DEFS } from '../../game/data/officerAttributes';
 import { citySize, nextTierPop } from '../../game/systems/citySize';
-import type { EntityId, Officer } from '../../game/types';
+import { tickCityEconomy } from '../../game/systems/economy';
+import type { City, EntityId, Officer } from '../../game/types';
 import { CityMapScreen } from '../screens/CityMapScreen';
 import { CityMapScreen3D } from '../screens/CityMapScreen3D';
 import { BuildingsPanel } from './BuildingsPanel';
@@ -14,6 +15,7 @@ import { CaptivesSection } from './CaptivesSection';
 import { CommandMenu } from './CommandMenu';
 import { ConvoyDispatchModal } from './ConvoyDispatchModal';
 import { FreeAgentsSection } from './FreeAgentsSection';
+import { Icon, type IconName } from './Icon';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import { TERRAIN_DEFS } from '../../game/data/cities';
 import { PROVINCE_BY_CITY, PROVINCES_BY_ID } from '../../game/data';
@@ -121,13 +123,7 @@ export function CityPanel() {
           mobile (the re-click-to-enter gesture only works with a mouse). */}
       <CityMiniMap city={city} onClick={() => setShowCityMap(true)} />
 
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>{t('資源', 'Resources')}</h3>
-        <Stat label="Population" zh="人口" num={city.population} />
-        <Stat label="Gold" zh="金" num={city.gold} flash />
-        <Stat label="Food" zh="兵糧" num={city.food} flash />
-        <Stat label="Troops" zh="兵士" num={city.troops} flash suffix={` / ${citySize(city).troopCap.toLocaleString()}`} />
-      </section>
+      <ResourcesSection city={city} cityOfficers={officers} isPlayerCity={isPlayerCity} />
 
       <GrainTransferSection cityId={city.id} isPlayerCity={isPlayerCity} />
 
@@ -399,18 +395,91 @@ function OfficerListItem({
   );
 }
 
-function Stat({ label, zh, value, num, suffix, flash }: { label: string; zh: string; value?: string; num?: number; suffix?: string; flash?: boolean }) {
+/**
+ * 資源 — gold/food/troops/population with a per-season projection, so the player
+ * reads what each tick adds or drains (稅入 tax income, 兵糧 grain upkeep, 秋收
+ * harvest, 逃亡 desertion) at a glance, not just the static stockpile. Enemy
+ * cities show the bare figures.
+ */
+function ResourcesSection({ city, cityOfficers, isPlayerCity }: { city: City; cityOfficers: Officer[]; isPlayerCity: boolean }) {
+  const t = useT();
   const lang = useLanguage();
-  return (
-    <div className={styles.statRow}>
-      <span className={styles.statLabel}>
-        {lang === 'en' ? label : zh}
-        {lang === 'both' && <> <span className={styles.statZh}>{label}</span></>}
+  const season = useGameStore((s) => s.date.season);
+  const taxPolicy = useGameStore((s) => s.taxPolicy);
+  const inflation = useGameStore((s) => s.inflation ?? 0);
+  const size = citySize(city);
+
+  // Mirror the resolution tick so the quoted numbers match what actually lands.
+  const proj = useMemo(() => {
+    if (!isPlayerCity) return null;
+    const tax = taxPolicy?.[city.ownerForceId ?? ''] ?? 'normal';
+    const now = tickCityEconomy(city, season, cityOfficers, tax, inflation);
+    const harvest = season === 'autumn' ? now.foodIncome : tickCityEconomy(city, 'autumn', cityOfficers, tax, inflation).foodIncome;
+    return { now, harvest };
+  }, [city, cityOfficers, season, taxPolicy, inflation, isPlayerCity]);
+
+  const row = (icon: IconName, zh: string, en: string, num: number, opts?: {
+    suffix?: string; delta?: string; tone?: string; sub?: ReactNode;
+  }) => (
+    <div className={styles.statRow} style={opts?.sub ? { alignItems: 'flex-start' } : undefined}>
+      <span className={styles.statLabel} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <Icon name={icon} size={13} color="#8a98a4" />
+        {lang === 'en' ? en : zh}
+        {lang === 'both' && <span className={styles.statZh}>{en}</span>}
       </span>
-      <span className={styles.statValue}>
-        {num !== undefined ? <><AnimatedNumber value={num} flash={flash} />{suffix}</> : value}
+      <span className={styles.statValue} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+        <span>
+          <AnimatedNumber value={num} flash />{opts?.suffix}
+          {opts?.delta && <span style={{ marginLeft: 7, fontSize: '0.72rem', color: opts.tone ?? '#7a8893' }}>{opts.delta}</span>}
+        </span>
+        {opts?.sub}
       </span>
     </div>
+  );
+
+  const upkeep = proj?.now.foodUpkeep ?? 0;
+  const netFoodNow = proj ? proj.now.foodIncome - proj.now.foodUpkeep : 0;
+  const desertion = proj?.now.desertion ?? 0;
+  // 旬糧 — seasons of grain left if no harvest comes first (only when consuming).
+  const seasonsLeft = upkeep > 0 ? Math.floor(city.food / upkeep) : Infinity;
+
+  return (
+    <section className={styles.section}>
+      <h3 className={styles.sectionTitle}>{t('資源', 'Resources')}</h3>
+      {row('city', '人口', 'Population', city.population, proj && season === 'autumn' && proj.now.populationDelta !== 0
+        ? { delta: `${proj.now.populationDelta > 0 ? '+' : ''}${proj.now.populationDelta.toLocaleString()}`, tone: proj.now.populationDelta > 0 ? '#7ed68a' : '#e0707a' }
+        : undefined)}
+      {row('gold', '金', 'Gold', city.gold, proj
+        ? { delta: t(`稅入 +${proj.now.goldIncome.toLocaleString()}/季`, `+${proj.now.goldIncome.toLocaleString()}/qtr`), tone: '#7ed68a' }
+        : undefined)}
+      {row('grain', '兵糧', 'Food', city.food, proj
+        ? (season === 'autumn'
+            ? { delta: `${netFoodNow >= 0 ? '+' : ''}${netFoodNow.toLocaleString()}/季`, tone: netFoodNow >= 0 ? '#7ed68a' : '#e0707a' }
+            : {
+                delta: upkeep > 0 ? `−${upkeep.toLocaleString()}/季` : t('無耗', 'no upkeep'),
+                tone: upkeep > 0 ? '#e0a070' : '#7a8893',
+                sub: proj.harvest > 0
+                  ? <span style={{ fontSize: '0.66rem', color: '#7a8893' }}>{t(`秋收 +${proj.harvest.toLocaleString()}`, `harvest +${proj.harvest.toLocaleString()}`)}</span>
+                  : undefined,
+              })
+        : undefined)}
+      {row('war', '兵士', 'Troops', city.troops, {
+        suffix: ` / ${size.troopCap.toLocaleString()}`,
+        delta: desertion > 0 ? t(`逃亡 −${desertion.toLocaleString()}`, `−${desertion.toLocaleString()} desert`) : undefined,
+        tone: '#e0707a',
+      })}
+      {/* 缺糧警示 — a real, imminent problem the player should act on */}
+      {proj && desertion > 0 && (
+        <div style={{ marginTop: 4, fontSize: '0.7rem', color: '#f0a0a0', background: 'rgba(180,60,50,0.12)', border: '1px solid #7a3030', borderRadius: 3, padding: '0.2rem 0.45rem' }}>
+          {t('⚠ 兵糧不足 — 本季缺糧,士卒逃亡!速運糧或裁軍', '⚠ Out of grain — troops desert this season! Ship food or disband.')}
+        </div>
+      )}
+      {proj && desertion === 0 && upkeep > 0 && season !== 'autumn' && seasonsLeft <= 3 && (
+        <div style={{ marginTop: 4, fontSize: '0.68rem', color: '#e0a070' }}>
+          {t(`存糧約可支 ${seasonsLeft} 季,秋收前留意接濟`, `~${seasonsLeft} season(s) of grain left — resupply before autumn`)}
+        </div>
+      )}
+    </section>
   );
 }
 
