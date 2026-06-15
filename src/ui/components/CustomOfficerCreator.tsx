@@ -5,6 +5,7 @@ import type {
   OfficerStats,
   Scenario,
 } from '../../game/types';
+import { Name } from './Name';
 import styles from './CustomOfficerCreator.module.css';
 import { useDesc, useLanguage } from '../i18n';
 
@@ -208,7 +209,7 @@ export function CustomOfficerCreator({ scenario, onClose, onCreate }: Props) {
                   onClick={() => setAffId(f.id)}
                 >
                   <span className={styles.dot} style={{ background: f.color }} />
-                  {f.name.zh} {f.name.en}
+                  <Name pair={f.name} />
                 </button>
               ))}
             </div>

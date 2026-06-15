@@ -4,6 +4,7 @@ import type { Item } from '../../game/data/items';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, Officer } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
+import { Name } from './Name';
 import styles from './ArmouryModal.module.css';
 import { useT, useDesc } from '../i18n';
 
@@ -201,8 +202,7 @@ export function ArmouryModal({ onClose }: Props) {
               >
                 <div className={styles.itemBlock}>
                   <div className={styles.itemNameRow}>
-                    <span className={styles.itemNameZh} style={{ color: tierColor }}>{item.name.zh}</span>
-                    <span className={styles.itemNameEn}>{item.name.en}</span>
+                    <span className={styles.itemNameZh} style={{ color: tierColor }}><Name pair={item.name} /></span>
                     <span className={`${styles.kindTag} ${styles[`kindTag_${item.kind}`]}`}>
                       {item.kind}
                     </span>
@@ -229,8 +229,7 @@ export function ArmouryModal({ onClose }: Props) {
                           style={{ background: holderForce?.color ?? '#364654' }}
                         />
                         <span>
-                          {holder.name.zh}{' '}
-                          <span className={styles.holderEn}>{holder.name.en}</span>
+                          <Name pair={holder.name} />
                         </span>
                       </div>
                       <div className={styles.holderForce}>
@@ -296,7 +295,7 @@ export function ArmouryModal({ onClose }: Props) {
                             >
                               <span className={styles.officerZh}>
                                 {idx === 0 && <span style={{ color: '#e6c473' }}>★ </span>}
-                                {o.name.zh}
+                                <Name pair={o.name} />
                               </span>
                               <span className={styles.officerStats}>
                                 {fitStat.slice(0, 3).toUpperCase()}{o.stats[fitStat]}

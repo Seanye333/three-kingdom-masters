@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, Officer } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
+import { Name } from './Name';
 import styles from './MarriagePicker.module.css';
 import { useT } from '../i18n';
 
@@ -155,8 +156,7 @@ function Column({ label, color, officers, cities, picked, onPick }: ColumnProps)
                   className={`${styles.officerButton} ${picked === o.id ? styles.officerSelected : ''}`}
                   onClick={() => onPick(o.id)}
                 >
-                  <span className={styles.officerNameZh}>{o.name.zh}</span>
-                  <span className={styles.officerNameEn}>{o.name.en}</span>
+                  <span className={styles.officerNameZh}><Name pair={o.name} /></span>
                   <span className={styles.officerCha}>
                     <OfficerStats officer={o} keys={['charisma']} />
                   </span>

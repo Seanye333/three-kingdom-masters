@@ -3,6 +3,7 @@ import { ESPIONAGE_DEFS } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import type { EntityId, EspionageKind, Officer } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
+import { Name } from './Name';
 import styles from './EspionageModal.module.css';
 import { useLanguage, useDesc } from '../i18n';
 
@@ -228,7 +229,7 @@ export function EspionageModal({ onClose }: Props) {
                   className={`${styles.option} ${pickedAgentId === o.id ? styles.optionActive : ''}`}
                   onClick={() => setPickedAgentId(o.id)}
                 >
-                  <span>{o.name.zh} {o.name.en}</span>
+                  <span><Name pair={o.name} /></span>
                   <span className={styles.optionStats}><OfficerStats officer={o} keys={['intelligence']} /></span>
                 </button>
               ))}
@@ -247,7 +248,7 @@ export function EspionageModal({ onClose }: Props) {
                 >
                   <span>
                     <span className={styles.dot} style={{ background: f.color }} />
-                    {f.name.zh} {f.name.en}
+                    <Name pair={f.name} />
                   </span>
                 </button>
               ))}
@@ -267,7 +268,7 @@ export function EspionageModal({ onClose }: Props) {
                       className={`${styles.option} ${pickedTargetOfficerId === o.id ? styles.optionActive : ''}`}
                       onClick={() => setPickedTargetOfficerId(o.id)}
                     >
-                      <span>{o.name.zh} {o.name.en}</span>
+                      <span><Name pair={o.name} /></span>
                       <span className={styles.optionStats}>L{o.loyalty} · <OfficerStats officer={o} keys={['intelligence']} /></span>
                     </button>
                   ))}
@@ -285,7 +286,7 @@ export function EspionageModal({ onClose }: Props) {
                       className={`${styles.option} ${pickedTargetCityId === c.id ? styles.optionActive : ''}`}
                       onClick={() => setPickedTargetCityId(c.id)}
                     >
-                      <span>{c.name.zh} {c.name.en}</span>
+                      <span><Name pair={c.name} /></span>
                       <span className={styles.optionStats}>L{c.loyalty} · G{c.gold} · F{c.food}</span>
                     </button>
                   ))}
@@ -298,7 +299,7 @@ export function EspionageModal({ onClose }: Props) {
         <div className={styles.confirmBar}>
           <div className={styles.summary}>
             {def && pickedAgentId && pickedTargetForceId ? (
-              <span>{def.name.en} by {agentSummary(officers, pickedAgentId)}</span>
+              <span><Name pair={def.name} /> {lang === 'en' ? 'by' : '由'} {agentSummary(officers, pickedAgentId)}</span>
             ) : (
               <span>Pick an operation, agent, and target.</span>
             )}

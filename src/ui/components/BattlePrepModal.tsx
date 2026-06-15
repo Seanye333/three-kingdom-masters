@@ -11,6 +11,7 @@ import type {
   UnitType,
 } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
+import { Name } from './Name';
 import styles from './BattlePrepModal.module.css';
 import { useLanguage, useDesc } from '../i18n';
 
@@ -265,10 +266,12 @@ export function BattlePrepModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <div>
-            <div className={styles.titleZh}>戰闘準備</div>
-            <div className={styles.titleEn}>
-              Battle Preparation: {source?.name.en} → {target?.name.en}
-            </div>
+            {lang !== 'en' && <div className={styles.titleZh}>戰鬥準備{source && target ? `:${source.name.zh} → ${target.name.zh}` : ''}</div>}
+            {lang !== 'zh' && (
+              <div className={styles.titleEn}>
+                Battle Preparation: {source?.name.en} → {target?.name.en}
+              </div>
+            )}
           </div>
           <button className={styles.closeButton} onClick={onClose}>×</button>
         </header>
@@ -378,8 +381,7 @@ export function BattlePrepModal({
             {ourOfficers.map((o) => (
               <div key={o.id} className={styles.unitRow}>
                 <div>
-                  <span className={styles.unitName}>{o.name.zh}</span>
-                  <span className={styles.unitNameEn}>{o.name.en}</span>
+                  <span className={styles.unitName}><Name pair={o.name} /></span>
                 </div>
                 <div className={styles.unitStat}>
                   <OfficerStats officer={o} keys={['war', 'leadership', 'intelligence']} />

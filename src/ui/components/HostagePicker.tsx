@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import type { EntityId } from '../../game/types';
 import styles from './MarriagePicker.module.css';   // reuse the same styles
 import { OfficerStats } from './OfficerStats';
+import { Name } from './Name';
 import { useT } from '../i18n';
 
 interface Props {
@@ -85,8 +86,7 @@ export function HostagePicker({ targetForceId, onClose }: Props) {
                         className={`${styles.officerButton} ${pick === o.id ? styles.officerSelected : ''}`}
                         onClick={() => setPick(o.id)}
                       >
-                        <span className={styles.officerNameZh}>{o.name.zh}</span>
-                        <span className={styles.officerNameEn}>{o.name.en}</span>
+                        <span className={styles.officerNameZh}><Name pair={o.name} /></span>
                         <span className={styles.officerCha}>
                           <OfficerStats officer={o} keys={['charisma', 'war']} />
                         </span>

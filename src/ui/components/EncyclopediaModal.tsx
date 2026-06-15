@@ -9,6 +9,7 @@ import {
 } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
 import { OfficerStats } from './OfficerStats';
+import { Name } from './Name';
 import { CODEX_SETS, codexSetProgress, loadCodex } from '../../game/systems/codex';
 import { useDesc } from '../i18n';
 
@@ -137,7 +138,7 @@ export function EncyclopediaModal({ onClose }: Props) {
             return (
               <div key={o.id} style={card()}>
                 <div style={{ fontSize: '1.05rem', color: '#e6c473' }}>
-                  {o.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{o.name.en}</span>
+                  <Name pair={o.name} />
                   {o.courtesyName && <span style={{ color: '#7a8893', fontSize: '0.78rem', marginLeft: '0.4rem' }}>({o.courtesyName.zh})</span>}
                 </div>
                 <div style={metaLine}>
@@ -206,7 +207,7 @@ export function EncyclopediaModal({ onClose }: Props) {
           {section === 'items' && (matches as typeof ITEMS).map((it) => (
             <div key={it.id} style={card()}>
               <div style={{ fontSize: '1rem', color: '#e6c473' }}>
-                {it.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{it.name.en}</span>
+                <Name pair={it.name} />
                 <span style={{ marginLeft: '0.4rem', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem', color: '#c9a64e' }}>· {it.kind}</span>
               </div>
               <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(it)}</div>
@@ -218,7 +219,7 @@ export function EncyclopediaModal({ onClose }: Props) {
           {section === 'skills' && (matches as typeof SKILLS).map((s) => (
             <div key={s.id} style={card()}>
               <div style={{ fontSize: '1rem', color: '#e6c473' }}>
-                {s.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{s.name.en}</span>
+                <Name pair={s.name} />
                 <span style={{ marginLeft: '0.4rem', color: '#c9a64e', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem' }}>· {s.category}</span>
               </div>
               <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(s)}</div>
@@ -227,7 +228,7 @@ export function EncyclopediaModal({ onClose }: Props) {
           {section === 'traits' && (matches as typeof TRAIT_DEFS).map((t) => (
             <div key={t.id} style={{ ...card(), borderColor: t.color }}>
               <div style={{ fontSize: '1rem', color: t.color }}>
-                {t.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{t.name.en}</span>
+                <Name pair={t.name} />
               </div>
               <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(t)}</div>
             </div>
@@ -235,7 +236,7 @@ export function EncyclopediaModal({ onClose }: Props) {
           {section === 'events' && (matches as typeof HISTORICAL_EVENTS).map((e) => (
             <div key={e.id} style={card()}>
               <div style={{ fontSize: '1rem', color: '#e6c473' }}>
-                {e.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{e.name.en}</span>
+                <Name pair={e.name} />
                 <span style={{ marginLeft: '0.4rem', color: '#7a8893', fontFamily: 'ui-monospace,monospace', fontSize: '0.7rem' }}>
                   {e.yearMin}{e.yearMax !== e.yearMin ? `–${e.yearMax}` : ''}
                 </span>
@@ -246,7 +247,7 @@ export function EncyclopediaModal({ onClose }: Props) {
           {section === 'provinces' && (matches as typeof PROVINCES).map((p) => (
             <div key={p.id} style={{ ...card(), borderLeftColor: p.color, borderLeftWidth: 3 }}>
               <div style={{ fontSize: '1rem', color: p.color }}>
-                {p.name.zh} <span style={{ fontSize: '0.78rem', color: '#7a8893', fontStyle: 'italic' }}>{p.name.en}</span>
+                <Name pair={p.name} />
               </div>
               <div style={{ fontSize: '0.82rem', color: '#aab6c0', marginTop: '0.3rem', fontStyle: 'italic' }}>{desc(p)}</div>
               <div style={metaLine}>
