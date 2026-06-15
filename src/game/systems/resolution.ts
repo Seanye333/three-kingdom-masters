@@ -21,7 +21,7 @@ import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
 import { handleSearch, resolveInternalAffairs, type LostItemRef } from './commands';
 import { handleMarch } from './combat';
-import { tickDiplomacy } from './diplomacy';
+import { tickDiplomacy, applyCoalitionPressure } from './diplomacy';
 import { tickCityEconomy, tradeTreatyGrants } from './economy';
 import { stepConvoys, resolveConvoyRaids, provisionNeeded, consumeRations, type Convoy } from './convoy';
 import { appointmentBonusFor } from './appointmentEffects';
@@ -1430,6 +1430,22 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
   });
   entries.push(...dip.entries);
 
+  // 動態聯盟 — if one power runs away with the realm, the lesser lords draw
+  // together against it (合縱). Pure/deterministic; player pacts untouched,
+  // but a player hegemon will face the coalition. Season boundary only.
+  let finalDiplomacy = dip.diplomacy;
+  if (seasonBoundary) {
+    const coalition = applyCoalitionPressure({
+      diplomacy: finalDiplomacy,
+      cities,
+      forces,
+      playerForceId: input.playerForceId,
+      date: input.date,
+    });
+    finalDiplomacy = coalition.diplomacy;
+    entries.push(...coalition.entries);
+  }
+
   // 7. Advance date.
   const nextDate = advanceSeason(input.date);
 
@@ -1571,7 +1587,7 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     cities,
     officers,
     forces,
-    diplomacy: dip.diplomacy,
+    diplomacy: finalDiplomacy,
     lostItems,
     report: { date: { year: input.date.year, season: input.date.season }, entries },
     keptCommands: Object.keys(keptCommands).length > 0 ? keptCommands : undefined,

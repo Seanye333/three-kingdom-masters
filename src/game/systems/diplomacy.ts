@@ -300,6 +300,124 @@ export function tickDiplomacy(input: DiplomacyTickInput): DiplomacyTickOutput {
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// 動態聯盟 — coalitions against a runaway power (合縱).
+//
+// When one force outgrows the field, the lesser lords cool toward it (and
+// shed their pacts with it) while warming to one another, eventually banding
+// into non-aggression and alliance. The existing AI then acts on the shifted
+// relations — so the late game stops being a foregone conclusion. Pure &
+// deterministic (no rng); the player's own pacts are never overridden, but a
+// player who becomes the hegemon will see the realm turn against *them*.
+// ──────────────────────────────────────────────────────────────────────
+
+/** A force is "hegemon" at ≥35% of held cities AND ≥1.5× the runner-up. */
+const HEGEMON_CITY_SHARE = 0.35;
+const HEGEMON_LEAD_RATIO = 1.5;
+const COALITION_COOL_PER_SEASON = 7;  // non-hegemons' relations with the hegemon fall
+const COALITION_WARM_PER_SEASON = 5;  // and rise among themselves
+
+export interface CoalitionInput {
+  diplomacy: DiplomaticState;
+  cities: Record<EntityId, City>;
+  forces: Record<EntityId, Force>;
+  playerForceId: EntityId | null | undefined;
+  date: GameDate;
+}
+
+export interface CoalitionOutput {
+  diplomacy: DiplomaticState;
+  entries: ReportEntry[];
+  /** The detected hegemon, or null when no force dominates. */
+  hegemonId: EntityId | null;
+}
+
+export function applyCoalitionPressure(input: CoalitionInput): CoalitionOutput {
+  const { cities, forces, playerForceId, date } = input;
+  let diplomacy = input.diplomacy;
+  const entries: ReportEntry[] = [];
+
+  // City counts per living force.
+  const count: Record<string, number> = {};
+  let total = 0;
+  for (const c of Object.values(cities)) {
+    if (c.ownerForceId && forces[c.ownerForceId]) {
+      count[c.ownerForceId] = (count[c.ownerForceId] ?? 0) + 1;
+      total++;
+    }
+  }
+  const ranked = Object.entries(count).sort((a, b) => b[1] - a[1]);
+  // Need a real field (≥3 powers, enough cities) and a clear runaway leader.
+  if (ranked.length < 3 || total < 6) return { diplomacy, entries, hegemonId: null };
+  const [hegId, hegCities] = ranked[0];
+  const secondCities = ranked[1][1];
+  if (hegCities < total * HEGEMON_CITY_SHARE || hegCities < secondCities * HEGEMON_LEAD_RATIO) {
+    return { diplomacy, entries, hegemonId: null };
+  }
+
+  const others = ranked.slice(1).map(([id]) => id);
+
+  // 1) Every AI non-hegemon cools toward the hegemon; once sour, pacts with it
+  //    lapse (a coalition will not honour a truce with the tyrant). The player's
+  //    own relations are left to the player — except that AIs naturally cool
+  //    toward a *player* hegemon, which is exactly the anti-snowball pressure.
+  for (const x of others) {
+    if (x === playerForceId) continue;
+    diplomacy = setRelation(diplomacy, x, hegId, (r) => {
+      const score = clamp(-100, 100, r.score - COALITION_COOL_PER_SEASON);
+      const lapse = r.status !== 'neutral' && score <= -10;
+      return {
+        ...r,
+        score,
+        status: lapse ? 'neutral' : r.status,
+        expiresAt: lapse ? undefined : r.expiresAt,
+      };
+    });
+  }
+
+  // 2) The AI non-hegemons warm to one another, sliding into NAP then alliance.
+  const coalition = others.filter((x) => x !== playerForceId);
+  for (let i = 0; i < coalition.length; i++) {
+    for (let j = i + 1; j < coalition.length; j++) {
+      diplomacy = setRelation(diplomacy, coalition[i], coalition[j], (r) => {
+        const score = clamp(-100, 100, r.score + COALITION_WARM_PER_SEASON);
+        let status = r.status;
+        let expiresAt = r.expiresAt;
+        if (score >= 75) {
+          status = 'allied';
+          expiresAt = undefined;
+        } else if (r.status === 'neutral' && score >= 40) {
+          status = 'non-aggression';
+          expiresAt = addSeasons(date, NAP_DURATION_SEASONS);
+        }
+        return { ...r, score, status, expiresAt };
+      });
+    }
+  }
+
+  // 3) A once-a-year note so the shift is legible (especially to a hegemon player).
+  if (date.season === 'spring') {
+    const heg = forces[hegId]?.name;
+    if (hegId === playerForceId) {
+      entries.push({
+        cityId: null,
+        kind: 'note',
+        text: `Your dominance unsettles the realm — the other lords begin to draw together against you.`,
+        textZh: `天下側目於君之強盛,諸侯漸生合縱之心,隱然將共抗之。`,
+      });
+    } else if (heg) {
+      entries.push({
+        cityId: null,
+        kind: 'note',
+        text: `Wary of ${heg.en}'s growing power, the lesser lords draw closer together.`,
+        textZh: `諸侯憚${heg.zh}之盛,合縱之勢漸成。`,
+      });
+    }
+  }
+
+  return { diplomacy, entries, hegemonId: hegId };
+}
+
+// ──────────────────────────────────────────────────────────────────────
 // Utilities
 // ──────────────────────────────────────────────────────────────────────
 
