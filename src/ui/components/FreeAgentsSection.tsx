@@ -8,6 +8,7 @@ import { OfficerStats } from './OfficerStats';
 import { Icon } from './Icon';
 import { DebateModal } from './DebateModal';
 import { RecruitSuccessModal } from './RecruitSuccessModal';
+import { useT, useLanguage } from '../i18n';
 import styles from './FreeAgentsSection.module.css';
 
 interface Props {
@@ -27,6 +28,8 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
   const year = useGameStore((s) => s.date.year);
   const season = useGameStore((s) => s.date.season);
   const seasonKey = `${year}|${season}`;
+  const t = useT();
+  const lang = useLanguage();
 
   const [feedback, setFeedback] = useState<{ officerId: EntityId; text: string; ok: boolean } | null>(null);
   const [debating, setDebating] = useState<EntityId | null>(null);
@@ -64,7 +67,7 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
 
   return (
     <section className={styles.root}>
-      <h3 className={styles.title}>Free Agents 浪人 ({agents.length})</h3>
+      <h3 className={styles.title}>{t('浪人', 'Free Agents')} ({agents.length})</h3>
       <ul className={styles.list}>
         {agents.map((o) => {
           const stage = stageOf(o.id);
@@ -72,11 +75,13 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
             <li key={o.id} className={styles.row}>
               <OfficerHoverCard officer={o}>
                 <div className={styles.head}>
-                  <span className={styles.nameZh}>{o.name.zh}</span>
-                  <span className={styles.nameEn}>
-                    {o.name.en}
-                    {o.courtesyName && <span className={styles.courtesy}> ({o.courtesyName.en})</span>}
-                  </span>
+                  {lang !== 'en' && <span className={styles.nameZh}>{o.name.zh}</span>}
+                  {lang !== 'zh' && (
+                    <span className={styles.nameEn}>
+                      {o.name.en}
+                      {o.courtesyName && <span className={styles.courtesy}> ({o.courtesyName.en})</span>}
+                    </span>
+                  )}
                   <span className={styles.stats}>
                     <OfficerStats officer={o} keys={['war', 'intelligence', 'politics', 'charisma']} />
                   </span>
@@ -92,8 +97,8 @@ export function FreeAgentsSection({ cityId, isPlayerCity }: Props) {
                   {stage === 'locked' ? (
                     <span style={{ fontSize: '0.72rem', color: '#a8825a' }}>舌戰失利 · 下回合再訪</span>
                   ) : stage === 'fresh' ? (
-                    <button className={styles.recruitBtn} onClick={() => invite(o.id)} title="禮聘出仕(免費)">
-                      招聘 Invite
+                    <button className={styles.recruitBtn} onClick={() => invite(o.id)} title={t('禮聘出仕(免費)', 'Invite to serve (free)')}>
+                      {t('招聘', 'Invite')}
                     </button>
                   ) : (
                     <>

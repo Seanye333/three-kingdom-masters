@@ -4,6 +4,7 @@ import type { Officer } from '../../game/types';
 import { OfficerPortrait } from './OfficerPortrait';
 import { OfficerStats } from './OfficerStats';
 import { useGameStore } from '../../game/state/store';
+import { useLanguage, pickName } from '../i18n';
 
 interface Props {
   officer: Officer;
@@ -22,6 +23,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
   const forceColor = useGameStore((s) =>
     officer.forceId ? s.forces[officer.forceId]?.color : undefined,
   );
+  const lang = useLanguage();
   const t = officer.traits ?? [];
   const skills = officer.skills.map((id) => SKILLS_BY_ID[id]).filter(Boolean);
   const items = officer.equipment.map((id) => ITEMS_BY_ID[id]).filter(Boolean);
@@ -60,14 +62,20 @@ export function OfficerHoverCard({ officer, children }: Props) {
             />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '1rem', color: '#e6c473', letterSpacing: '0.07rem' }}>
-                {officer.name.zh}{' '}
-                <span style={{ fontSize: '0.75rem', color: '#7a8893', fontStyle: 'italic' }}>
-                  {officer.name.en}
-                </span>
+                {lang === 'both' ? (
+                  <>
+                    {officer.name.zh}{' '}
+                    <span style={{ fontSize: '0.75rem', color: '#7a8893', fontStyle: 'italic' }}>
+                      {officer.name.en}
+                    </span>
+                  </>
+                ) : (
+                  pickName(officer.name, lang)
+                )}
               </div>
               {officer.courtesyName && (
                 <div style={{ fontSize: '0.72rem', color: '#7a8893' }}>
-                  字 {officer.courtesyName.zh}
+                  {lang === 'en' ? 'Courtesy ' : '字 '}{pickName(officer.courtesyName, lang)}
                 </div>
               )}
             </div>
@@ -78,7 +86,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
           {t.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
               <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>
-                性格 TRAITS
+                {lang === 'en' ? 'TRAITS' : lang === 'both' ? '性格 TRAITS' : '性格'}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                 {t.map((tid) => {
@@ -94,7 +102,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
                         padding: '0.05rem 0.3rem',
                       }}
                     >
-                      {def.name.zh}
+                      {pickName(def.name, lang)}
                     </span>
                   );
                 })}
@@ -104,20 +112,20 @@ export function OfficerHoverCard({ officer, children }: Props) {
           {skills.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
               <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>
-                特技 SKILLS
+                {lang === 'en' ? 'SKILLS' : lang === 'both' ? '特技 SKILLS' : '特技'}
               </div>
               <div style={{ fontSize: '0.72rem', color: '#c9a64e' }}>
-                {skills.map((s) => s!.name.zh).join(' · ')}
+                {skills.map((s) => pickName(s!.name, lang)).join(' · ')}
               </div>
             </div>
           )}
           {items.length > 0 && (
             <div style={{ marginTop: '0.3rem' }}>
               <div style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>
-                持有 ITEMS ({items.length})
+                {lang === 'en' ? 'ITEMS' : lang === 'both' ? '持有 ITEMS' : '持有'} ({items.length})
               </div>
               <div style={{ fontSize: '0.72rem', color: '#88b7e8' }}>
-                {items.map((i) => i!.name.zh).join(' · ')}
+                {items.map((i) => pickName(i!.name, lang)).join(' · ')}
               </div>
             </div>
           )}

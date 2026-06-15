@@ -8,6 +8,7 @@ import { OfficerStats } from './OfficerStats';
 import { DebateModal } from './DebateModal';
 import { RecruitSuccessModal } from './RecruitSuccessModal';
 import { eloquence } from '../../game/systems/debate';
+import { useT, useLanguage } from '../i18n';
 import styles from './CaptivesSection.module.css';
 
 interface Props {
@@ -15,6 +16,8 @@ interface Props {
 }
 
 export function CaptivesSection({ cityId }: Props) {
+  const t = useT();
+  const lang = useLanguage();
   const officersMap = useGameStore((s) => s.officers);
   const cityGold = useGameStore((s) => s.cities[cityId]?.gold ?? 0);
   const recruitOfficer = useGameStore((s) => s.recruitOfficer);
@@ -69,17 +72,17 @@ export function CaptivesSection({ cityId }: Props) {
 
   return (
     <section className={styles.root}>
-      <h3 className={styles.title}>Captives 捕虜 ({captives.length})</h3>
+      <h3 className={styles.title}>{t('捕虜', 'Captives')} ({captives.length})</h3>
       <ul className={styles.list}>
         {captives.map((o) => (
           <li key={o.id} className={styles.row}>
             <OfficerHoverCard officer={o}>
               <div className={styles.head}>
-                <span className={styles.nameZh}>{o.name.zh}</span>
-                <span className={styles.nameEn}>{o.name.en}</span>
+                {lang !== 'en' && <span className={styles.nameZh}>{o.name.zh}</span>}
+                {lang !== 'zh' && <span className={styles.nameEn}>{o.name.en}</span>}
                 <span className={styles.stats}>
                   <OfficerStats officer={o} keys={['war', 'intelligence', 'politics', 'charisma']} />
-                  <span style={{ color: '#a8825a', marginLeft: 6 }}>· 忠 {o.loyalty}</span>
+                  <span style={{ color: '#a8825a', marginLeft: 6 }}>· {t('忠', 'Loy')} {o.loyalty}</span>
                 </span>
               </div>
             </OfficerHoverCard>
@@ -120,13 +123,13 @@ export function CaptivesSection({ cityId }: Props) {
                 className={styles.releaseBtn}
                 onClick={() => releaseOfficer(o.id)}
               >
-                釋放 Release
+                {t('釋放', 'Release')}
               </button>
               <button
                 className={styles.executeBtn}
                 onClick={() => executeOfficer(o.id)}
               >
-                斬首 Execute
+                {t('斬首', 'Execute')}
               </button>
             </div>
           </li>
