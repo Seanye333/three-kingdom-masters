@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../../game/state/store';
+import { Icon } from './Icon';
 import { useT } from '../i18n';
 import { Modal } from './Modal';
 
@@ -115,7 +116,7 @@ export function PowerGraphModal({ onClose }: { onClose: () => void }) {
         {rows.length > 0 && (
           <div style={{ marginTop: '0.8rem', borderTop: '1px solid #243240', paddingTop: '0.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#e6c473', marginBottom: 4 }}>
-              <span>🏯 {t('當世排行', 'Standings')}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="city" size={13} color="#e6c473" />{t('當世排行', 'Standings')}</span>
               <span title={t('已控城池 / 天下城池', 'cities held / total')}>
                 {t('統一', 'Unify')} {unif}% <span style={{ color: '#7a8893' }}>({rows.find((r) => r.fid === playerForceId)?.cities ?? 0}/{totalCities})</span>
               </span>

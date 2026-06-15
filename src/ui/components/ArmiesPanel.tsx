@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGameStore } from '../../game/state/store';
+import { Icon } from './Icon';
 
 const IS_MOBILE = typeof window !== 'undefined'
   && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
@@ -37,7 +38,7 @@ export function ArmiesPanel() {
           fontFamily: 'var(--tkm-font-body)', fontSize: '0.72rem',
           pointerEvents: 'auto',
         }}
-      >⚔ 在途 {mine.length}</button>
+      ><Icon name="war" size={12} /> 在途 {mine.length}</button>
     );
   }
 
@@ -141,8 +142,8 @@ export function ArmiesPanel() {
                 {a.food !== undefined && (() => {
                   const seasons = Math.floor(a.food / Math.max(1, a.troops * 0.25));
                   return (
-                    <span style={{ marginLeft: 4, fontSize: '0.58rem', color: seasons <= 1 ? '#e0707a' : seasons <= 3 ? '#e0a070' : '#8a9a6a' }} title={`隨軍糧 ${a.food.toLocaleString()} — 足 ${seasons} 季`}>
-                      🌾{seasons}
+                    <span style={{ marginLeft: 4, fontSize: '0.58rem', color: seasons <= 1 ? '#e0707a' : seasons <= 3 ? '#e0a070' : '#8a9a6a', display: 'inline-flex', alignItems: 'center', gap: 2 }} title={`隨軍糧 ${a.food.toLocaleString()} — 足 ${seasons} 季`}>
+                      <Icon name="grain" size={10} />{seasons}
                     </span>
                   );
                 })()}

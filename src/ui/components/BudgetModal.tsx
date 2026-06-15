@@ -122,7 +122,7 @@ export function BudgetModal({ onClose }: { onClose: () => void }) {
                 background: 'rgba(212,168,74,0.16)', border: '1px solid #e6c473', color: '#f2dd9a',
                 padding: '0.25rem 0.7rem', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem',
               }}
-            >🪙 {t('鑄錢', 'Mint coin')}</button>
+            ><Icon name="gold" size={13} /> {t('鑄錢', 'Mint coin')}</button>
             <span style={{ fontSize: '0.74rem', color: inflation >= 60 ? '#e0707a' : inflation >= 25 ? '#e0a070' : '#7a8893' }}>
               {t('通脹', 'Inflation')} <strong>{inflation}</strong>
               {inflation > 0 && <span style={{ color: '#7a8893' }}> · {t(`稅入 −${Math.round(inflation / 2.5)}%`, `−${Math.round(inflation / 2.5)}% tax`)}</span>}
@@ -130,8 +130,8 @@ export function BudgetModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
         {season !== 'autumn' && (
-          <div style={{ color: '#7a8893', fontSize: '0.72rem', marginBottom: '0.5rem' }}>
-            🌾 {t('糧入僅在秋收結算,他季只支不入。', 'Grain only comes in at the autumn harvest — other seasons are upkeep-only.')}
+          <div style={{ color: '#7a8893', fontSize: '0.72rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Icon name="grain" size={12} /> {t('糧入僅在秋收結算,他季只支不入。', 'Grain only comes in at the autumn harvest — other seasons are upkeep-only.')}
           </div>
         )}
 
