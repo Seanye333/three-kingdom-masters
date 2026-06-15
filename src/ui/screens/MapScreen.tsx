@@ -50,6 +50,7 @@ const BattleHistoryModal = lazy(() => import('../components/BattleHistoryModal')
 const BattleReplayModal = lazy(() => import('../components/BattleReplayModal').then(m => ({ default: m.BattleReplayModal })));
 const AchievementsModal = lazy(() => import('../components/AchievementsModal').then(m => ({ default: m.AchievementsModal })));
 const CampaignStatsModal = lazy(() => import('../components/CampaignStatsModal').then(m => ({ default: m.CampaignStatsModal })));
+const GlossaryModal = lazy(() => import('../components/GlossaryModal').then(m => ({ default: m.GlossaryModal })));
 const ChronicleModal = lazy(() => import('../components/ChronicleModal').then(m => ({ default: m.ChronicleModal })));
 const RelationsModal = lazy(() => import('../components/RelationsModal').then(m => ({ default: m.RelationsModal })));
 const LegionsModal = lazy(() => import('../components/LegionsModal').then(m => ({ default: m.LegionsModal })));
@@ -105,6 +106,7 @@ export function MapScreen() {
   const [showPrestige, setShowPrestige] = useState(false);
   const [showForge, setShowForge] = useState(false);
   const [showAch, setShowAch] = useState(false);
+  const [showGlossary, setShowGlossary] = useState(false);
   const [showGovernors, setShowGovernors] = useState(false);
   const [showCampaignStats, setShowCampaignStats] = useState(false);
   const [showChronicle, setShowChronicle] = useState(false);
@@ -351,6 +353,7 @@ export function MapScreen() {
       { id: 'chronicle', zh: '國史', en: 'Chronicle', hint: g.rec, run: () => setShowChronicle(true) },
       { id: 'ach', zh: '勳功', en: 'Achievements', hint: g.rec, run: () => setShowAch(true) },
       { id: 'stats', zh: '戰記', en: 'Campaign stats', hint: g.rec, run: () => setShowCampaignStats(true) },
+      { id: 'glossary', zh: '概念 — 機制詞條', en: 'Concepts glossary', hint: g.rec, run: () => setShowGlossary(true) },
       { id: 'diplomacy', zh: '邦交', en: 'Diplomacy', hint: g.diplo, run: () => setShowDiplomacy(true) },
       { id: 'dipgraph', zh: '關係図', en: 'Relations graph', hint: g.diplo, run: () => setShowDipGraph(true) },
       { id: 'forces', zh: '群雄', en: 'Forces', hint: g.diplo, run: () => setShowForces(true) },
@@ -506,7 +509,7 @@ export function MapScreen() {
         />
         <HudMenu
           label={t('記錄', 'Records')}
-          title={t('記錄 — 勳功、戰記', 'Records — achievements & stats')}
+          title={t('記錄 — 勳功、戰記、概念', 'Records — achievements, stats & concepts')}
           items={[
             { label: t('史書', 'Annals'),    onClick: () => setShowHistoryBook(true) },
             { label: t('大勢', 'Powers'),    onClick: () => setShowPowerGraph(true) },
@@ -519,6 +522,7 @@ export function MapScreen() {
             { label: t('度支', 'Treasury'),  onClick: () => setShowBudget(true) },
             { label: t('勳功', 'Achievements'), onClick: () => setShowAch(true) },
             { label: t('戰記', 'Stats'),        onClick: () => setShowCampaignStats(true) },
+            { label: t('概念', 'Concepts'),     onClick: () => setShowGlossary(true) },
             { label: t('📜 國史', '📜 Chronicle'), onClick: () => setShowChronicle(true) },
           ]}
         />
@@ -697,6 +701,7 @@ export function MapScreen() {
         {showDipGraph && <DiplomacyGraphModal onClose={() => setShowDipGraph(false)} />}
         {showForge && <ForgingModal onClose={() => setShowForge(false)} />}
         {showAch && <AchievementsModal onClose={() => setShowAch(false)} />}
+        {showGlossary && <GlossaryModal onClose={() => setShowGlossary(false)} />}
         {showCampaignStats && <CampaignStatsModal onClose={() => setShowCampaignStats(false)} />}
         {showChronicle && <ChronicleModal onClose={() => setShowChronicle(false)} />}
         {showRelations && <RelationsModal onClose={() => setShowRelations(false)} />}
