@@ -25,6 +25,33 @@ export function convoySpeedMul(officer: Officer): number {
   return Math.max(0.65, Math.min(1.4, mul));
 }
 
+/**
+ * Resolve a haul's travel time and road-loss from the route + modifiers — the
+ * single source of truth shared by the dispatch action and the UI's ETA
+ * preview (so what the player is quoted is exactly what they get).
+ */
+export function planConvoy(opts: {
+  baseSeasons: number;
+  season: 'spring' | 'summer' | 'autumn' | 'winter';
+  officer?: Officer;
+  naval?: boolean;
+  woodenOx?: boolean;
+  cautious?: boolean;
+}): { seasons: number; keepFrac: number } {
+  const base = Math.max(1, opts.baseSeasons);
+  let lossFrac = Math.min(0.4, 0.06 * (base - 1));
+  if (opts.season === 'winter') lossFrac += 0.04;
+  if (opts.naval) lossFrac *= 0.5;
+  if (opts.woodenOx) lossFrac *= 0.5;
+  lossFrac = Math.max(0, Math.min(0.5, lossFrac));
+  let seasons = base;
+  if (opts.naval) seasons = Math.round(seasons * 0.7);
+  if (opts.woodenOx) seasons = Math.round(seasons * 0.6);
+  if (opts.officer) seasons = Math.max(1, Math.round(seasons * convoySpeedMul(opts.officer)));
+  if (opts.cautious) seasons += 1;
+  return { seasons: Math.max(1, seasons), keepFrac: 1 - lossFrac };
+}
+
 /** 隨軍糧 — grain a column needs to march its whole planned journey. */
 export function provisionNeeded(troops: number, totalSeasons: number): number {
   return Math.ceil(troops * FOOD_PER_TROOP_PER_SEASON * Math.max(1, totalSeasons));

@@ -1,8 +1,6 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import { cityEconCap } from '../../game/systems/citySize';
 import { useGameStore } from '../../game/state/store';
-import { playSfx } from '../../game/systems/sound';
-import { convoyCapacity, convoySpeedMul } from '../../game/systems/convoy';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { cityPolicyEffects, lockedPolicies } from '../../game/systems/policyEffects';
 import { POLICY_DEFS } from '../../game/data/officerAttributes';
@@ -14,6 +12,7 @@ import { BuildingsPanel } from './BuildingsPanel';
 import { AnimatedNumber } from './AnimatedNumber';
 import { CaptivesSection } from './CaptivesSection';
 import { CommandMenu } from './CommandMenu';
+import { ConvoyDispatchModal } from './ConvoyDispatchModal';
 import { FreeAgentsSection } from './FreeAgentsSection';
 import { OfficerHoverCard } from './OfficerHoverCard';
 import { TERRAIN_DEFS } from '../../game/data/cities';
@@ -195,138 +194,99 @@ export function CityPanel() {
 }
 
 /**
- * 運糧 / 運金 — dispatch a supply cart from this city to another of yours. It
- * crawls the map over a few seasons and empties on arrival; adjacent hauls
- * (on the supply network) arrive in full, longer ones lose 12% on the road.
+ * 輜重 — a compact launcher for the supply-convoy composer. Shows what is
+ * presently rolling out of this city (and any standing routes) and offers a
+ * single 派車 button that opens the full dispatch modal (destination + escort +
+ * cargo sliders + live ETA). Replaces the old cramped inline preset-button rows.
  */
 function GrainTransferSection({ cityId, isPlayerCity }: { cityId: EntityId; isPlayerCity: boolean }) {
   const t = useT();
   const lang = useLanguage();
   const allCities = useGameStore((s) => s.cities);
   const playerForceId = useGameStore((s) => s.playerForceId);
-  const dispatchConvoy = useGameStore((s) => s.dispatchConvoy);
   const officers = useGameStore((s) => s.officers);
+  const convoys = useGameStore((s) => s.convoys);
   const standingRoutes = useGameStore((s) => s.standingRoutes);
-  const setStandingRoute = useGameStore((s) => s.setStandingRoute);
   const [open, setOpen] = useState(false);
-  const [destId, setDestId] = useState('');
-  const [cautious, setCautious] = useState(false);
-  const [escortId, setEscortId] = useState('');
   const city = allCities[cityId];
-  // 押運武将 — available officers standing in this city, by 政治 (sets capacity).
-  const escorts = useMemo(
-    () => Object.values(officers)
-      .filter((o) => o.forceId === playerForceId && o.locationCityId === cityId && (o.status === 'idle' || o.status === 'active') && !o.task)
-      .sort((a, b) => b.stats.politics - a.stats.politics),
-    [officers, playerForceId, cityId],
-  );
-  const escort = officers[escortId] && escorts.some((o) => o.id === escortId) ? officers[escortId] : escorts[0];
-  const cap = escort ? convoyCapacity(escort) : 0;
-  const woodenOx = useMemo(
-    () => Object.values(officers).some((o) => o.forceId === playerForceId && o.status !== 'dead' && (o.skills ?? []).includes('wooden-ox')),
-    [officers, playerForceId],
-  );
-  const dests = useMemo(
-    () => Object.values(allCities)
-      .filter((c) => c.ownerForceId === playerForceId && c.id !== cityId)
-      .sort((a, b) => a.name.zh.localeCompare(b.name.zh)),
+
+  const destCount = useMemo(
+    () => Object.values(allCities).filter((c) => c.ownerForceId === playerForceId && c.id !== cityId).length,
     [allCities, playerForceId, cityId],
   );
-  if (!isPlayerCity || !city || dests.length === 0) return null;
-  const dest = allCities[destId] ?? dests[0];
-  const adjacent = dest ? city.adjacentCityIds.includes(dest.id) : false;
-  const foodAmts = [1000, 5000, Math.floor(city.food / 2)].filter((a) => a >= 500);
-  const goldAmts = [500, 2000, Math.floor(city.gold / 2)].filter((a) => a >= 200);
-  const troopAmts = [1000, 3000, Math.floor((city.troops - 100) / 2)].filter((a) => a >= 500);
-  const btn: CSSProperties = {
-    background: '#1b2531', border: '1px solid #26323e', color: '#e6c473',
-    padding: '0.2rem 0.55rem', fontFamily: 'inherit', fontSize: '0.72rem', cursor: 'pointer',
-  };
-  const row = (label: string, amts: number[], have: number, cargo: 'food' | 'gold' | 'troops') => (
-    <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
-      <span style={{ fontSize: '0.72rem', color: '#7a8893', minWidth: '2.2rem' }}>{label}</span>
-      {amts.map((a) => (
-        <button
-          key={a}
-          style={btn}
-          disabled={have < a || !escort || a > cap}
-          title={!escort ? t('需一名駐城武將押運', 'needs an officer in this city to escort') : a > cap ? t(`超出押運官載量 (${cap.toLocaleString()})`, `over escort capacity (${cap.toLocaleString()})`) : undefined}
-          onClick={() => { if (dest && escort) { dispatchConvoy(cityId, dest.id, cargo === 'food' ? a : 0, cargo === 'gold' ? a : 0, cargo === 'troops' ? a : 0, escort.id, cautious); playSfx('coin'); } }}
-        >
-          {a.toLocaleString()}
-        </button>
-      ))}
-    </div>
+  // 押運武将 — idle officers in this city who could escort a column.
+  const escortCount = useMemo(
+    () => Object.values(officers).filter((o) => o.forceId === playerForceId && o.locationCityId === cityId && (o.status === 'idle' || o.status === 'active') && !o.task).length,
+    [officers, playerForceId, cityId],
   );
+  // 在途 — columns presently rolling out of this city.
+  const outbound = useMemo(
+    () => Object.values(convoys ?? {})
+      .filter((c) => c.fromCityId === cityId && c.forceId === playerForceId)
+      .sort((a, b) => a.seasonsRemaining - b.seasonsRemaining),
+    [convoys, cityId, playerForceId],
+  );
+  const standing = useMemo(
+    () => (standingRoutes ?? []).filter((r) => r.fromCityId === cityId),
+    [standingRoutes, cityId],
+  );
+
+  if (!isPlayerCity || !city || destCount === 0) return null;
 
   return (
     <section className={styles.section}>
       <h3 className={styles.sectionTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span>{t('輜重', 'Convoy')}</span>
-        <button onClick={() => setOpen((v) => !v)} style={{ ...btn, fontSize: '0.65rem' }}>
-          {open ? t('收起', 'close') : t('派車 ⇨', 'send ⇨')}
+        <button
+          onClick={() => setOpen(true)}
+          disabled={escortCount === 0}
+          title={escortCount === 0 ? t('需一名駐城閒置武將押運', 'needs an idle officer here to escort') : t('派遣輜重隊', 'compose a supply column')}
+          style={{
+            background: escortCount === 0 ? '#161c24' : 'linear-gradient(180deg, rgba(230,196,115,0.2), rgba(230,196,115,0.06))',
+            border: `1px solid ${escortCount === 0 ? '#26323e' : '#e6c473'}`,
+            color: escortCount === 0 ? '#4a5660' : '#f2dd9a',
+            padding: '0.2rem 0.7rem', fontFamily: 'inherit', fontSize: '0.72rem',
+            cursor: escortCount === 0 ? 'not-allowed' : 'pointer', borderRadius: 4, letterSpacing: '0.05rem',
+          }}
+        >
+          {t('派車 ⇨', 'Dispatch ⇨')}
         </button>
       </h3>
-      {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          <select
-            value={dest?.id ?? ''}
-            onChange={(e) => setDestId(e.target.value)}
-            style={{ background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473', padding: '0.25rem', fontFamily: 'inherit', fontSize: '0.78rem' }}
-          >
-            {dests.map((c) => (
-              <option key={c.id} value={c.id}>
-                {(lang === 'en' ? c.name.en : c.name.zh)} · {t('糧', 'grain')}{c.food.toLocaleString()}{city.adjacentCityIds.includes(c.id) ? t(' · 鄰', ' · adj') : ''}
-              </option>
-            ))}
-          </select>
-          {escorts.length === 0 ? (
-            <span style={{ fontSize: '0.7rem', color: '#e0a070' }}>{t('需一名駐城武將押運輜重(載量依其政治)', 'A convoy needs an idle officer in this city to escort it (capacity scales with 政治).')}</span>
-          ) : (
-            <>
-              <select
-                value={escort?.id ?? ''}
-                onChange={(e) => setEscortId(e.target.value)}
-                style={{ background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473', padding: '0.25rem', fontFamily: 'inherit', fontSize: '0.78rem' }}
-              >
-                {escorts.map((o) => (
-                  <option key={o.id} value={o.id}>{t('押運', 'Escort')}:{(lang === 'en' ? o.name.en : o.name.zh)} · {t('政', 'POL')}{o.stats.politics}</option>
-                ))}
-              </select>
-              <span style={{ fontSize: '0.68rem', color: '#7a8893' }}>
-                {t(`載量上限 ${cap.toLocaleString()}`, `capacity ${cap.toLocaleString()}`)}
-                {escort && convoySpeedMul(escort) <= 0.92 ? t(' · 行速快', ' · swift') : escort && convoySpeedMul(escort) >= 1.08 ? t(' · 行速慢', ' · slow') : ''}
-              </span>
-            </>
-          )}
-          {row(t('運糧', 'Grain'), foodAmts, city.food, 'food')}
-          {row(t('運金', 'Gold'), goldAmts, city.gold, 'gold')}
-          {row(t('運兵', 'Troops'), troopAmts, Math.max(0, city.troops - 100), 'troops')}
-          {dest && (() => {
-            const active = (standingRoutes ?? []).some((r) => r.fromCityId === cityId && r.toCityId === dest.id);
+
+      {/* 在途輜重 — columns currently leaving this city */}
+      {outbound.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: '0.3rem' }}>
+          {outbound.map((c) => {
+            const to = allCities[c.toCityId];
+            const esc = c.officerId ? officers[c.officerId] : null;
+            const cargo = [
+              c.food ? `糧${Math.round(c.food / 1000)}k` : '',
+              c.gold ? `金${Math.round(c.gold / 1000)}k` : '',
+              c.troops ? `兵${Math.round(c.troops / 1000)}k` : '',
+            ].filter(Boolean).join(' ');
             return (
-              <button
-                onClick={() => setStandingRoute(cityId, dest.id, !active)}
-                title={t('常運糧道 — 每季自動把餘糧運往此城', 'Standing route — auto-ship surplus grain here each season')}
-                style={{ ...btn, alignSelf: 'flex-start', background: active ? 'rgba(126,214,138,0.18)' : '#1b2531', borderColor: active ? '#6fae73' : '#26323e', color: active ? '#9ad6a8' : '#e6c473' }}
-              >
-                {active ? t('↻ 常運中(點此取消)', '↻ Standing route on') : t('↻ 設為常運糧道', '↻ Make standing route')}
-              </button>
+              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: '#aab6c0', background: '#10161e', border: '1px solid #1d2731', borderRadius: 3, padding: '0.18rem 0.45rem' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {c.naval ? '🚢' : '🐂'} → {to ? (lang === 'en' ? to.name.en : to.name.zh) : '?'}
+                  {esc && <span style={{ color: '#7a8893' }}> · {lang === 'en' ? esc.name.en : esc.name.zh}</span>}
+                </span>
+                <span style={{ fontFamily: 'ui-monospace, monospace', color: '#7a8893', whiteSpace: 'nowrap' }}>
+                  {cargo}{cargo && ' · '}{t(`${c.seasonsRemaining}旬`, `${c.seasonsRemaining}s`)}
+                </span>
+              </div>
             );
-          })()}
-          <span style={{ fontSize: '0.68rem', color: adjacent ? '#7ed68a' : '#e0a070' }}>
-            {adjacent ? t('鄰城近運,損耗極低', 'adjacent — minimal loss') : t('遠運按路程耗糧,需數季', 'loss & time scale with the haul')}
-            {woodenOx && t(' · 木牛流馬減半', ' · Wooden Ox halves loss')}
-          </span>
-          <span style={{ fontSize: '0.66rem', color: '#7a8893' }}>
-            {t('⚔ 隨車運兵即為護糧 — 經敵境恐遭劫,押運足則可拒', '⚔ Troops sent along escort the load — raids near enemy ground need a strong escort')}
-          </span>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: cautious ? '#9ad6a8' : '#7a8893', cursor: 'pointer' }}>
-            <input type="checkbox" checked={cautious} onChange={(e) => setCautious(e.target.checked)} />
-            {t('謹慎避敵(+1 季,遇劫減半)', 'Cautious back-roads (+1 season, far fewer raids)')}
-          </label>
+          })}
         </div>
       )}
+
+      <div style={{ fontSize: '0.68rem', color: '#7a8893' }}>
+        {escortCount > 0
+          ? t(`${escortCount} 將可押運 · ${destCount} 友城可達`, `${escortCount} officer(s) free · ${destCount} destination(s)`)
+          : t('此城無閒置武將押運輜重', 'no idle officer here to escort a column')}
+        {standing.length > 0 && t(` · ↻ ${standing.length} 常運糧道`, ` · ↻ ${standing.length} standing`)}
+      </div>
+
+      {open && <ConvoyDispatchModal fromCityId={cityId} onClose={() => setOpen(false)} />}
     </section>
   );
 }

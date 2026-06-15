@@ -33,7 +33,7 @@ import { ITEMS_BY_ID } from '../data/items';
 import { marchDurationFor } from '../data/cities';
 import { terrainRoute, positionAlongRoute, marchDestCoords } from '../data/territories';
 import { cityPos, CITY_GEO_OVERRIDES } from '../data/cityGeo';
-import { provisionNeeded, convoyCapacity, convoySpeedMul } from '../systems/convoy';
+import { provisionNeeded, convoyCapacity, planConvoy } from '../systems/convoy';
 import { terrainTypeAt, isRiverside, WORLD_SCALE } from '../data/geography';
 import { FAMILY_LINEAGE } from '../data/familyLineage';
 import { POLICY_DEFS, TACTIC_DEFS } from '../data/officerAttributes';
@@ -1319,22 +1319,12 @@ export const useGameStore = create<GameStore>()(
         // and gentler on the cargo than an overland haul.
         const naval = !from.adjacentCityIds.includes(toCityId) && navalReachableCityIds(fromCityId, state.ports).has(toCityId);
         const baseSeasons = Math.max(1, marchDurationFor(from, to, state.date.season));
-        let lossFrac = Math.min(0.4, 0.06 * (baseSeasons - 1));
-        if (state.date.season === 'winter') lossFrac += 0.04;
-        if (naval) lossFrac *= 0.5;
-        if (woodenOx) lossFrac *= 0.5;
-        lossFrac = Math.max(0, Math.min(0.5, lossFrac));
-        const keep = 1 - lossFrac;
+        const plan = planConvoy({ baseSeasons, season: state.date.season, officer, naval, woodenOx, cautious });
+        const keep = plan.keepFrac;
         const arriveFood = Math.floor(shipFood * keep);
         const arriveGold = Math.floor(shipGold * keep);
         const arriveTroops = Math.floor(shipTroops * keep);
-        let effSeasons = baseSeasons;
-        if (naval) effSeasons = Math.round(effSeasons * 0.7);
-        if (woodenOx) effSeasons = Math.round(effSeasons * 0.6);
-        // 押運之能 — the officer's administration + temperament set the pace.
-        effSeasons = Math.max(1, Math.round(effSeasons * convoySpeedMul(officer)));
-        if (cautious) effSeasons += 1; // 謹慎避敵 — the safer back-roads take longer
-        const seasons = Math.max(1, effSeasons);
+        const seasons = plan.seasons;
         const id = `convoy-${fromCityId}-${toCityId}-${state.date.year}-${state.date.season}-${Object.keys(state.convoys ?? {}).length}`;
         set({
           cities: {
