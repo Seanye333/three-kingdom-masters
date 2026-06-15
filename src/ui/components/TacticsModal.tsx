@@ -1,4 +1,5 @@
 import { TACTIC_DEFS, tacticBonus, isTacticSignature, TACTIC_PREREQ, TACTIC_COMBOS } from '../../game/data/officerAttributes';
+import { useLanguage } from '../i18n';
 import { CatalogModal, type CatalogItem, type CatalogCategory } from './CatalogModal';
 
 function bonusBadge(id: string): string {
@@ -946,6 +947,161 @@ export const TACTIC_DESC: Record<string, string> = {
   'zhang-lu-rice':'張魯五斗 — 五斗米道首領，據漢中三十年。',
 };
 
+// English descriptions (shown in English mode; falls back to the zh entry when
+// an English line isn't written yet — filled in batches).
+export const TACTIC_DESC_EN: Record<string, string> = {
+  charge:         'Charge — cavalry break the enemy line. Especially deadly vs undefended massed infantry.',
+  rouse:          'Rally — lift spirits; your units +20% power for one round.',
+  ambush:         'Ambush — strike from surprise behind the enemy for +25% damage.',
+  volley:         'Volley — massed archer fire at range. Especially effective vs light armor.',
+  crossbow:       'Crossbow — repeating bolts pierce heavy armor. Range +1.',
+  catapult:       'Catapult — hurled boulders, for sieges. Extra damage to walls.',
+  'fire-attack':  'Fire Attack — burn the enemy camp. +35% power downwind.',
+  'water-attack': 'Water Attack — break the dykes to flood positions. Needs a waterside city.',
+  ruse:           'Ruse — feign surrender/rout to lure them in; always lands vs INT <70.',
+  disorder:       'Disorder — rumors throw the enemy into chaos, −1 action point.',
+  pitfall:        'Pitfall — set traps; forest/mountain only, several times the damage.',
+  curse:          'Taunt — rail at the enemy commander to provoke a reckless move.',
+  'last-stand':   'Last Stand — triggers below 30% troops. War +30, losses −20%. Back-to-the-river fury.',
+  'iron-wall':    'Iron Wall — heavy-armor line, all defense +50%. Melee damage halved, mobility −2.',
+  rush:           'Rush — two-stage cavalry charge. Move +2 round one, punches through rear-rank weaklings.',
+  'fire-arrow':   'Fire Arrows — oiled, lit arrows. 30% chance to set the target burning for 3 rounds.',
+  meteor:         'Meteor — boulders strike an area. +20% area damage, doubles siege damage.',
+  thunder:        'Thunderclap — Daoist lightning. Stuns the target 1 round (−1 AP); doubled vs armored units.',
+  'borrow-wind':  'Borrow the Wind — pray at the Seven-Star Altar (autumn/winter). Forces a strong east wind for 2 rounds.',
+  'eight-gates':  'Eight Gates — Daoist gate-formation. Your side near-invisible 1 round; dispels all enemy buffs.',
+  beauty:         'Honey Trap — send a beauty to the enemy. Vs a commander with CHA <70, 10% chance he defects.',
+  chain:          'Chain Stratagem — linked schemes; on a break the whole enemy army takes a 3-stage debuff (−atk/−def/−morale).',
+  'self-injury':  'Self-Sacrifice — Huang Gai’s false surrender. Spend one of your own to lure the enemy commander into a deadly trap.',
+  retreat:        'Retreat — withdraw safely. 0 losses, but you abandon the current objective.',
+  feint:          'Feint East, Strike West — disrupt their line so they misjudge; +30% damage on the true axis.',
+  'besiege-wei':  'Besiege Wei to Rescue Zhao — pressure their capital to pull the enemy back, breaking your own siege.',
+  'wait-tired':   'Wait at Ease — rest one round; next round all counterattacks +50%.',
+  'sneak-cross':  'Secret Crossing — feign a frontal push, then break in from an undefended flank.',
+  'probe-snake':  'Beat the Grass — probe the enemy; reveal all their next-round intentions.',
+  'lure-tiger':   'Lure the Tiger from the Mountain — draw out the main force; a defender with War ≥85 leaves his post first.',
+  'loose-catch':  'Catch by Releasing — feign defeat to lure them in; a deadly counter-ambush triggers on pursuit.',
+  'kill-king':    'Catch the King — strike straight at the enemy commander, ignoring the front rank (needs War ≥90).',
+  'cut-supply':   'Pull the Firewood — sever their supply. Enemy loses 5% troops/round for 3 rounds.',
+  cicada:         'Golden Cicada — slip away behind a decoy; leave a dummy and quietly move the main force.',
+  'far-near':     'Befriend Far, Attack Near — Fan Sui’s scheme. +30% to ally with distant forces; neighbors’ hostility +10.',
+  'borrow-arrow': 'Borrow Arrows with Straw Boats — Zhuge’s ploy. In fog, draw enemy fire and gather their arrows; archers +50% next round.',
+  'deceive-sky':  'Cross the Sea in Plain Sight — hide in the open. The enemy overlooks your action this round.',
+  'loot-fire':    'Loot a Burning House — strike amid their chaos. +40% damage while the enemy is in revolt/plague.',
+  'from-nothing': 'Create Something from Nothing — fake troops make the enemy misjudge and split forces.',
+  'watch-fire':   'Watch the Fire from the Bank — sit out their civil war; +15% resources/round while enemies fight each other.',
+  'hide-knife':   'Knife Behind a Smile — feign friendship. A surprise strike on an ally lands at +50% (undefended).',
+  'brick-jade':   'Toss a Brick for Jade — give up a low-value city to lure the enemy main force into encirclement.',
+  'muddy-fish':   'Fish in Troubled Waters — in a chaotic round, all stratagems +25% success.',
+  'door-thief':   'Bolt the Door — surround a small force without assaulting; −10% enemy troops/round forces surrender.',
+  'tree-flower':  'Flowers on a Tree — borrow allied banners to overawe; enemy morale −20%.',
+  'guest-host':   'Turn Guest into Host — after 3 rounds inside enemy ground, seize control of it.',
+  'feign-mad':    'Play the Fool — feign incompetence to lower their guard; counterattack at War +20.',
+  'pull-ladder':  'Pull Up the Ladder — lure them in, cut the retreat; whole enemy army −15% morale/round.',
+  'borrow-knife': 'Kill with a Borrowed Knife — set two enemies at war and reap the gain.',
+  'lead-sheep':   'Lead Away the Sheep — passing enemy ground, auto-seize 5% of their grain/troops each round.',
+  'borrow-corpse':'Borrow a Corpse — revive a fallen name. Adopt a dead force’s banner for +20 prestige.',
+  'plum-peach':   'Sacrifice the Plum for the Peach — lose one lieutenant to keep the commander and elite troops whole.',
+  'borrow-road':  'Borrow a Road to Attack Guo — march through an ally’s land and raid cities en route.',
+  'switch-beam':  'Swap the Beams — plant a spy to replace the enemy’s chief advisor; all their stratagems fail.',
+  'point-curse':  'Point at the Mulberry — execute a junior officer to cow the rest; all your officers +15 loyalty.',
+  'plum-thirst':  'Quench Thirst with Plums — Cao Cao’s tale. Inspire weary troops; all-army morale +25% for 2 rounds.',
+  'seven-lamp':   'Seven-Star Lamps — Zhuge’s life-extending rite. An aged commander recovers 1 lifespan/round, but failure means instant death.',
+  'chu-songs':    'Songs of Chu on All Sides — Han Xin’s trick. After encircling, sing their homeland songs; 30%/round partial defection.',
+  'burn-bowang':  'Burn Bowang Slope — Zhuge’s debut. In forest + wind, the whole enemy army burns for 3 rounds.',
+  'wooden-ox':    'Wooden Ox & Flowing Horse — Zhuge’s transport. In mountains, grain upkeep −50%/round; sustains long campaigns.',
+  'hair-head':    'Hair for Head — Cao Cao’s self-punishment. A commander who breaks martial law may forfeit hair instead; loyalty +20, discipline +30%.',
+  'white-robe':   'White-Robe Crossing — Lü Meng’s taking of Jingzhou. Cross disguised as merchants; defenders 100% unready, capture losses −80%.',
+  'song-map':     'Zhang Song’s Map — an insider’s map. Reveal all enemy defenses/garrisons/grain for 3 rounds.',
+  'seven-grab':   'Seven Captures of Meng Huo — win hearts. Vs tribes/rebels, each capture +25% subdue; after seven they submit for good.',
+  'tongue-war':   'Debate the Scholars — Zhuge sways Wu. With CHA/INT ≥85, bring a neutral force into the war on your side.',
+  changban:       'Lone Rider at Changban — Zhao Yun’s valor. Below 10% troops, the commander breaks out to save allies with 0 losses.',
+  'zhuge-bow':    'Zhuge Repeating Crossbow — fires ten bolts. Archers attack 2 extra times/round, but −30% movement.',
+  'chain-ship':   'Chained Ships — Pang Tong’s counsel. Lock the fleet for +40% naval stability — but a fire attack destroys it all.',
+  'burn-yiling':  'Burn the Linked Camps — Lu Xun breaks Liu Bei. Triggers vs a 700-li camp line; whole army burns and routs.',
+  'know-self':    'Know Self & Foe — Sunzi: never in peril. Reveal the enemy commander’s stats/stratagems/counters; +15% all-battle bonus.',
+  'fast-strike':  'Speed is Vital — Sunzi. All your units +1 action point next round, seizing the initiative.',
+  deception:      'War is Deception — Sunzi. Stratagem success +20%, but on failure the enemy sees through and counters.',
+  'attack-plans':   'Attack the Plan — Sunzi: foil the scheme first. When you read the enemy commander’s intent, your stratagem always lands.',
+  'attack-heart':   'Attack the Heart — Sunzi. Vs an enemy officer with loyalty <60, your persuasion-to-surrender +50%.',
+  'surround-three': 'Surround on Three Sides — Sunzi. Leave a gap so the enemy flees and scatters; siege casualties −40%.',
+  'subdue-no-fight':'Subdue Without Fighting — Sunzi’s ideal. With a marked force advantage, small enemy cities surrender automatically.',
+  'hide-light':     'Hide Your Light — Six Secret Teachings. Conceal your strength; enemy intel is off, their stratagems fail on you.',
+  'total-victory':  'Whole Victory — Sunzi: take a state intact. Capturing a city undamaged grants +30% loyalty.',
+  'water-form':     'Form Like Water — Sunzi: no fixed shape. Switch formations freely each round, no delay.',
+  'ortho-extra':    'Orthodox & Surprise — Sunzi: engage with the orthodox, win with the surprise. Frontal grind + flanking strike; enemy defense −25%.',
+  'qimen-dunjia':   'Qimen Dunjia — Daoist deployment. Your units are invisible on the map 1 round; the enemy can’t target them.',
+  'star-prayer':    'Zhuge’s Star Prayer — life-extending rite. An aged commander +5 years (once per battle; failure means instant death).',
+  'he-luo-tu':      'River Chart & Luo Writing — ancient trigrams. Reveal all omen effects; divine the next 3 rounds.',
+  'five-thunder':   'Five Thunders — Daoist exorcism. Outright slay an enemy schemer (INT >80), but needs your own Daoist present.',
+  'sneak-yinping':  'Sneak Through Yinping — Deng Ai’s conquest of Shu. Cross trackless mountains to the enemy capital, ignoring all garrisons en route.',
+  'nine-campaigns': 'Nine Northern Campaigns — Jiang Wei’s resolve. Win or lose, this commander’s morale won’t drop below 50; launch 9 campaigns in a row.',
+  'xiling-stand':   'Stand at Xiling — Lu Kang vs Jin. When attacked from many sides, +50% defense; hold out 5× as long.',
+  'feign-illness':  'Feign Illness — Sima Yi shut his gates. Your commander seems incapacitated; once they relax, strike at +60%.',
+  'iron-chain':     'Iron Chains Across the River — Wang Jun’s prelude. Chain the river to seal it; enemy can’t move by water for 3 rounds.',
+  'two-tigers':     'Two Tigers, One Meat — Cao Cao’s scheme. Set two fierce officers fighting; at least one falls.',
+  'lure-tiger-wolf':'Drive the Tiger, Eat the Wolf — Cao Cao. Goad one enemy to attack another; no one attacks you for 2 rounds.',
+  'sow-discord-2':  'Sow Discord — rumors split lord and minister. The enemy commander and his lieutenant each −15 loyalty.',
+  'thousand-ride':  'Thousand-Li Lone Ride — Guan Yu escorting his sisters. A captured officer escapes, taking up to 2 dependents.',
+  'lone-blade':     'Single Blade to the Feast — Guan Yu & Lu Su. One officer to the enemy’s feast: negotiate, or cut down their commander.',
+  'pass-six':       'Five Passes, Six Generals — Guan Yu’s return. Break through 6 enemy holds in a row, slaying a defender at each.',
+  'burn-xinye':     'Burn Xinye — Zhuge’s second fire. Torch a city as it falls; the enemy inherits −80% resources.',
+  'solid-camp':     'Solid Camp, Dull Fight — Zeng Guofan’s method. Advance 5%/round by siege; any city falls within 3 months.',
+  'death-ground':   'Place on Death Ground — Sunzi. Below 20% troops, auto-trigger +40% attack and +30% defense.',
+  'siege-relief':   'Besiege to Strike Relief — surround a city to draw a rescue, then ambush the relief force.',
+  bloodless:        'Bloodless Victory — take a city with loyalty <30 and garrison <10% outright, no losses.',
+  'plan-war':       'War of Planning — Baizhan opener. Full pre-battle scouting + drills; all stratagems +25% success.',
+  'cavalry-war':    'Cavalry War — on the plains, cavalry +30% shock, punching to the rear.',
+  'naval-war':      'Naval War — at river/lake/sea the commander shines; navy +40%, landing losses −30%.',
+  'trust-war':      'War of Trust — sure rewards and punishments. With commander loyalty ≥90, all-army morale +20; enemy discord fails.',
+  'many-war':       'War of Numbers — at >1.5× the enemy, attack +15%, battlefield efficiency +25%.',
+  'few-war':        'War of the Few — below 50% of the enemy, commander bonus +50%, morale holds.',
+  'mountain-war':   'Mountain War — in mountains/passes, defense +50% and you may ambush.',
+  'night-war':      'Night War — a moonless raid. Strike at night; the enemy panics, −1 action point.',
+  'supply-war':     'War of Supply — grain before troops. With supply lines open, endurance +100%.',
+  'defend-war':     'War of Defense — hold fast, scorch the land. Defensive losses −40%; hold until relief arrives.',
+  'fire-ox':        'Fire-Ox Charge — Tian Dan breaks Yan. Oxen with flaming tails stampede the line, breaking armor + burning baggage.',
+  'sand-dam':       'Han Xin’s Sandbags — the Wei River battle. Dam the river with sandbags; strike them mid-crossing.',
+  'ban-chao':       'Ban Chao’s Thirty-Six — the brush-thrower’s daring. 36 men seize an enemy envoy party — a diplomatic decapitation.',
+  'mass-burial':    'Bai Qi’s Massacre — Changping’s 400,000. Bury all captives; enemy morale −30% from terror, but −50 prestige.',
+  'long-ride':      'Huo Qubing’s Long Ride — the northern expedition. Cavalry range 6 cities with no resupply, raiding the rear.',
+  surprise:         'Strike Unexpected — Sunzi. Hit where they don’t defend; enemy garrison −60% defense.',
+  unguarded:        'Attack the Unprepared — strike during their developing/moving; +35% damage.',
+  'wind-forest':    'Wind, Forest, Fire, Mountain — fast, quiet, fierce, immovable. Switch one aspect/round; whole army +15% adaptability.',
+  'quick-decision': 'Swift Decision — Sunzi praises a clumsy quick win. End within 3 rounds for loyalty +20, else −10.',
+  protracted:       'Protracted War — a contest of stamina. On the defense, enemy morale −5/round, grain upkeep +20%.',
+  'warm-wine':      'Slay Hua Xiong, Wine Still Warm — Guan Yu’s first feat. 30% chance to instantly slay an enemy with War >85.',
+  'three-fight-lubu':'Three Heroes vs Lü Bu — Liu/Guan/Zhang together. With the three sworn brothers in line, take on any single champion.',
+  'plum-wine':      'Heroes over Warm Wine — Cao Cao tests Liu Bei. Reveal an enemy commander’s true intent and full personality.',
+  longzhong:        'The Longzhong Plan — split the realm in three. With 3+ provinces, diplomacy/internal affairs all +20%.',
+  'burn-chibi':     'Burn Red Cliffs — Zhou Yu’s masterstroke. With chained ships + east wind + fire, the enemy fleet is annihilated.',
+  'lose-jingzhou':  'Lose Jingzhou through Pride — Guan Yu’s lesson. Vs a careless foe (War >90, INT <60), raid and seize the city.',
+  'flee-maicheng':  'Flight to Maicheng — the road’s end. Below 5% troops the commander auto-retreats, but loyalty −20.',
+  'white-emperor':  'Entrustment at Baidi — Liu Bei’s bequest. A dying commander names an heir at +50 loyalty, no power struggle.',
+  'tearful-ma':     'Execute Ma Su in Tears — Zhuge enforces law. Execute a failed lieutenant: army discipline +30, but loyalty −5.',
+  'wuzhang-star':   'Falling Star at Wuzhang — Zhuge’s end. When the commander dies, the omen costs the army −50 morale; it may rout.',
+  memorial:         'The Memorial on Going to War — utter devotion. After it, the commander’s loyalty +30 and army morale +25, but lifespan −2 years.',
+  'edict-belt':     'The Girdle Edict — Emperor Xian’s secret decree. Incite the enemy’s officials: enemy commander loyalty −10 and one may defect.',
+  'borrow-jingzhou':'Borrow Jingzhou — Liu Bei borrows and won’t return. Agree to borrow land from an ally; in 3 years they angrily demand it back.',
+  diaochan:         'Diaochan’s Chain — beauty sows discord. Turn two enemy officers in a father-son/lord-retainer bond against each other.',
+  'liu-bei-share-meat':'Share the Food — Liu Bei’s love of his troops. The commander shares grain each round; all-army loyalty +5.',
+  'no-clash':       'Win Without Crossing Blades — when enemy morale falls below 20, they surrender automatically.',
+  'mind-might':     'Mind over Might — wit beats valor. With your commander’s INT >20 over the enemy’s, the power gap ignores troop counts.',
+  'reverse-encircle':'Counter-Encirclement — feign being trapped, then surround them; +50% damage.',
+  'flower-bloom':   'Bloom from the Center — split in four. Punch into the enemy center, then attack outward on all sides.',
+  annihilate:       'War of Annihilation — no quarter. After victory the enemy is wiped out, no captives; your morale +20, loyalty −10.',
+  attrition:        'War of Attrition — a contest of resources. In a long stand-off, while your stores exceed theirs, enemy −5% troops/round.',
+  'scorched-earth': 'Scorched Earth — burn as you retreat. The enemy inherits −80% resources and −50% loyalty.',
+  'siege-starve':   'Siege and Starve — surround and famish. Enemy −10% grain/round; when it runs out they surrender without a fight.',
+  'break-encircle': 'Break Out — fight free. When surrounded, mass all troops on one point; casualties −30%.',
+  'bait-trap':      'Bait and Trap — show a weakness to lure them in, springing an ambush + counter at +60%.',
+  'encircle-no-attack':'Encircle Without Attacking — the higher art. Surround and wait for them to break or sue for terms; take it losslessly.',
+  'heart-war':      'War of the Heart — an extension of winning hearts. Each round the enemy may surrender from fear, hunger, or homesickness.',
+  'counter-plot':   'Turn the Plot — with your commander’s INT >15 over the enemy’s, all their stratagems rebound on them.',
+  'press-pursuit':  'Press the Pursuit — beat the drowning dog. Below 30% enemy troops, pursue for a 100% wipeout.',
+  'still-vs-motion':'Stillness vs Motion — strike second. Hold your defensive spot one round; next round all counters +50%.',
+};
+
 const CATEGORIES: CatalogCategory[] = [
   { key: 'melee',    zh: '近戰', en: 'Melee',    color: '#b8442e' },
   { key: 'ranged',   zh: '遠程', en: 'Ranged',   color: '#b8c87a' },
@@ -957,22 +1113,25 @@ const CATEGORIES: CatalogCategory[] = [
 interface Props { onClose: () => void; }
 
 export function TacticsModal({ onClose }: Props) {
+  const lang = useLanguage();
+  const en = lang === 'en';
   const items: CatalogItem[] = Object.entries(TACTIC_DEFS).map(([id, def]) => {
-    const baseDesc = TACTIC_DESC[id] ?? '';
+    const baseDesc = (en ? (TACTIC_DESC_EN[id] ?? TACTIC_DESC[id]) : TACTIC_DESC[id]) ?? '';
     // T10 — enrich description with prereqs and combo membership
     const lines: string[] = [];
     if (baseDesc) lines.push(baseDesc);
     const prereqs = (TACTIC_PREREQ as Record<string, string[] | undefined>)[id] ?? [];
     if (prereqs.length > 0) {
-      const zhList = prereqs.map((p) => TACTIC_DEFS[p as keyof typeof TACTIC_DEFS]?.zh ?? p).join('、');
-      lines.push(`【前置】需先學:${zhList}`);
+      const nm = (p: string) => { const d = TACTIC_DEFS[p as keyof typeof TACTIC_DEFS]; return d ? (en ? d.en : d.zh) : p; };
+      lines.push(en ? `Prereq: ${prereqs.map(nm).join(', ')}` : `【前置】需先學:${prereqs.map(nm).join('、')}`);
     }
     const memberOf = TACTIC_COMBOS.filter((c) => c.tactics.includes(id));
     if (memberOf.length > 0) {
+      const nm = (t: string) => { const d = TACTIC_DEFS[t as keyof typeof TACTIC_DEFS]; return d ? (en ? d.en : d.zh) : t; };
       const comboList = memberOf
-        .map((c) => `「${c.nameZh}」(${c.tactics.map((t) => TACTIC_DEFS[t as keyof typeof TACTIC_DEFS]?.zh ?? t).join(' + ')} → 戰力 ×${c.powerMul.toFixed(2)})`)
-        .join(';');
-      lines.push(`【連環戰法】屬於:${comboList}`);
+        .map((c) => `${en ? (c.nameEn ?? c.nameZh) : c.nameZh} (${c.tactics.map(nm).join(' + ')} → ${en ? 'power' : '戰力'} ×${c.powerMul.toFixed(2)})`)
+        .join('; ');
+      lines.push(en ? `Combo: ${comboList}` : `【連環戰法】屬於:${comboList}`);
     }
     return {
       id,
