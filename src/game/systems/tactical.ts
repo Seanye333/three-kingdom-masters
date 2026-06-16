@@ -1520,6 +1520,12 @@ export function attackUnits(
   if (comboAlly && ao) {
     log.push({ turn: b.turn, text: `${ao.name.zh} × ${officers[comboAlly.officerId]?.name.zh ?? '友軍'} 合擊!`, kind: 'event' });
   }
+  // 腹背受敵 — the target is truly surrounded (pressed on three sides, or struck
+  // in the rear while also flanked). A presentation beat; the pincer/rear damage
+  // bonuses above already carry the mechanics.
+  if (newTroops > 0 && (pincers >= 2 || (fromRear && pincers >= 1))) {
+    log.push({ turn: b.turn, text: `${To?.name.zh ?? '敵軍'}腹背受敵 — 陷入重圍!`, kind: 'event' });
+  }
   if (isCrit && martialSkill && ao) {
     const SKILL_ZH: Record<string, string> = {
       'god-of-war': '武神', 'flying-general': '飛將', 'sage-of-war': '兵聖', 'brave': '勇猛',

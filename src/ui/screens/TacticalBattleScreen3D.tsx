@@ -3410,6 +3410,8 @@ export function TacticalBattleScreen3D() {
       else if (t.includes('夜襲') || t.includes('殺到')) { playSfx('shout'); kick(2, '#ffd54a'); }
       else if (t.includes('搶修') || t.includes('猛撞') || t.includes('轟擊')) playSfx('thud');
       else if (t.includes('傾下') || t.includes('射出')) playSfx('arrow');
+      // 腹背受敵 — a tense war-drum roll + a kick when the trap closes on a foe.
+      else if (t.includes('腹背受敵')) { playSfx('wardrum'); kick(2, '#ff9a3a'); }
       // 衝鋒陷陣 — a war cry + a camera kick when a line storms in or scales a wall.
       else if (t.includes('突貫') || t.includes('踏牆') || t.includes('先登') || t.includes('陷陣') || t.includes('突騎')) { playSfx('shout'); kick(2, '#ffd54a'); }
       // 鳴金 — a struck gong when morale collapses or a line is shattered.
