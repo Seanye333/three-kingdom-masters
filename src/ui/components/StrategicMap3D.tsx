@@ -1436,6 +1436,53 @@ function MarchBanner({ color }: { color: string }) {
   );
 }
 
+/** 戰船 — a war junk for a naval march: a dark hull with a raised stern, a
+ *  battened sail, a force-colour pennant and a prow ram. Replaces the marching
+ *  foot when an army crosses water, so a sea expedition reads as a fleet. */
+function WarJunk({ color }: { color: string }) {
+  const flagRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    const tm = clock.elapsedTime;
+    if (flagRef.current) flagRef.current.rotation.z = Math.sin(tm * 3.6) * 0.22;
+    if (groupRef.current) groupRef.current.rotation.z = Math.sin(tm * 1.6) * 0.03; // gentle heel
+  });
+  return (
+    <group ref={groupRef} scale={ARMY_TOKEN_SCALE * 0.95}>
+      {/* Hull */}
+      <mesh position={[0, 0.1, 0]} castShadow>
+        <boxGeometry args={[0.34, 0.18, 0.74]} />
+        <meshStandardMaterial color="#46301d" roughness={0.9} />
+      </mesh>
+      {/* Prow ram */}
+      <mesh position={[0, 0.09, 0.42]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <boxGeometry args={[0.12, 0.1, 0.12]} />
+        <meshStandardMaterial color="#3a2818" roughness={0.9} />
+      </mesh>
+      {/* Raised stern castle */}
+      <mesh position={[0, 0.27, -0.28]} castShadow>
+        <boxGeometry args={[0.3, 0.2, 0.16]} />
+        <meshStandardMaterial color="#5a3f24" roughness={0.9} />
+      </mesh>
+      {/* Mast */}
+      <mesh position={[0, 0.52, 0.02]}>
+        <cylinderGeometry args={[0.016, 0.016, 0.64, 5]} />
+        <meshStandardMaterial color="#3a2818" />
+      </mesh>
+      {/* Battened sail */}
+      <mesh position={[0, 0.52, 0.02]}>
+        <boxGeometry args={[0.012, 0.44, 0.34]} />
+        <meshStandardMaterial color="#cfc4a6" roughness={1} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Force pennant atop the mast */}
+      <mesh ref={flagRef} position={[0.09, 0.8, 0.02]}>
+        <planeGeometry args={[0.17, 0.1]} />
+        <meshStandardMaterial color={color} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
 const DEPART_SOLDIERS = Array.from({ length: 9 }, (_, i) => i);
 
 /** 出征演出 — a one-off flourish at the origin city when you dispatch an army:
@@ -2136,6 +2183,9 @@ function MarchingArmy({ from, to, color, commanderName, troops, seasonsRemaining
           <FieldCamp color={color} troops={troops} />
           <MarchBanner color={color} />
         </>
+      ) : naval ? (
+        // 水師 — a fleet crosses the water instead of foot marching over it.
+        <WarJunk color={color} />
       ) : (
         <>
           {FORMATION.map(([sx, sz], i) => (
