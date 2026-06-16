@@ -1662,6 +1662,73 @@ function ConquestFlourish3D() {
   return <ConquestAnim key={active.key} x={active.x} y={active.y} z={active.z} color={active.color} />;
 }
 
+/** 失守演出 — a somber beat when the player loses a city: their colours topple
+ *  from the wall and dark smoke rises. ~2.6s. */
+function LossAnim({ x, y, z, color }: { x: number; y: number; z: number; color: string }) {
+  const start = useRef<number | null>(null);
+  const flagRef = useRef<THREE.Group>(null);
+  const smokeRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (start.current === null) start.current = clock.elapsedTime;
+    const e = clock.elapsedTime - start.current;
+    if (flagRef.current) {
+      // The standard holds a beat, then topples sideways from its base.
+      const fall = Math.max(0, Math.min(1, (e - 0.35) / 1.0));
+      const eased = fall * fall;
+      flagRef.current.rotation.z = -eased * (Math.PI / 2 + 0.15);
+    }
+    if (smokeRef.current) {
+      const dt = Math.min(1, e / 1.7);
+      smokeRef.current.scale.setScalar(0.3 + dt * 1.4);
+      smokeRef.current.position.y = 0.12 + dt * 0.5;
+      (smokeRef.current.material as THREE.MeshBasicMaterial).opacity = (1 - dt) * 0.45;
+    }
+  });
+  return (
+    <group position={[x, y, z]} scale={ARMY_TOKEN_SCALE}>
+      <group ref={flagRef}>
+        <mesh position={[0, 0.3, 0]}>
+          <cylinderGeometry args={[0.014, 0.014, 0.6, 5]} />
+          <meshStandardMaterial color="#1a1410" />
+        </mesh>
+        <mesh position={[0.11, 0.5, 0]}>
+          <planeGeometry args={[0.22, 0.14]} />
+          <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.7} />
+        </mesh>
+      </group>
+      <mesh ref={smokeRef} position={[0, 0.12, 0]}>
+        <sphereGeometry args={[0.18, 8, 8]} />
+        <meshBasicMaterial color="#601410" transparent opacity={0.45} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Watches the loss signal and plays the toppling-colours beat (in the player's
+ *  own colour, since they are the ones who fell), then clears after ~2.6s. */
+function LossFlourish3D() {
+  const lost = useGameStore((s) => s.cityLost);
+  const cities = useGameStore((s) => s.cities);
+  const forces = useGameStore((s) => s.forces);
+  const playerForceId = useGameStore((s) => s.playerForceId);
+  const [active, setActive] = useState<{ key: number; x: number; y: number; z: number; color: string } | null>(null);
+  useEffect(() => {
+    if (!lost) return;
+    const city = cities[lost.cityId];
+    if (!city) return;
+    const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
+    const [wx, wz] = pxToWorld(px, py);
+    const wy = sampleTerrainHeight(wx, wz) + 0.04;
+    const color = (playerForceId && forces[playerForceId]?.color) || '#b8442e';
+    setActive({ key: lost.key, x: wx, y: wy, z: wz, color });
+    const id = window.setTimeout(() => setActive(null), 2600);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lost?.key]);
+  if (!active) return null;
+  return <LossAnim key={active.key} x={active.x} y={active.y} z={active.z} color={active.color} />;
+}
+
 /** City pillar group: walled city / pagoda / pass / hamlet by tier, with
  *  a force-colored base disk, banner, name label and selection ring. */
 /* ─── 標籤分級 — when the camera is pulled far out, the ~120 city name+bar
@@ -6338,6 +6405,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <EspionageAgents3D cities={cities} />
       <DepartureFlourish3D />
       <ConquestFlourish3D />
+      <LossFlourish3D />
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
           over (same scene component, same state; rotated to its true bearing,

@@ -132,6 +132,9 @@ export interface GameState {
   /** 克城 — transient signal that the player just took a city, so the map can
    *  play a flag-planting flourish there. Not persisted. */
   cityCaptured: { key: number; cityId: EntityId } | null;
+  /** 失守 — transient signal that the player just lost a city, for a somber
+   *  banner-toppling beat there. Not persisted. */
+  cityLost: { key: number; cityId: EntityId } | null;
   /** Active tactical battle screen, if any. */
   tacticalBattle: TacticalBattle | null;
   /** 戰鬥運鏡/特效 — transient batch the headless AI driver pushes each turn so
@@ -383,6 +386,7 @@ export const EMPTY_STATE: GameState = {
   actionToast: null,
   marchDeparture: null,
   cityCaptured: null,
+  cityLost: null,
   tacticalBattle: null,
   battleFxBatch: null,
   pendingEspionage: [],

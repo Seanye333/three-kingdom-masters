@@ -2821,6 +2821,11 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const playerConquest = conqueredThisTurn.find(
           (id) => postCities[id]?.ownerForceId === state.playerForceId,
         );
+        // 失守 — the first city the player held but lost this turn.
+        const playerLoss = conqueredThisTurn.find(
+          (id) => state.cities[id]?.ownerForceId === state.playerForceId &&
+            postCities[id]?.ownerForceId !== state.playerForceId,
+        );
         const decayed = state.burningCities
           .map((b) => ({ ...b, seasonsLeft: b.seasonsLeft - 1 }))
           .filter((b) => b.seasonsLeft > 0);
@@ -3533,6 +3538,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           cityCaptured: playerConquest
             ? { key: (state.cityCaptured?.key ?? 0) + 1, cityId: playerConquest }
             : state.cityCaptured,
+          cityLost: playerLoss
+            ? { key: (state.cityLost?.key ?? 0) + 1, cityId: playerLoss }
+            : state.cityLost,
           fieldBattleMarks: nextFieldMarks,
           pendingFieldBattleQueue: [
             ...(state.pendingFieldBattleQueue ?? []),
