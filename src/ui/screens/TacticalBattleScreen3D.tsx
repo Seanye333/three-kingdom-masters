@@ -28,6 +28,17 @@ import { isReduceMotion } from '../uiPrefs';
 const IS_MOBILE = typeof window !== 'undefined'
   && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
 
+/** 震屏 — jolt the whole battle view on a heavy beat (a gate breaching, a flood,
+ *  a commander cut down). Re-triggers by forcing a reflow; honours reduced-motion. */
+function shakeScreen(el: HTMLElement | null): void {
+  if (!el) return;
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  if (document.documentElement.getAttribute('data-tkm-reduce-motion') === '1') return;
+  el.classList.remove('tkm-shake');
+  void el.offsetWidth; // force reflow so the animation restarts on a repeat hit
+  el.classList.add('tkm-shake');
+}
+
 type ActionMode =
   | { kind: 'none' }
   | { kind: 'move' }
@@ -3400,8 +3411,8 @@ export function TacticalBattleScreen3D() {
     if (sfxCursor.current > log.length) sfxCursor.current = 0; // new battle
     for (let i = sfxCursor.current; i < log.length; i++) {
       const t = log[i]?.text ?? '';
-      if (t.includes('告破') || t.includes('崩塌') || t.includes('焚斷')) playSfx('crash');
-      else if (t.includes('決堤') || t.includes('山崩')) playSfx('quake');
+      if (t.includes('告破') || t.includes('崩塌') || t.includes('焚斷')) { playSfx('crash'); shakeScreen(screenRootRef.current); }
+      else if (t.includes('決堤') || t.includes('山崩')) { playSfx('quake'); shakeScreen(screenRootRef.current); }
       else if (t.includes('火') || t.includes('烈焰')) playSfx('fire');
       else if (t.includes('馳援') || t.includes('糧盡')) playSfx('horn');
       else if (t.includes('夜襲') || t.includes('殺到')) playSfx('shout');
@@ -3687,6 +3698,7 @@ export function TacticalBattleScreen3D() {
       if (u.troops > 0 && (!slain || slain.troops <= 0)) {
         if (u.isCommander) {
           setCine({ key: ++cineCount.current, weight: 3, color: '#ff5030' });
+          shakeScreen(screenRootRef.current);
           const nm = officers[u.officerId]?.name.zh ?? '敵將';
           setSignatureBanner({ zh: `斬 ${nm}！`, en: `${officers[u.officerId]?.name.en ?? 'Commander'} slain!`, key: Date.now() });
           setTimeout(() => setSignatureBanner(null), 2200);
