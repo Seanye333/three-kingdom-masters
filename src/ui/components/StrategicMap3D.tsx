@@ -1577,14 +1577,19 @@ function City3D({
               display: 'inline-block',
               fontSize: isOwn ? '13px' : '12px',
               fontWeight: 'bold',
-              color: isOwn ? '#eafff0' : '#f2e8d2',
+              // 選中城池的名牌與 3D 環同步高亮:金邊、金光、微放大。
+              color: isSelected ? '#fff6df' : isOwn ? '#eafff0' : '#f2e8d2',
               background: isOwn ? 'rgba(20,42,26,0.85)' : 'rgba(22,16,10,0.8)',
-              border: `1.5px solid ${isOwn ? '#86f29a' : forceColor}`,
+              border: `1.5px solid ${isSelected ? '#f0d488' : isOwn ? '#86f29a' : forceColor}`,
               borderRadius: 4,
               padding: '0px 7px',
               whiteSpace: 'nowrap',
-              boxShadow: isOwn ? '0 0 7px rgba(120,225,150,0.65)' : '0 1px 3px rgba(0,0,0,0.5)',
+              boxShadow: isSelected
+                ? '0 0 11px rgba(240,212,136,0.9)'
+                : isOwn ? '0 0 7px rgba(120,225,150,0.65)' : '0 1px 3px rgba(0,0,0,0.5)',
               marginBottom: 2,
+              transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+              transition: 'transform 0.16s cubic-bezier(0.2,0.9,0.3,1), box-shadow 0.16s ease, border-color 0.16s ease',
             }}>{isOwn ? '★ ' : ''}{city.name.zh}</div>
             {/* Strength bars only on the selected city — keeps the map clean. */}
             {isSelected && <CityStrengthBars city={city} />}
