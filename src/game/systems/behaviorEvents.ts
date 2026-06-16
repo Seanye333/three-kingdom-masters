@@ -88,12 +88,13 @@ export function rollBehaviorEvent(ctx: BehaviorEventContext): HistoricalEvent | 
           },
         ];
         return event(
-          'behavior-treasury', rulerId, ctx.date,
+          'behavior-treasury', rulerId,
           { zh: '倉廩盈溢', en: 'A Swollen Treasury' },
           {
             zh: '府庫充盈,金帛山積。長史進言:「府庫既實,主公何不有所為?」',
             en: 'The granaries are full and gold piles high. Your chief clerk asks: "The coffers brim over, my lord — to what end shall we put them?"',
           },
+          'auspicious',
           choices,
         );
       },
@@ -117,12 +118,87 @@ export function rollBehaviorEvent(ctx: BehaviorEventContext): HistoricalEvent | 
           },
         ];
         return event(
-          'behavior-heavy-tax', rulerId, ctx.date,
+          'behavior-heavy-tax', rulerId,
           { zh: '苛政猛於虎', en: 'Taxes Heavier Than a Tiger' },
           {
             zh: '重稅之下,民有菜色,境內怨聲漸起。老吏垂淚諫曰:「苛政猛於虎也。」',
             en: 'Under heavy levies the people grow gaunt and resentment spreads. An old official weeps: "Harsh rule is fiercer than any tiger."',
           },
+          'ominous',
+          choices,
+        );
+      },
+    },
+
+    // 府庫空虛 — an empty treasury forces hard money in a tight spot.
+    {
+      id: 'behavior-treasury-empty',
+      build: () => {
+        if (totalGold >= 800 || cities.length < 2) return null;
+        const choices: EventChoice[] = [
+          {
+            id: 'levy',
+            label: { zh: '加徵賦稅,救一時之急', en: 'Raise an emergency levy' },
+            effects: [
+              { kind: 'force-gold', forceId: playerForceId, delta: 2000 },
+              ...cityLoyaltyAll(-6),
+            ],
+          },
+          {
+            id: 'sell',
+            label: { zh: '變賣官物,聊補府庫', en: 'Sell state property for coin' },
+            effects: [{ kind: 'force-gold', forceId: playerForceId, delta: 1000 }],
+          },
+          {
+            id: 'austerity',
+            label: { zh: '開源節流,與民共度', en: 'Tighten the belt and share the want' },
+            effects: cityLoyaltyAll(2),
+          },
+        ];
+        return event(
+          'behavior-treasury-empty', rulerId,
+          { zh: '府庫空虛', en: 'An Empty Treasury' },
+          {
+            zh: '府庫告罄,出無可支。度支愁眉:「主公,軍餉俸祿,恐難為繼。」',
+            en: 'The coffers ring hollow and there is nothing left to draw on. Your treasurer frets: "My lord — pay and stipends can hardly be met."',
+          },
+          'ominous',
+          choices,
+        );
+      },
+    },
+
+    // 四海歸心 — popular rule draws worthies; reward it.
+    {
+      id: 'behavior-popular',
+      build: () => {
+        if (avgLoyalty < 85 || cities.length < 3) return null;
+        const officersOfForce = Object.values(ctx.officers).filter(
+          (o) => o.forceId === playerForceId && o.status !== 'dead' && o.status !== 'imprisoned',
+        );
+        const choices: EventChoice[] = [
+          {
+            id: 'feast-worthies',
+            label: { zh: '設宴款待,廣結賢士', en: 'Feast the worthies who flock to you' },
+            effects: [
+              ...officersOfForce.slice(0, 8).map((o): EventEffect => ({ kind: 'officer-loyalty', officerId: o.id, delta: 4 })),
+              { kind: 'force-gold', forceId: playerForceId, delta: -1500 },
+            ],
+          },
+          {
+            id: 'humble',
+            label: { zh: '謙抑自守,不事張揚', en: 'Stay humble and let the goodwill stand' },
+            effects: cityLoyaltyAll(3),
+          },
+        ];
+        return event(
+          'behavior-popular', rulerId,
+          { zh: '四海歸心', en: 'The Realm Turns to You' },
+          {
+            zh: '德政既行,四海歸心,賢士聞風來投。或曰:「得民心者得天下。」',
+            en: 'Just rule has won the people; worthy men come from afar to serve. As they say: "Win the people, and you win all under heaven."',
+          },
+          'auspicious',
           choices,
         );
       },
@@ -151,12 +227,13 @@ export function rollBehaviorEvent(ctx: BehaviorEventContext): HistoricalEvent | 
           },
         ];
         return event(
-          'behavior-idle-talent', rulerId, ctx.date,
+          'behavior-idle-talent', rulerId,
           { zh: '群賢閒置', en: 'Talent Left Idle' },
           {
             zh: '帳下賢才雲集,卻多投閒置散。有人嘆曰:「明珠暗投,豈不惜哉?」',
             en: 'Able men crowd your halls, yet many sit unused. One sighs: "Bright pearls cast into the dark — what a waste."',
           },
+          'somber',
           choices,
         );
       },
@@ -180,9 +257,9 @@ export function rollBehaviorEvent(ctx: BehaviorEventContext): HistoricalEvent | 
 function event(
   id: EntityId,
   rulerId: EntityId,
-  _date: GameDate,
   name: { zh: string; en: string },
   desc: { zh: string; en: string },
+  mood: NonNullable<HistoricalEvent['mood']>,
   choices: EventChoice[],
 ): HistoricalEvent {
   return {
@@ -194,6 +271,7 @@ function event(
     descriptionZh: desc.zh,
     effects: [],
     chooserRulerId: rulerId,
+    mood,
     choices,
   };
 }

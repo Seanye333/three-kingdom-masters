@@ -57,6 +57,10 @@ export interface HistoricalEvent {
    *  built by choices setting flags that later events require. */
   chooserRulerId?: EntityId;
   choices?: EventChoice[];
+  /** Optional explicit mood for the event card's accent/seal + audio cue.
+   *  When omitted, the mood is inferred from the effects. Set it for events
+   *  whose top-level effects are empty (e.g. choice-only dynamic events). */
+  mood?: 'auspicious' | 'somber' | 'mystic' | 'martial' | 'ominous';
 }
 
 export interface EventChoice {

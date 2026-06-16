@@ -9,6 +9,8 @@ import { useT, useLanguage, useDesc } from '../i18n';
 /** 事件配樂 — classify an event's mood from its effects (language-agnostic)
  *  with id/name keyword hints, so the right motif greets it. */
 function eventMood(event: HistoricalEvent): EventCueMood {
+  // An explicit mood (e.g. on choice-only dynamic events) wins over inference.
+  if (event.mood) return event.mood;
   const text = `${event.id} ${event.name.en}`.toLowerCase();
   if (event.effects.some((e) => e.kind === 'officer-status' && e.status === 'dead')) return 'somber';
   if (/omen|star|heaven|prophe|comet|eclipse|portent|dream|天命|祥瑞|讖|彗|蝕/.test(text)) return 'mystic';

@@ -51,6 +51,7 @@ describe('rollBehaviorEvent', () => {
     // The player's ruler is the chooser, so the modal will offer the decision.
     expect(ev?.chooserRulerId).toBe('r');
     expect(ev?.choices?.length).toBe(3);
+    expect(ev?.mood).toBe('auspicious');
     // No immediate effect — all consequence rides on the choice.
     expect(ev?.effects).toEqual([]);
   });
@@ -66,10 +67,32 @@ describe('rollBehaviorEvent', () => {
       cities: { c1: city('c1', 'p', 1000, 30), c2: city('c2', 'p', 1000, 35) },
     }));
     expect(ev?.id).toBe('behavior-heavy-tax');
+    expect(ev?.mood).toBe('ominous');
     // Easing taxes lifts every owned city's loyalty.
     const ease = ev?.choices?.find((c) => c.id === 'ease');
     expect(ease?.effects.length).toBe(2);
     expect(ease?.effects.every((e) => e.kind === 'city-loyalty')).toBe(true);
+  });
+
+  it('fires the treasury-crisis event when the coffers run dry', () => {
+    const ev = rollBehaviorEvent(ctx({
+      cities: { c1: city('c1', 'p', 200, 60), c2: city('c2', 'p', 200, 60) },
+    }));
+    expect(ev?.id).toBe('behavior-treasury-empty');
+    expect(ev?.mood).toBe('ominous');
+    expect(ev?.choices?.length).toBe(3);
+  });
+
+  it('fires the popular-rule event when cities are devoted', () => {
+    const ev = rollBehaviorEvent(ctx({
+      cities: {
+        c1: city('c1', 'p', 1000, 90),
+        c2: city('c2', 'p', 1000, 88),
+        c3: city('c3', 'p', 1000, 92),
+      },
+    }));
+    expect(ev?.id).toBe('behavior-popular');
+    expect(ev?.mood).toBe('auspicious');
   });
 
   it('fires the idle-talent event with 3+ idle high-stat officers', () => {
