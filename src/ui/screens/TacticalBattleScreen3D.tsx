@@ -1373,6 +1373,31 @@ function RainParticles({ count = 800, bounds }: { count?: number; bounds: { x: n
     </instancedMesh>
   );
 }
+/** 風雷 — occasional lightning over a rainstorm: a high blue-white flash lights
+ *  the whole field, with a delayed thunder rumble. Mounted only in rain. */
+function StormLightning() {
+  const lightRef = useRef<THREE.PointLight>(null);
+  const next = useRef(2 + Math.random() * 5);
+  const flash = useRef(0);
+  useFrame((_, delta) => {
+    next.current -= delta;
+    if (next.current <= 0) {
+      // A flicker — a sharp strike, sometimes a quick double-flash.
+      flash.current = 1;
+      next.current = 5 + Math.random() * 8;
+      const boom = 180 + Math.random() * 500;
+      window.setTimeout(() => playSfx('quake'), boom);
+    }
+    if (flash.current > 0) {
+      flash.current = Math.max(0, flash.current - delta * 4.5);
+      // A little crackle on the way down so it doesn't read as a smooth fade.
+      const crackle = 0.7 + 0.3 * Math.sin(flash.current * 30);
+      if (lightRef.current) lightRef.current.intensity = flash.current * crackle * 3.2;
+    }
+  });
+  return <pointLight ref={lightRef} position={[0, 28, 6]} color="#cfe0ff" intensity={0} distance={140} decay={0.6} />;
+}
+
 /** 戰塵 — a low, slow drift of soft haze puffs over the field: the dust and
  *  smoke of an army in the field. Camera-facing billboards at very low opacity,
  *  tinted to the time-of-day fog so dawn/dusk/night read right. */
@@ -3186,6 +3211,7 @@ export function BattleScene({
           {/* 戰塵 — ambient battlefield haze, except when rain washes it away. */}
           {battle.weather !== 'rain' && battle.weather !== 'snow' && <BattleHaze bounds={bounds} tint={lighting.fog[0]} />}
           {battle.weather === 'rain' && <RainParticles bounds={bounds} />}
+          {battle.weather === 'rain' && !isReduceMotion() && <StormLightning />}
           {battle.weather === 'snow' && <SnowParticles bounds={bounds} />}
           {battle.weather === 'wind' && battle.windDirection && battle.windDirection !== 'calm' && (
             <WindStreaks bounds={bounds} dir={battle.windDirection} />
