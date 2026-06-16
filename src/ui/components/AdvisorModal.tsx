@@ -21,6 +21,8 @@ export function AdvisorModal({ onClose }: { onClose: () => void }) {
   const tradeFood = useGameStore((s) => s.tradeFood);
   const t = useT();
   const [done, setDone] = useState<Record<string, string>>({});
+  const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const anim = (s: string) => (reduced ? undefined : s);
 
   const advisor = useMemo(
     () => (playerForceId ? pickAdvisor(officers, playerForceId) : null),
@@ -63,11 +65,16 @@ export function AdvisorModal({ onClose }: { onClose: () => void }) {
           background: 'linear-gradient(160deg,#1b2531,#10161e)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
           width: 'min(560px,100%)', maxHeight: '85vh', overflowY: 'auto',
           color: '#e6edf3', fontFamily: 'var(--tkm-font-body)', padding: '1rem 1.3rem',
+          animation: anim('tkmVictorySub 0.4s cubic-bezier(0.16,1,0.3,1) both'),
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.7rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {advisor && <OfficerAvatar officer={advisor} size={42} />}
+            {advisor && (
+              <span style={{ display: 'inline-flex', borderRadius: '50%', boxShadow: '0 0 16px rgba(212,168,74,0.55)', animation: anim('tkmPortraitRise 0.6s cubic-bezier(0.2,0.9,0.3,1) both') }}>
+                <OfficerAvatar officer={advisor} size={42} />
+              </span>
+            )}
             <div>
               <div style={{ fontSize: '1.15rem', color: '#e6c473', letterSpacing: '0.07rem' }}>🧠 {t('軍師錦囊', 'Advisor')}</div>
               <div style={{ fontSize: '0.72rem', color: '#7a8893' }}>
@@ -83,15 +90,16 @@ export function AdvisorModal({ onClose }: { onClose: () => void }) {
             {t('「眼下並無燃眉之急,主公可從容布局。」', '"Nothing burns today, my lord — plan at leisure."')}
           </div>
         )}
-        {tips.map((tip) => (
+        {tips.map((tip, i) => (
           <div key={tip.id} style={{
             border: '1px solid #26323e', background: '#10161e',
             padding: '0.6rem 0.8rem', marginBottom: '0.5rem',
             display: 'flex', alignItems: 'center', gap: 10,
+            animation: anim(`tkmVictorySub 0.34s ease-out ${0.15 + i * 0.07}s both`),
           }}>
             <div style={{ flex: 1, fontSize: '0.85rem', lineHeight: 1.6 }}>{t(tip.zh, tip.en)}</div>
             {done[tip.id] ? (
-              <span style={{ fontSize: '0.75rem', color: '#9ed68a', whiteSpace: 'nowrap' }}>{done[tip.id]}</span>
+              <span style={{ fontSize: '0.75rem', color: '#9ed68a', whiteSpace: 'nowrap', display: 'inline-block', animation: anim('tkmRapportPop 0.5s ease-out') }}>{done[tip.id]}</span>
             ) : tip.action.kind !== 'none' ? (
               <button
                 onClick={() => execute(tip)}
