@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Officer } from '../../game/types';
 import {
   initDebate, debateRound, aiDebateMove, debateMoraleDeltas, PRESS_MOMENTUM_COST,
@@ -29,8 +29,13 @@ export function DebateGameModal({
 }) {
   const t = useT();
   const lang = useLanguage();
+  const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const [bout, setBout] = useState<DebateBout>(() => initDebate(me, foe));
   const [log, setLog] = useState<string[]>([]);
+  // 佔理演出 — per-round retort feedback: who lost composure, by how much, with
+  // a key so the glint / shake / float replay even on a repeat hit.
+  const [fx, setFx] = useState<{ key: number; hit: 'a' | 'd' | 'both'; dmg: number; routed: boolean } | null>(null);
+  const fxKey = useRef(0);
   const nm = (o: Officer) => (lang === 'en' ? o.name.en : o.name.zh);
   const moveZh = (m: DebateMove) => MOVES.find((x) => x.id === m)!.zh;
 
@@ -45,11 +50,19 @@ export function DebateGameModal({
       : `${t('第', 'R')}${res.bout.round}: ${nm(me)} ${moveZh(move)} ⚔ ${moveZh(foeMove)} ${nm(foe)} — ${who}${t(' 佔理', ' presses home')} (−${Math.max(res.dmgToA, res.dmgToD)})`;
     setLog((l) => [line, ...l].slice(0, 7));
     setBout(res.bout);
+
+    // Fire the retort feedback: the round loser loses composure.
+    const hit: 'a' | 'd' | 'both' =
+      res.dmgToA > res.dmgToD ? 'a'
+      : res.dmgToD > res.dmgToA ? 'd'
+      : 'both';
+    fxKey.current += 1;
+    setFx({ key: fxKey.current, hit, dmg: Math.max(res.dmgToA, res.dmgToD), routed: !!res.bout.over });
   };
 
   const bar = (val: number, color: string) => (
     <div style={{ height: 14, background: '#1b2531', border: '1px solid #2b3845', borderRadius: 2, overflow: 'hidden' }}>
-      <div style={{ width: `${val}%`, height: '100%', background: color, transition: 'width 0.3s' }} />
+      <div style={{ width: `${val}%`, height: '100%', background: color, transition: 'width 0.5s cubic-bezier(0.4,0,0.2,1)' }} />
     </div>
   );
   const pips = (n: number) => (
@@ -72,23 +85,47 @@ export function DebateGameModal({
           舌 {t('戰', 'War of Words')}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '1rem', alignItems: 'center' }}>
-          <div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '1rem', alignItems: 'center', position: 'relative' }}>
+          <div
+            key={fx && (fx.hit === 'a' || fx.hit === 'both') && !reduced ? `a${fx.key}` : 'a'}
+            className={fx && (fx.hit === 'a' || fx.hit === 'both') && !reduced ? 'tkm-shake' : undefined}
+            style={{ position: 'relative' }}
+          >
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <OfficerPortrait officer={me} size={44} forceColor="#6abf6a" />
               <div><div style={{ color: '#e6c473' }}>{nm(me)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('智', 'INT')} {me.stats.intelligence}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.aComposure, '#6abf6a')}</div>
             {pips(bout.aMomentum)}
+            {fx && fx.dmg > 0 && (fx.hit === 'a' || fx.hit === 'both') && (
+              <span key={`da${fx.key}`} className="tkm-damage-num" style={{ position: 'absolute', left: 8, top: 4, fontSize: '1.1rem' }}>−{fx.dmg}</span>
+            )}
           </div>
-          <div style={{ fontSize: '1.4rem', color: '#7a8893' }}>⟷</div>
-          <div style={{ textAlign: 'right' }}>
+
+          {/* 唇槍 — a verbal jab flashes over the centre each exchange. */}
+          <div style={{ position: 'relative', display: 'grid', placeItems: 'center', minWidth: '2.2rem' }}>
+            <div style={{ fontSize: '1.4rem', color: '#7a8893' }}>⟷</div>
+            {fx && !reduced && (
+              <span key={`c${fx.key}`} className="tkm-clash" style={{ position: 'absolute', color: fx.routed ? '#a9c8e2' : '#88b7e8' }}>
+                {fx.routed ? '✸' : '⚡'}
+              </span>
+            )}
+          </div>
+
+          <div
+            key={fx && fx.hit === 'd' && !reduced ? `d${fx.key}` : 'd'}
+            className={fx && fx.hit === 'd' && !reduced ? 'tkm-shake' : undefined}
+            style={{ textAlign: 'right', position: 'relative' }}
+          >
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexDirection: 'row-reverse' }}>
               <OfficerPortrait officer={foe} size={44} forceColor="#c178c7" />
               <div><div style={{ color: '#e6c473' }}>{nm(foe)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('智', 'INT')} {foe.stats.intelligence}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.dComposure, '#c178c7')}</div>
             {pips(bout.dMomentum)}
+            {fx && fx.dmg > 0 && (fx.hit === 'd' || fx.hit === 'both') && (
+              <span key={`dd${fx.key}`} className="tkm-damage-num" style={{ position: 'absolute', right: 8, top: 4, fontSize: '1.1rem' }}>−{fx.dmg}</span>
+            )}
           </div>
         </div>
 
@@ -123,7 +160,7 @@ export function DebateGameModal({
 
         {bout.over && (
           <div style={{ marginTop: '0.6rem', textAlign: 'center' }}>
-            <div style={{ color: '#88b7e8', fontSize: '1.05rem', letterSpacing: '0.07rem', marginBottom: '0.6rem' }}>{resultText}</div>
+            <div className={reduced ? undefined : 'tkm-victory-slam'} style={{ color: '#88b7e8', fontSize: '1.15rem', letterSpacing: '0.07rem', marginBottom: '0.6rem', textShadow: '0 0 12px rgba(136,183,232,0.5)' }}>{resultText}</div>
             <button
               onClick={() => {
                 const { meDelta, foeDelta } = debateMoraleDeltas(bout);
