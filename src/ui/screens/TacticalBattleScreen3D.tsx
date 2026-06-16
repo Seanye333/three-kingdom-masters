@@ -1373,6 +1373,48 @@ function RainParticles({ count = 800, bounds }: { count?: number; bounds: { x: n
     </instancedMesh>
   );
 }
+/** 戰塵 — a low, slow drift of soft haze puffs over the field: the dust and
+ *  smoke of an army in the field. Camera-facing billboards at very low opacity,
+ *  tinted to the time-of-day fog so dawn/dusk/night read right. */
+function BattleHaze({ bounds, tint, count = 22 }: { bounds: { x: number; z: number }; tint: string; count?: number }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const seeds = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * bounds.x * 1.7,
+      z: (Math.random() - 0.5) * bounds.z * 1.7,
+      y: 0.4 + Math.random() * 1.5,
+      sx: 2.4 + Math.random() * 2.8,
+      sy: 1.3 + Math.random() * 1.6,
+      speed: 0.1 + Math.random() * 0.16,
+      drift: Math.random() * Math.PI * 2,
+    })),
+  [count, bounds.x, bounds.z]);
+  useFrame(({ camera }, delta) => {
+    if (!meshRef.current) return;
+    const lx = bounds.x * 0.9, lz = bounds.z * 0.9;
+    for (let i = 0; i < count; i++) {
+      const s = seeds[i];
+      s.x += Math.cos(s.drift) * s.speed * delta;
+      s.z += Math.sin(s.drift) * s.speed * delta;
+      if (s.x > lx) s.x = -lx; else if (s.x < -lx) s.x = lx;
+      if (s.z > lz) s.z = -lz; else if (s.z < -lz) s.z = lz;
+      dummy.position.set(s.x, s.y, s.z);
+      dummy.lookAt(camera.position);
+      dummy.scale.set(s.sx, s.sy, 1);
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial color={tint} transparent opacity={0.07} depthWrite={false} side={THREE.DoubleSide} />
+    </instancedMesh>
+  );
+}
+
 function SnowParticles({ count = 600, bounds }: { count?: number; bounds: { x: number; z: number } }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -3141,6 +3183,8 @@ export function BattleScene({
           </mesh>
 
           {/* Weather particles */}
+          {/* 戰塵 — ambient battlefield haze, except when rain washes it away. */}
+          {battle.weather !== 'rain' && battle.weather !== 'snow' && <BattleHaze bounds={bounds} tint={lighting.fog[0]} />}
           {battle.weather === 'rain' && <RainParticles bounds={bounds} />}
           {battle.weather === 'snow' && <SnowParticles bounds={bounds} />}
           {battle.weather === 'wind' && battle.windDirection && battle.windDirection !== 'calm' && (
