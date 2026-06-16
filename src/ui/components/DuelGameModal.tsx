@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Officer } from '../../game/types';
 import {
   initDuelBout, duelRound, aiDuelMove, POWER_GUARD_COST,
@@ -29,8 +29,13 @@ export function DuelGameModal({
 }) {
   const t = useT();
   const lang = useLanguage();
+  const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const [bout, setBout] = useState<DuelBout>(() => initDuelBout(attacker, defender));
   const [log, setLog] = useState<string[]>([]);
+  // 命中演出 — per-round strike feedback: which side was hit, by how much, and
+  // a key so the clash glint / shake / damage-float replay even on a repeat hit.
+  const [fx, setFx] = useState<{ key: number; hit: 'a' | 'd' | 'both'; dmg: number; killed: boolean } | null>(null);
+  const fxKey = useRef(0);
   // 罵陣 — a one-time pre-duel taunt: out-talk them (your 武+魅 vs theirs)
   // and start with banked 氣 toward 奮; misfire and you open the round winded.
   const [taunted, setTaunted] = useState(false);
@@ -63,11 +68,19 @@ export function DuelGameModal({
       : `${t('第', 'R')}${res.bout.round}: ${nm(attacker)} ${moveZh(move)} ⚔ ${moveZh(foeMove)} ${nm(defender)} — ${who}${t(' 佔先', ' lands it')} (−${Math.max(res.dmgToAttacker, res.dmgToDefender)})`;
     setLog((l) => [line, ...l].slice(0, 7));
     setBout(res.bout);
+
+    // Fire the strike feedback: the round loser takes the blow.
+    const hit: 'a' | 'd' | 'both' =
+      res.dmgToAttacker > res.dmgToDefender ? 'a'
+      : res.dmgToDefender > res.dmgToAttacker ? 'd'
+      : 'both';
+    fxKey.current += 1;
+    setFx({ key: fxKey.current, hit, dmg: Math.max(res.dmgToAttacker, res.dmgToDefender), killed: !!res.bout.killedId });
   };
 
   const bar = (val: number, color: string) => (
     <div style={{ height: 14, background: '#1b2531', border: '1px solid #2b3845', borderRadius: 2, overflow: 'hidden' }}>
-      <div style={{ width: `${val}%`, height: '100%', background: color, transition: 'width 0.3s' }} />
+      <div style={{ width: `${val}%`, height: '100%', background: color, transition: 'width 0.5s cubic-bezier(0.4,0,0.2,1)' }} />
     </div>
   );
   const guardPips = (n: number) => (
@@ -84,28 +97,55 @@ export function DuelGameModal({
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'grid', placeItems: 'center', zIndex: 130 }}>
-      <div style={{ width: 560, maxWidth: '95vw', background: '#1f1810', border: '1px solid #e6c473', padding: '1.25rem', fontFamily: 'var(--tkm-font-body)', color: '#e6edf3' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', width: 560, maxWidth: '95vw', background: '#1f1810', border: '1px solid #e6c473', padding: '1.25rem', fontFamily: 'var(--tkm-font-body)', color: '#e6edf3' }}>
+        {/* 受創血暈 — the card edges flush red when *you* (the attacker) take a blow. */}
+        {fx && !reduced && fx.hit === 'a' && <div key={`v${fx.key}`} className="tkm-blood-vignette" />}
+
         <div style={{ textAlign: 'center', color: '#e6c473', letterSpacing: '0.14rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
           ⚔ {t('單挑', 'Single Combat')}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '1rem', alignItems: 'center' }}>
-          <div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '1rem', alignItems: 'center', position: 'relative' }}>
+          <div
+            key={fx && (fx.hit === 'a' || fx.hit === 'both') && !reduced ? `a${fx.key}` : 'a'}
+            className={fx && (fx.hit === 'a' || fx.hit === 'both') && !reduced ? 'tkm-shake' : undefined}
+            style={{ position: 'relative' }}
+          >
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <OfficerPortrait officer={attacker} size={44} forceColor="#b8442e" />
               <div><div style={{ color: '#e6c473' }}>{nm(attacker)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {attacker.stats.war}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.aStamina, '#b8442e')}</div>
             {guardPips(bout.aGuard)}
+            {fx && fx.dmg > 0 && (fx.hit === 'a' || fx.hit === 'both') && (
+              <span key={`da${fx.key}`} className="tkm-damage-num" style={{ position: 'absolute', right: 8, top: 4, fontSize: '1.1rem' }}>−{fx.dmg}</span>
+            )}
           </div>
-          <div style={{ fontSize: '1.6rem', color: '#7a8893' }}>VS</div>
-          <div style={{ textAlign: 'right' }}>
+
+          {/* 刀光 — a clash glint flares over the centre each time blows are traded. */}
+          <div style={{ position: 'relative', display: 'grid', placeItems: 'center', minWidth: '2.6rem' }}>
+            <div style={{ fontSize: '1.6rem', color: '#7a8893' }}>VS</div>
+            {fx && !reduced && (
+              <span key={`c${fx.key}`} className="tkm-clash" style={{ position: 'absolute', color: fx.killed ? '#ffd86a' : '#e6c473' }}>
+                {fx.killed ? '✸' : '⚔'}
+              </span>
+            )}
+          </div>
+
+          <div
+            key={fx && fx.hit === 'd' && !reduced ? `d${fx.key}` : 'd'}
+            className={fx && fx.hit === 'd' && !reduced ? 'tkm-shake' : undefined}
+            style={{ textAlign: 'right', position: 'relative' }}
+          >
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexDirection: 'row-reverse' }}>
               <OfficerPortrait officer={defender} size={44} forceColor="#3a7dd9" />
               <div><div style={{ color: '#e6c473' }}>{nm(defender)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {defender.stats.war}</div></div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.dStamina, '#3a7dd9')}</div>
             {guardPips(bout.dGuard)}
+            {fx && fx.dmg > 0 && (fx.hit === 'd' || fx.hit === 'both') && (
+              <span key={`dd${fx.key}`} className="tkm-damage-num" style={{ position: 'absolute', left: 8, top: 4, fontSize: '1.1rem' }}>−{fx.dmg}</span>
+            )}
           </div>
         </div>
 
@@ -155,7 +195,7 @@ export function DuelGameModal({
 
         {bout.over && (
           <div style={{ marginTop: '0.6rem', textAlign: 'center' }}>
-            <div style={{ color: bout.killedId ? '#b8442e' : '#e6c473', fontSize: '1.05rem', letterSpacing: '0.07rem', marginBottom: '0.6rem' }}>{resultText}</div>
+            <div className={reduced ? undefined : 'tkm-victory-slam'} style={{ color: bout.killedId ? '#b8442e' : '#e6c473', fontSize: '1.15rem', letterSpacing: '0.07rem', marginBottom: '0.6rem', textShadow: bout.killedId ? '0 0 14px rgba(184,68,46,0.6)' : '0 0 12px rgba(212,168,74,0.45)' }}>{resultText}</div>
             <button
               onClick={() => onComplete({ winner: bout.winner ?? 'draw', killedId: bout.killedId as 'attacker' | 'defender' | undefined })}
               style={{ padding: '0.45rem 1.6rem', background: '#1e2832', border: '1px solid #e6c473', color: '#e6c473', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.07rem' }}
