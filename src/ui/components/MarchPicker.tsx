@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { COMMAND_DEFS } from '../../game/systems/commands';
 import { navalReachableCityIds } from '../../game/data/ports';
 import { marchDurationFor } from '../../game/data/cities';
+import { playSfx } from '../../game/systems/sound';
 import { generateTerritories, terrainRoute } from '../../game/data/territories';
 import { useT, useLanguage } from '../i18n';
 import { BattlePrepModal } from './BattlePrepModal';
@@ -169,7 +170,17 @@ export function MarchPicker({ cityId, onClose }: Props) {
     if (!valid || !targetId || !officerId) return;
     const extras = additionalIds.filter((id) => id !== officerId);
     const r = issueMarch(cityId, targetId, officerId, troops, extras);
-    if (r.ok) onClose();
+    if (r.ok) {
+      // 出征 — a war march answers the gate horn with drums; a plain move just
+      // sounds the march cadence.
+      if (isHostile) {
+        playSfx('horn');
+        window.setTimeout(() => playSfx('wardrum'), 260);
+      } else {
+        playSfx('march');
+      }
+      onClose();
+    }
   };
 
   const handleTactical = () => {
