@@ -28,17 +28,6 @@ import { isReduceMotion } from '../uiPrefs';
 const IS_MOBILE = typeof window !== 'undefined'
   && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
 
-/** 震屏 — jolt the whole battle view on a heavy beat (a gate breaching, a flood,
- *  a commander cut down). Re-triggers by forcing a reflow; honours reduced-motion. */
-function shakeScreen(el: HTMLElement | null): void {
-  if (!el) return;
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-  if (document.documentElement.getAttribute('data-tkm-reduce-motion') === '1') return;
-  el.classList.remove('tkm-shake');
-  void el.offsetWidth; // force reflow so the animation restarts on a repeat hit
-  el.classList.add('tkm-shake');
-}
-
 type ActionMode =
   | { kind: 'none' }
   | { kind: 'move' }
@@ -3411,15 +3400,18 @@ export function TacticalBattleScreen3D() {
     if (sfxCursor.current > log.length) sfxCursor.current = 0; // new battle
     for (let i = sfxCursor.current; i < log.length; i++) {
       const t = log[i]?.text ?? '';
-      if (t.includes('告破') || t.includes('崩塌') || t.includes('焚斷')) { playSfx('crash'); shakeScreen(screenRootRef.current); }
-      else if (t.includes('決堤') || t.includes('山崩')) { playSfx('quake'); shakeScreen(screenRootRef.current); }
+      // 運鏡 — a gate breaching or a flood gets a hard camera kick; a charge a
+      // lighter one. setCine drives the canvas punch (reduced-motion safe).
+      const kick = (weight: number, color: string) => setCine({ key: ++cineCount.current, weight, color });
+      if (t.includes('告破') || t.includes('崩塌') || t.includes('焚斷')) { playSfx('crash'); kick(3, '#ff5030'); }
+      else if (t.includes('決堤') || t.includes('山崩')) { playSfx('quake'); kick(3, '#5a9bd5'); }
       else if (t.includes('火') || t.includes('烈焰')) playSfx('fire');
       else if (t.includes('馳援') || t.includes('糧盡')) playSfx('horn');
-      else if (t.includes('夜襲') || t.includes('殺到')) playSfx('shout');
+      else if (t.includes('夜襲') || t.includes('殺到')) { playSfx('shout'); kick(2, '#ffd54a'); }
       else if (t.includes('搶修') || t.includes('猛撞') || t.includes('轟擊')) playSfx('thud');
       else if (t.includes('傾下') || t.includes('射出')) playSfx('arrow');
-      // 衝鋒陷陣 — a war cry when a line storms in, scales a wall, or breaks through.
-      else if (t.includes('突貫') || t.includes('踏牆') || t.includes('先登') || t.includes('陷陣') || t.includes('突騎')) playSfx('shout');
+      // 衝鋒陷陣 — a war cry + a camera kick when a line storms in or scales a wall.
+      else if (t.includes('突貫') || t.includes('踏牆') || t.includes('先登') || t.includes('陷陣') || t.includes('突騎')) { playSfx('shout'); kick(2, '#ffd54a'); }
       // 鳴金 — a struck gong when morale collapses or a line is shattered.
       else if (t.includes('士氣大墮') || t.includes('士氣大挫') || t.includes('軍心動搖') || t.includes('軍心惶惶') || t.includes('大亂') || t.includes('潰')) playSfx('retreat');
     }
@@ -3698,7 +3690,6 @@ export function TacticalBattleScreen3D() {
       if (u.troops > 0 && (!slain || slain.troops <= 0)) {
         if (u.isCommander) {
           setCine({ key: ++cineCount.current, weight: 3, color: '#ff5030' });
-          shakeScreen(screenRootRef.current);
           const nm = officers[u.officerId]?.name.zh ?? '敵將';
           setSignatureBanner({ zh: `斬 ${nm}！`, en: `${officers[u.officerId]?.name.en ?? 'Commander'} slain!`, key: Date.now() });
           setTimeout(() => setSignatureBanner(null), 2200);
