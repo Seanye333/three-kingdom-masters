@@ -20,7 +20,7 @@ import { FORMATIONS_BY_ID, STRATAGEMS } from '../../game/data';
 import { BattleResultsModal } from '../components/BattleResultsModal';
 import { IntroDive } from '../components/IntroDive';
 import { DuelGameModal } from '../components/DuelGameModal';
-import { useT, useDesc, useLanguage } from '../i18n';
+import { useT, useDesc, useLanguage, pickName } from '../i18n';
 import { isReduceMotion } from '../uiPrefs';
 
 /** Coarse-pointer / small-screen device — drop pixel ratio and skip the
@@ -758,6 +758,7 @@ function UnitMesh({
   /** 突刺 — when this unit just struck a melee blow, thrust toward the target. */
   lunge?: { to: HexCoord; at: number } | null;
 }) {
+  const t = useT();
   const [tx, tz] = hexWorld(unit.coord.col, unit.coord.row);
   const color = isPlayer ? '#3a7dd9' : '#b8442e';
   const embedded = useContext(EmbeddedSceneCtx);
@@ -1056,7 +1057,7 @@ function UnitMesh({
               <span style={{ color: '#f55a20', marginLeft: 3 }}>🔥</span>
             )}
             {unit.effects.some((e) => e.kind === 'starving') && (
-              <span style={{ color: '#caa45a', marginLeft: 3 }} title="糧盡兵疲">糧</span>
+              <span style={{ color: '#caa45a', marginLeft: 3 }} title={t('糧盡兵疲', 'Out of supply')}>糧</span>
             )}
           </div>
           {/* 精銳/異族 — elite-corps banner under the name. */}
@@ -2672,6 +2673,7 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
   // toggling its formation on/off used to change the hook order and crash).
   const ringRef = useRef<THREE.MeshBasicMaterial>(null);
   const embedded = useContext(EmbeddedSceneCtx);
+  const lang = useLanguage();
   useFrame(({ clock }) => {
     if (ringRef.current) {
       ringRef.current.opacity = 0.45 + Math.sin(clock.elapsedTime * 1.5) * 0.15;
@@ -2699,7 +2701,8 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
   const rW = maxDistW + 0.8;
 
   const color = FORMATION_COLOR[formationId] ?? '#d4a84a';
-  const labelZh = FORMATIONS_BY_ID[formationId]?.name.zh ?? formationId;
+  const formationDef = FORMATIONS_BY_ID[formationId];
+  const label = formationDef ? pickName(formationDef.name, lang) : formationId;
 
   return (
     <group position={[cxW, 0.02, czW]}>
@@ -2726,7 +2729,7 @@ function FormationViz({ battle, side }: { battle: TacticalBattle; side: 'attacke
           borderRadius: 2,
           whiteSpace: 'nowrap',
           boxShadow: `0 0 8px ${color}`,
-        }}>{side === 'attacker' ? 'A' : 'D'} · {labelZh}</div>
+        }}>{side === 'attacker' ? 'A' : 'D'} · {label}</div>
       </Html>}
     </group>
   );
@@ -3781,7 +3784,7 @@ export function TacticalBattleScreen3D() {
           <span style={{
             fontSize: '0.72rem', padding: '2px 7px',
             background: 'rgba(90,40,20,0.5)', border: '1px solid #c0703a', color: '#e0a070',
-          }} title="久戰糧道枯竭 — 雙方傷害遞減">
+          }} title={t('久戰糧道枯竭 — 雙方傷害遞減', 'Prolonged siege drains supply — both sides take falling damage')}>
             ⏳ {t('久戰', 'Fatigue')} −{Math.min(40, 5 * (battle.turn - 9))}%
           </span>
         )}
@@ -3927,13 +3930,13 @@ export function TacticalBattleScreen3D() {
           <span style={{
             fontSize: '0.72rem', padding: '2px 7px',
             background: 'rgba(60, 26, 22, 0.7)', border: '1px solid #b8442e', color: '#ff9078',
-          }}>A: {FORMATIONS_BY_ID[battle.attackerFormation]?.name.zh ?? battle.attackerFormation}</span>
+          }}>A: {(() => { const f = FORMATIONS_BY_ID[battle.attackerFormation]; return f ? pickName(f.name, lang) : battle.attackerFormation; })()}</span>
         )}
         {battle.defenderFormation && battle.defenderFormation !== 'none' && (
           <span style={{
             fontSize: '0.72rem', padding: '2px 7px',
             background: 'rgba(26, 40, 60, 0.7)', border: '1px solid #3a7dd9', color: '#88b7e8',
-          }}>D: {FORMATIONS_BY_ID[battle.defenderFormation]?.name.zh ?? battle.defenderFormation}</span>
+          }}>D: {(() => { const f = FORMATIONS_BY_ID[battle.defenderFormation]; return f ? pickName(f.name, lang) : battle.defenderFormation; })()}</span>
         )}
         <button
           onClick={onEndTurn}
@@ -4063,7 +4066,7 @@ export function TacticalBattleScreen3D() {
             boxShadow: '0 0 16px rgba(184, 68, 46, 0.4)',
           }}>
             <div style={{ fontWeight: 'bold', fontSize: '1.05rem' }}>
-              {officers[selectedUnit.officerId]?.name.zh ?? '?'} ({UNIT_GLYPH[selectedUnit.unitType]})
+              {(() => { const o = officers[selectedUnit.officerId]; return o ? pickName(o.name, lang) : '?'; })()} ({UNIT_GLYPH[selectedUnit.unitType]})
             </div>
             <div style={{ fontSize: '0.75rem', color: '#a89070' }}>
               {t('敵', 'ENEMY')} · {t(officers[selectedUnit.officerId]?.name.zh ?? '', officers[selectedUnit.officerId]?.name.en ?? '')}
@@ -4237,7 +4240,8 @@ export function TacticalBattleScreen3D() {
         const cmdr = (side: 'attacker' | 'defender') => {
           const c = battle.units.find((u) => u.side === side && u.isCommander)
             ?? battle.units.find((u) => u.side === side);
-          return c ? (officers[c.officerId]?.name.zh ?? '？') : '？';
+          const o = c ? officers[c.officerId] : null;
+          return o ? pickName(o.name, lang) : '？';
         };
         const tally = (side: 'attacker' | 'defender') =>
           battle.units.filter((u) => u.side === side).reduce((s, u) => s + u.troops, 0);
@@ -4477,7 +4481,7 @@ function UnitPanel3D({
           : st.leadership >= 85 ? '帥' : '將';
         const rc = role === '猛' ? '#e8704a' : role === '智' ? '#9a7ce8'
           : role === '帥' ? '#d4a84a' : '#7ec0e0';
-        const surname = officer?.name.zh?.[0] ?? '?';
+        const surname = (officer ? pickName(officer.name, lang) : '')?.[0] ?? '?';
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginTop: 4 }}>
             <div style={{
@@ -4494,8 +4498,8 @@ function UnitPanel3D({
               }}>{role}</span>
             </div>
             <div>
-              <div style={{ fontWeight: 'bold', fontSize: '1.15rem' }}>{officer?.name.zh ?? '?'}</div>
-              <div style={{ fontSize: '0.7rem', color: '#a89070' }}>{officer?.name.en ?? ''}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '1.15rem' }}>{officer ? pickName(officer.name, lang) : '?'}</div>
+              {lang !== 'en' && <div style={{ fontSize: '0.7rem', color: '#a89070' }}>{officer?.name.en ?? ''}</div>}
               {st && (
                 <div style={{ fontSize: '0.64rem', color: '#9a8a6a', marginTop: 2, fontFamily: 'ui-monospace, monospace' }}>
                   武{st.war} 智{st.intelligence} 統{st.leadership}
@@ -4591,7 +4595,7 @@ function UnitPanel3D({
               >
                 {isSig && <span style={{ color: '#d4a84a' }}>★ </span>}
                 <span style={{ color: badge.color, fontSize: '0.6rem', marginRight: 3 }}>[{badge.label}]</span>
-                {s.name.zh}
+                {pickName(s.name, lang)}
                 <span style={{ float: 'right', color: '#8a7050', fontSize: '0.66rem' }}>
                   {onCd ? `CD ${cd}t` : `r${s.range}`}
                 </span>
