@@ -4,9 +4,12 @@ import { useGameStore } from '../../game/state/store';
 import { pickVoiceLine } from '../../game/data/voiceLines';
 import { getDeathPoem } from '../../game/data/deathPoems';
 import type { TacticalBattle } from '../../game/types';
+import { useEffect, useState } from 'react';
 import { OfficerStats } from './OfficerStats';
 import styles from './BattleResultsModal.module.css';
 import { OfficerPortrait } from './OfficerPortrait';
+import { Seal } from './Seal';
+import { AnimatedNumber } from './AnimatedNumber';
 import { useLanguage, pickName } from '../i18n';
 
 interface Props {
@@ -20,8 +23,17 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
   const currentYear = useGameStore((s) => s.date.year);
   const forces = useGameStore((s) => s.forces);
   const lang = useLanguage();
+  const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  // Roll the casualty figures up from 0 once the banner has slammed in.
+  const [revealed, setRevealed] = useState(reduced);
+  useEffect(() => {
+    if (reduced) return;
+    const id = window.setTimeout(() => setRevealed(true), 500);
+    return () => window.clearTimeout(id);
+  }, [reduced]);
   const resolution = resolveBattleEnd(battle, officers);
   const won = resolution.winner === playerSide;
+  const isDraw = !resolution.winner;
   const winnerZh = won ? '勝利' : resolution.winner ? '敗北' : '引分';
   const winnerEn = won ? 'Victory' : resolution.winner ? 'Defeat' : 'Draw';
 
@@ -53,6 +65,18 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
             </div>
           )}
           {lang !== 'zh' && <div className={styles.bannerEn}>{winnerEn}</div>}
+          {/* 朱印 — 「捷」 in victory, 「敗」 in defeat, 「和」 on a draw. */}
+          {!isDraw && (
+            <span className={styles.sealStamp}>
+              <Seal
+                chars={won ? '捷' : '敗'}
+                size={64}
+                rotate={won ? 6 : -7}
+                color={won ? '#b5302c' : '#6f2723'}
+                title={won ? winnerEn : winnerEn}
+              />
+            </span>
+          )}
         </div>
 
         {speaker && victoryLine && (
@@ -95,14 +119,14 @@ export function BattleResultsModal({ battle, playerSide, onClose }: Props) {
             <div className={styles.statRow}>
               <span className={styles.statSide}>{lang === 'en' ? 'Attacker losses' : '攻方折損'}</span>
               <span className={`${styles.statValue} ${styles.statValueAttack}`}>
-                {resolution.attackerLosses.toLocaleString()}
+                <AnimatedNumber value={revealed ? resolution.attackerLosses : 0} durationMs={800} style={{ color: 'inherit' }} />
               </span>
               <span className={styles.statValue}>{lang === 'en' ? 'troops' : '兵'}</span>
             </div>
             <div className={styles.statRow}>
               <span className={styles.statSide}>{lang === 'en' ? 'Defender losses' : '守方折損'}</span>
               <span className={`${styles.statValue} ${styles.statValueDefend}`}>
-                {resolution.defenderLosses.toLocaleString()}
+                <AnimatedNumber value={revealed ? resolution.defenderLosses : 0} durationMs={800} style={{ color: 'inherit' }} />
               </span>
               <span className={styles.statValue}>{lang === 'en' ? 'troops' : '兵'}</span>
             </div>

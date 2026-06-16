@@ -21,15 +21,35 @@
 }
 
 .headerBanner {
+  position: relative;
   padding: 2rem 1.5rem 1rem;
   text-align: center;
   border-bottom: 1px solid #2b3845;
+}
+
+/* 朱印砸下 — the verdict is chopped onto the dispatch after the banner lands. */
+.sealStamp {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.9rem;
+  animation: tkmResultSeal 0.5s cubic-bezier(0.3, 1.5, 0.6, 1) 0.45s both;
+}
+
+@keyframes tkmResultSeal {
+  0% { opacity: 0; transform: scale(2.4); }
+  60% { opacity: 1; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .bannerZh {
   font-size: 2.5rem;
   letter-spacing: 0.6rem;
   text-shadow: 0 0 16px rgba(212, 168, 74, 0.4);
+  animation: tkmVictorySlam 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sealStamp, .bannerZh { animation: none; }
 }
 
 .bannerZhVictory { color: #e6c473; }

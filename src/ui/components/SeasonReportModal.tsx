@@ -25,6 +25,14 @@ export function SeasonReportModal() {
 
   if (!report) return null;
   const season = SEASON_LABEL[report.date.season as Season];
+  // 季色 — spring jade, summer cinnabar, autumn gold, winter frost.
+  const SEASON_TINT: Record<Season, { accent: string; glow: string }> = {
+    spring: { accent: '#7ec46a', glow: 'rgba(126,196,106,0.22)' },
+    summer: { accent: '#e0744a', glow: 'rgba(224,116,74,0.22)' },
+    autumn: { accent: '#e6c473', glow: 'rgba(212,168,74,0.2)' },
+    winter: { accent: '#a9c8e2', glow: 'rgba(169,200,226,0.22)' },
+  };
+  const tint = SEASON_TINT[report.date.season as Season] ?? SEASON_TINT.autumn;
 
   // ── 進行中 (In-Progress) — multi-season tasks still in flight ──
   const trainingsInProgress = pendingTrainings.filter((tr) => {
@@ -93,7 +101,11 @@ export function SeasonReportModal() {
 
   return (
     <div className={styles.backdrop} onClick={dismiss}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+        style={{ ['--season-accent' as string]: tint.accent, ['--season-glow' as string]: tint.glow }}
+      >
         <header className={styles.header}>
           <div className={styles.titleBlock}>
             <div className={styles.titleZh}>{t('季報', 'Season Report')}</div>
@@ -121,12 +133,13 @@ export function SeasonReportModal() {
             display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
             padding: '0.5rem 0.2rem 0.2rem', justifyContent: 'center',
           }}>
-            {summary.map((s) => (
+            {summary.map((s, i) => (
               <span key={s.label} style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                 background: 'rgba(0,0,0,0.25)', border: `1px solid ${s.color}55`,
                 borderRadius: 12, padding: '0.12rem 0.6rem',
                 color: s.color, fontSize: '0.82rem', fontFamily: 'var(--tkm-font-body)',
+                animation: `tkmTroopMarchIn 0.4s cubic-bezier(0.2,0.9,0.3,1) ${0.5 + i * 0.07}s both`,
               }}>
                 <b style={{ fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: 3 }}>{s.icon}{s.count}</b>
                 <span style={{ opacity: 0.8 }}>{s.label}</span>

@@ -21,9 +21,11 @@
   /* Scroll unfurl entrance — a parchment slides down from above. */
   transform-origin: top center;
   animation: tkmScrollUnfurl 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* 季色 — the seal-rods, glow and title tint shift with the season. */
+  border-color: var(--season-accent, #e6c473);
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.5),
-    0 0 24px rgba(212, 168, 74, 0.2),
+    0 0 24px var(--season-glow, rgba(212, 168, 74, 0.2)),
     inset 0 0 32px rgba(0, 0, 0, 0.3);
 }
 
@@ -53,7 +55,7 @@
   position: absolute;
   left: 0; right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #6a4828 0%, #e6c473 50%, #6a4828 100%);
+  background: linear-gradient(90deg, #6a4828 0%, var(--season-accent, #e6c473) 50%, #6a4828 100%);
   border-radius: 2px;
   pointer-events: none;
 }
@@ -74,7 +76,7 @@
 
 .titleZh {
   font-size: 1.75rem;
-  color: #e6c473;
+  color: var(--season-accent, #e6c473);
   letter-spacing: 0.14rem;
 }
 
@@ -112,6 +114,31 @@
   background: #10161e;
   border-left: 3px solid #2b3845;
   font-size: 0.875rem;
+  /* 逐行展卷 — each line slides in after the scroll unfurls. */
+  animation: seasonEntryIn 0.34s ease-out both;
+}
+
+@keyframes seasonEntryIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Stagger the first dozen lines of each list (after the 0.55s unfurl). */
+.entries .entry:nth-child(1)  { animation-delay: 0.52s; }
+.entries .entry:nth-child(2)  { animation-delay: 0.58s; }
+.entries .entry:nth-child(3)  { animation-delay: 0.64s; }
+.entries .entry:nth-child(4)  { animation-delay: 0.70s; }
+.entries .entry:nth-child(5)  { animation-delay: 0.76s; }
+.entries .entry:nth-child(6)  { animation-delay: 0.82s; }
+.entries .entry:nth-child(7)  { animation-delay: 0.88s; }
+.entries .entry:nth-child(8)  { animation-delay: 0.94s; }
+.entries .entry:nth-child(9)  { animation-delay: 1.00s; }
+.entries .entry:nth-child(10) { animation-delay: 1.06s; }
+.entries .entry:nth-child(11) { animation-delay: 1.12s; }
+.entries .entry:nth-child(12) { animation-delay: 1.18s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .entry { animation: none; }
 }
 
 .kindTag {
