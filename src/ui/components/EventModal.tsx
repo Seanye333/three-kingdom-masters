@@ -22,6 +22,15 @@ function eventMood(event: HistoricalEvent): EventCueMood {
   return 'auspicious';
 }
 
+/** 情緒色 — each mood gets an accent, a glow and a single-character chop. */
+const MOOD_STYLE: Record<EventCueMood, { accent: string; glow: string; seal: string }> = {
+  auspicious: { accent: '#e6c473', glow: 'rgba(212,168,74,0.4)', seal: '瑞' },
+  somber:     { accent: '#9aa6b0', glow: 'rgba(154,166,176,0.35)', seal: '喪' },
+  mystic:     { accent: '#b69ae0', glow: 'rgba(182,154,224,0.4)', seal: '玄' },
+  martial:    { accent: '#d06450', glow: 'rgba(208,100,80,0.4)', seal: '兵' },
+  ominous:    { accent: '#d89048', glow: 'rgba(216,144,72,0.38)', seal: '凶' },
+};
+
 export function EventModal() {
   const pending = useGameStore((s) => s.pendingEvent);
   const dismiss = useGameStore((s) => s.dismissEvent);
@@ -38,18 +47,23 @@ export function EventModal() {
   if (!pending) return null;
   const { event, year, season } = pending;
   const seasonLabel = SEASON_LABEL[season];
+  const mood = MOOD_STYLE[eventMood(event)];
   return (
     <div className={styles.backdrop}>
-      <div className={styles.modal}>
+      <div
+        className={styles.modal}
+        style={{ ['--evt-accent' as string]: mood.accent, ['--evt-glow' as string]: mood.glow }}
+      >
         <div className={styles.scrollDecoration} />
+        <div className={styles.moodSeal} aria-hidden="true">{mood.seal}</div>
         <div className={styles.eyebrow}>{t('史實事件', 'Historical Event')}</div>
-        {lang !== 'en' && <div className={styles.titleZh}>{event.name.zh}</div>}
+        {lang !== 'en' && <div className={`${styles.titleZh} ${styles.titleZhAnim}`}>{event.name.zh}</div>}
         {lang !== 'zh' && <div className={styles.titleEn}>{event.name.en}</div>}
         <div className={styles.dateLine}>
           {year} AD · {lang === 'en' ? seasonLabel.en : seasonLabel.zh}
         </div>
         <hr className={styles.divider} />
-        <p className={styles.description}>{desc(event)}</p>
+        <p className={`${styles.description} ${styles.descAnim}`}>{desc(event)}</p>
         {pending.awaitingChoice && event.choices?.length ? (
           /* 抉擇 — history holds its breath; the player picks the branch. */
           <div className={styles.actions} style={{ flexDirection: 'column', gap: 8 }}>
