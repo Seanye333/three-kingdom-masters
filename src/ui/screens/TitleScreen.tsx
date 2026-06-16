@@ -204,6 +204,24 @@ export function TitleScreen() {
 
   return (
     <div className={styles.root}>
+      {/* 氛圍 — drifting ink clouds + rising embers behind the menu. */}
+      <div className={styles.ambient} aria-hidden="true">
+        <div className={styles.cloud} style={{ top: '10%', left: '4%', width: 380, height: 210, ['--c-dur' as string]: '74s' }} />
+        <div className={styles.cloud} style={{ top: '48%', left: '58%', width: 440, height: 250, ['--c-dur' as string]: '96s', animationDirection: 'alternate-reverse' }} />
+        <div className={styles.cloud} style={{ top: '70%', left: '20%', width: 320, height: 180, ['--c-dur' as string]: '110s' }} />
+        {Array.from({ length: 14 }, (_, i) => (
+          <span
+            key={i}
+            className={styles.mote}
+            style={{
+              left: `${(i * 61) % 100}%`,
+              bottom: '-2%',
+              ['--m-dur' as string]: `${11 + (i % 5) * 2.6}s`,
+              ['--m-delay' as string]: `${(i % 7) * 1.4}s`,
+            }}
+          />
+        ))}
+      </div>
       <InstallPrompt />
       <WhatsNewModal />
       {boardDate && <LeaderboardModal date={boardDate} onClose={() => setBoardDate(null)} />}
