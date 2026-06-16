@@ -5,7 +5,7 @@
 
 
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PROVINCE_BY_CITY } from './game/data';
 import { useGameStore } from './game/state/store';
 import {
@@ -29,6 +29,58 @@ const MapScreen = lazy(() => import('./ui/screens/MapScreen').then((m) => ({ def
 
 // Expose province lookup for the canvas overlay.
 (window as unknown as { __provinceByCity?: Record<string, string> }).__provinceByCity = PROVINCE_BY_CITY;
+
+/**
+ * 進圖載入頁 — covers the map's heavy first-mount (terrain, instanced meshes,
+ * the territory tint) so the entry never reads as a stutter. The trick is
+ * ordering: paint the splash FIRST, yield two frames, THEN mount the map (its
+ * synchronous init runs while the splash is already covering the screen), then
+ * fade the splash out once the map has had a beat to settle. A main-thread
+ * block can't be animated through, so the win is hiding it behind a screen
+ * that's already on-screen — not animating during it.
+ */
+function CampaignBoot() {
+  const [phase, setPhase] = useState<'cover' | 'mounted' | 'fading' | 'done'>('cover');
+  useEffect(() => {
+    if (phase === 'cover') {
+      // Two rAFs guarantee the splash is painted before the map mounts.
+      let r2 = 0;
+      const r1 = requestAnimationFrame(() => { r2 = requestAnimationFrame(() => setPhase('mounted')); });
+      return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
+    }
+    if (phase === 'mounted') {
+      const id = window.setTimeout(() => setPhase('fading'), 650);
+      return () => window.clearTimeout(id);
+    }
+    if (phase === 'fading') {
+      const id = window.setTimeout(() => setPhase('done'), 450);
+      return () => window.clearTimeout(id);
+    }
+  }, [phase]);
+
+  return (
+    <>
+      {phase !== 'cover' && (
+        <Suspense fallback={<LoadingSplash />}>
+          <MapScreen />
+        </Suspense>
+      )}
+      {phase !== 'done' && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1100,
+            opacity: phase === 'fading' ? 0 : 1,
+            transition: 'opacity 0.45s ease-out',
+            pointerEvents: phase === 'fading' ? 'none' : 'auto',
+          }}
+        >
+          <LoadingSplash />
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function App() {
   const scenarioId = useGameStore((s) => s.scenarioId);
@@ -98,11 +150,7 @@ export default function App() {
 
   return (
     <ErrorBoundary fallbackLabel="Game crashed">
-      {scenarioId ? (
-        <Suspense fallback={<LoadingSplash />}>
-          <MapScreen />
-        </Suspense>
-      ) : <TitleScreen />}
+      {scenarioId ? <CampaignBoot /> : <TitleScreen />}
     </ErrorBoundary>
   );
 }
