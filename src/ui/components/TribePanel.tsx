@@ -134,7 +134,7 @@ export function TribePanel({ tribeId, onClose }: Props) {
 
           <span style={{ color: '#7a8893' }}>{t('寇邊', 'Raids')}</span>
           <span style={{ fontSize: '0.78rem' }}>
-            {tribe.raidableCityIds.map((id) => cities[id]?.name.zh ?? id).join(' · ')}
+            {tribe.raidableCityIds.map((id) => (cities[id] ? pickName(cities[id].name, lang) : id)).join(' · ')}
           </span>
         </div>
 

@@ -12,6 +12,9 @@ interface Props {
 const SUBTYPE_LABEL: Record<string, string> = {
   fort: '砦', stockade: '壘',
 };
+const SUBTYPE_LABEL_EN: Record<string, string> = {
+  fort: 'Fort', stockade: 'Stockade',
+};
 
 export function FortPanel({ fortId, onClose }: Props) {
   const fort = useGameStore((s) => s.forts[fortId]);
@@ -115,7 +118,7 @@ export function FortPanel({ fortId, onClose }: Props) {
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>
-              {SUBTYPE_LABEL[fort.subtype] ?? '⚔'} {pickName(fort.name, lang)}
+              {(lang === 'en' ? SUBTYPE_LABEL_EN[fort.subtype] : SUBTYPE_LABEL[fort.subtype]) ?? '⚔'} {pickName(fort.name, lang)}
             </div>
             <div style={{ fontSize: '0.72rem', color: '#97a4ae' }}>
               {fort.name.en} · {fac ? t(fac.name.zh, fac.name.en) : fort.subtype === 'stockade' ? t('壘', 'Stockade') : t('砦', 'Fort')}
@@ -173,7 +176,7 @@ export function FortPanel({ fortId, onClose }: Props) {
 
           <span style={{ color: '#7a8893' }}>{t('守護', 'Guards')}</span>
           <span style={{ fontSize: '0.78rem' }}>
-            {fort.guards.map((id) => cities[id]?.name.zh ?? id).join(' · ')}
+            {fort.guards.map((id) => (cities[id] ? pickName(cities[id].name, lang) : id)).join(' · ')}
           </span>
 
           {fort.seasonsRemaining !== undefined && (

@@ -64,10 +64,10 @@ export function CaptivesSection({ cityId }: Props) {
   /* 勸降三策 — each approach shows its live odds so the choice means
      something: principle for the loyal, gold for the venal, friendship
      when an old comrade waits in your camp. */
-  const APPROACHES: Array<{ id: PersuasionApproach; zh: string; tip: string }> = [
-    { id: 'righteous', zh: '曉以大義', tip: '以大義折其節 — 忠義之士唯此可動' },
-    { id: 'riches', zh: '許以重利', tip: '重金開路(費用加倍)— 貪者聞金而心動,廉者倍怒' },
-    { id: 'feeling', zh: '以情動人', tip: '故舊之情 — 你麾下與其交情越深越有效,鄉土加成加倍' },
+  const APPROACHES: Array<{ id: PersuasionApproach; zh: string; en: string; tip: string; tipEn: string }> = [
+    { id: 'righteous', zh: '曉以大義', en: 'Appeal to Honor', tip: '以大義折其節 — 忠義之士唯此可動', tipEn: 'Bend them by righteousness — only the loyal-hearted yield to this' },
+    { id: 'riches', zh: '許以重利', en: 'Offer Riches', tip: '重金開路(費用加倍)— 貪者聞金而心動,廉者倍怒', tipEn: 'Open the way with gold (cost doubled) — the greedy waver, the upright rage' },
+    { id: 'feeling', zh: '以情動人', en: 'Move by Friendship', tip: '故舊之情 — 你麾下與其交情越深越有效,鄉土加成加倍', tipEn: 'Old ties — the deeper your officer’s bond with him the better; hometown bonus doubled' },
   ];
 
   return (
@@ -98,11 +98,11 @@ export function CaptivesSection({ cityId }: Props) {
                 <button
                   className={styles.recruitBtn}
                   onClick={() => setDebating(o.id)}
-                  title={`遣${bestDebater.name.zh}與其舌戰 — 勝則勸降大增(一次),罵倒則其志氣再挫`}
-                >💬 舌戰</button>
+                  title={t(`遣${bestDebater.name.zh}與其舌戰 — 勝則勸降大增(一次),罵倒則其志氣再挫`, `Send ${bestDebater.name.en} to debate — win to greatly boost surrender odds (once); a rout further breaks his will`)}
+                >💬 {t('舌戰', 'Debate')}</button>
               )}
               {debateEdge.has(o.id) && (
-                <span style={{ fontSize: '0.7rem', color: '#9ed68a', alignSelf: 'center' }}>舌戰得勝,趁勢勸降 ↑</span>
+                <span style={{ fontSize: '0.7rem', color: '#9ed68a', alignSelf: 'center' }}>{t('舌戰得勝,趁勢勸降 ↑', 'Debate won — press the advantage ↑')}</span>
               )}
               {APPROACHES.map((a) => {
                 const cost = recruitCostFor(a.id);
@@ -113,9 +113,9 @@ export function CaptivesSection({ cityId }: Props) {
                     className={styles.recruitBtn}
                     onClick={() => handleRecruit(o.id, a.id)}
                     disabled={cityGold < cost}
-                    title={`${a.tip}(${cost}g)`}
+                    title={`${lang === 'en' ? a.tipEn : a.tip}(${cost}g)`}
                   >
-                    {a.zh} {odds}%
+                    {lang === 'en' ? a.en : a.zh} {odds}%
                   </button>
                 );
               })}

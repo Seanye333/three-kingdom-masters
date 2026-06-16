@@ -102,7 +102,7 @@ export function ScenicPanel({ siteId, onClose }: Props) {
             <>
               <span style={{ color: '#7a8893' }}>{t('賢者', 'Recluse')}</span>
               <span style={{ color: hermitAvailable ? '#7ed68a' : '#97a4ae' }}>
-                {hermit.name.zh}（INT {hermit.stats.intelligence}）
+                {pickName(hermit.name, lang)} (INT {hermit.stats.intelligence})
                 {!hermitAvailable && <span style={{ color: '#7a8893' }}> · {t('已出仕', 'already served')}</span>}
               </span>
             </>
@@ -111,7 +111,7 @@ export function ScenicPanel({ siteId, onClose }: Props) {
             <>
               <span style={{ color: '#7a8893' }}>{t('寶物', 'Treasure')}</span>
               <span style={{ color: looted ? '#7a8893' : '#e0c070' }}>
-                {item.name.zh}{looted && ` · ${t('已取', 'taken')}`}
+                {pickName(item.name, lang)}{looted && ` · ${t('已取', 'taken')}`}
               </span>
             </>
           )}

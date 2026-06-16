@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Officer } from '../../game/types';
+import { useLanguage, pickName } from '../i18n';
 
 /**
  * Stylized SVG portrait silhouettes for officers.
@@ -51,6 +52,16 @@ const ARCH_LABEL: Record<Archetype, string> = {
   elder:      '老臣',
   youth:      '少年',
 };
+const ARCH_LABEL_EN: Record<Archetype, string> = {
+  general:    'Warrior',
+  strategist: 'Strategist',
+  official:   'Official',
+  ruler:      'Ruler',
+  female:     'Lady',
+  tribal:     'Tribal',
+  elder:      'Elder',
+  youth:      'Youth',
+};
 
 interface PortraitProps {
   officer: Officer;
@@ -73,6 +84,7 @@ export function OfficerPortrait({
   year,
   faction,
 }: PortraitProps) {
+  const lang = useLanguage();
   const arch = deriveArchetype(officer, year);
   const accent = forceColor ?? '#e6c473';
   const factionAttr: Record<string, boolean> = {};
@@ -87,7 +99,7 @@ export function OfficerPortrait({
     <div
       className="tkm-portrait"
       style={{ width: size, height: size, ...(forceColor ? { borderColor: forceColor } : null) }}
-      title={`${officer.name.zh} · ${ARCH_LABEL[arch]}`}
+      title={`${pickName(officer.name, lang)} · ${(lang === 'en' ? ARCH_LABEL_EN : ARCH_LABEL)[arch]}`}
       {...factionAttr}
     >
       {imgFailed ? (
@@ -97,7 +109,7 @@ export function OfficerPortrait({
       ) : (
         <img
           src={src}
-          alt={officer.name.zh}
+          alt={pickName(officer.name, lang)}
           width={size}
           height={size}
           loading="lazy"
