@@ -1436,6 +1436,99 @@ function MarchBanner({ color }: { color: string }) {
   );
 }
 
+const DEPART_SOLDIERS = Array.from({ length: 9 }, (_, i) => i);
+
+/** 出征演出 — a one-off flourish at the origin city when you dispatch an army:
+ *  the colours are raised, a file of soldiers streams out of the gate, and dust
+ *  rings out. Self-times over ~2.6s; the parent unmounts it by key. */
+function DepartureAnim({ x, y, z, color, hostile }: {
+  x: number; y: number; z: number; color: string; hostile: boolean;
+}) {
+  const start = useRef<number | null>(null);
+  const flagRef = useRef<THREE.Group>(null);
+  const flagPlaneRef = useRef<THREE.Mesh>(null);
+  const soldiersRef = useRef<THREE.Group>(null);
+  const dustRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (start.current === null) start.current = clock.elapsedTime;
+    const e = clock.elapsedTime - start.current;
+    // Raise the colours: the standard grows up over 0.7s, then the flag flutters.
+    if (flagRef.current) {
+      flagRef.current.scale.y = Math.min(1, e / 0.7);
+    }
+    if (flagPlaneRef.current) {
+      flagPlaneRef.current.rotation.z = e > 0.7 ? Math.sin((e - 0.7) * 5) * 0.2 : 0;
+    }
+    // A file of soldiers streams out of the gate, then thins as they form column.
+    if (soldiersRef.current) {
+      soldiersRef.current.children.forEach((c, i) => {
+        const a = (i / DEPART_SOLDIERS.length) * Math.PI * 2;
+        const tt = Math.max(0, Math.min(1, (e - 0.25 - i * 0.04) / 1.5));
+        const r = tt * 0.85;
+        c.position.set(Math.cos(a) * r, 0.05 + Math.sin(tt * Math.PI) * 0.06, Math.sin(a) * r);
+        const m = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        if (m) m.opacity = tt <= 0 ? 0 : 1 - Math.max(0, (e - 1.7) / 0.9);
+      });
+    }
+    // Dust ring expands and fades.
+    if (dustRef.current) {
+      const dt = Math.min(1, e / 1.3);
+      dustRef.current.scale.setScalar(0.3 + dt * 1.2);
+      (dustRef.current.material as THREE.MeshBasicMaterial).opacity = (1 - dt) * 0.4;
+    }
+  });
+  return (
+    <group position={[x, y, z]} scale={ARMY_TOKEN_SCALE}>
+      <group ref={flagRef}>
+        <mesh position={[0, 0.25, 0]}>
+          <cylinderGeometry args={[0.012, 0.012, 0.5, 5]} />
+          <meshStandardMaterial color="#1a1410" />
+        </mesh>
+        <mesh ref={flagPlaneRef} position={[0.1, 0.43, 0]}>
+          <planeGeometry args={[0.2, 0.13]} />
+          <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.6} />
+        </mesh>
+      </group>
+      <group ref={soldiersRef}>
+        {DEPART_SOLDIERS.map((i) => (
+          <mesh key={i}>
+            <capsuleGeometry args={[0.018, 0.05, 3, 6]} />
+            <meshBasicMaterial color={color} transparent opacity={0} />
+          </mesh>
+        ))}
+      </group>
+      <mesh ref={dustRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <ringGeometry args={[0.3, 0.52, 24]} />
+        <meshBasicMaterial color={hostile ? '#caa46a' : '#b8c0c8'} transparent opacity={0.4} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Watches the dispatch signal and plays a departure flourish at the origin
+ *  city, then clears itself after ~2.6s. */
+function DepartureFlourish3D() {
+  const dep = useGameStore((s) => s.marchDeparture);
+  const cities = useGameStore((s) => s.cities);
+  const forces = useGameStore((s) => s.forces);
+  const [active, setActive] = useState<{ key: number; x: number; y: number; z: number; color: string; hostile: boolean } | null>(null);
+  useEffect(() => {
+    if (!dep) return;
+    const city = cities[dep.cityId];
+    if (!city) return;
+    const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
+    const [wx, wz] = pxToWorld(px, py);
+    const wy = sampleTerrainHeight(wx, wz) + 0.04;
+    const color = (city.ownerForceId && forces[city.ownerForceId]?.color) || '#e6c473';
+    setActive({ key: dep.key, x: wx, y: wy, z: wz, color, hostile: dep.hostile });
+    const id = window.setTimeout(() => setActive(null), 2600);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dep?.key]);
+  if (!active) return null;
+  return <DepartureAnim key={active.key} x={active.x} y={active.y} z={active.z} color={active.color} hostile={active.hostile} />;
+}
+
 /** City pillar group: walled city / pagoda / pass / hamlet by tier, with
  *  a force-colored base disk, banner, name label and selection ring. */
 /* ─── 標籤分級 — when the camera is pulled far out, the ~120 city name+bar
@@ -6107,6 +6200,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <TradeRouteLines3D cities={cities} />
       <GeoLabels3D />
       <EspionageAgents3D cities={cities} />
+      <DepartureFlourish3D />
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
           over (same scene component, same state; rotated to its true bearing,

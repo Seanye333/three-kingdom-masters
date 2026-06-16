@@ -1139,6 +1139,12 @@ export const useGameStore = create<GameStore>()(
             [sourceId]: { ...source, gold: source.gold - def.goldCost },
           },
           officers: officersUpdate,
+          // 出征 — signal the map to play a departure flourish at the origin.
+          marchDeparture: {
+            key: (state.marchDeparture?.key ?? 0) + 1,
+            cityId: sourceId,
+            hostile: !!(target.ownerForceId && target.ownerForceId !== source.ownerForceId),
+          },
           pendingCommands: {
             ...state.pendingCommands,
             [officerId]: {

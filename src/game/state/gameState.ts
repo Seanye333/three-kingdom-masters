@@ -126,6 +126,9 @@ export interface GameState {
   /** 戰略層回饋 — transient confirmation for the player's last issued order
    *  (委派/march/委任). Not persisted; the HUD pops it and auto-expires it. */
   actionToast: { key: number; zh: string; en: string; tone: 'ok' | 'warn' } | null;
+  /** 出征 — transient signal that the player just dispatched an army, so the
+   *  map can play a one-off departure flourish at the origin city. Not persisted. */
+  marchDeparture: { key: number; cityId: EntityId; hostile: boolean } | null;
   /** Active tactical battle screen, if any. */
   tacticalBattle: TacticalBattle | null;
   /** 戰鬥運鏡/特效 — transient batch the headless AI driver pushes each turn so
@@ -375,6 +378,7 @@ export const EMPTY_STATE: GameState = {
   firedEventIds: [],
   pendingEvent: null,
   actionToast: null,
+  marchDeparture: null,
   tacticalBattle: null,
   battleFxBatch: null,
   pendingEspionage: [],
