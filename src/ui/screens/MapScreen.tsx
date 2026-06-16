@@ -325,6 +325,11 @@ export function MapScreen() {
 
   const season = SEASON_LABEL[date.season];
   const monthNum = date.month ?? firstMonthOfSeason(date.season);
+  // 季色 — spring jade, summer cinnabar, autumn gold, winter frost.
+  const seasonAccent = { spring: '#7ec46a', summer: '#e0744a', autumn: '#e6c473', winter: '#a9c8e2' }[date.season] ?? '#e6c473';
+  // 見底警示 — a treasury/granary at or below zero pulses red.
+  const goldLow = playerGold <= 0;
+  const foodLow = playerFood <= 0;
   const phaseInfo = MONTH_PHASE_LABEL[date.phase ?? 'upper'];
   const weatherZh = WEATHER_LABEL[weather.kind].zh;
   const windZh = WIND_LABEL[weather.wind].zh;
@@ -393,7 +398,8 @@ export function MapScreen() {
         <div className={styles.dateBlock}>
           <span className={styles.year}>{date.year} AD</span>
           <span className={styles.season} title={`${season.en} (${season.zh})`}>
-            {monthNum}月{phaseInfo.zh} <span className={styles.seasonZh}>{season.zh}</span>
+            <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: seasonAccent, marginRight: 5, boxShadow: `0 0 5px ${seasonAccent}`, verticalAlign: 'middle' }} />
+            {monthNum}月{phaseInfo.zh} <span className={styles.seasonZh} style={{ color: seasonAccent }}>{season.zh}</span>
           </span>
           <span
             className={styles.season}
@@ -420,8 +426,8 @@ export function MapScreen() {
               <span className={styles.playerName}>{playerForce.name.zh}</span>
               <span className={styles.playerNameEn}>{t('', playerForce.name.en)}</span>
               <span style={{ marginLeft: 10, fontSize: '0.82rem', color: '#d6dde4', fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 11 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('金', 'Gold')}><Icon name="gold" size={13} color="#e6c473" /><AnimatedNumber value={playerGold} flash /></span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('糧', 'Grain')}><Icon name="grain" size={13} color="#d8c88a" /><AnimatedNumber value={playerFood} flash /></span>
+                <span className={goldLow ? 'tkm-threat-chip' : undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 4, padding: goldLow ? '0 3px' : undefined, color: goldLow ? '#e0707a' : undefined }} title={goldLow ? t('國庫見底!', 'Treasury empty!') : t('金', 'Gold')}><Icon name="gold" size={13} color={goldLow ? '#e0707a' : '#e6c473'} /><AnimatedNumber value={playerGold} flash /></span>
+                <span className={foodLow ? 'tkm-threat-chip' : undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 4, padding: foodLow ? '0 3px' : undefined, color: foodLow ? '#e0707a' : undefined }} title={foodLow ? t('糧倉見底!', 'Granary empty!') : t('糧', 'Grain')}><Icon name="grain" size={13} color={foodLow ? '#e0707a' : '#d8c88a'} /><AnimatedNumber value={playerFood} flash /></span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('兵', 'Troops')}><Icon name="war" size={13} color="#9ec0d8" /><AnimatedNumber value={playerTroops} flash /></span>
               </span>
             </>
