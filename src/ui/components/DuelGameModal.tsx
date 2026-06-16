@@ -5,7 +5,31 @@ import {
   type DuelMove, type DuelBout,
 } from '../../game/systems/duel';
 import { OfficerPortrait } from './OfficerPortrait';
+import { playSfx } from '../../game/systems/sound';
 import { useT, useLanguage } from '../i18n';
+
+/** 必殺技 — a named signature move for famous warriors; the rest of the great
+ *  (matchless / war ≥ 90) fall back to a generic 奮命一擊. */
+const SIGNATURE_MOVES: Record<string, { zh: string; en: string }> = {
+  'lu-bu': { zh: '方天畫戟', en: 'Sky Piercer' },
+  'guan-yu': { zh: '拖刀計', en: 'Dragging-Blade Feint' },
+  'zhang-fei': { zh: '丈八蛇矛', en: 'Serpent Lance' },
+  'zhao-yun': { zh: '七進七出', en: 'Seven In, Seven Out' },
+  'ma-chao': { zh: '錦帆銀槍', en: 'Silver Spear' },
+  'dian-wei': { zh: '雙戟摧鋒', en: 'Twin Halberds' },
+  'xu-chu': { zh: '虎癡裸衣', en: 'Tiger Fury' },
+  'sun-ce': { zh: '江東霸王', en: 'Little Conqueror' },
+  'huang-zhong': { zh: '百步穿楊', en: 'Hundred-Pace Shot' },
+  'taishi-ci': { zh: '猿臂神射', en: 'Ape-Arm Volley' },
+  'gan-ning': { zh: '錦帆百騎', en: 'Hundred Riders' },
+  'yan-liang': { zh: '河北上將', en: 'Champion of Hebei' },
+};
+
+function signatureFor(o: Officer): { zh: string; en: string } | null {
+  if (SIGNATURE_MOVES[o.id]) return SIGNATURE_MOVES[o.id];
+  if (o.traits?.includes('matchless') || o.stats.war >= 90) return { zh: '奮命一擊', en: 'All-Out Strike' };
+  return null;
+}
 
 /**
  * Interactive single combat — the player commits 攻/守/計/奮 each round against
@@ -36,6 +60,9 @@ export function DuelGameModal({
   // a key so the clash glint / shake / damage-float replay even on a repeat hit.
   const [fx, setFx] = useState<{ key: number; hit: 'a' | 'd' | 'both'; dmg: number; killed: boolean } | null>(null);
   const fxKey = useRef(0);
+  // 必殺技 — a named signature move flares when a great warrior lands a 奮.
+  const [signature, setSignature] = useState<{ key: number; text: string } | null>(null);
+  const sigKey = useRef(0);
   // 罵陣 — a one-time pre-duel taunt: out-talk them (your 武+魅 vs theirs)
   // and start with banked 氣 toward 奮; misfire and you open the round winded.
   const [taunted, setTaunted] = useState(false);
@@ -76,6 +103,22 @@ export function DuelGameModal({
       : 'both';
     fxKey.current += 1;
     setFx({ key: fxKey.current, hit, dmg: Math.max(res.dmgToAttacker, res.dmgToDefender), killed: !!res.bout.killedId });
+
+    // 必殺 — a decisive 奮 from a great warrior unleashes a named signature move.
+    const sigSide = move === 'power' && res.roundWinner === 'attacker' ? attacker
+      : foeMove === 'power' && res.roundWinner === 'defender' ? defender
+      : null;
+    if (sigSide) {
+      const sig = signatureFor(sigSide);
+      if (sig) {
+        sigKey.current += 1;
+        const text = lang === 'en' ? `${nm(sigSide)} — ${sig.en}!` : `${nm(sigSide)}【${sig.zh}】!`;
+        setSignature({ key: sigKey.current, text });
+        playSfx('crash');
+        if (!reduced) window.setTimeout(() => playSfx('shout'), 130);
+        window.setTimeout(() => setSignature((s) => (s && s.key === sigKey.current ? null : s)), 1700);
+      }
+    }
   };
 
   const bar = (val: number, color: string) => (
@@ -104,6 +147,22 @@ export function DuelGameModal({
         <div style={{ textAlign: 'center', color: '#e6c473', letterSpacing: '0.14rem', fontSize: '1.2rem', marginBottom: '0.8rem' }}>
           ⚔ {t('單挑', 'Single Combat')}
         </div>
+
+        {/* 必殺技 — the signature move slams across the bout. */}
+        {signature && (
+          <div key={signature.key} style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none', zIndex: 6 }}>
+            <div
+              className={reduced ? undefined : 'tkm-victory-slam'}
+              style={{
+                fontFamily: 'var(--tkm-font-zh, "Ma Shan Zheng", "Songti SC", serif)',
+                fontSize: '2.1rem', color: '#ffe08a', letterSpacing: '0.12rem', textAlign: 'center',
+                textShadow: '0 0 26px rgba(255,180,60,0.9), 0 2px 6px #000',
+                background: 'rgba(20,10,4,0.55)', padding: '0.35rem 1.5rem', borderRadius: 6,
+                border: '1px solid rgba(255,200,90,0.5)',
+              }}
+            >{signature.text}</div>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '1rem', alignItems: 'center', position: 'relative' }}>
           <div
