@@ -51,6 +51,7 @@ export function OfficerHoverCard({ officer, children }: Props) {
             pointerEvents: 'none',
             zIndex: 1000,
             boxShadow: '0 0 16px rgba(212, 168, 74, 0.4)',
+            animation: 'tkmTipPop 0.13s ease-out',
           }}
         >
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>

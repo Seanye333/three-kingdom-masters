@@ -41,6 +41,7 @@ export function Tooltip({ text, hint, children }: Props) {
             pointerEvents: 'none',
             zIndex: 999,
             boxShadow: '0 0 8px rgba(212, 168, 74, 0.4)',
+            animation: 'tkmFadeIn 0.12s ease-out',
           }}
         >
           {text}

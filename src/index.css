@@ -256,6 +256,24 @@ textarea:focus-visible,
   border-radius: 3px;
 }
 
+/* 按壓回饋 — every enabled button dips a touch darker on press. Uses filter,
+   not transform, so it never disturbs layout or a button's own centering.
+   A button that sets its own :active transform still gets that too. */
+button:not(:disabled):active,
+[role="button"]:active {
+  filter: brightness(0.9);
+}
+
+/* 浮層微動 — hover cards ease in with a hair of rise instead of snapping. */
+@keyframes tkmTipPop {
+  from { opacity: 0; transform: translateY(4px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):active,
+  [role="button"]:active { filter: none; }
+}
+
 /* Title-screen brush stroke calligraphy intro. */
 @keyframes tkmBrushStroke {
   0%   { stroke-dashoffset: 200; opacity: 0; }
