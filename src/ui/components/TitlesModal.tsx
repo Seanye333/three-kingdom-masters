@@ -102,7 +102,7 @@ export function TitlesModal({ onClose }: Props) {
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button
               className={styles.appointBtn}
-              title="一鍵任官 — fill vacant posts and max promotions with best-stat eligible officers"
+              title={lang === 'en' ? 'Auto-appoint — fill vacant posts and max promotions with the best eligible officers' : '一鍵任官 — 以最佳適任武將補滿空缺並盡量晉升'}
               onClick={() => {
                 let appointed = 0;
                 let promoted = 0;

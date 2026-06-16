@@ -4,7 +4,7 @@ import {
   loadAchievementProgress,
 } from '../../game/systems/achievements';
 import type { AchievementProgress } from '../../game/types';
-import { useDesc } from '../i18n';
+import { useDesc, useLanguage } from '../i18n';
 import { Modal } from './Modal';
 import { Name } from './Name';
 
@@ -22,6 +22,7 @@ const TIER_COLORS = {
 export function AchievementsModal({ onClose }: Props) {
   const [progress, setProgress] = useState<AchievementProgress | null>(null);
   const desc = useDesc();
+  const lang = useLanguage();
 
   useEffect(() => {
     setProgress(loadAchievementProgress());
@@ -37,8 +38,8 @@ export function AchievementsModal({ onClose }: Props) {
       padding="0"
       width="min(900px, 100%)"
       maxHeight="90vh"
-      title="勳功"
-      badge={`Achievements (${completedCount} / ${ACHIEVEMENTS.length})`}
+      title={lang === 'en' ? 'Achievements' : '勳功'}
+      badge={`${completedCount} / ${ACHIEVEMENTS.length}`}
     >
         {progress && (
           <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid #2b3845', fontSize: '0.78rem', color: '#aab6c0', fontFamily: 'ui-monospace, monospace' }}>

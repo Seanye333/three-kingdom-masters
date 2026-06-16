@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { Icon } from './Icon';
-import { useLanguage } from '../i18n';
+import { useLanguage, pickName } from '../i18n';
 
 const IS_MOBILE = typeof window !== 'undefined'
   && (window.matchMedia?.('(pointer: coarse)')?.matches || window.innerWidth < 700);
@@ -79,7 +79,7 @@ export function ArmiesPanel() {
                 fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
                 fontFamily: 'var(--tkm-font-body)',
               }}
-            >{armies[selectedArmyId].holding ? '解除' : '駐守'}</button>
+            >{armies[selectedArmyId].holding ? (lang === 'en' ? 'Release' : '解除') : (lang === 'en' ? 'Hold' : '駐守')}</button>
             <button
               onClick={() => resupplyArmy(selectedArmyId)}
               style={{
@@ -87,8 +87,8 @@ export function ArmiesPanel() {
                 fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
                 fontFamily: 'var(--tkm-font-body)',
               }}
-              title="從最近的友城輸糧補給此軍(免其糧盡逃散)"
-            >補給</button>
+              title={lang === 'en' ? 'Resupply this army from the nearest friendly city (so it won’t starve and scatter)' : '從最近的友城輸糧補給此軍(免其糧盡逃散)'}
+            >{lang === 'en' ? 'Supply' : '補給'}</button>
             {(armies[selectedArmyId].companionIds?.length ?? 0) > 0 && (
               <button
                 onClick={() => splitArmy(selectedArmyId)}
@@ -97,8 +97,8 @@ export function ArmiesPanel() {
                   fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
                   fontFamily: 'var(--tkm-font-body)',
                 }}
-                title="分出一半兵力與一名副將,駐守當前格"
-              >分兵</button>
+                title={lang === 'en' ? 'Split off half the troops with one lieutenant to hold this tile' : '分出一半兵力與一名副將,駐守當前格'}
+              >{lang === 'en' ? 'Split' : '分兵'}</button>
             )}
             <button
               onClick={() => { cancelCommand(selectedArmyId); selectArmy(null); }}
@@ -107,7 +107,7 @@ export function ArmiesPanel() {
                 fontSize: '0.6rem', padding: '1px 6px', cursor: 'pointer',
                 fontFamily: 'var(--tkm-font-body)',
               }}
-            >召回</button>
+            >{lang === 'en' ? 'Recall' : '召回'}</button>
           </div>
         </div>
       )}
@@ -118,14 +118,13 @@ export function ArmiesPanel() {
         const troopLabel = a.troops >= 1000 ? `${(a.troops / 1000).toFixed(1)}k` : `${a.troops}`;
         const selected = a.id === selectedArmyId;
         const pct = Math.max(0, Math.min(100, Math.round(a.progress * 100)));
-        const dest = a.cellTarget ? '野地' : (target?.name.zh ?? '?');
-        // Three unambiguous states: 駐守 (parked, won't move) · 行軍 (advancing) ·
-        // 抵達在即 (arriving next season).
+        const dest = a.cellTarget ? (lang === 'en' ? 'field' : '野地') : (target ? pickName(target.name, lang) : '?');
+        // Three unambiguous states: hold (parked) · marching · arriving next season.
         const status = a.holding
-          ? { icon: '⏸', text: '駐守', color: '#a8c87a', tip: '原地駐守,本季不前進(可「解除」續行)' }
+          ? { icon: '⏸', text: lang === 'en' ? 'Hold' : '駐守', color: '#a8c87a', tip: lang === 'en' ? 'Holding position; won’t advance this season (Release to resume)' : '原地駐守,本季不前進(可「解除」續行)' }
           : remaining <= 1
-            ? { icon: '⚑', text: `${dest}·抵達在即`, color: '#f2dd9a', tip: '下季抵達目的地' }
-            : { icon: '▸', text: `${dest}·${remaining}季`, color: '#aab6c0', tip: `行軍中 · 已行 ${pct}%` };
+            ? { icon: '⚑', text: lang === 'en' ? `${dest} · arriving` : `${dest}·抵達在即`, color: '#f2dd9a', tip: lang === 'en' ? 'Arrives next season' : '下季抵達目的地' }
+            : { icon: '▸', text: lang === 'en' ? `${dest} · ${remaining}s` : `${dest}·${remaining}季`, color: '#aab6c0', tip: lang === 'en' ? `Marching · ${pct}% done` : `行軍中 · 已行 ${pct}%` };
         return (
           <div
             key={a.id}
@@ -144,7 +143,7 @@ export function ArmiesPanel() {
                 {a.food !== undefined && (() => {
                   const seasons = Math.floor(a.food / Math.max(1, a.troops * 0.25));
                   return (
-                    <span style={{ marginLeft: 4, fontSize: '0.58rem', color: seasons <= 1 ? '#e0707a' : seasons <= 3 ? '#e0a070' : '#8a9a6a', display: 'inline-flex', alignItems: 'center', gap: 2 }} title={`隨軍糧 ${a.food.toLocaleString()} — 足 ${seasons} 季`}>
+                    <span style={{ marginLeft: 4, fontSize: '0.58rem', color: seasons <= 1 ? '#e0707a' : seasons <= 3 ? '#e0a070' : '#8a9a6a', display: 'inline-flex', alignItems: 'center', gap: 2 }} title={lang === 'en' ? `Provisions ${a.food.toLocaleString()} — ${seasons} season(s)` : `隨軍糧 ${a.food.toLocaleString()} — 足 ${seasons} 季`}>
                       <Icon name="grain" size={10} />{seasons}
                     </span>
                   );

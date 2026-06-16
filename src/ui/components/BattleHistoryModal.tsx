@@ -95,12 +95,12 @@ export function BattleHistoryModal({ onClose }: Props) {
             background: 'rgba(20,16,12,0.4)',
             fontFamily: 'var(--tkm-font-body)', fontSize: '0.78rem',
           }}>
-            <Stat label="總戰" value={stats.total} color="#aab6c0" />
-            <Stat label="勝" value={stats.won} color="#7ed68a" />
-            <Stat label="敗" value={stats.lost} color="#b8442e" />
-            <Stat label="攻陷" value={stats.conquests} color="#e6c473" />
-            <Stat label="殲敵" value={stats.killsDealt.toLocaleString()} color="#c9a64e" />
-            <Stat label="己損" value={stats.killsTaken.toLocaleString()} color="#8a5a3a" />
+            <Stat label={lang === 'en' ? 'Battles' : '總戰'} value={stats.total} color="#aab6c0" />
+            <Stat label={lang === 'en' ? 'Won' : '勝'} value={stats.won} color="#7ed68a" />
+            <Stat label={lang === 'en' ? 'Lost' : '敗'} value={stats.lost} color="#b8442e" />
+            <Stat label={lang === 'en' ? 'Taken' : '攻陷'} value={stats.conquests} color="#e6c473" />
+            <Stat label={lang === 'en' ? 'Kills' : '殲敵'} value={stats.killsDealt.toLocaleString()} color="#c9a64e" />
+            <Stat label={lang === 'en' ? 'Losses' : '己損'} value={stats.killsTaken.toLocaleString()} color="#8a5a3a" />
           </div>
         )}
 
@@ -110,7 +110,7 @@ export function BattleHistoryModal({ onClose }: Props) {
           padding: '0.5rem 1rem', borderBottom: '1px solid #2b3845',
         }}>
           {(['all', 'won', 'lost', 'conquest'] as const).map((k) => {
-            const label = { all: '全部', won: '勝戰', lost: '敗戰', conquest: '攻陷' }[k];
+            const label = (lang === 'en' ? { all: 'All', won: 'Won', lost: 'Lost', conquest: 'Taken' } : { all: '全部', won: '勝戰', lost: '敗戰', conquest: '攻陷' })[k];
             const active = outcomeFilter === k;
             return (
               <button

@@ -88,7 +88,7 @@ export function ForceCompareModal({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: '0.7rem' }}>
-              <span style={{ color: me.color, fontSize: '0.95rem' }}>■ {me.name}{me.ruler ? ` · ${me.ruler}` : ''} <span style={{ color: '#7a8893' }}>(我)</span></span>
+              <span style={{ color: me.color, fontSize: '0.95rem' }}>■ {me.name}{me.ruler ? ` · ${me.ruler}` : ''} <span style={{ color: '#7a8893' }}>({t('我', 'You')})</span></span>
               <span style={{ color: '#7a8893' }}>{t('對', 'vs')}</span>
               <select value={rivalId} onChange={(e) => setRivalId(e.target.value)} style={{ background: '#080b0e', border: '1px solid #2b3845', color: '#e6c473', padding: '0.25rem 0.4rem', fontFamily: 'inherit', maxWidth: '50%' }}>
                 {rivals.map((r) => (

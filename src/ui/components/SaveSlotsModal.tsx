@@ -3,7 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { renameSlot } from '../../game/state/saveSlots';
 import { SCENARIOS } from '../../game/data/scenarios';
 import styles from './SaveSlotsModal.module.css';
-import { useT } from '../i18n';
+import { useT, useLanguage, pickName } from '../i18n';
 
 interface Props {
   onClose: () => void;
@@ -25,12 +25,13 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameLabel, setRenameLabel] = useState('');
   const t = useT();
+  const lang = useLanguage();
 
   // Build a scenario id → name map for nicer display
   const scenarioName = (id: string | null): string => {
     if (!id) return '';
     const scen = SCENARIOS.find((s) => s.id === id);
-    return scen ? `${scen.name.zh}` : id;
+    return scen ? pickName(scen.name, lang) : id;
   };
 
   const slots = listSlotsFn().slice().sort((a, b) => {
@@ -180,10 +181,10 @@ export function SaveSlotsModal({ onClose, mode }: Props) {
                       )}
                       {' · '}{s.year} {s.season}
                       {s.cityCount !== undefined && (
-                        <> · 城 <strong>{s.cityCount}</strong></>
+                        <> · {t('城', 'cities')} <strong>{s.cityCount}</strong></>
                       )}
                       {s.troopTotal !== undefined && s.troopTotal > 0 && (
-                        <> · 兵 <strong>{(s.troopTotal / 1000).toFixed(0)}k</strong></>
+                        <> · {t('兵', 'troops')} <strong>{(s.troopTotal / 1000).toFixed(0)}k</strong></>
                       )}
                     </span>
                     <span style={{ fontSize: 10, color: '#7a6750' }}>

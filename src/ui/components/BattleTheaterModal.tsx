@@ -266,7 +266,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
               letterSpacing: '0.5rem',
               marginBottom: '0.6rem',
             }}>
-              {battle.attackerWins ? (battle.cityFalls ? '城陷' : '勝') : '敗北'}
+              {battle.attackerWins ? (battle.cityFalls ? (lang === 'en' ? 'City Fell' : '城陷') : (lang === 'en' ? 'Victory' : '勝')) : (lang === 'en' ? 'Defeat' : '敗北')}
             </div>
 
             {/* Stratagem result */}
@@ -278,8 +278,8 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
                 marginBottom: '0.5rem',
                 letterSpacing: '0.07rem',
               }}>
-                {battle.stratagem.succeeded ? '✓' : '✗'} {battle.stratagem.nameZh}（{battle.stratagem.nameEn}）
-                {battle.stratagem.succeeded ? ' 之計成' : ' 之計敗'}
+                {battle.stratagem.succeeded ? '✓' : '✗'} {lang === 'en' ? battle.stratagem.nameEn : battle.stratagem.nameZh}
+                {lang === 'en' ? (battle.stratagem.succeeded ? ' succeeded' : ' failed') : (battle.stratagem.succeeded ? ' 之計成' : ' 之計敗')}
               </div>
             )}
 
@@ -293,7 +293,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
               marginBottom: '0.5rem',
             }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ color: 'var(--tkm-text-muted)', fontSize: '0.7rem' }}>攻方傷亡</div>
+                <div style={{ color: 'var(--tkm-text-muted)', fontSize: '0.7rem' }}>{lang === 'en' ? 'Attacker losses' : '攻方傷亡'}</div>
                 <div style={{
                   fontFamily: 'var(--tkm-font-mono)',
                   color: 'var(--tkm-danger)',
@@ -301,7 +301,7 @@ export function BattleTheaterModal({ battle, onClose }: Props) {
                 }}>−{battle.attackerLosses.toLocaleString()}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ color: 'var(--tkm-text-muted)', fontSize: '0.7rem' }}>守方傷亡</div>
+                <div style={{ color: 'var(--tkm-text-muted)', fontSize: '0.7rem' }}>{lang === 'en' ? 'Defender losses' : '守方傷亡'}</div>
                 <div style={{
                   fontFamily: 'var(--tkm-font-mono)',
                   color: 'var(--tkm-danger)',
@@ -480,6 +480,7 @@ function ArmyPanel({
   align: 'left' | 'right';
   winning: boolean;
 }) {
+  const lang = useLanguage();
   const moraleColor =
     morale >= 60 ? 'var(--tkm-success, #b8c87a)' :
     morale >= 30 ? 'var(--tkm-warn, #e6c473)' :
@@ -520,7 +521,7 @@ function ArmyPanel({
           color: 'var(--tkm-text-muted)',
           letterSpacing: '0.05rem',
           textAlign: align,
-        }}>士氣 {Math.round(morale)}</div>
+        }}>{lang === 'en' ? 'Morale' : '士氣'} {Math.round(morale)}</div>
         <div className="tkm-morale-bar">
           <div
             className="fill"

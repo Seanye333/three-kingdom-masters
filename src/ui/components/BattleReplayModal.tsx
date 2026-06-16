@@ -89,7 +89,7 @@ export function BattleReplayModal({ onClose }: Props) {
               <input
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                placeholder="搜尋… (城名/年份)"
+                placeholder={lang === 'en' ? 'Search… (city / year)' : '搜尋… (城名/年份)'}
                 style={{
                   width: '100%', boxSizing: 'border-box',
                   background: '#10161e', border: '1px solid #2b3845',

@@ -782,7 +782,7 @@ export function TitleScreen() {
       {/* Settings gear in top-right corner */}
       <button
         onClick={() => setShowSettings(true)}
-        title="設定 / Settings"
+        title={lang === 'en' ? 'Settings' : '設定'}
         style={{
           position: 'fixed', top: 16, right: 16, width: 44, height: 44,
           background: 'rgba(20, 14, 8, 0.85)', border: '1px solid #e6c473',

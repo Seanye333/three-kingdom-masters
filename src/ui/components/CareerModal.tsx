@@ -158,14 +158,14 @@ export function CareerModal({ onClose }: Props) {
                 {t('武功', 'Deeds')}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', fontFamily: 'ui-monospace, monospace', fontSize: '0.8rem' }}>
-                <span><span style={{ color: '#7a8893' }}>殲敵</span> {d.killsTroops.toLocaleString()}</span>
-                <span><span style={{ color: '#7a8893' }}>一騎</span> {d.duelsWon}</span>
-                <span><span style={{ color: '#7a8893' }}>生擒</span> {d.captured}</span>
-                <span><span style={{ color: '#7a8893' }}>攻陷</span> {d.citiesTaken}</span>
-                <span><span style={{ color: '#7a8893' }}>謀略</span> {d.espionageSuccess}</span>
-                <span><span style={{ color: '#7a8893' }}>内政</span> {d.civicWorks}</span>
-                <span><span style={{ color: '#7a8893' }}>勝戰</span> {d.battlesWon}</span>
-                <span><span style={{ color: '#7a8893' }}>敗戰</span> {d.battlesLost}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('殲敵', 'Kills')}</span> {d.killsTroops.toLocaleString()}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('一騎', 'Duels')}</span> {d.duelsWon}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('生擒', 'Captures')}</span> {d.captured}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('攻陷', 'Conquests')}</span> {d.citiesTaken}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('謀略', 'Schemes')}</span> {d.espionageSuccess}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('内政', 'Civic')}</span> {d.civicWorks}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('勝戰', 'Wins')}</span> {d.battlesWon}</span>
+                <span><span style={{ color: '#7a8893' }}>{t('敗戰', 'Losses')}</span> {d.battlesLost}</span>
               </div>
             </div>
           )}

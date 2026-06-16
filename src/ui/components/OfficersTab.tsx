@@ -259,11 +259,11 @@ export function OfficersTab({ onClose }: Props) {
               }}
             >
               <option value="any">any</option>
-              <option value="leadership">統率</option>
-              <option value="war">武力</option>
-              <option value="intelligence">知力</option>
-              <option value="politics">政治</option>
-              <option value="charisma">魅力</option>
+              <option value="leadership">{lang === 'en' ? 'Leadership' : '統率'}</option>
+              <option value="war">{lang === 'en' ? 'War' : '武力'}</option>
+              <option value="intelligence">{lang === 'en' ? 'Intelligence' : '知力'}</option>
+              <option value="politics">{lang === 'en' ? 'Politics' : '政治'}</option>
+              <option value="charisma">{lang === 'en' ? 'Charisma' : '魅力'}</option>
             </select>
             <input
               type="number"
@@ -327,7 +327,7 @@ export function OfficersTab({ onClose }: Props) {
           <SortHeader label="INT" col="intelligence" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
           <SortHeader label="POL" col="politics" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
           <SortHeader label="CHA" col="charisma" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
-          <span className={styles.h2meta} title="Tactics · Formations · Policies">戰·陣·政</span>
+          <span className={styles.h2meta} title="Tactics · Formations · Policies">{lang === 'en' ? 'T·F·P' : '戰·陣·政'}</span>
           <SortHeader label="Age · Loy" col="age" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
         </div>
 
