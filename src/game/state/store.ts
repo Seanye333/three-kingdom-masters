@@ -2816,6 +2816,11 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
         const conqueredThisTurn = result.report.entries
           .filter((e) => e.kind === 'conquest' && e.cityId)
           .map((e) => e.cityId as EntityId);
+        // 克城 — the first city the player took this turn drives a flag-planting
+        // flourish on the map. (Only player conquests; AI gains stay quiet.)
+        const playerConquest = conqueredThisTurn.find(
+          (id) => postCities[id]?.ownerForceId === state.playerForceId,
+        );
         const decayed = state.burningCities
           .map((b) => ({ ...b, seasonsLeft: b.seasonsLeft - 1 }))
           .filter((b) => b.seasonsLeft > 0);
@@ -3525,6 +3530,9 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
             : state.pendingEvent,
           weather: nextWeather,
           burningCities: nextBurning,
+          cityCaptured: playerConquest
+            ? { key: (state.cityCaptured?.key ?? 0) + 1, cityId: playerConquest }
+            : state.cityCaptured,
           fieldBattleMarks: nextFieldMarks,
           pendingFieldBattleQueue: [
             ...(state.pendingFieldBattleQueue ?? []),

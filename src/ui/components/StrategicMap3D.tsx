@@ -1529,6 +1529,92 @@ function DepartureFlourish3D() {
   return <DepartureAnim key={active.key} x={active.x} y={active.y} z={active.z} color={active.color} hostile={active.hostile} />;
 }
 
+const CONQUEST_MOTES = Array.from({ length: 12 }, (_, i) => i);
+
+/** 克城演出 — a flag-planting flourish when the player takes a city: the new
+ *  colours are raised, a gold ring rings out, and victory motes rise. ~2.6s. */
+function ConquestAnim({ x, y, z, color }: { x: number; y: number; z: number; color: string }) {
+  const start = useRef<number | null>(null);
+  const flagRef = useRef<THREE.Group>(null);
+  const flagPlaneRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
+  const motesRef = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (start.current === null) start.current = clock.elapsedTime;
+    const e = clock.elapsedTime - start.current;
+    if (flagRef.current) flagRef.current.scale.y = Math.min(1, e / 0.6);
+    if (flagPlaneRef.current) flagPlaneRef.current.rotation.z = e > 0.6 ? Math.sin((e - 0.6) * 5) * 0.2 : 0;
+    if (ringRef.current) {
+      const dt = Math.min(1, e / 1.4);
+      ringRef.current.scale.setScalar(0.3 + dt * 1.5);
+      (ringRef.current.material as THREE.MeshBasicMaterial).opacity = (1 - dt) * 0.5;
+    }
+    if (motesRef.current) {
+      motesRef.current.children.forEach((c, i) => {
+        const a = (i / CONQUEST_MOTES.length) * Math.PI * 2;
+        const tt = Math.max(0, Math.min(1, (e - 0.2 - i * 0.03) / 1.8));
+        c.position.set(Math.cos(a) * 0.25, tt * 1.1, Math.sin(a) * 0.25);
+        const m = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        if (m) m.opacity = tt <= 0 ? 0 : (1 - tt);
+      });
+    }
+  });
+  return (
+    <group position={[x, y, z]} scale={ARMY_TOKEN_SCALE}>
+      <group ref={flagRef}>
+        <mesh position={[0, 0.3, 0]}>
+          <cylinderGeometry args={[0.014, 0.014, 0.6, 5]} />
+          <meshStandardMaterial color="#1a1410" />
+        </mesh>
+        <mesh position={[0, 0.62, 0]}>
+          <sphereGeometry args={[0.022, 8, 8]} />
+          <meshStandardMaterial color="#f0d878" metalness={0.5} roughness={0.4} />
+        </mesh>
+        <mesh ref={flagPlaneRef} position={[0.11, 0.5, 0]}>
+          <planeGeometry args={[0.22, 0.14]} />
+          <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.6} />
+        </mesh>
+      </group>
+      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <ringGeometry args={[0.3, 0.55, 28]} />
+        <meshBasicMaterial color="#f0d070" transparent opacity={0.5} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+      <group ref={motesRef}>
+        {CONQUEST_MOTES.map((i) => (
+          <mesh key={i}>
+            <sphereGeometry args={[0.012, 6, 6]} />
+            <meshBasicMaterial color={i % 2 ? '#fff0c0' : '#f0d070'} transparent opacity={0} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+}
+
+/** Watches the conquest signal and plays a flag-planting flourish at the taken
+ *  city, then clears itself after ~2.6s. */
+function ConquestFlourish3D() {
+  const cap = useGameStore((s) => s.cityCaptured);
+  const cities = useGameStore((s) => s.cities);
+  const forces = useGameStore((s) => s.forces);
+  const [active, setActive] = useState<{ key: number; x: number; y: number; z: number; color: string } | null>(null);
+  useEffect(() => {
+    if (!cap) return;
+    const city = cities[cap.cityId];
+    if (!city) return;
+    const [px, py] = cityPixel(city.id, city.coords.x, city.coords.y);
+    const [wx, wz] = pxToWorld(px, py);
+    const wy = sampleTerrainHeight(wx, wz) + 0.04;
+    const color = (city.ownerForceId && forces[city.ownerForceId]?.color) || '#e6c473';
+    setActive({ key: cap.key, x: wx, y: wy, z: wz, color });
+    const id = window.setTimeout(() => setActive(null), 2600);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cap?.key]);
+  if (!active) return null;
+  return <ConquestAnim key={active.key} x={active.x} y={active.y} z={active.z} color={active.color} />;
+}
+
 /** City pillar group: walled city / pagoda / pass / hamlet by tier, with
  *  a force-colored base disk, banner, name label and selection ring. */
 /* ─── 標籤分級 — when the camera is pulled far out, the ~120 city name+bar
@@ -6201,6 +6287,7 @@ function MapScene({ overlayMode, onPortClick, onFortClick, onTribeClick, onSiteC
       <GeoLabels3D />
       <EspionageAgents3D cities={cities} />
       <DepartureFlourish3D />
+      <ConquestFlourish3D />
 
       {/* 戰場微縮 — the LIVE battle, embedded on the very ground it's fought
           over (same scene component, same state; rotated to its true bearing,
