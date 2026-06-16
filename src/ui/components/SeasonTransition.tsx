@@ -18,6 +18,16 @@ const SEASON_TINT: Record<Season, string> = {
   winter: 'rgba(143,182,224,0.16)',
 };
 
+/** 落物 — the drifting glyph for each season (fireflies rise, the rest fall). */
+const SEASON_PARTICLE: Record<Season, { glyph: string; color: string; rise: boolean }> = {
+  spring: { glyph: '❀', color: '#f3b6c6', rise: false },
+  summer: { glyph: '✦', color: '#ffe7a0', rise: true },
+  autumn: { glyph: '❧', color: '#e0a050', rise: false },
+  winter: { glyph: '❄', color: '#dbe8f5', rise: false },
+};
+
+const PARTICLES = Array.from({ length: 16 }, (_, i) => i);
+
 /**
  * 季度過場 — washes a water-ink season card over the realm whenever the season
  * turns. Watches the campaign date; on a season (or year) change it shows the
@@ -55,6 +65,7 @@ export function SeasonTransition() {
 
   const accent = SEASON_ACCENT[card.season];
   const label = SEASON_LABEL[card.season];
+  const particle = SEASON_PARTICLE[card.season];
 
   return (
     <div
@@ -64,6 +75,24 @@ export function SeasonTransition() {
       onClick={() => { window.clearTimeout(timer.current); setCard(null); }}
       role="presentation"
     >
+      {/* 季節落物 — petals/fireflies/leaves/snow drift across the season card. */}
+      {PARTICLES.map((i) => (
+        <span
+          key={i}
+          className={particle.rise ? styles.particleRise : styles.particle}
+          aria-hidden="true"
+          style={{
+            left: `${(i * 53) % 100}%`,
+            color: particle.color,
+            fontSize: `${0.7 + (i % 4) * 0.35}rem`,
+            textShadow: `0 0 8px ${particle.color}`,
+            ['--p-dur' as string]: `${1.5 + (i % 5) * 0.28}s`,
+            ['--p-delay' as string]: `${(i % 6) * 0.13}s`,
+            ['--p-drift' as string]: `${((i % 7) - 3) * 22}px`,
+            ['--p-spin' as string]: `${((i % 2) ? 1 : -1) * (160 + (i % 3) * 90)}deg`,
+          }}
+        >{particle.glyph}</span>
+      ))}
       <div className={styles.card} style={{ color: accent }}>
         <div className={styles.bigChar}>{label.zh}</div>
         <div className={styles.line} />

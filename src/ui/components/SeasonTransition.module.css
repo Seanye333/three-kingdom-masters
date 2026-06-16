@@ -70,8 +70,44 @@
   100% { width: 180px; }
 }
 
+/* 季節落物 — petals in spring, fireflies in summer, leaves in autumn,
+   snow in winter — drift across the card while it holds. */
+.particle {
+  position: absolute;
+  top: -8%;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+  animation: tkmSeasonFall var(--p-dur, 2s) linear var(--p-delay, 0s) forwards;
+}
+.particleRise {
+  position: absolute;
+  bottom: -8%;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+  animation: tkmSeasonRise var(--p-dur, 2.4s) ease-in-out var(--p-delay, 0s) forwards;
+}
+
+@keyframes tkmSeasonFall {
+  0%   { opacity: 0; transform: translateY(0) translateX(0) rotate(0deg); }
+  14%  { opacity: 0.9; }
+  82%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(108vh) translateX(var(--p-drift, 0px)) rotate(var(--p-spin, 200deg)); }
+}
+
+@keyframes tkmSeasonRise {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  25%  { opacity: 0.95; }
+  55%  { opacity: 0.35; }
+  82%  { opacity: 0.95; }
+  100% { opacity: 0; transform: translateY(-80vh) translateX(var(--p-drift, 0px)); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .root { animation-duration: 0.8s; }
   .card,
   .line { animation: none; }
+  .particle,
+  .particleRise { display: none; }
 }
