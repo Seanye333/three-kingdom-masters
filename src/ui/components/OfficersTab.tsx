@@ -238,7 +238,7 @@ export function OfficersTab({ onClose }: Props) {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Name / 名 / courtesy"
+              placeholder={lang === 'en' ? 'Name / courtesy' : '姓名 / 字'}
               style={{
                 background: '#10161e',
                 border: '1px solid #2b3845',

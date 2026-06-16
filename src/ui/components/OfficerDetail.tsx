@@ -196,12 +196,12 @@ export function OfficerDetail({
                 color: openWish.kind === 'info' ? '#7ed68a' : '#e6c473',
                 letterSpacing: '0.1rem',
               }}>
-                📜 {openWish.kind === 'info' ? '一封上書待覽' : '一封書信待覆'}
+                📜 {openWish.kind === 'info' ? (lang === 'en' ? 'A memorial awaits your review' : '一封上書待覽') : (lang === 'en' ? 'A letter awaits your reply' : '一封書信待覆')}
               </div>
             )}
             {(officer.grievanceCount ?? 0) >= 2 && (
               <div style={{ marginTop: '0.2rem', fontSize: '0.72rem', color: '#b8442e' }}>
-                ⚠ 怨望日深（怨次 {officer.grievanceCount}）
+                ⚠ {lang === 'en' ? `Growing resentment (×${officer.grievanceCount})` : `怨望日深(怨次 ${officer.grievanceCount})`}
               </div>
             )}
           </div>
