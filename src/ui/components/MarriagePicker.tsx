@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
+import { playSfx } from '../../game/systems/sound';
 import type { EntityId, Officer } from '../../game/types';
 import { OfficerStats } from './OfficerStats';
 import { OfficerPortrait } from './OfficerPortrait';
@@ -20,6 +21,7 @@ const PETALS = Array.from({ length: 14 }, (_, i) => i);
  *  converge beneath a 囍 as petals fall. Dismiss on click. */
 function WeddingReveal({ a, b, year, onDone }: { a: Officer; b: Officer; year: number; onDone: () => void }) {
   const t = useT();
+  useEffect(() => { playSfx('wedding'); }, []);
   const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const anim = (s: string) => (reduced ? undefined : s);
   return (

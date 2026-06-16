@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FORGE_RECIPES, ITEMS_BY_ID } from '../../game/data';
 import { useGameStore } from '../../game/state/store';
+import { playSfx } from '../../game/systems/sound';
 import type { EntityId } from '../../game/types';
 import { useDesc, useLanguage, useT } from '../i18n';
 import { Name } from './Name';
@@ -15,6 +16,7 @@ const SPARKS = Array.from({ length: 14 }, (_, i) => i);
  *  the forge's glow as embers fly up. Dismiss on click. */
 function ForgedReveal({ name, onDone }: { name?: { zh: string; en: string }; onDone: () => void }) {
   const t = useT();
+  useEffect(() => { playSfx('forge'); }, []);
   const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   return (
     <div

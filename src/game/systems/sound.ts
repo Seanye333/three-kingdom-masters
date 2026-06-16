@@ -69,7 +69,9 @@ export type SfxName =
   | 'thud'          // ram hits a gate / repair hammering
   | 'shout'         // war cry — charge, sally, rout
   | 'wardrum'       // battle ignition — pounding war drums
-  | 'retreat';      // 鳴金 — a struck gong sinking: a line breaks / morale collapses
+  | 'retreat'       // 鳴金 — a struck gong sinking: a line breaks / morale collapses
+  | 'forge'         // 鑄成 — anvil strike, the blade rings, a quench hiss
+  | 'wedding';      // 婚成 — a bright, joyous chime
 
 interface Tone {
   freq: number;
@@ -168,6 +170,18 @@ const SFX_PATTERNS: Record<SfxName, Tone[]> = {
     { freq: 540, duration: 0.16, type: 'triangle', gain: 0.16, sweep: -260 },
     { freq: 400, duration: 0.5, type: 'sine', gain: 0.14, sweep: -140 },
     { freq: 270, duration: 0.6, type: 'sine', gain: 0.1, sweep: -70 },
+  ],
+  // 鑄成 — a hammer strikes the anvil, the finished blade rings, then a quench hiss.
+  forge: [
+    { freq: 170, duration: 0.06, type: 'square', gain: 0.18, sweep: -220 },
+    { freq: 900, duration: 0.5, type: 'triangle', gain: 0.12, sweep: -360 },
+    { freq: 2200, duration: 0.2, type: 'sawtooth', gain: 0.05, sweep: -3200 },
+  ],
+  // 婚成 — a bright, rising three-note chime: festive double-happiness.
+  wedding: [
+    { freq: 660, duration: 0.12, type: 'triangle', gain: 0.16 },
+    { freq: 880, duration: 0.12, type: 'triangle', gain: 0.16 },
+    { freq: 1100, duration: 0.34, type: 'sine', gain: 0.16, sweep: -90 },
   ],
 };
 
