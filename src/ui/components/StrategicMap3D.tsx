@@ -7125,7 +7125,7 @@ export function StrategicMap3D() {
   // 單挑 — armed duel waiting for an adjacent enemy commander; the bout itself
   // runs in the same DuelGameModal the fullscreen uses.
   const [dioDuelArm, setDioDuelArm] = useState(false);
-  const [worldDuel, setWorldDuel] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number } | null>(null);
+  const [worldDuel, setWorldDuel] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number; reinforcements: Officer[] } | null>(null);
   const [captureChoice, setCaptureChoice] = useState<{ id: string; name: { zh: string; en: string } } | null>(null);
   // 快捷輪盤 — which DOM picker (march/recruit) the ring asked for.
   const [quickPick, setQuickPick] = useState<{ kind: 'march' | 'recruit'; cityId: string } | null>(null);
@@ -7192,8 +7192,13 @@ export function StrategicMap3D() {
       if (!meCheck.ok) { alert(`我將無法單挑: ${meCheck.reason}`); return; }
       if (!foeCheck.ok) { alert(`敵將無法應戰: ${foeCheck.reason}`); return; }
       startBattleUpdate({ ...b, units: b.units.map((unit) => unit.id === sel0.id ? { ...unit, ap: 0 } : unit) });
+      // 三英戰呂布 — allies pressing the same foe may leap in mid-bout.
+      const reinforcements = b.units
+        .filter((ru) => ru.side === sel0.side && ru.troops > 0 && ru.ap > 0 && ru.officerId !== sel0.officerId
+          && hexDistance(ru.coord, u.coord) === 1 && officers[ru.officerId] && canDuel(officers[ru.officerId]!).ok)
+        .map((ru) => officers[ru.officerId]!).slice(0, 2);
       // 車輪戰 — fatigue from earlier bouts carries into this one.
-      setWorldDuel({ me, foe, meFatigue: sel0.duelFatigue ?? 0, foeFatigue: u.duelFatigue ?? 0 });
+      setWorldDuel({ me, foe, meFatigue: sel0.duelFatigue ?? 0, foeFatigue: u.duelFatigue ?? 0, reinforcements });
       setDioDuelArm(false);
       return;
     }
@@ -7688,9 +7693,11 @@ export function StrategicMap3D() {
           defender={worldDuel.foe}
           meFatigue={worldDuel.meFatigue}
           foeFatigue={worldDuel.foeFatigue}
+          reinforcements={worldDuel.reinforcements}
           onComplete={(outcome) => {
-            const { me, foe } = worldDuel;
+            const { foe } = worldDuel;
             const b = useGameStore.getState().tacticalBattle;
+            const me = (outcome.attackerId && useGameStore.getState().officers[outcome.attackerId]) || worldDuel.me;
             setWorldDuel(null);
             if (!b) return;
             const killedId = outcome.killedId === 'defender' ? foe.id

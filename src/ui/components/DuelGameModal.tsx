@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import type { Officer } from '../../game/types';
 import {
-  initDuelBout, duelRound, aiDuelMove, POWER_GUARD_COST,
+  initDuelBout, duelRound, aiDuelMove, POWER_GUARD_COST, staticProwess, weaponArtFor,
   type DuelMove, type DuelBout,
 } from '../../game/systems/duel';
 import { OfficerPortrait } from './OfficerPortrait';
@@ -45,21 +45,26 @@ const MOVES: Array<{ id: DuelMove; zh: string; en: string; hint: { zh: string; e
 ];
 
 export function DuelGameModal({
-  attacker, defender, onComplete, meFatigue = 0, foeFatigue = 0, lethal = true,
+  attacker, defender, onComplete, meFatigue = 0, foeFatigue = 0, lethal = true, reinforcements = [],
 }: {
   attacker: Officer;
   defender: Officer;
-  onComplete: (outcome: { winner: 'attacker' | 'defender' | 'draw'; killedId?: 'attacker' | 'defender' }) => void;
+  onComplete: (outcome: { winner: 'attacker' | 'defender' | 'draw'; killedId?: 'attacker' | 'defender'; attackerId?: string }) => void;
   /** 車輪戰 — starting-stamina penalties from bouts already fought this battle. */
   meFatigue?: number;
   foeFatigue?: number;
   /** 演武 — a non-lethal sparring bout: a knockout reads as "yields", not death. */
   lethal?: boolean;
+  /** 三英戰呂布 — adjacent allies who can leap in when your fighter is hard-pressed. */
+  reinforcements?: Officer[];
 }) {
   const t = useT();
   const lang = useLanguage();
   const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const [bout, setBout] = useState<DuelBout>(() => initDuelBout(attacker, defender, meFatigue, foeFatigue));
+  // 當前出戰者 — starts as `attacker`; an ally can take over mid-bout (援護).
+  const [me, setMe] = useState<Officer>(attacker);
+  const [used, setUsed] = useState<Set<string>>(() => new Set([attacker.id]));
   const [log, setLog] = useState<string[]>([]);
   // 命中演出 — per-round strike feedback: which side was hit, by how much, and
   // a key so the clash glint / shake / damage-float replay even on a repeat hit.
@@ -74,30 +79,46 @@ export function DuelGameModal({
   const taunt = () => {
     if (taunted || bout.round > 0 || bout.over) return;
     setTaunted(true);
-    const mine = attacker.stats.war * 0.5 + attacker.stats.charisma * 0.5;
+    const mine = me.stats.war * 0.5 + me.stats.charisma * 0.5;
     const theirs = defender.stats.war * 0.5 + defender.stats.charisma * 0.5;
     const land = Math.random() < 0.5 + (mine - theirs) / 120;
     if (land) {
       setBout((b) => ({ ...b, aGuard: b.aGuard + POWER_GUARD_COST }));
-      setLog((l) => [`${nm(attacker)} ${t('罵陣搦戰,氣勢大盛 — 蓄滿一記奮擊!', 'taunts the foe and seizes the initiative — an Overpower is banked!')}`, ...l]);
+      setLog((l) => [`${nm(me)} ${t('罵陣搦戰,氣勢大盛 — 蓄滿一記奮擊!', 'taunts the foe and seizes the initiative — an Overpower is banked!')}`, ...l]);
     } else {
       setBout((b) => ({ ...b, aStamina: Math.max(1, b.aStamina - 12) }));
-      setLog((l) => [`${nm(attacker)} ${t('罵陣不成,反被激得心浮氣躁(−12 氣力)。', 'taunts and is rattled in return (−12 stamina).')}`, ...l]);
+      setLog((l) => [`${nm(me)} ${t('罵陣不成,反被激得心浮氣躁(−12 氣力)。', 'taunts and is rattled in return (−12 stamina).')}`, ...l]);
     }
   };
   const nm = (o: Officer) => (lang === 'en' ? o.name.en : o.name.zh);
   const moveZh = (m: DuelMove) => MOVES.find((x) => x.id === m)!.zh;
+
+  // 援護 — a fresh ally leaps in to take over, body fresh, against a foe who
+  // keeps every wound and banked 氣 from the bout so far (三英戰呂布).
+  const available = reinforcements.filter((r) => !used.has(r.id));
+  const swapIn = (ally: Officer) => {
+    if (bout.over) return;
+    setMe(ally);
+    setUsed((s) => new Set([...s, ally.id]));
+    setTaunted(true);
+    setBout((b) => ({
+      ...b,
+      aStamina: 100, aGuard: 0, aMoves: [],
+      aStatic: staticProwess(ally), aInt: ally.stats.intelligence, aArt: weaponArtFor(ally),
+    }));
+    setLog((l) => [`${nm(ally)} ${t('挺身援護,接力再戰!', 'leaps in to fight on!')}`, ...l]);
+  };
 
   const play = (move: DuelMove) => {
     if (bout.over) return;
     if (move === 'power' && bout.aGuard < POWER_GUARD_COST) return;
     const foeMove = aiDuelMove(bout, 'defender', Math.random);
     const res = duelRound(bout, move, foeMove, Math.random);
-    const who = res.roundWinner === 'attacker' ? nm(attacker)
+    const who = res.roundWinner === 'attacker' ? nm(me)
       : res.roundWinner === 'defender' ? nm(defender) : t('雙方', 'Both');
     const line = res.roundWinner === 'draw'
-      ? `${t('第', 'R')}${res.bout.round}: ${nm(attacker)} ${moveZh(move)} ⚔ ${moveZh(foeMove)} ${nm(defender)} — ${t('相持', 'clash')}`
-      : `${t('第', 'R')}${res.bout.round}: ${nm(attacker)} ${moveZh(move)} ⚔ ${moveZh(foeMove)} ${nm(defender)} — ${who}${t(' 佔先', ' lands it')} (−${Math.max(res.dmgToAttacker, res.dmgToDefender)})`;
+      ? `${t('第', 'R')}${res.bout.round}: ${nm(me)} ${moveZh(move)} ⚔ ${moveZh(foeMove)} ${nm(defender)} — ${t('相持', 'clash')}`
+      : `${t('第', 'R')}${res.bout.round}: ${nm(me)} ${moveZh(move)} ⚔ ${moveZh(foeMove)} ${nm(defender)} — ${who}${t(' 佔先', ' lands it')} (−${Math.max(res.dmgToAttacker, res.dmgToDefender)})`;
     setLog((l) => [line, ...l].slice(0, 7));
     setBout(res.bout);
 
@@ -110,7 +131,7 @@ export function DuelGameModal({
     setFx({ key: fxKey.current, hit, dmg: Math.max(res.dmgToAttacker, res.dmgToDefender), killed: !!res.bout.killedId });
 
     // 必殺 — a decisive 奮 from a great warrior unleashes a named signature move.
-    const sigSide = move === 'power' && res.roundWinner === 'attacker' ? attacker
+    const sigSide = move === 'power' && res.roundWinner === 'attacker' ? me
       : foeMove === 'power' && res.roundWinner === 'defender' ? defender
       : null;
     if (sigSide) {
@@ -140,8 +161,8 @@ export function DuelGameModal({
   const resultText = !bout.over ? '' :
     bout.winner === 'draw' ? (lethal ? t('平手 — 各自負傷', 'Draw — both wounded') : t('平手 — 點到為止', 'A draw — well matched'))
     : bout.winner === 'attacker'
-      ? (lethal && bout.killedId ? `${nm(attacker)} ${t('斬', 'cut down')} ${nm(defender)}!` : `${nm(attacker)} ${t('佔上風', 'prevails')}`)
-      : (lethal && bout.killedId ? `${nm(defender)} ${t('斬', 'cut down')} ${nm(attacker)}!` : `${nm(defender)} ${t('佔上風', 'prevails')}`);
+      ? (lethal && bout.killedId ? `${nm(me)} ${t('斬', 'cut down')} ${nm(defender)}!` : `${nm(me)} ${t('佔上風', 'prevails')}`)
+      : (lethal && bout.killedId ? `${nm(defender)} ${t('斬', 'cut down')} ${nm(me)}!` : `${nm(defender)} ${t('佔上風', 'prevails')}`);
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'grid', placeItems: 'center', zIndex: 130 }}>
@@ -183,10 +204,10 @@ export function DuelGameModal({
             style={{ position: 'relative' }}
           >
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <OfficerPortrait officer={attacker} size={44} forceColor="#b8442e" />
+              <OfficerPortrait officer={me} size={44} forceColor="#b8442e" />
               <div>
-                <div style={{ color: '#e6c473' }}>{nm(attacker)}</div>
-                <div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {attacker.stats.war}</div>
+                <div style={{ color: '#e6c473' }}>{nm(me)}</div>
+                <div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {me.stats.war}</div>
                 {bout.aArt && <div style={{ fontSize: '0.64rem', color: '#e0b060' }}>⚔ {lang === 'en' ? bout.aArt.en : bout.aArt.zh}</div>}
               </div>
             </div>
@@ -241,6 +262,24 @@ export function DuelGameModal({
           >🗣 {t('罵陣搦戰', 'Taunt')}</button>
         )}
 
+        {/* 援護 — when your fighter is hard-pressed, a fresh ally can leap in. */}
+        {!bout.over && available.length > 0 && bout.aStamina < 45 && (
+          <div style={{ marginTop: '0.9rem' }}>
+            <div style={{ fontSize: '0.7rem', color: '#e0846a', letterSpacing: '0.05rem', marginBottom: 4 }}>
+              🆘 {t('力戰不支 — 召友將援護(接力,敵將不回氣):', 'Hard-pressed — call an ally to fight on (the foe keeps its wounds):')}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {available.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => swapIn(r)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#2a3a2a', border: '1px solid #6aae73', borderRadius: 4, padding: '0.25rem 0.5rem', color: '#d0ffd8', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' }}
+                >🛡 {nm(r)} <span style={{ color: '#9ed68a', fontSize: '0.68rem' }}>{t('武', 'W')}{r.stats.war}</span></button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Move buttons */}
         {!bout.over && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '1rem' }}>
@@ -276,7 +315,7 @@ export function DuelGameModal({
           <div style={{ marginTop: '0.6rem', textAlign: 'center' }}>
             <div className={reduced ? undefined : 'tkm-victory-slam'} style={{ color: lethal && bout.killedId ? '#b8442e' : '#e6c473', fontSize: '1.15rem', letterSpacing: '0.07rem', marginBottom: '0.6rem', textShadow: lethal && bout.killedId ? '0 0 14px rgba(184,68,46,0.6)' : '0 0 12px rgba(212,168,74,0.45)' }}>{resultText}</div>
             <button
-              onClick={() => onComplete({ winner: bout.winner ?? 'draw', killedId: bout.killedId as 'attacker' | 'defender' | undefined })}
+              onClick={() => onComplete({ winner: bout.winner ?? 'draw', killedId: bout.killedId as 'attacker' | 'defender' | undefined, attackerId: me.id })}
               style={{ padding: '0.45rem 1.6rem', background: '#1e2832', border: '1px solid #e6c473', color: '#e6c473', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.07rem' }}
             >
               {t('確定', 'Continue')}

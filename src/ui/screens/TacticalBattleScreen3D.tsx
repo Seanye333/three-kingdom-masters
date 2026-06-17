@@ -3545,10 +3545,10 @@ export function TacticalBattleScreen3D() {
     const id = setTimeout(() => setShowOpening(false), 2800);
     return () => clearTimeout(id);
   }, []);
-  const [interactiveDuel, setInteractiveDuel] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number } | null>(null);
+  const [interactiveDuel, setInteractiveDuel] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number; reinforcements: Officer[] } | null>(null);
   // 敵將叫陣 — an aggressive enemy adjacent to one of your officers may challenge
   // you at the top of your turn; accept to duel, or refuse.
-  const [challenge, setChallenge] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number } | null>(null);
+  const [challenge, setChallenge] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number; reinforcements: Officer[] } | null>(null);
   const challengeTurn = useRef(-1);
   // 斬/擒 — after a duel KOs an enemy, the victor chooses their fate.
   const [captureChoice, setCaptureChoice] = useState<{ id: string; name: { zh: string; en: string } } | null>(null);
@@ -3733,9 +3733,13 @@ export function TacticalBattleScreen3D() {
         && hexDistance(u.coord, e.coord) === 1
         && officers[u.officerId] && canDuel(officers[u.officerId]!).ok);
       if (!meUnit) continue;
+      const reinforcements = battle.units
+        .filter((ru) => ru.side === playerSide && ru.troops > 0 && ru.ap > 0 && ru.officerId !== meUnit.officerId
+          && hexDistance(ru.coord, e.coord) === 1 && officers[ru.officerId] && canDuel(officers[ru.officerId]!).ok)
+        .map((ru) => officers[ru.officerId]!).slice(0, 2);
       setChallenge({
         me: officers[meUnit.officerId]!, foe,
-        meFatigue: meUnit.duelFatigue ?? 0, foeFatigue: e.duelFatigue ?? 0,
+        meFatigue: meUnit.duelFatigue ?? 0, foeFatigue: e.duelFatigue ?? 0, reinforcements,
       });
       break;
     }
@@ -3819,8 +3823,13 @@ export function TacticalBattleScreen3D() {
       if (!foeCheck.ok) { alert(`Enemy cannot duel: ${foeCheck.reason}`); return; }
       // Spend AP and open the interactive bout; the kill is applied on finish.
       start({ ...battle, units: battle.units.map((unit) => unit.id === selectedUnit.id ? { ...unit, ap: 0 } : unit) });
+      // 三英戰呂布 — allies pressing the same foe can leap in mid-bout.
+      const reinforcements = battle.units
+        .filter((ru) => ru.side === playerSide && ru.troops > 0 && ru.ap > 0 && ru.officerId !== me.id
+          && hexDistance(ru.coord, u.coord) === 1 && officers[ru.officerId] && canDuel(officers[ru.officerId]!).ok)
+        .map((ru) => officers[ru.officerId]!).slice(0, 2);
       // 車輪戰 — each fighter opens winded by the bouts they've already fought.
-      setInteractiveDuel({ me, foe, meFatigue: selectedUnit.duelFatigue ?? 0, foeFatigue: u.duelFatigue ?? 0 });
+      setInteractiveDuel({ me, foe, meFatigue: selectedUnit.duelFatigue ?? 0, foeFatigue: u.duelFatigue ?? 0, reinforcements });
       setActionMode({ kind: 'none' });
       return;
     }
@@ -4497,8 +4506,11 @@ export function TacticalBattleScreen3D() {
           defender={interactiveDuel.foe}
           meFatigue={interactiveDuel.meFatigue}
           foeFatigue={interactiveDuel.foeFatigue}
+          reinforcements={interactiveDuel.reinforcements}
           onComplete={(outcome) => {
-            const { me, foe } = interactiveDuel;
+            const { foe } = interactiveDuel;
+            // 援護 — the officer who actually finished the bout (may be a relief).
+            const me = (outcome.attackerId && officers[outcome.attackerId]) || interactiveDuel.me;
             const killedId = outcome.killedId === 'defender' ? foe.id
               : outcome.killedId === 'attacker' ? me.id : null;
             let next = battle;
