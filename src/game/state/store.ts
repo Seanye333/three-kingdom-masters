@@ -404,6 +404,9 @@ interface GameStore extends GameState {
   grantSparXp: (winnerId: EntityId, loserId: EntityId, draw?: boolean) => {
     winnerName: string; loserName: string; winnerLeveled: boolean; loserLeveled: boolean; notes: string[];
   } | null;
+  /** Award XP to a single officer (比武大會 prizes, etc.). Grows stats / skills
+   *  via the normal growth path. Returns level-up notes; null if missing. */
+  grantOfficerXp: (officerId: EntityId, amount: number) => { leveled: boolean; notes: string[] } | null;
   /** Pay for siege works (圍困糧耗 / 水攻決堤) from the attacking city's
    *  stores before an assault. Returns false (and deducts nothing) if the
    *  city can't afford it. */
@@ -4650,6 +4653,14 @@ const def = DEFENSE_BUILDINGS[current.buildingId!];
           winnerLeveled: rw.leveled, loserLeveled: rl.leveled,
           notes: [...rw.entries, ...rl.entries].map((e) => e.textZh ?? e.text),
         };
+      },
+      grantOfficerXp: (officerId, amount) => {
+        const state = get();
+        const o = state.officers[officerId];
+        if (!o) return null;
+        const r = grantXp(o, amount);
+        set({ officers: { ...state.officers, [officerId]: r.officer } });
+        return { leveled: r.leveled, notes: r.entries.map((e) => e.textZh ?? e.text) };
       },
       startPracticeBattle: (cityId, bearing = 0, officerIds) => {
         const state = get();
