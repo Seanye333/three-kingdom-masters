@@ -184,7 +184,11 @@ export function DuelGameModal({
           >
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <OfficerPortrait officer={attacker} size={44} forceColor="#b8442e" />
-              <div><div style={{ color: '#e6c473' }}>{nm(attacker)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {attacker.stats.war}</div></div>
+              <div>
+                <div style={{ color: '#e6c473' }}>{nm(attacker)}</div>
+                <div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {attacker.stats.war}</div>
+                {bout.aArt && <div style={{ fontSize: '0.64rem', color: '#e0b060' }}>⚔ {lang === 'en' ? bout.aArt.en : bout.aArt.zh}</div>}
+              </div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.aStamina, '#b8442e')}</div>
             {guardPips(bout.aGuard)}
@@ -210,7 +214,11 @@ export function DuelGameModal({
           >
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexDirection: 'row-reverse' }}>
               <OfficerPortrait officer={defender} size={44} forceColor="#3a7dd9" />
-              <div><div style={{ color: '#e6c473' }}>{nm(defender)}</div><div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {defender.stats.war}</div></div>
+              <div>
+                <div style={{ color: '#e6c473' }}>{nm(defender)}</div>
+                <div style={{ fontSize: '0.72rem', color: '#aab6c0' }}>{t('武', 'WAR')} {defender.stats.war}</div>
+                {bout.dArt && <div style={{ fontSize: '0.64rem', color: '#e0b060' }}>⚔ {lang === 'en' ? bout.dArt.en : bout.dArt.zh}</div>}
+              </div>
             </div>
             <div style={{ marginTop: '0.4rem' }}>{bar(bout.dStamina, '#3a7dd9')}</div>
             {guardPips(bout.dGuard)}

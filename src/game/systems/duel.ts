@@ -192,6 +192,25 @@ function rollOne(o: Officer, rng: () => number): DuelRoll {
   };
 }
 
+// ─── 兵器絕技 — legendary weapons grant a signature edge in a duel ─────────
+export type WeaponArtKind = 'power' | 'attack' | 'scheme' | 'pierce';
+export interface WeaponArt { kind: WeaponArtKind; zh: string; en: string; weaponZh: string; weaponEn: string; }
+
+const WEAPON_ARTS: Record<string, WeaponArt> = {
+  'sky-piercer':  { kind: 'power',  zh: '畫戟·奮擊', en: 'Sky Piercer — Overpower+', weaponZh: '方天畫戟', weaponEn: 'Sky Piercer' },
+  'green-dragon': { kind: 'attack', zh: '偃月·斬',   en: 'Green Dragon — Strike+',  weaponZh: '青龍偃月刀', weaponEn: 'Green Dragon Blade' },
+  'snake-spear':  { kind: 'pierce', zh: '蛇矛·破守', en: 'Snake Spear — Pierce',    weaponZh: '丈八蛇矛', weaponEn: 'Snake Spear' },
+  'gu-ding':      { kind: 'attack', zh: '古錠·猛攻', en: 'Gu Ding — Strike+',       weaponZh: '古錠刀', weaponEn: 'Gu Ding Sword' },
+  'twin-swords':  { kind: 'attack', zh: '雌雄·雙鋒', en: 'Twin Swords — Strike+',   weaponZh: '雌雄一對劍', weaponEn: 'Twin Swords' },
+  'yitian':       { kind: 'power',  zh: '倚天·威',   en: 'Yitian — Overpower+',     weaponZh: '倚天劍', weaponEn: 'Yitian Sword' },
+};
+
+/** The duel art of the first legendary weapon an officer has equipped, if any. */
+export function weaponArtFor(o: Officer): WeaponArt | null {
+  for (const id of o.equipment) if (WEAPON_ARTS[id]) return WEAPON_ARTS[id];
+  return null;
+}
+
 // ─── Interactive duel (player-played 攻/守/計/奮 round game) ───────────────
 
 export type DuelMove = 'attack' | 'defend' | 'scheme' | 'power';
@@ -207,6 +226,8 @@ export interface DuelBout {
   dInt: number;
   aMoves: DuelMove[]; // move history, so a sharp mind can read a habit
   dMoves: DuelMove[];
+  aArt: WeaponArt | null; // 兵器絕技 — a legendary weapon's signature edge
+  dArt: WeaponArt | null;
   round: number;    // rounds played
   over: boolean;
   winner?: 'attacker' | 'defender' | 'draw';
@@ -230,6 +251,7 @@ export function initDuelBout(
     aStatic: staticProwess(attacker), dStatic: staticProwess(defender),
     aInt: attacker.stats.intelligence, dInt: defender.stats.intelligence,
     aMoves: [], dMoves: [],
+    aArt: weaponArtFor(attacker), dArt: weaponArtFor(defender),
     round: 0, over: false,
   };
 }
@@ -285,6 +307,14 @@ export function duelRound(
   } else if (aMove === 'defend' && dMove === 'defend') {
     b.aGuard += 1; b.dGuard += 1; // wary circling — both bank a little
   }
+  // 兵器絕技 — the matching move with a legendary weapon bites ~32% deeper; a
+  // snake-spear chips a guarding foe (破守) even when the thrust is turned aside.
+  const artMul = (move: DuelMove, art: WeaponArt | null): number =>
+    art && art.kind !== 'pierce' && art.kind === move ? 1.32 : 1;
+  dmgToDefender = Math.round(dmgToDefender * artMul(aMove, b.aArt));
+  dmgToAttacker = Math.round(dmgToAttacker * artMul(dMove, b.dArt));
+  if (b.aArt?.kind === 'pierce' && aMove === 'attack' && dMove === 'defend') dmgToDefender += 9;
+  if (b.dArt?.kind === 'pierce' && dMove === 'attack' && aMove === 'defend') dmgToAttacker += 9;
   b.aStamina = Math.max(0, b.aStamina - dmgToAttacker);
   b.dStamina = Math.max(0, b.dStamina - dmgToDefender);
   b.round += 1;

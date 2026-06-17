@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveDuel, canDuel, initDuelBout, duelRound, staticProwess, aiDuelMove, type DuelMove } from './duel';
+import { resolveDuel, canDuel, initDuelBout, duelRound, staticProwess, aiDuelMove, weaponArtFor, type DuelMove } from './duel';
 import { resolveWordWar, initDebate, debateRound, aiDebateMove } from './wordWar';
 import { mkOfficer, seededRng } from '../../test/factories';
 
@@ -184,6 +184,29 @@ describe('prestige folds into duel prowess', () => {
     const tiger = mkOfficer({ stats: { war: 90, leadership: 60, intelligence: 60, politics: 60, charisma: 60 } });
     // 90 war + 12 虎將 duel bonus, no items/skills/traits.
     expect(staticProwess(tiger)).toBe(102);
+  });
+});
+
+describe('兵器絕技 (weapon arts)', () => {
+  const fixed = () => 0.5;
+  it('detects a legendary weapon and seeds the bout with its art', () => {
+    const luBu = mkOfficer({ equipment: ['sky-piercer'], stats: { war: 100, leadership: 70, intelligence: 40, politics: 30, charisma: 60 } });
+    expect(weaponArtFor(luBu)?.kind).toBe('power');
+    const plain = mkOfficer({ stats: { war: 80, leadership: 60, intelligence: 60, politics: 60, charisma: 60 } });
+    expect(weaponArtFor(plain)).toBeNull();
+    const b = initDuelBout(luBu, plain);
+    expect(b.aArt?.weaponZh).toBe('方天畫戟');
+    expect(b.dArt).toBeNull();
+  });
+
+  it('蛇矛破守 — a snake-spear chips a guarding foe (9) even when turned aside', () => {
+    const zhangFei = mkOfficer({ equipment: ['snake-spear'], stats: { war: 90, leadership: 60, intelligence: 60, politics: 60, charisma: 60 } });
+    const mook = mkOfficer({ stats: { war: 70, leadership: 60, intelligence: 60, politics: 60, charisma: 60 } });
+    const b = initDuelBout(zhangFei, mook);
+    // 攻 into 守 normally deals 0 to the defender (守>攻); pierce chips 9.
+    const res = duelRound(b, 'attack', 'defend', fixed);
+    expect(res.roundWinner).toBe('defender');
+    expect(res.dmgToDefender).toBe(9);
   });
 });
 
