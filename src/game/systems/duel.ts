@@ -75,7 +75,7 @@ const ROUND_LINES_DRAW: Array<{ zh: string; en: string }> = [
 export function canDuel(o: Officer): { ok: boolean; reason?: string } {
   if (o.status === 'dead' || o.status === 'imprisoned')
     return { ok: false, reason: 'unavailable' };
-  if (o.stats.war < 60) return { ok: false, reason: 'war stat too low' };
+  if (o.stats.war < 50) return { ok: false, reason: 'war stat too low' };
   if (o.traits?.includes('frail')) return { ok: false, reason: 'too frail' };
   return { ok: true };
 }

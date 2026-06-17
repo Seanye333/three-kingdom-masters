@@ -3546,6 +3546,10 @@ export function TacticalBattleScreen3D() {
     return () => clearTimeout(id);
   }, []);
   const [interactiveDuel, setInteractiveDuel] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number } | null>(null);
+  // 敵將叫陣 — an aggressive enemy adjacent to one of your officers may challenge
+  // you at the top of your turn; accept to duel, or refuse.
+  const [challenge, setChallenge] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number } | null>(null);
+  const challengeTurn = useRef(-1);
   const [voiceLine, setVoiceLine] = useState<{ text: string; key: number } | null>(null);
   // N7 — signature-tactic banner overlay state
   const [signatureBanner, setSignatureBanner] = useState<{ zh: string; en: string; key: number } | null>(null);
@@ -3708,6 +3712,33 @@ export function TacticalBattleScreen3D() {
   const selectedUnit = selectedId ? battle.units.find((u) => u.id === selectedId) : null;
   const lighting = LIGHTING[battle.timeOfDay];
   const myTurn = playerSide && battle.activeSide === playerSide && !battle.winner;
+
+  // 敵將叫陣 — once per turn, a brave/strong enemy next to one of your duel-capable
+  // officers may call you out. Accepting opens the bout (no AP cost — it's their
+  // initiative); the foe carries any 車輪戰 fatigue.
+  useEffect(() => {
+    if (!myTurn || interactiveDuel || challenge || !playerSide) return;
+    if (challengeTurn.current === battle.turn) return;
+    challengeTurn.current = battle.turn;
+    for (const e of battle.units) {
+      if (e.side === playerSide || e.troops <= 0) continue;
+      const foe = officers[e.officerId];
+      if (!foe || !canDuel(foe).ok) continue;
+      const seeksDuels = foe.traits?.some((tr) => tr === 'martial-valor' || tr === 'reckless' || tr === 'matchless' || tr === 'wrathful');
+      const aggro = (seeksDuels ? 0.34 : 0) + Math.max(0, (foe.stats.war - 80) / 100);
+      if (Math.random() > Math.min(0.6, 0.12 + aggro)) continue;
+      const meUnit = battle.units.find((u) => u.side === playerSide && u.troops > 0
+        && hexDistance(u.coord, e.coord) === 1
+        && officers[u.officerId] && canDuel(officers[u.officerId]!).ok);
+      if (!meUnit) continue;
+      setChallenge({
+        me: officers[meUnit.officerId]!, foe,
+        meFatigue: meUnit.duelFatigue ?? 0, foeFatigue: e.duelFatigue ?? 0,
+      });
+      break;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myTurn, battle.turn]);
 
   const onTileClick = (c: HexCoord) => {
     if (!myTurn) return;
@@ -4411,6 +4442,31 @@ export function TacticalBattleScreen3D() {
           }}
         />
       )}
+      {/* 敵將叫陣 — accept to duel, or refuse. */}
+      {challenge && !interactiveDuel && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.62)', display: 'grid', placeItems: 'center', zIndex: 140 }}>
+          <div style={{ width: 'min(420px,92vw)', background: 'linear-gradient(160deg,#241a10,#140d06)', border: '1px solid #b8442e', padding: '1.4rem', textAlign: 'center', fontFamily: 'var(--tkm-font-body)', color: '#e6edf3', boxShadow: '0 0 30px rgba(184,68,46,0.4)' }}>
+            <div style={{ fontSize: '0.8rem', letterSpacing: '0.3rem', color: '#e0846a', marginBottom: '0.5rem' }}>⚔ {t('陣前叫陣', 'A CHALLENGE')}</div>
+            <div style={{ fontSize: '1.5rem', color: '#f2dd9a', marginBottom: '0.3rem' }}>
+              {t(`${challenge.foe.name.zh} 立馬陣前,大喝挑戰!`, `${challenge.foe.name.en} rides forth and calls you out!`)}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#aab6c0', marginBottom: '1.2rem' }}>
+              {t(`「${challenge.me.name.zh},可敢與我一戰?」`, `"${challenge.me.name.en} — do you dare face me?"`)}
+            </div>
+            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => { setInteractiveDuel({ ...challenge }); setChallenge(null); }}
+                style={{ flex: 1, padding: '0.6rem', background: 'linear-gradient(180deg,#7a2a20,#4a1810)', border: '1px solid #e0846a', color: '#ffe0d0', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1.05rem', letterSpacing: '0.1rem' }}
+              >{t('應戰!', 'Accept!')}</button>
+              <button
+                onClick={() => setChallenge(null)}
+                style={{ flex: 1, padding: '0.6rem', background: '#1e2832', border: '1px solid #364654', color: '#aab6c0', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.1rem' }}
+              >{t('避戰', 'Refuse')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {interactiveDuel && (
         <DuelGameModal
           attacker={interactiveDuel.me}
