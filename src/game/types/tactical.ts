@@ -296,6 +296,11 @@ export interface TacticalBattle {
    *  losing side's fallen officers dead/captured — units are removed during the
    *  battle, so the final `units` array alone can't reveal who fell. */
   casualties?: { attacker: EntityId[]; defender: EntityId[] };
+  /** 單挑生擒/斬殺 — when a duel KOs an officer, the victor may choose their
+   *  fate. resolveBattleEnd forces these (skipping the charisma capture roll):
+   *  ids here are captured / killed for certain. */
+  forcedCaptures?: EntityId[];
+  forcedKills?: EntityId[];
   /** Cumulative troops ever fielded per side (initial deployment + arrived
    *  reinforcements). Losses = startTroops − current surviving troops, which
    *  counts damage to survivors and never miscounts a routed-but-not-wiped unit

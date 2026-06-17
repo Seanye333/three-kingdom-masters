@@ -3026,10 +3026,15 @@ export function resolveBattleEnd(
   const pursuitCapMul = hotPursuit ? 1.35 : 1;
   const pursuitLootMul = hotPursuit ? 1.5 : 1;
 
+  // 單挑生擒/斬殺 — a duel victor's explicit choice overrides the capture roll.
+  const forcedCap = new Set(battle.forcedCaptures ?? []);
+  const forcedKill = new Set(battle.forcedKills ?? []);
   if (winner === 'attacker') {
     for (const id of lostOfficers('defender')) {
       const o = officers[id];
       if (!o) continue;
+      if (forcedCap.has(id)) { captured.push(id); continue; }
+      if (forcedKill.has(id)) { dead.push(id); continue; }
       // Capture chance based on attacker's charisma (commander) + pursuit.
       const acc = surviving.find((u) => u.side === 'attacker' && u.isCommander);
       const cmdCha = acc ? (officers[acc.officerId]?.stats.charisma ?? 60) : 60;
@@ -3038,6 +3043,8 @@ export function resolveBattleEnd(
     }
   } else if (winner === 'defender') {
     for (const id of lostOfficers('attacker')) {
+      if (forcedCap.has(id)) { captured.push(id); continue; }
+      if (forcedKill.has(id)) { dead.push(id); continue; }
       const dc = surviving.find((u) => u.side === 'defender' && u.isCommander);
       const cmdCha = dc ? (officers[dc.officerId]?.stats.charisma ?? 60) : 60;
       if (Math.random() < (cmdCha / 130) * pursuitCapMul) captured.push(id);

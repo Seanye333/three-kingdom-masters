@@ -3550,6 +3550,8 @@ export function TacticalBattleScreen3D() {
   // you at the top of your turn; accept to duel, or refuse.
   const [challenge, setChallenge] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number } | null>(null);
   const challengeTurn = useRef(-1);
+  // 斬/擒 — after a duel KOs an enemy, the victor chooses their fate.
+  const [captureChoice, setCaptureChoice] = useState<{ id: string; name: { zh: string; en: string } } | null>(null);
   const [voiceLine, setVoiceLine] = useState<{ text: string; key: number } | null>(null);
   // N7 — signature-tactic banner overlay state
   const [signatureBanner, setSignatureBanner] = useState<{ zh: string; en: string; key: number } | null>(null);
@@ -4467,6 +4469,28 @@ export function TacticalBattleScreen3D() {
         </div>
       )}
 
+      {/* 斬/擒 — the defeated foe's fate is yours to decide. */}
+      {captureChoice && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 145 }}>
+          <div style={{ width: 'min(420px,92vw)', background: 'linear-gradient(160deg,#241a10,#140d06)', border: '1px solid #e6c473', padding: '1.4rem', textAlign: 'center', fontFamily: 'var(--tkm-font-body)', color: '#e6edf3' }}>
+            <div style={{ fontSize: '1.4rem', color: '#f2dd9a', marginBottom: '0.3rem' }}>
+              {t(`${captureChoice.name.zh} 已敗於你劍下!`, `${captureChoice.name.en} falls before you!`)}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#aab6c0', marginBottom: '1.2rem' }}>{t('斬之以絕後患,還是生擒以圖招攬?', 'Cut them down — or take them alive to win over?')}</div>
+            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => { start({ ...battle, forcedKills: [...(battle.forcedKills ?? []), captureChoice.id] }); setCaptureChoice(null); }}
+                style={{ flex: 1, padding: '0.6rem', background: 'linear-gradient(180deg,#7a2a20,#4a1810)', border: '1px solid #e0846a', color: '#ffe0d0', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1.05rem', letterSpacing: '0.1rem' }}
+              >🗡 {t('斬', 'Slay')}</button>
+              <button
+                onClick={() => { start({ ...battle, forcedCaptures: [...(battle.forcedCaptures ?? []), captureChoice.id] }); setCaptureChoice(null); }}
+                style={{ flex: 1, padding: '0.6rem', background: 'linear-gradient(180deg,#2a4a2a,#16301a)', border: '1px solid #86f29a', color: '#d0ffd8', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1.05rem', letterSpacing: '0.1rem' }}
+              >🪢 {t('生擒', 'Capture')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {interactiveDuel && (
         <DuelGameModal
           attacker={interactiveDuel.me}
@@ -4531,6 +4555,8 @@ export function TacticalBattleScreen3D() {
             next = { ...next, units: next.units.map((u) => (u.officerId === me.id || u.officerId === foe.id) ? { ...u, duelFatigue: (u.duelFatigue ?? 0) + 24 } : u) };
             start(next);
             setInteractiveDuel(null);
+            // 斬/擒 — you cut the foe down; choose whether to take them alive.
+            if (killedId && killedId === foe.id) setCaptureChoice({ id: foe.id, name: foe.name });
           }}
         />
       )}

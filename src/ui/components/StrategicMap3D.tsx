@@ -7126,6 +7126,7 @@ export function StrategicMap3D() {
   // runs in the same DuelGameModal the fullscreen uses.
   const [dioDuelArm, setDioDuelArm] = useState(false);
   const [worldDuel, setWorldDuel] = useState<{ me: Officer; foe: Officer; meFatigue: number; foeFatigue: number } | null>(null);
+  const [captureChoice, setCaptureChoice] = useState<{ id: string; name: { zh: string; en: string } } | null>(null);
   // 快捷輪盤 — which DOM picker (march/recruit) the ring asked for.
   const [quickPick, setQuickPick] = useState<{ kind: 'march' | 'recruit'; cityId: string } | null>(null);
   const [dioArcs, setDioArcs] = useState<Array<{ id: number; from: HexCoord; to: HexCoord; kind: 'melee' | 'ranged'; spawnedAt: number }>>([]);
@@ -7729,8 +7730,29 @@ export function StrategicMap3D() {
             // 車輪戰 — both surviving fighters open any next bout more winded.
             next = { ...next, units: next.units.map((u) => (u.officerId === me.id || u.officerId === foe.id) ? { ...u, duelFatigue: (u.duelFatigue ?? 0) + 24 } : u) };
             startBattleUpdate(next);
+            if (killedId && killedId === foe.id) setCaptureChoice({ id: foe.id, name: foe.name });
           }}
         />
+      )}
+
+      {/* 斬/擒 — choose the defeated foe's fate. */}
+      {captureChoice && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 1400 }}>
+          <div style={{ width: 'min(420px,92vw)', background: 'linear-gradient(160deg,#241a10,#140d06)', border: '1px solid #e6c473', padding: '1.4rem', textAlign: 'center', fontFamily: 'var(--tkm-font-body)', color: '#e6edf3' }}>
+            <div style={{ fontSize: '1.4rem', color: '#f2dd9a', marginBottom: '0.3rem' }}>{captureChoice.name.zh} 已敗於你劍下!</div>
+            <div style={{ fontSize: '0.85rem', color: '#aab6c0', marginBottom: '1.2rem' }}>斬之以絕後患,還是生擒以圖招攬?</div>
+            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => { const b = useGameStore.getState().tacticalBattle; if (b) startBattleUpdate({ ...b, forcedKills: [...(b.forcedKills ?? []), captureChoice.id] }); setCaptureChoice(null); }}
+                style={{ flex: 1, padding: '0.6rem', background: 'linear-gradient(180deg,#7a2a20,#4a1810)', border: '1px solid #e0846a', color: '#ffe0d0', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1.05rem', letterSpacing: '0.1rem' }}
+              >🗡 斬</button>
+              <button
+                onClick={() => { const b = useGameStore.getState().tacticalBattle; if (b) startBattleUpdate({ ...b, forcedCaptures: [...(b.forcedCaptures ?? []), captureChoice.id] }); setCaptureChoice(null); }}
+                style={{ flex: 1, padding: '0.6rem', background: 'linear-gradient(180deg,#2a4a2a,#16301a)', border: '1px solid #86f29a', color: '#d0ffd8', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1.05rem', letterSpacing: '0.1rem' }}
+              >🪢 生擒</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 軍令提示 — with a column selected, spell out what a tap does. The
