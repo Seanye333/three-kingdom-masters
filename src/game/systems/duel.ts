@@ -1,5 +1,6 @@
 import type { Officer } from '../types';
-import { ITEMS_BY_ID } from '../data/items';
+import { liveItemById } from '../data/items';
+import { gradeCombatBonus, itemMasteryMul } from './gradeCombat';
 import { SKILLS_BY_ID } from '../data/skills';
 import { effectivePrestigeEffects } from '../data/prestige';
 
@@ -147,8 +148,9 @@ export function resolveDuel(input: DuelInput): DuelResult {
 function prowessParts(o: Officer): { itemBonus: number; skillBonus: number; traitBonus: number } {
   let itemBonus = 0;
   for (const id of o.equipment) {
-    const it = ITEMS_BY_ID[id];
-    if (it?.effects.war) itemBonus += it.effects.war;
+    const it = liveItemById(id);
+    // 兵器駕馭 — a 神兵 only tells in worthy hands; 精煉 boosts read live here.
+    if (it?.effects.war) itemBonus += it.effects.war * itemMasteryMul(o, it);
   }
   let skillBonus = 0;
   for (const sid of o.skills) {
@@ -174,7 +176,7 @@ function prowessParts(o: Officer): { itemBonus: number; skillBonus: number; trai
 /** Static prowess (war + bonuses, no dice) — drives interactive-duel damage. */
 export function staticProwess(o: Officer): number {
   const p = prowessParts(o);
-  return Math.round(o.stats.war + p.itemBonus + p.skillBonus + p.traitBonus + effectivePrestigeEffects(o).duelBonus);
+  return Math.round(o.stats.war + p.itemBonus + p.skillBonus + p.traitBonus + effectivePrestigeEffects(o).duelBonus + gradeCombatBonus(o).duelBonus);
 }
 
 function rollOne(o: Officer, rng: () => number): DuelRoll {

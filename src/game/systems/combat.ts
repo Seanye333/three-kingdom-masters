@@ -8,7 +8,7 @@ import type {
   Skill,
 } from '../types';
 import { OATH_BONDS } from '../data/bonds';
-import { ITEMS_BY_ID } from '../data/items';
+import { liveItemById } from '../data/items';
 import { OFFICER_RELATIONSHIPS } from '../data/relationships';
 import { SKILLS_BY_ID } from '../data/skills';
 import { getEliteTroop } from '../data/eliteTroops';
@@ -18,6 +18,9 @@ import { describeBattleSite, isRiverside } from '../data/geography';
 import { cityPos } from '../data/cityGeo';
 import { sidePoolRelationshipBonus, rivalShowdownMultiplier } from './relationshipEffects';
 import { effectivePrestigeEffects } from '../data/prestige';
+import { gradeAuraPowerMul, gradeAuraMorale, itemMasteryMul } from './gradeCombat';
+import { growthPowerMul } from './growth';
+import { itemSetPowerMul } from '../data/itemSets';
 import { selectSiegeEngine } from '../data/siegeEngines';
 import {
   STRATAGEM_DEFS,
@@ -287,19 +290,23 @@ export function resolveBattle(
     let itemWar = 0;
     let itemLead = 0;
     for (const id of Object.values(o.equipment)) {
-      const item = id ? ITEMS_BY_ID[id] : null;
+      const item = id ? liveItemById(id) : null;
       if (!item) continue;
-      itemWar += item.effects.war ?? 0;
-      itemLead += item.effects.leadership ?? 0;
+      // 兵器駕馭 — an under-grade wielder doesn't get the full effect. The item
+      // is resolved live so 精煉 boosts (and any rarity promotion) count here.
+      const mastery = itemMasteryMul(o, item);
+      itemWar += (item.effects.war ?? 0) * mastery;
+      itemLead += (item.effects.leadership ?? 0) * mastery;
     }
     // Tactic bonuses — each tactic the officer knows gives a small stat buff.
     const tactics = (o as Officer & { tactics?: string[] }).tactics
       ?? deriveTactics(o.stats, o.id);
     const tb = tacticsTotalBonus(tactics);
+    // 歷練之威 — a seasoned officer's experience lifts their whole contribution.
     return (
       (o.stats.war + itemWar + bond + tb.war) * 0.6 +
       (o.stats.leadership + itemLead + bond + tb.leadership) * 0.4
-    );
+    ) * growthPowerMul(o);
   };
 
   // ── 計策 Stratagem — auto-pick best applicable, roll for success ──
@@ -448,10 +455,16 @@ export function resolveBattle(
   // 威名 — a side led by famous names hits harder.
   const aPrestigeMul = prestigeCombatMultiplier(attackerPool);
   const dPrestigeMul = prestigeCombatMultiplier(defenderPool);
+  // 品階威儀 — a side led by high-grade officers fights above its numbers.
+  const aGradeMul = gradeAuraPowerMul(attackerPool);
+  const dGradeMul = gradeAuraPowerMul(defenderPool);
+  // 神兵譜共鳴 — a commander bearing a full legendary set lifts the army's power.
+  const aSetMul = itemSetPowerMul(attacker.commander);
+  const dSetMul = defender.commander ? itemSetPowerMul(defender.commander) : 1;
   const aPower =
     aBlended * Math.sqrt(attacker.troops) * aSkillEffects.powerMultiplier * aElitePower *
     (stratEffect.attackerPowerMul ?? 1) * aPolicy.attackMul * aTraitMods.attackMul * aComboMul *
-    aRelBonus.powerMul * rivalMul * aTitlePowerMul * aCasusMul * aNavalMul * aGuardMul * aPrestigeMul;
+    aRelBonus.powerMul * rivalMul * aTitlePowerMul * aCasusMul * aNavalMul * aGuardMul * aPrestigeMul * aGradeMul * aSetMul;
 
   const defenderIds = defenderPool.map((o) => o.id);
   const dBaseBlended =
@@ -487,7 +500,7 @@ export function resolveBattle(
     dElitePower *
     (stratEffect.defenderPowerMul ?? 1) *
     dPolicy.attackMul * dTraitMods.attackMul * dComboMul * dRelBonus.powerMul * rivalMul *
-    dTitlePowerMul * dCasusMul * dNavalMul * dGuardMul * dPrestigeMul / Math.max(0.5, dPolicy.defenseMul);
+    dTitlePowerMul * dCasusMul * dNavalMul * dGuardMul * dPrestigeMul * dGradeMul * dSetMul / Math.max(0.5, dPolicy.defenseMul);
 
   const total = aPower + dPower || 1;
   const aRatio = aPower / total;
@@ -551,9 +564,10 @@ export function resolveBattle(
   // Each side starts at 60 + commander leadership/10. Phases shift morale by
   // power-ratio dynamics, stratagem surprise, duel outcomes, and elite presence.
   const phases: BattlePhaseLog[] = [];
-  let aMorale = clamp(60 + attacker.commander.stats.leadership / 10, 0, 100);
+  // 品階威儀 — a graded commander steadies the line, opening with higher morale.
+  let aMorale = clamp(60 + attacker.commander.stats.leadership / 10 + gradeAuraMorale(attackerPool), 0, 100);
   let dMorale = defender.commander
-    ? clamp(60 + defender.commander.stats.leadership / 10, 0, 100)
+    ? clamp(60 + defender.commander.stats.leadership / 10 + gradeAuraMorale(defenderPool), 0, 100)
     : 30;
 
   // Phase 1 — Formation (兵陣)

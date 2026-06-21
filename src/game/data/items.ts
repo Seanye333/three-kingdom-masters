@@ -24,6 +24,97 @@ export interface Item {
     trait?: string;      // PersonalityTrait
     formation?: string;  // OfficerFormationId
   };
+  /** 品階 — optional explicit rarity. When omitted, itemRarity() derives one
+   *  from the item's effect magnitude so every item reads in the shared
+   *  金/銀/銅 visual language. */
+  rarity?: 'gold' | 'silver' | 'bronze';
+}
+
+export type ItemRarity = 'gold' | 'silver' | 'bronze';
+
+const RARITY_META: Record<ItemRarity, { zh: string; en: string; color: string }> = {
+  gold:   { zh: '神兵', en: 'Legendary', color: '#e6c473' },
+  silver: { zh: '寶器', en: 'Fine',      color: '#cfd8e0' },
+  bronze: { zh: '良具', en: 'Common',    color: '#c8884e' },
+};
+
+/**
+ * 寶物品階 — a gold/silver/bronze rarity that mirrors the officer 品階 colours.
+ * Uses an explicit `item.rarity` when set, else derives one from the total
+ * stat magnitude (a one-shot grant counts as extra heft) so 神兵 like the
+ * Sky Piercer read gold while a modest trinket reads bronze.
+ */
+export function itemRarity(item: Item): ItemRarity {
+  if (item.rarity) return item.rarity;
+  const e = item.effects;
+  let weight = Math.abs(e.war ?? 0) + Math.abs(e.leadership ?? 0) + Math.abs(e.intelligence ?? 0)
+    + Math.abs(e.politics ?? 0) + Math.abs(e.charisma ?? 0);
+  if (item.grants && Object.keys(item.grants).length > 0) weight += 6;
+  if (weight >= 15) return 'gold';
+  if (weight >= 9) return 'silver';
+  return 'bronze';
+}
+
+export function itemRarityMeta(r: ItemRarity): { zh: string; en: string; color: string } {
+  return RARITY_META[r];
+}
+
+// ─── 精煉 — item refinement ─────────────────────────────────────────────────
+/** Max refinement level (+0 … +REFINE_MAX). */
+export const REFINE_MAX = 5;
+
+/**
+ * 精煉登記 — a denormalized view of the store's `itemRefinements` map. The pure
+ * item-effect read sites (combat / duel / damage prediction / the officer sheet)
+ * resolve an item's *live* refined stats through `liveItemById` without having
+ * to thread the map through every signature. The store is the source of truth
+ * and calls `setRefineRegistry` whenever the map changes (refine action, new
+ * game, save rehydrate). Defaults empty, so anything that never sets it (tests,
+ * old saves) sees base items — identical to the pre-refinement behaviour.
+ */
+let REFINE_REGISTRY: Record<string, number> = {};
+export function setRefineRegistry(map: Record<string, number> | undefined): void {
+  REFINE_REGISTRY = map ?? {};
+}
+export function itemRefineLevel(itemId: string): number {
+  const p = REFINE_REGISTRY[itemId] ?? 0;
+  return p < 0 ? 0 : p > REFINE_MAX ? REFINE_MAX : p;
+}
+
+/**
+ * Refined effect magnitudes: each +1 lifts every non-zero stat effect by 15% of
+ * its base (rounded, always at least ±1 on a non-zero effect). A +5 神兵 hits
+ * ~75% harder — and the boosted magnitude can promote its 品階 tier, so a fully
+ * refined 良具 can read 寶器 and demand a worthier wielder (金裝配金將).
+ */
+export function refinedEffects(item: Item, plus: number): Item['effects'] {
+  if (!plus) return item.effects;
+  const out: Item['effects'] = {};
+  for (const [k, v] of Object.entries(item.effects) as Array<[keyof Item['effects'], number | undefined]>) {
+    if (!v) continue;
+    out[k] = v + Math.sign(v) * Math.max(1, Math.round(Math.abs(v) * 0.15 * plus));
+  }
+  return out;
+}
+
+/** An item with its refinement baked into `effects` (rarity recomputes from the boosted magnitude). */
+export function liveItem(item: Item, plus: number): Item {
+  if (!plus) return item;
+  return { ...item, effects: refinedEffects(item, plus) };
+}
+
+/** Look up an item by id and bake in its registered refinement level. */
+export function liveItemById(id: string): Item | null {
+  const base = ITEMS_BY_ID[id];
+  if (!base) return null;
+  return liveItem(base, itemRefineLevel(id));
+}
+
+/** Gold cost to take an item from `plus` → `plus+1` (escalates with rarity + level). */
+export function refineCost(item: Item, plus: number): number {
+  const r = itemRarity(item);
+  const base = r === 'gold' ? 600 : r === 'silver' ? 360 : 220;
+  return Math.round(base * (plus + 1) * 1.35);
 }
 
 export const ITEMS: Item[] = [

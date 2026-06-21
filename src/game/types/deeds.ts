@@ -8,6 +8,9 @@ export interface HeroicDeeds {
   officerId: EntityId;
   killsTroops: number;
   duelsWon: number;
+  /** 舌戰勝 — debates won. Optional: not all builds track it; renownFromDeeds
+   *  reads it as 0 when absent. */
+  debatesWon?: number;
   captured: number;
   citiesTaken: number;
   espionageSuccess: number;

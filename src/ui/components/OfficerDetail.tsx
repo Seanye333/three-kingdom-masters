@@ -27,7 +27,14 @@ import {
 import { WEAPON_TYPE_DEFS, deriveWeaponType } from '../../game/data/weaponTypes';
 import { HISTORICAL_LIFESPANS } from '../../game/data/historicalLifespans';
 import { effectivePrestige } from '../../game/data/prestige';
-import type { City, Force, Officer, Skill } from '../../game/types';
+import { renownFromDeeds, fameTier, fameMedal } from '../../game/systems/fame';
+import { xpProgress, learnableSkills, canBreakthrough, breakthroughCost, MAX_BREAKTHROUGHS, breakthroughTitle, growthPowerMul } from '../../game/systems/growth';
+import { officerGrade, officerLevel } from '../../game/systems/officerGrade';
+import { gradeCombatBonus, itemMasteryMul } from '../../game/systems/gradeCombat';
+import { itemRarity, itemRarityMeta, liveItemById, refineCost, REFINE_MAX } from '../../game/data/items';
+import { activeItemSets } from '../../game/data/itemSets';
+import { ageBand } from '../../game/systems/aging';
+import type { City, Force, Officer, OfficerStats, Skill } from '../../game/types';
 import { FORMATIONS_BY_ID } from '../../game/data/formations';
 import { TACTIC_DESC } from './TacticsModal';
 import { POLICY_DESC } from './PoliciesModal';
@@ -62,12 +69,15 @@ function effectiveStatBonuses(o: Officer): {
   charisma: number;
 } {
   const bonus = { leadership: 0, war: 0, intelligence: 0, politics: 0, charisma: 0 };
-  // Item bonuses
+  // Item bonuses. 兵器駕馭 — war/leadership are scaled by the wielder's mastery
+  // (matching what combat actually applies), so the bars don't promise more
+  // than an under-grade officer can draw from a 神兵.
   for (const itemId of o.equipment) {
-    const item = ITEMS_BY_ID[itemId];
+    const item = liveItemById(itemId);
     if (!item) continue;
-    bonus.leadership += item.effects.leadership ?? 0;
-    bonus.war += item.effects.war ?? 0;
+    const mastery = itemMasteryMul(o, item);
+    bonus.leadership += Math.round((item.effects.leadership ?? 0) * mastery);
+    bonus.war += Math.round((item.effects.war ?? 0) * mastery);
     bonus.intelligence += item.effects.intelligence ?? 0;
     bonus.politics += item.effects.politics ?? 0;
     bonus.charisma += item.effects.charisma ?? 0;
@@ -125,14 +135,21 @@ export function OfficerDetail({
   const pendingTrainings = useGameStore((s) => s.pendingTrainings);
   const cancelTrainingFn = useGameStore((s) => s.cancelTraining);
   const allOfficers = useGameStore((s) => s.officers);
+  const deeds = useGameStore((s) => s.deeds);
   const buildings = useGameStore((s) => s.buildings);
   const family = useGameStore((s) => s.family);
   const officerDeeds = useGameStore((s) => s.deeds[officer.id]);
   const officerWishes = useGameStore((s) => s.officerWishes);
   const openWish = officerWishes.find((w) => w.officerId === officer.id);
   const unequipItemFn = useGameStore((s) => s.unequipItem);
+  const refineItemFn = useGameStore((s) => s.refineItem);
+  // Subscribe so refining (which bumps this map) re-renders the equipment list.
+  const itemRefinements = useGameStore((s) => s.itemRefinements);
+  const setTrainingFocusFn = useGameStore((s) => s.setTrainingFocus);
+  const breakthroughOfficerFn = useGameStore((s) => s.breakthroughOfficer);
   const activeTraining = pendingTrainings.find((tr) => tr.officerId === officer.id);
   const isPlayerOfficer = officer.forceId === playerForceId;
+  const [progressMsg, setProgressMsg] = useState<string | null>(null);
 
   const forces = forcesOverride ?? storeForces;
   const cities = citiesOverride ?? storeCities;
@@ -187,6 +204,27 @@ export function OfficerDetail({
                   color: '#f0d890', fontSize: '0.82rem', letterSpacing: '0.05rem', borderRadius: 2,
                 }}>
                   威名 · {lang === 'en' ? prestige.name.en : prestige.name.zh}
+                </div>
+              );
+            })()}
+            {(() => {
+              // 名聲榜 — martial/rhetorical renown from the officer's deeds.
+              const renown = renownFromDeeds(deeds[officer.id]);
+              if (renown < 20) return null;
+              const tier = fameTier(renown);
+              const medal = fameMedal(renown);
+              return (
+                <div style={{
+                  display: 'inline-block', marginTop: '0.3rem', marginLeft: '0.4rem', padding: '0.12rem 0.5rem',
+                  background: 'linear-gradient(180deg, #1a3a2a, #102018)', border: '1px solid #6aae8a',
+                  color: '#9ed8b8', fontSize: '0.82rem', letterSpacing: '0.05rem', borderRadius: 2,
+                }}>
+                  {medal && (
+                    <span title={lang === 'en' ? medal.name.en : medal.name.zh} style={{ marginRight: '0.3rem' }}>
+                      {medal.glyph}
+                    </span>
+                  )}
+                  {lang === 'en' ? tier.en : tier.zh} · {t('名望', 'Renown')} {renown}
                 </div>
               );
             })()}
@@ -317,18 +355,101 @@ export function OfficerDetail({
           <StatBar label={t('忠誠', 'Loyalty')} value={officer.loyalty} mode="loyalty" />
         </section>
 
-        {(officer.doctrine || officer.level) && (
+        {(
           <section className={styles.statsSection}>
             <h3 className={styles.sectionTitle}>{t('武將錄', 'Officer Profile')}</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.5rem', alignItems: 'baseline' }}>
-              {officer.level !== undefined && (
-                <div>
-                  <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('等級', 'Lv.')} </span>
-                  <span style={{ fontSize: '1.1rem', color: '#e6c473', fontFamily: 'ui-monospace, monospace' }}>
-                    {officer.level}
-                  </span>
-                </div>
-              )}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem 1.5rem', alignItems: 'flex-start' }}>
+              {(() => {
+                // 品階 — gold/silver/bronze grade from effective stats. Descriptive,
+                // not a spend currency: it climbs 鐵→銅→銀→金 as the officer grows.
+                const g = officerGrade(officer);
+                const renown = Math.round(officer.renown ?? 0);
+                return (
+                  <div title={t(`品階 ${g.rank.zh} · 評分 ${g.score}${renown ? ` · 戰功威望 ${renown}` : ''}`, `Grade ${g.rank.en} · score ${g.score}${renown ? ` · renown ${renown}` : ''}`)}>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('品階', 'Grade')} </span>
+                    <span style={{
+                      display: 'inline-block', padding: '0.1rem 0.5rem', borderRadius: 2,
+                      background: '#10161e', border: `1px solid ${g.color}`, color: g.color,
+                      fontSize: '0.85rem', letterSpacing: '0.08rem',
+                    }}>
+                      {lang === 'en' ? g.name.en : g.name.zh}
+                      <span style={{ marginLeft: 4, fontSize: '0.62rem', opacity: 0.8 }}>
+                        {lang === 'en' ? g.rank.en : g.rank.zh}
+                      </span>
+                    </span>
+                    {renown > 0 && (
+                      <span style={{ marginLeft: 6, fontSize: '0.62rem', color: '#c8a24e' }}>
+                        {t('威望', 'Renown')} {renown}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+              {(() => {
+                // 歷練 — the officer's overall level (headline) plus a bar showing
+                // progress toward the next stat-growth tick. Raised by practice,
+                // debates, battle and internal-affairs work.
+                const lvl = officerLevel(officer);
+                const p = xpProgress(officer.xp);
+                const pct = p.atMax ? 100 : Math.round((p.intoLevel / p.levelSpan) * 100);
+                return (
+                  <div style={{ minWidth: 150 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('歷練', 'Level')}</span>
+                      <span style={{ fontSize: '1.1rem', color: '#e6c473', fontFamily: 'ui-monospace, monospace' }}>
+                        Lv.{lvl}
+                      </span>
+                    </div>
+                    <div style={{ marginTop: 3, height: 5, width: 150, background: '#10161e', border: '1px solid #26323e', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: p.atMax ? 'linear-gradient(90deg,#c9a64e,#e6c473)' : '#3a7dd9' }} />
+                    </div>
+                    <div style={{ marginTop: 2, fontSize: '0.6rem', color: '#7a8893', fontFamily: 'ui-monospace, monospace' }}>
+                      {p.atMax
+                        ? t('已臻化境', 'Mastery (max)')
+                        : t(`距下次成長 · 再 ${p.toNext} 經驗`, `${p.toNext} XP to next growth`)}
+                    </div>
+                  </div>
+                );
+              })()}
+              {(() => {
+                // 年歲 — life-stage band; past 遲暮 the officer's martial edge wanes.
+                const band = ageBand(age);
+                return (
+                  <div title={t(`${age} 歲 · ${band.zh}${band.declining ? '（武力漸衰）' : ''}`, `Age ${age} · ${band.en}${band.declining ? ' (waning)' : ''}`)}>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('年歲', 'Age')} </span>
+                    <span style={{
+                      display: 'inline-block', padding: '0.1rem 0.5rem', borderRadius: 2,
+                      background: '#10161e', border: `1px solid ${band.color}`, color: band.color, fontSize: '0.85rem',
+                    }}>
+                      {age} · {lang === 'en' ? band.en : band.zh}
+                    </span>
+                  </div>
+                );
+              })()}
+              {(() => {
+                // 寶物品階 — the best gold/silver/bronze rarity the officer carries,
+                // shown in the same palette as 品階 so ability and gear read alike.
+                const live = allOfficers[officer.id] ?? officer;
+                const owned = live.equipment.map((id) => ITEMS_BY_ID[id]).filter(Boolean);
+                if (owned.length === 0) return null;
+                const order = { gold: 3, silver: 2, bronze: 1 } as const;
+                let best = owned[0];
+                for (const it of owned) if (order[itemRarity(it)] > order[itemRarity(best)]) best = it;
+                const rm = itemRarityMeta(itemRarity(best));
+                return (
+                  <div title={t(`持有 ${owned.length} 件寶物，最高 ${rm.zh}`, `Carries ${owned.length} item(s), best ${rm.en}`)}>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' }}>{t('寶物', 'Gear')} </span>
+                    <span style={{
+                      display: 'inline-block', padding: '0.1rem 0.5rem', borderRadius: 2,
+                      background: '#10161e', border: `1px solid ${rm.color}`, color: rm.color,
+                      fontSize: '0.85rem', letterSpacing: '0.08rem',
+                    }}>
+                      {lang === 'en' ? rm.en : rm.zh}
+                      {owned.length > 1 && <span style={{ marginLeft: 4, fontSize: '0.62rem', opacity: 0.8 }}>×{owned.length}</span>}
+                    </span>
+                  </div>
+                );
+              })()}
               {officer.doctrine && (() => {
                 const d = DOCTRINE_DEFS[officer.doctrine];
                 return (
@@ -367,6 +488,122 @@ export function OfficerDetail({
                 );
               })()}
             </div>
+
+            {(() => {
+              // ── 品階威儀 / 練兵 / 突破 / 可習之技 — the progression controls ──
+              const live = allOfficers[officer.id] ?? officer;
+              const STAT_META: Array<{ key: keyof OfficerStats; zh: string; en: string }> = [
+                { key: 'leadership', zh: '統', en: 'LDR' },
+                { key: 'war', zh: '武', en: 'WAR' },
+                { key: 'intelligence', zh: '智', en: 'INT' },
+                { key: 'politics', zh: '政', en: 'POL' },
+                { key: 'charisma', zh: '魅', en: 'CHA' },
+              ];
+              const gp = gradeCombatBonus(live);
+              const passivePct = Math.round((gp.powerMul - 1) * 100);
+              const gate = canBreakthrough(live);
+              const count = live.breakthroughs ?? 0;
+              const cost = breakthroughCost(live);
+              const cityGold = city?.gold ?? 0;
+              const pool = learnableSkills(live);
+              const labelStyle = { fontSize: '0.65rem', color: '#7a8893', letterSpacing: '0.05rem' } as const;
+              return (
+                <div style={{ marginTop: '0.7rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                  {/* 品階威儀 — what the grade actually does in a fight */}
+                  {passivePct > 0 && (
+                    <div style={{ fontSize: '0.7rem', color: '#9aa7b3' }}>
+                      <span style={labelStyle}>{t('品階威儀', 'Grade aura')} </span>
+                      {t(
+                        `戰力 +${passivePct}%　士氣 +${gp.morale}　單挑 +${gp.duelBonus}　氣力 +${gp.duelStamina}　威儀減傷 ${Math.round(gp.damageResist * 100)}%　歷練 +${Math.round((growthPowerMul(live) - 1) * 100)}%`,
+                        `Power +${passivePct}%, Morale +${gp.morale}, Duel +${gp.duelBonus}, Stamina +${gp.duelStamina}, Resist ${Math.round(gp.damageResist * 100)}%, Seasoning +${Math.round((growthPowerMul(live) - 1) * 100)}%`,
+                      )}
+                    </div>
+                  )}
+
+                  {/* 練兵/拜師 — steer growth (player officers only) */}
+                  {isMine && (
+                    <div>
+                      <span style={labelStyle}>{t('練兵方向', 'Training focus')} </span>
+                      <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.3rem', marginLeft: '0.3rem', verticalAlign: 'middle' }}>
+                        {STAT_META.map((s) => {
+                          const on = live.trainingFocus === s.key;
+                          return (
+                            <button
+                              key={s.key}
+                              onClick={() => setTrainingFocusFn(officer.id, on ? null : s.key)}
+                              title={t('成長偏向此能力', 'Bias level-up growth toward this stat')}
+                              style={{
+                                cursor: 'pointer', padding: '0.1rem 0.45rem', borderRadius: 2,
+                                background: on ? '#2a2010' : '#10161e',
+                                border: `1px solid ${on ? '#e6c473' : '#26323e'}`,
+                                color: on ? '#e6c473' : '#8a97a3', fontSize: '0.78rem',
+                              }}
+                            >
+                              {lang === 'en' ? s.en : s.zh}
+                            </button>
+                          );
+                        })}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* 轉生/突破 — renewed growth past the XP ceiling */}
+                  {isMine && (count > 0 || gate.ok || gate.reason === 'capped') && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={labelStyle}>{t('突破', 'Breakthrough')}</span>
+                      {count > 0 && (
+                        <span title={t(`已突破 ${count}/${MAX_BREAKTHROUGHS} 重`, `${count}/${MAX_BREAKTHROUGHS} breakthroughs`)} style={{ color: '#e6c473', fontSize: '0.82rem', letterSpacing: '0.1rem' }}>
+                          {'★'.repeat(count)}{'☆'.repeat(Math.max(0, MAX_BREAKTHROUGHS - count))}
+                          {(() => { const bt = breakthroughTitle(count); return bt ? <span style={{ marginLeft: 5, fontSize: '0.7rem', color: '#8ee8ff' }}>{lang === 'en' ? bt.en : bt.zh}</span> : null; })()}
+                        </span>
+                      )}
+                      {gate.ok ? (
+                        <button
+                          onClick={() => {
+                            const res = breakthroughOfficerFn(officer.id);
+                            setProgressMsg(res.ok
+                              ? (res.notes?.[0] ?? t('突破成功!', 'Breakthrough!'))
+                              : res.reason === 'no-gold'
+                                ? t('府庫黃金不足', 'Not enough gold')
+                                : t('無法突破', 'Cannot break through'));
+                          }}
+                          disabled={cityGold < cost}
+                          title={t(`消耗 ${cost} 黃金（本城 ${cityGold}）`, `Costs ${cost} gold (city has ${cityGold})`)}
+                          style={{
+                            cursor: cityGold < cost ? 'not-allowed' : 'pointer', padding: '0.12rem 0.6rem', borderRadius: 2,
+                            background: cityGold < cost ? '#10161e' : 'linear-gradient(180deg,#4a3a1a,#2a2010)',
+                            border: '1px solid #e6c473', color: cityGold < cost ? '#6a7480' : '#f0d890', fontSize: '0.78rem',
+                          }}
+                        >
+                          {t(`突破 · ${cost}黃金`, `Break through · ${cost}g`)}
+                        </button>
+                      ) : gate.reason === 'capped' ? (
+                        <span style={{ fontSize: '0.72rem', color: '#7a8893' }}>{t('已臻極限', 'At the limit')}</span>
+                      ) : null}
+                      {progressMsg && <span style={{ fontSize: '0.72rem', color: '#9ed8b8' }}>{progressMsg}</span>}
+                    </div>
+                  )}
+
+                  {/* 可習之技 — skills this officer could still grow into */}
+                  {pool.length > 0 && (
+                    <div>
+                      <span style={labelStyle}>{t('可習之技', 'May yet learn')} </span>
+                      <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.3rem', marginLeft: '0.3rem', verticalAlign: 'middle' }}>
+                        {pool.slice(0, 8).map((sk) => (
+                          <span key={sk.id} style={{
+                            padding: '0.08rem 0.4rem', borderRadius: 2, background: '#10161e',
+                            border: '1px dashed #3a4a5a', color: '#8a97a3', fontSize: '0.72rem',
+                          }}>
+                            {lang === 'en' ? sk.name.en : sk.name.zh}
+                          </span>
+                        ))}
+                        {pool.length > 8 && <span style={{ fontSize: '0.7rem', color: '#7a8893' }}>+{pool.length - 8}</span>}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </section>
         )}
 
@@ -701,7 +938,7 @@ export function OfficerDetail({
           // Aggregate all item stat bonuses.
           const total: Record<string, number> = {};
           for (const id of officer.equipment) {
-            const item = ITEMS_BY_ID[id];
+            const item = liveItemById(id);
             if (!item) continue;
             for (const [k, v] of Object.entries(item.effects)) {
               total[k] = (total[k] ?? 0) + (v as number);
@@ -721,10 +958,27 @@ export function OfficerDetail({
                   </span>
                 )}
               </h3>
+              {(() => {
+                // 神兵譜 — full legendary sets the officer has assembled.
+                const sets = activeItemSets(officer);
+                if (sets.length === 0) return null;
+                return (
+                  <div style={{ marginBottom: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.65rem', color: '#7a8893' }}>{t('神兵譜', 'Set')}</span>
+                    {sets.map((s) => (
+                      <span key={s.id} title={t(`套裝共鳴 — 戰力 +${Math.round(s.powerBonus * 100)}%`, `Set resonance — power +${Math.round(s.powerBonus * 100)}%`)}
+                        style={{ padding: '0.1rem 0.5rem', borderRadius: 2, background: '#10161e', border: `1px solid ${s.color}`, color: s.color, fontSize: '0.78rem' }}>
+                        {lang === 'en' ? s.name.en : s.name.zh} <span style={{ fontSize: '0.66rem', opacity: 0.85 }}>+{Math.round(s.powerBonus * 100)}%</span>
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 {officer.equipment.map((id) => {
-                  const item = ITEMS_BY_ID[id];
+                  const item = liveItemById(id);
                   if (!item) return null;
+                  const plus = itemRefinements[id] ?? 0;
                   const kindColor =
                     item.kind === 'weapon'   ? '#b8442e'
                     : item.kind === 'horse'    ? '#c9a64e'
@@ -737,20 +991,40 @@ export function OfficerDetail({
                     .join(' · ');
                   const grantSummary = item.grants ? Object.entries(item.grants)
                     .map(([k, v]) => `+${k}:${v}`).join(' · ') : '';
+                  // Rarity reads off the *live* item, so a refined piece shows its promoted tier.
+                  const rm = itemRarityMeta(itemRarity(item));
+                  const atMax = plus >= REFINE_MAX;
+                  const cost = atMax ? 0 : refineCost(item, plus);
                   return (
                     <span
                       key={id}
-                      title={`${desc}\n${effects}${grantSummary ? '\n' + grantSummary : ''}`}
+                      title={`【${lang === 'en' ? rm.en : rm.zh}${plus ? ` +${plus}` : ''}】${desc}\n${effects}${grantSummary ? '\n' + grantSummary : ''}`}
                       style={{
                         background: '#10161e', border: `1px solid ${kindColor}`, color: kindColor,
                         padding: '0.3rem 0.55rem', fontSize: '0.78rem', letterSpacing: '0.1rem',
                         display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                       }}
                     >
+                      <span title={lang === 'en' ? rm.en : rm.zh} style={{ width: 7, height: 7, borderRadius: '50%', background: rm.color, flexShrink: 0 }} />
                       <span>
                         {lang === 'en' ? item.name.en : item.name.zh}
+                        {plus > 0 && <span style={{ marginLeft: '0.25rem', color: '#e6c473', fontWeight: 600 }}>+{plus}</span>}
                         {lang === 'both' && <> <span style={{ fontSize: '0.65rem', color: '#7a8893', fontStyle: 'italic' }}>{item.name.en}</span></>}
                       </span>
+                      {isPlayerOfficer && (
+                        <button
+                          onClick={() => { if (!atMax) refineItemFn(id); }}
+                          disabled={atMax}
+                          title={atMax
+                            ? t('已臻化境（精煉滿級）', 'Fully refined')
+                            : t(`精煉 +${plus + 1}（${cost} 金，本城金庫支付）`, `Refine to +${plus + 1} (${cost} gold from this city)`)}
+                          style={{
+                            background: 'none', border: `1px solid ${atMax ? '#364654' : '#e6c473'}`, borderRadius: 2,
+                            color: atMax ? '#4a5662' : '#e6c473',
+                            cursor: atMax ? 'default' : 'pointer', padding: '0 0.25rem', fontSize: '0.68rem',
+                          }}
+                        >{t('煉', '⚒')}</button>
+                      )}
                       {isPlayerOfficer && (
                         <button
                           onClick={() => unequipItemFn(officer.id, id)}

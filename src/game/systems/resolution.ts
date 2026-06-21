@@ -21,6 +21,8 @@ import { advanceSeason } from '../state/gameState';
 import { processAging } from './aging';
 import { handleSearch, resolveInternalAffairs, type LostItemRef } from './commands';
 import { handleMarch } from './combat';
+import { officerGrade, gradeRank, officerLevel } from './officerGrade';
+import { canBreakthrough, breakthroughCost, applyBreakthrough, grantXp } from './growth';
 import { tickDiplomacy, applyCoalitionPressure } from './diplomacy';
 import { tickCityEconomy, tradeTreatyGrants } from './economy';
 import { stepConvoys, resolveConvoyRaids, provisionNeeded, consumeRations, type Convoy } from './convoy';
@@ -1037,6 +1039,53 @@ export function resolveSeason(input: ResolutionInput): ResolutionOutput {
     });
     // 武功 — civicWorks bump on successful internal affairs
     if (result.success) bumpDeed(cmd.officerId, { civicWorks: 1 });
+  }
+
+  // 名將帶新兵 — a 金牌+ officer stationed in a city seasons the junior officers
+  // garrisoned with them: a small XP trickle to those clearly below the mentor's
+  // 歷練. Turns 品階 into a teaching loop (all forces).
+  const MENTOR_XP = 8;
+  for (const city of Object.values(cities)) {
+    if (!city.ownerForceId) continue;
+    const present = Object.values(officers).filter((o) =>
+      o.locationCityId === city.id && o.forceId === city.ownerForceId &&
+      (o.status === 'idle' || o.status === 'active'));
+    if (present.length < 2) continue;
+    let mentor: typeof present[number] | null = null;
+    let mentorScore = -1;
+    for (const o of present) {
+      const gi = officerGrade(o);
+      if (gradeRank(gi.grade) >= gradeRank('gold') && gi.score > mentorScore) { mentor = o; mentorScore = gi.score; }
+    }
+    if (!mentor) continue;
+    const mLevel = officerLevel(mentor);
+    const students = present
+      .filter((o) => o.id !== mentor!.id && officerLevel(o) <= mLevel - 3)
+      .sort((a, b) => officerLevel(a) - officerLevel(b))
+      .slice(0, 3);
+    for (const st of students) {
+      const r = grantXp(officers[st.id] ?? st, MENTOR_XP, rng);
+      officers[st.id] = r.officer;
+      entries.push(...r.entries);
+    }
+  }
+
+  // AI 突破 — foreign forces invest in their fully-seasoned officers too, so the
+  // player's breakthrough edge doesn't compound into a one-sided power gap. A
+  // force only breaks an officer through when its city can spare double the cost
+  // (war reserve) and only some seasons (rng), so it ramps gradually.
+  for (const o of Object.values(officers)) {
+    if (!o.forceId || o.forceId === input.playerForceId) continue;
+    if (o.status === 'dead' || o.status === 'imprisoned' || o.status === 'retired') continue;
+    if (!canBreakthrough(o).ok) continue;
+    const city = o.locationCityId ? cities[o.locationCityId] : null;
+    if (!city || city.ownerForceId !== o.forceId) continue;
+    const cost = breakthroughCost(o);
+    if (city.gold < cost * 2) continue;
+    if (rng() > 0.5) continue;
+    const r = applyBreakthrough(o);
+    officers[o.id] = r.officer;
+    cities[city.id] = { ...city, gold: city.gold - cost };
   }
 
   const seasonBoundary = input.seasonBoundary ?? true;

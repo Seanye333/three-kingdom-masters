@@ -27,6 +27,9 @@ import { SHIP_CLASSES_BY_ID } from '../data/ships';
 import { pickVoiceLine } from '../data/voiceLines';
 import { generateTerrain, type TerrainHint } from './battlefieldTerrain';
 import { effectiveStats } from './traitEffects';
+import { gradeCombatBonus } from './gradeCombat';
+import { growthPowerMul } from './growth';
+import { itemSetPowerMul } from '../data/itemSets';
 import { SIGNATURE_OVERRIDES } from './personalTactics';
 import { predictAttackDamage } from './damagePredict';
 import { stratagemSituation, type Situation } from './tacticSituation';
@@ -1459,12 +1462,20 @@ export function attackUnits(
   const fromRear = (attacker.coord.col - target.coord.col) * targetFacing < 0;
   const flankMul = fromRear ? 1.25 : 1.0;
 
+  // 品階威儀 — a higher-grade officer's unit hits harder, and a higher-grade
+  // defender's formation shrugs off part of the blow (威儀 toughness).
+  const aGradeMul = ao ? gradeCombatBonus(ao).powerMul : 1;
+  const dGradeResistMul = To ? 1 - gradeCombatBonus(To).damageResist : 1;
+  // 歷練之威 — a seasoned attacker's unit hits a touch harder per growth level.
+  const aGrowthMul = ao ? growthPowerMul(ao) : 1;
+  // 神兵譜共鳴 — a full legendary set lends extra bite.
+  const aSetMul = ao ? itemSetPowerMul(ao) : 1;
   const base =
     Math.floor((attacker.troops * (aWar + 30) * (0.85 + rng() * 0.3)) / (dLead + 50));
   let damage = Math.floor(
     base * counter * aTerrainMod * weatherMul * defenseMul * offenseMul *
     dShield * ambushBonus * fatigueMul * aWoundedMul * dWoundedMul * shipMul * pincerMul *
-    nightMul * heightMul * flankMul * crossingMul * streetMul * comboMul * formCounterMul * eliteMul,
+    nightMul * heightMul * flankMul * crossingMul * streetMul * comboMul * formCounterMul * eliteMul * aGradeMul * dGradeResistMul * aGrowthMul * aSetMul,
   );
   if (targetDefending) damage = Math.floor(damage / 2);
   if (attackerBurning) damage = Math.floor(damage * 0.9);
